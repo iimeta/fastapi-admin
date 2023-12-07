@@ -52,8 +52,25 @@ logger:
   stdoutColorDisabled: false  # 关闭终端的颜色打印。默认开启
   writerColorEnable: false    # 日志文件是否带上颜色。默认false，表示不带颜色
 
+# 项目配置信息
+app:
+  env: dev  # dev, prod
+  debug: true
+  juhe_key: xxx  # 使用登录助手需配置, 前往 https://www.juhe.cn 申请key
+  juhe_url:  # 可选, 默认 https://apis.juhe.cn/ip/ipNew
+  admin_email:
+    - xxx@xxx.com
+
 # http配置
 http:
   timeout: 60  # 单位秒
   proxy_open: false
   proxy_url: http://localhost:7890
+
+# 邮件配置
+email:
+  host: smtp.xxx.com
+  port: 465
+  username: xxx@xxx.com
+  password: xxx
+  fromname: "FastAPI"

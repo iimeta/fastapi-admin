@@ -40,8 +40,9 @@ func init() {
 
 // 配置信息
 type Config struct {
-	App  *App  `json:"app"`
-	Http *Http `json:"http"`
+	App   *App   `json:"app"`
+	Http  *Http  `json:"http"`
+	Email *Email `json:"email"`
 }
 
 type App struct {
@@ -56,6 +57,15 @@ type Http struct {
 	Timeout   time.Duration `json:"timeout"`
 	ProxyOpen bool          `json:"proxy_open"`
 	ProxyUrl  string        `json:"proxy_url"`
+}
+
+// 邮件配置信息
+type Email struct {
+	Host     string `json:"host"`     // smtp.xxx.com
+	Port     int    `json:"port"`     // 端口号
+	UserName string `json:"username"` // 登录账号
+	Password string `json:"password"` // 登录密码
+	FromName string `json:"fromname"` // 发送人名称
 }
 
 func Get(ctx context.Context, pattern string, def ...interface{}) (*gvar.Var, error) {
