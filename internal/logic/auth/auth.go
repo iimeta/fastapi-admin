@@ -34,7 +34,7 @@ func New() service.IAuth {
 func (s *sAuth) Register(ctx context.Context, params model.RegisterReq) error {
 
 	// 验证验证码是否正确
-	if !service.Email().Verify(ctx, consts.CHANNEL_REGISTER, params.Account, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.CHANNEL_REGISTER, params.Account, params.Code) {
 		return errors.New("验证码填写错误")
 	}
 
@@ -73,7 +73,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq) error {
 		return err
 	}
 
-	service.Email().Delete(ctx, consts.CHANNEL_REGISTER, params.Account)
+	_ = service.Common().DelCode(ctx, consts.CHANNEL_REGISTER, params.Account)
 
 	return nil
 }
@@ -137,7 +137,7 @@ func (s *sAuth) Logout(ctx context.Context) error {
 func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 
 	// 验证验证码是否正确
-	if !service.Email().Verify(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account, params.Code) {
 		return errors.New("验证码填写错误")
 	}
 
@@ -151,7 +151,7 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 		return errors.New("找回密码失败")
 	}
 
-	service.Email().Delete(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account)
+	_ = service.Common().DelCode(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account)
 
 	return nil
 }

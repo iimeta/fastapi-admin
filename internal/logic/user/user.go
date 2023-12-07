@@ -143,7 +143,7 @@ func (s *sUser) Setting(ctx context.Context) (*model.UserSettingRes, error) {
 // 换绑手机号
 func (s *sUser) ChangeMobile(ctx context.Context, params model.UserMobileUpdateReq) error {
 
-	if !service.Sms().Verify(ctx, consts.CHANNEL_CHANGE_MOBILE, params.Mobile, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_MOBILE, params.Mobile, params.Code) {
 		return errors.New("短信验证码填写错误")
 	}
 
@@ -217,7 +217,7 @@ func (s *sUser) ChangeMobile(ctx context.Context, params model.UserMobileUpdateR
 // 换绑邮箱
 func (s *sUser) ChangeEmail(ctx context.Context, params model.UserEmailUpdateReq) error {
 
-	if !service.Email().Verify(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email, params.Code) {
 		return errors.New("邮件验证码填写错误")
 	}
 

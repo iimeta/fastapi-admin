@@ -125,6 +125,14 @@ func GetInt(ctx context.Context, key string) (int, error) {
 	return reply.Int(), nil
 }
 
+func GetStr(ctx context.Context, key string) (string, error) {
+	reply, err := slave.Get(ctx, key)
+	if err != nil {
+		return "", err
+	}
+	return reply.String(), nil
+}
+
 func Del(ctx context.Context, keys ...string) (int64, error) {
 	return master.Del(ctx, keys...)
 }
@@ -170,9 +178,7 @@ func Expire(ctx context.Context, key string, seconds int64, option ...gredis.Exp
 }
 
 func Pipeline(ctx context.Context) redis.Pipeliner {
-	var pipe redis.Pipeliner
-	pipe = Client.Pipeline()
-	return pipe
+	return Client.Pipeline()
 }
 
 func Pipelined(ctx context.Context, pipe pipeliner) ([]redis.Cmder, error) {
