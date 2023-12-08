@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
@@ -120,9 +121,22 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		logger.Error(ctx, err)
 	}
 
+	user, err := dao.User.FindById(ctx, accountInfo.Uid)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("用户不存在或已被禁用")
+		}
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	token := grand.Letters(32)
+
+	_, _ = redis.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user))
+
 	return &model.LoginRes{
 		Type:        "Bearer",
-		AccessToken: "token(user.UserId)",
+		AccessToken: token,
 		ExpiresIn:   7200,
 	}, nil
 }

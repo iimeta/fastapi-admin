@@ -7,7 +7,7 @@ import (
 
 // 登录用户详情接口请求参数
 type UserDetailReq struct {
-	g.Meta `path:"/detail" tags:"users" method:"get" summary:"登录用户详情接口"`
+	g.Meta `path:"/detail" tags:"user" method:"get" summary:"登录用户详情接口"`
 }
 
 // 登录用户详情接口响应参数
@@ -18,7 +18,7 @@ type UserDetailRes struct {
 
 // 用户配置信息请求参数
 type UserSettingReq struct {
-	g.Meta `path:"/setting" tags:"users" method:"get" summary:"用户配置信息接口"`
+	g.Meta `path:"/setting" tags:"user" method:"get" summary:"用户配置信息接口"`
 }
 
 // 用户配置信息响应参数
@@ -29,7 +29,7 @@ type UserSettingRes struct {
 
 // 用户信息更新接口请求参数
 type UserDetailUpdateReq struct {
-	g.Meta `path:"/change/detail" tags:"users" method:"post" summary:"用户信息更新接口"`
+	g.Meta `path:"/change/detail" tags:"user" method:"post" summary:"用户信息更新接口"`
 	model.UserDetailUpdateReq
 }
 
@@ -40,7 +40,7 @@ type UserDetailUpdateRes struct {
 
 // 用户密码更新接口请求参数
 type UserPasswordUpdateReq struct {
-	g.Meta `path:"/change/password" tags:"users" method:"post" summary:"用户密码更新接口"`
+	g.Meta `path:"/change/password" tags:"user" method:"post" summary:"用户密码更新接口"`
 	model.UserPasswordUpdateReq
 }
 
@@ -51,7 +51,7 @@ type UserPasswordUpdateRes struct {
 
 // 用户手机号更新接口请求参数
 type UserMobileUpdateReq struct {
-	g.Meta `path:"/change/mobile" tags:"users" method:"post" summary:"用户手机号更新接口"`
+	g.Meta `path:"/change/mobile" tags:"user" method:"post" summary:"用户手机号更新接口"`
 	model.UserMobileUpdateReq
 }
 
@@ -62,7 +62,7 @@ type UserMobileUpdateRes struct {
 
 // 用户邮箱更新接口请求参数
 type UserEmailUpdateReq struct {
-	g.Meta `path:"/change/email" tags:"users" method:"post" summary:"用户邮箱更新接口"`
+	g.Meta `path:"/change/email" tags:"user" method:"post" summary:"用户邮箱更新接口"`
 	model.UserEmailUpdateReq
 }
 
