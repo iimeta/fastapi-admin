@@ -1,21 +1,19 @@
 package model
 
-// 登录用户详情接口响应参数
-type UserDetailRes struct {
+// 登录用户信息接口响应参数
+type UserInfoRes struct {
 	Id       int    `json:"id"`
 	Mobile   string `json:"mobile"`
 	Email    string `json:"email"`
 	Nickname string `json:"nickname"`
 	Avatar   string `json:"avatar"`
 	Gender   int    `json:"gender"`
-	Motto    string `json:"motto"`
-	Birthday string `json:"birthday"`
 }
 
 // 用户配置信息响应参数
 type UserSettingRes struct {
-	UserInfo *UserInfo    `json:"user_info,omitempty"`
-	Setting  *SettingInfo `json:"setting,omitempty"`
+	User    *User        `json:"user,omitempty"`
+	Setting *SettingInfo `json:"setting,omitempty"`
 }
 
 // 用户信息更新接口请求参数
@@ -50,29 +48,13 @@ type UserEmailUpdateReq struct {
 type User struct {
 	Id        string `json:"_id,omitempty"`        // ID
 	UserId    int    `json:"user_id,omitempty"`    // 用户ID
-	Mobile    string `json:"mobile,omitempty"`     // 手机号
 	Nickname  string `json:"nickname,omitempty"`   // 用户昵称
 	Avatar    string `json:"avatar,omitempty"`     // 用户头像地址
 	Gender    int    `json:"gender,omitempty"`     // 用户性别  0:未知  1:男   2:女
-	Password  string `json:"password,omitempty"`   // 用户密码
-	Motto     string `json:"motto,omitempty"`      // 用户座右铭
+	Mobile    string `json:"mobile,omitempty"`     // 手机号
 	Email     string `json:"email,omitempty"`      // 用户邮箱
-	Birthday  string `json:"birthday,omitempty"`   // 生日
-	IsRobot   int    `json:"is_robot,omitempty"`   // 是否机器人[0:否;1:是;]
 	CreatedAt int64  `json:"created_at,omitempty"` // 注册时间
 	UpdatedAt int64  `json:"updated_at,omitempty"` // 更新时间
-}
-
-type UserInfo struct {
-	UserId   int    `json:"uid,omitempty"`
-	Nickname string `json:"nickname,omitempty"`
-	Avatar   string `json:"avatar,omitempty"`
-	Motto    string `json:"motto,omitempty"`
-	Gender   int    `json:"gender,omitempty"`
-	IsQiye   bool   `json:"is_qiye,omitempty"`
-	Mobile   string `json:"mobile,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Birthday string `json:"birthday,omitempty"` // 生日
 }
 
 type SettingInfo struct {

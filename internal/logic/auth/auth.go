@@ -130,14 +130,26 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		return nil, err
 	}
 
-	token := grand.Letters(32)
-
-	_, _ = redis.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user))
+	token, err := s.GenUserToken(ctx, &model.User{
+		Id:        user.Id,
+		UserId:    user.UserId,
+		Nickname:  user.Nickname,
+		Avatar:    user.Avatar,
+		Gender:    user.Gender,
+		Email:     user.Email,
+		Mobile:    user.Mobile,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, true)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
 
 	return &model.LoginRes{
-		Type:        "Bearer",
-		AccessToken: token,
-		ExpiresIn:   7200,
+		Type:      "Bearer",
+		Token:     token,
+		ExpiresIn: 7200,
 	}, nil
 }
 
@@ -168,4 +180,15 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 	_ = service.Common().DelCode(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account)
 
 	return nil
+}
+
+func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSession bool) (token string, err error) {
+
+	token = grand.Letters(32)
+
+	if isSaveSession {
+		_, err = redis.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user))
+	}
+
+	return token, err
 }

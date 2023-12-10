@@ -13,8 +13,8 @@ import (
 
 type (
 	IUser interface {
-		// 用户详情
-		Detail(ctx context.Context) (*model.UserDetailRes, error)
+		// 用户信息
+		Info(ctx context.Context) (*model.UserInfoRes, error)
 		// 修改用户信息
 		ChangeDetail(ctx context.Context, params model.UserDetailUpdateReq) error
 		// 修改密码接口

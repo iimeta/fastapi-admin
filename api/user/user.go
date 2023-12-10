@@ -11,7 +11,7 @@ import (
 )
 
 type IUserV1 interface {
-	UserDetail(ctx context.Context, req *v1.UserDetailReq) (res *v1.UserDetailRes, err error)
+	UserInfo(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfoRes, err error)
 	UserSetting(ctx context.Context, req *v1.UserSettingReq) (res *v1.UserSettingRes, err error)
 	UserDetailUpdate(ctx context.Context, req *v1.UserDetailUpdateReq) (res *v1.UserDetailUpdateRes, err error)
 	UserPasswordUpdate(ctx context.Context, req *v1.UserPasswordUpdateReq) (res *v1.UserPasswordUpdateRes, err error)

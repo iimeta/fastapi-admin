@@ -5,15 +5,15 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model"
 )
 
-// 登录用户详情接口请求参数
-type UserDetailReq struct {
-	g.Meta `path:"/detail" tags:"user" method:"get" summary:"登录用户详情接口"`
+// 登录用户信息接口请求参数
+type UserInfoReq struct {
+	g.Meta `path:"/info" tags:"user" method:"get" summary:"登录用户信息接口"`
 }
 
-// 登录用户详情接口响应参数
-type UserDetailRes struct {
+// 登录用户信息接口响应参数
+type UserInfoRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.UserDetailRes
+	*model.UserInfoRes
 }
 
 // 用户配置信息请求参数

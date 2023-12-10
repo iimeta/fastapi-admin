@@ -9,9 +9,9 @@ type LoginReq struct {
 
 // 登录接口响应参数
 type LoginRes struct {
-	Type        string `json:"type,omitempty"`         // Token 类型
-	AccessToken string `json:"access_token,omitempty"` // token
-	ExpiresIn   int    `json:"expires_in,omitempty"`   // 过期时间
+	Type      string `json:"type,omitempty"`       // Token 类型
+	Token     string `json:"token,omitempty"`      // token
+	ExpiresIn int    `json:"expires_in,omitempty"` // 过期时间
 }
 
 // 注册接口请求参数

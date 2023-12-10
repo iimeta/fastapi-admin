@@ -28,8 +28,8 @@ func New() service.IUser {
 	return &sUser{}
 }
 
-// 用户详情
-func (s *sUser) Detail(ctx context.Context) (*model.UserDetailRes, error) {
+// 用户信息
+func (s *sUser) Info(ctx context.Context) (*model.UserInfoRes, error) {
 
 	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUid(ctx))
 	if err != nil {
@@ -37,15 +37,13 @@ func (s *sUser) Detail(ctx context.Context) (*model.UserDetailRes, error) {
 		return nil, err
 	}
 
-	return &model.UserDetailRes{
+	return &model.UserInfoRes{
 		Id:       user.UserId,
 		Mobile:   user.Mobile,
 		Nickname: user.Nickname,
 		Avatar:   user.Avatar,
 		Gender:   user.Gender,
-		Motto:    user.Motto,
 		Email:    user.Email,
-		Birthday: user.Birthday,
 	}, nil
 }
 
@@ -62,8 +60,6 @@ func (s *sUser) ChangeDetail(ctx context.Context, params model.UserDetailUpdateR
 		Nickname: strings.TrimSpace(strings.Replace(params.Nickname, " ", "", -1)),
 		Avatar:   params.Avatar,
 		Gender:   params.Gender,
-		Motto:    params.Motto,
-		Birthday: params.Birthday,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return errors.New("个人信息修改失败")
@@ -126,15 +122,13 @@ func (s *sUser) Setting(ctx context.Context) (*model.UserSettingRes, error) {
 	}
 
 	return &model.UserSettingRes{
-		UserInfo: &model.UserInfo{
+		User: &model.User{
 			UserId:   user.UserId,
 			Nickname: user.Nickname,
 			Avatar:   user.Avatar,
-			Motto:    user.Motto,
 			Gender:   user.Gender,
 			Mobile:   user.Mobile,
 			Email:    user.Email,
-			Birthday: user.Birthday,
 		},
 		Setting: &model.SettingInfo{},
 	}, nil
@@ -304,9 +298,7 @@ func (s *sUser) GetUserById(ctx context.Context, userId int) (*model.User, error
 		Nickname:  user.Nickname,
 		Avatar:    user.Avatar,
 		Gender:    user.Gender,
-		Motto:     user.Motto,
 		Email:     user.Email,
-		Birthday:  user.Birthday,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}, nil
