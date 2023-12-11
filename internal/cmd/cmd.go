@@ -2,10 +2,16 @@ package cmd
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/internal/controller/app"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
+	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
+	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"net/http"
+	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -25,7 +31,7 @@ var (
 
 			s.Group("/", func(g *ghttp.RouterGroup) {
 				g.Middleware(ghttp.MiddlewareHandlerResponse)
-				g.Middleware(MiddlewareAuth)
+				g.Middleware(middleware)
 				g.Bind()
 			})
 
@@ -46,9 +52,23 @@ var (
 				})
 
 				v1.Group("/user", func(g *ghttp.RouterGroup) {
-					g.Middleware(MiddlewareAuth)
+					g.Middleware(middleware)
 					g.Bind(
 						user.NewV1(),
+					)
+				})
+
+				v1.Group("/model", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						model.NewV1(),
+					)
+				})
+
+				v1.Group("/app", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						app.NewV1(),
 					)
 				})
 			})
@@ -60,10 +80,47 @@ var (
 )
 
 func beforeServeHook(r *ghttp.Request) {
-	logger.Debugf(r.GetCtx(), "beforeServeHook [isFile: %v] URI: %s", r.IsFileRequest(), r.RequestURI)
+	logger.Debugf(r.GetCtx(), "beforeServeHook [isFile: %t] URI: %s", r.IsFileRequest(), r.RequestURI)
 	r.Response.CORSDefault()
 }
 
-func MiddlewareAuth(r *ghttp.Request) {
-	//middleware.Auth(r, config.Cfg.Jwt.Secret, "api", cache.NewTokenSessionStorage(redis.Client))
+func middleware(r *ghttp.Request) {
+
+	token := r.GetHeader("Authorization")
+	token = strings.TrimSpace(strings.TrimPrefix(token, "Bearer"))
+
+	if token == "" {
+		token = r.Get("token").String()
+	}
+
+	if token == "" {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
+	user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
+	if err != nil {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
+	err = service.Session().Save(r.GetCtx(), user)
+	if err != nil {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
+	if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
+		logger.Debugf(r.GetCtx(), "url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
+	} else {
+		logger.Debugf(r.GetCtx(), "url: %s, Content-Type: %s", r.GetUrl(), r.GetHeader("Content-Type"))
+	}
+
+	r.Middleware.Next()
 }

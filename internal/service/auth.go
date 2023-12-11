@@ -22,6 +22,7 @@ type (
 		// 账号找回接口
 		Forget(ctx context.Context, params model.ForgetReq) error
 		GenUserToken(ctx context.Context, user *model.User, isSaveSession bool) (token string, err error)
+		GetUserByToken(ctx context.Context, token string) (*model.User, error)
 	}
 )
 

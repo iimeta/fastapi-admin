@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -111,16 +112,6 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		return nil, errors.New("账号或密码不正确")
 	}
 
-	ip := g.RequestFromCtx(ctx).GetClientIp()
-
-	// 记录登录ip和时间
-	if err = dao.Account.UpdateById(ctx, accountInfo.Id, bson.M{
-		"last_login_ip":   ip,
-		"last_login_time": gtime.Timestamp(),
-	}); err != nil {
-		logger.Error(ctx, err)
-	}
-
 	user, err := dao.User.FindById(ctx, accountInfo.Uid)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -128,6 +119,20 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		}
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	r := g.RequestFromCtx(ctx)
+
+	r.SetCtxVar("uid", user.Id)
+
+	ip := r.GetClientIp()
+
+	// 记录登录ip和时间
+	if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), accountInfo.Id, bson.M{
+		"last_login_ip":   ip,
+		"last_login_time": gtime.Timestamp(),
+	}); err != nil {
+		logger.Error(ctx, err)
 	}
 
 	token, err := s.GenUserToken(ctx, &model.User{
@@ -182,13 +187,34 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 	return nil
 }
 
+// 生成用户Token
 func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSession bool) (token string, err error) {
 
 	token = grand.Letters(32)
 
 	if isSaveSession {
-		_, err = redis.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user))
+		err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 7200)
 	}
 
 	return token, err
+}
+
+// 根据Token获取用户信息
+func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, error) {
+
+	reply, err := redis.Get(ctx, fmt.Sprintf(consts.USER_SESSION, token))
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	user := new(model.User)
+
+	err = reply.UnmarshalValue(&user)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return user, nil
 }

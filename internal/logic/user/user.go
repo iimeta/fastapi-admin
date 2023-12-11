@@ -31,7 +31,7 @@ func New() service.IUser {
 // 用户信息
 func (s *sUser) Info(ctx context.Context) (*model.UserInfoRes, error) {
 
-	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUid(ctx))
+	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -56,7 +56,7 @@ func (s *sUser) ChangeDetail(ctx context.Context, params model.UserDetailUpdateR
 		}
 	}
 
-	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUid(ctx)}, &do.User{
+	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, &do.User{
 		Nickname: strings.TrimSpace(strings.Replace(params.Nickname, " ", "", -1)),
 		Avatar:   params.Avatar,
 		Gender:   params.Gender,
@@ -71,7 +71,7 @@ func (s *sUser) ChangeDetail(ctx context.Context, params model.UserDetailUpdateR
 // 修改密码接口
 func (s *sUser) ChangePassword(ctx context.Context, params model.UserPasswordUpdateReq) (err error) {
 
-	uid := service.Session().GetUid(ctx)
+	uid := service.Session().GetUserId(ctx)
 
 	defer func() {
 		if err != nil {
@@ -115,7 +115,7 @@ func (s *sUser) ChangePassword(ctx context.Context, params model.UserPasswordUpd
 // 用户设置
 func (s *sUser) Setting(ctx context.Context) (*model.UserSettingRes, error) {
 
-	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUid(ctx))
+	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -141,7 +141,7 @@ func (s *sUser) ChangeMobile(ctx context.Context, params model.UserMobileUpdateR
 		return errors.New("短信验证码填写错误")
 	}
 
-	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUid(ctx))
+	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -215,7 +215,7 @@ func (s *sUser) ChangeEmail(ctx context.Context, params model.UserEmailUpdateReq
 		return errors.New("邮件验证码填写错误")
 	}
 
-	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUid(ctx))
+	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
