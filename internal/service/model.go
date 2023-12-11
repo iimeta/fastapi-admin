@@ -20,7 +20,7 @@ type (
 		// 删除模型
 		Delete(ctx context.Context, id string) error
 		// 模型详情
-		Detail(ctx context.Context, id string) (*model.ModelDetailRes, error)
+		Detail(ctx context.Context, id string) (*model.Model, error)
 	}
 )
 

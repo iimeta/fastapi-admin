@@ -210,7 +210,7 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 
 	user := new(model.User)
 
-	err = reply.UnmarshalValue(&user)
+	err = reply.Struct(&user)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
