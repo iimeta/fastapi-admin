@@ -8,6 +8,7 @@ const (
 
 type App struct {
 	gmeta.Meta  `collection:"app" bson:"-"`
+	AppId       int      `bson:"app_id,omitempty"`       // 应用ID
 	Name        string   `bson:"name,omitempty"`         // 应用名称
 	Type        int      `bson:"type,omitempty"`         // 应用类型
 	Models      []string `bson:"models,omitempty"`       // 模型

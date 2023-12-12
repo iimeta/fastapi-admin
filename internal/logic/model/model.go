@@ -6,7 +6,9 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
+	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type sModel struct{}
@@ -93,5 +95,54 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		Updater:   m.Updater,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
+	}, nil
+}
+
+// 模型分页列表
+func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.ModelPageRes, error) {
+
+	paging := &db.Paging{
+		Page: params.Page,
+	}
+
+	filter := bson.M{}
+
+	results, err := dao.Model.FindByPage(ctx, paging, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.Model, 0)
+	for _, result := range results {
+		items = append(items, &model.Model{
+			Id:        result.Id,
+			Corp:      result.Corp,
+			Name:      result.Name,
+			Model:     result.Model,
+			Type:      result.Type,
+			BaseUrl:   result.BaseUrl,
+			Path:      result.Path,
+			Proxy:     result.Proxy,
+			Keys:      result.Keys,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			Creator:   result.Creator,
+			Updater:   result.Updater,
+			CreatedAt: result.CreatedAt,
+			UpdatedAt: result.UpdatedAt,
+		})
+	}
+
+	return &model.ModelPageRes{
+		Items: items,
+		Paging: &model.Paging{
+			Page:      paging.Page,
+			PageSize:  paging.PageSize,
+			Total:     paging.Total,
+			PageCount: paging.PageCount,
+			StartNums: paging.StartNums,
+			EndNums:   paging.EndNums,
+		},
 	}, nil
 }

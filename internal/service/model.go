@@ -21,6 +21,8 @@ type (
 		Delete(ctx context.Context, id string) error
 		// 模型详情
 		Detail(ctx context.Context, id string) (*model.Model, error)
+		// 模型分页列表
+		Page(ctx context.Context, params model.ModelPageReq) (*model.ModelPageRes, error)
 	}
 )
 

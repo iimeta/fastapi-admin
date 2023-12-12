@@ -20,7 +20,9 @@ type (
 		// 删除应用
 		Delete(ctx context.Context, id string) error
 		// 应用详情
-		Detail(ctx context.Context, id string) (*model.AppDetailRes, error)
+		Detail(ctx context.Context, id string) (*model.App, error)
+		// 应用分页列表
+		Page(ctx context.Context, params model.AppPageReq) (*model.AppPageRes, error)
 	}
 )
 

@@ -49,3 +49,15 @@ type DetailRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.AppDetailRes
 }
+
+// 应用分页列表接口请求参数
+type PageReq struct {
+	g.Meta `path:"/page" tags:"app" method:"get" summary:"应用分页列表接口"`
+	model.AppPageReq
+}
+
+// 应用分页列表接口响应参数
+type PageRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.AppPageRes
+}

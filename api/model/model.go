@@ -15,4 +15,5 @@ type IModelV1 interface {
 	Update(ctx context.Context, req *v1.UpdateReq) (res *v1.UpdateRes, err error)
 	Delete(ctx context.Context, req *v1.DeleteReq) (res *v1.DeleteRes, err error)
 	Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error)
+	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 }
