@@ -9,6 +9,7 @@ type User struct {
 	Mobile    string `bson:"mobile,omitempty"`     // 手机号
 	Email     string `bson:"email,omitempty"`      // 邮箱
 	VipLevel  int    `bson:"vip_level,omitempty"`  // 会员等级
+	Remark    string `bson:"remark,omitempty"`     // 备注
 	Status    int    `bson:"status,omitempty"`     // 状态[1:正常; 2:禁用; -1:删除]
 	Creator   string `bson:"creator,omitempty"`    // 创建人
 	Updater   string `bson:"updater,omitempty"`    // 更新人
@@ -25,6 +26,7 @@ type Account struct {
 	Salt          string `bson:"salt,omitempty"`       // 盐
 	LastLoginIP   string `bson:"last_login_ip"`        // 最后登录IP
 	LastLoginTime int64  `bson:"last_login_time"`      // 最后登录时间
+	Remark        string `bson:"remark,omitempty"`     // 备注
 	Status        int    `bson:"status,omitempty"`     // 状态[1:正常; 2:禁用; -1:删除]
 	Creator       string `bson:"creator,omitempty"`    // 创建人
 	Updater       string `bson:"updater,omitempty"`    // 更新人

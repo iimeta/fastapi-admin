@@ -14,6 +14,7 @@ type App struct {
 	Keys        []string `bson:"keys,omitempty"`         // 密钥
 	IpWhitelist []string `bson:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `bson:"ip_blacklist,omitempty"` // IP黑名单
+	Remark      string   `bson:"remark,omitempty"`       // 备注
 	Status      int      `bson:"status,omitempty"`       // 状态[1:正常; 2:禁用; -1:删除]
 	Creator     string   `bson:"creator,omitempty"`      // 创建人
 	Updater     string   `bson:"updater,omitempty"`      // 更新人
