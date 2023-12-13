@@ -102,7 +102,8 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.ModelPageRes, error) {
 
 	paging := &db.Paging{
-		Page: params.Page,
+		Page:     params.Page,
+		PageSize: params.PageSize,
 	}
 
 	filter := bson.M{}
@@ -141,8 +142,6 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			PageSize:  paging.PageSize,
 			Total:     paging.Total,
 			PageCount: paging.PageCount,
-			StartNums: paging.StartNums,
-			EndNums:   paging.EndNums,
 		},
 	}, nil
 }

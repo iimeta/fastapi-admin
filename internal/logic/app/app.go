@@ -105,7 +105,8 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPageRes, error) {
 
 	paging := &db.Paging{
-		Page: params.Page,
+		Page:     params.Page,
+		PageSize: params.PageSize,
 	}
 
 	filter := bson.M{}
@@ -143,8 +144,6 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			PageSize:  paging.PageSize,
 			Total:     paging.Total,
 			PageCount: paging.PageCount,
-			StartNums: paging.StartNums,
-			EndNums:   paging.EndNums,
 		},
 	}, nil
 }
