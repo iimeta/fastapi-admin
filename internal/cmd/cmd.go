@@ -7,6 +7,11 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
+	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
+	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
+	"github.com/iimeta/fastapi-admin/internal/controller/sys_menu"
+	"github.com/iimeta/fastapi-admin/internal/controller/sys_role"
+	"github.com/iimeta/fastapi-admin/internal/controller/sys_settings"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -73,6 +78,42 @@ var (
 				})
 			})
 
+			s.Group("/api/v1/sys", func(v1 *ghttp.RouterGroup) {
+
+				v1.Middleware(ghttp.MiddlewareHandlerResponse)
+				v1.Middleware(sysMiddleware)
+
+				v1.Group("/admin", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						sys_admin.NewV1(),
+					)
+				})
+
+				v1.Group("/config", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						sys_config.NewV1(),
+					)
+				})
+
+				v1.Group("/menu", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						sys_menu.NewV1(),
+					)
+				})
+
+				v1.Group("/role", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						sys_role.NewV1(),
+					)
+				})
+
+				v1.Group("/settings", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						sys_settings.NewV1(),
+					)
+				})
+			})
+
 			s.Run()
 			return nil
 		},
@@ -85,6 +126,47 @@ func beforeServeHook(r *ghttp.Request) {
 }
 
 func middleware(r *ghttp.Request) {
+
+	token := r.GetHeader("Authorization")
+	token = strings.TrimSpace(strings.TrimPrefix(token, "Bearer"))
+
+	if token == "" {
+		token = r.Get("token").String()
+	}
+
+	if token == "" {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
+	user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
+	if err != nil {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
+	err = service.Session().Save(r.GetCtx(), user)
+	if err != nil {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
+	if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
+		logger.Debugf(r.GetCtx(), "url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
+	} else {
+		logger.Debugf(r.GetCtx(), "url: %s, Content-Type: %s", r.GetUrl(), r.GetHeader("Content-Type"))
+	}
+
+	r.Middleware.Next()
+}
+
+func sysMiddleware(r *ghttp.Request) {
 
 	token := r.GetHeader("Authorization")
 	token = strings.TrimSpace(strings.TrimPrefix(token, "Bearer"))

@@ -8,7 +8,7 @@ import (
 // 新建管理员接口请求参数
 type CreateReq struct {
 	g.Meta `path:"/create" tags:"admin" method:"post" summary:"新建管理员接口"`
-	model.AdminCreateReq
+	model.SysAdminCreateReq
 }
 
 // 新建管理员接口响应参数
@@ -19,7 +19,7 @@ type CreateRes struct {
 // 更新管理员接口请求参数
 type UpdateReq struct {
 	g.Meta `path:"/update" tags:"admin" method:"post" summary:"更新管理员接口"`
-	model.AdminUpdateReq
+	model.SysAdminUpdateReq
 }
 
 // 更新管理员接口响应参数
@@ -47,17 +47,17 @@ type DetailReq struct {
 // 管理员详情接口响应参数
 type DetailRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.AdminDetailRes
+	*model.SysAdminDetailRes
 }
 
 // 管理员分页列表接口请求参数
 type PageReq struct {
 	g.Meta `path:"/page" tags:"admin" method:"get" summary:"管理员分页列表接口"`
-	model.AdminPageReq
+	model.SysAdminPageReq
 }
 
 // 管理员分页列表接口响应参数
 type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.AdminPageRes
+	*model.SysAdminPageRes
 }

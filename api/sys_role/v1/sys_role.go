@@ -8,7 +8,7 @@ import (
 // 新建角色接口请求参数
 type CreateReq struct {
 	g.Meta `path:"/create" tags:"role" method:"post" summary:"新建角色接口"`
-	model.RoleCreateReq
+	model.SysRoleCreateReq
 }
 
 // 新建角色接口响应参数
@@ -19,7 +19,7 @@ type CreateRes struct {
 // 更新角色接口请求参数
 type UpdateReq struct {
 	g.Meta `path:"/update" tags:"role" method:"post" summary:"更新角色接口"`
-	model.RoleUpdateReq
+	model.SysRoleUpdateReq
 }
 
 // 更新角色接口响应参数
@@ -47,17 +47,17 @@ type DetailReq struct {
 // 角色详情接口响应参数
 type DetailRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.RoleDetailRes
+	*model.SysRoleDetailRes
 }
 
 // 角色分页列表接口请求参数
 type PageReq struct {
 	g.Meta `path:"/page" tags:"role" method:"get" summary:"角色分页列表接口"`
-	model.RolePageReq
+	model.SysRolePageReq
 }
 
 // 角色分页列表接口响应参数
 type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.RolePageRes
+	*model.SysRolePageRes
 }

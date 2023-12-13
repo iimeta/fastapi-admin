@@ -11,9 +11,9 @@ import (
 )
 
 type ISysSettingsV1 interface {
-	Login(ctx context.Context, req *v1.LoginReq) (res *v1.LoginRes, err error)
-	Logout(ctx context.Context, req *v1.LogoutReq) (res *v1.LogoutRes, err error)
-	Register(ctx context.Context, req *v1.RegisterReq) (res *v1.RegisterRes, err error)
-	Refresh(ctx context.Context, req *v1.RefreshReq) (res *v1.RefreshRes, err error)
-	Forget(ctx context.Context, req *v1.ForgetReq) (res *v1.ForgetRes, err error)
+	Create(ctx context.Context, req *v1.CreateReq) (res *v1.CreateRes, err error)
+	Update(ctx context.Context, req *v1.UpdateReq) (res *v1.UpdateRes, err error)
+	Delete(ctx context.Context, req *v1.DeleteReq) (res *v1.DeleteRes, err error)
+	Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error)
+	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 }

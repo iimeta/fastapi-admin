@@ -1,7 +1,7 @@
 package model
 
 // 新建设置接口请求参数
-type SettingsCreateReq struct {
+type SysSettingsCreateReq struct {
 	Name        string   `json:"name,omitempty"`         // 设置名称
 	Type        int      `json:"type,omitempty"`         // 设置类型
 	Models      []string `json:"models,omitempty"`       // 模型
@@ -13,7 +13,7 @@ type SettingsCreateReq struct {
 }
 
 // 更新设置接口请求参数
-type SettingsUpdateReq struct {
+type SysSettingsUpdateReq struct {
 	Id          string   `json:"_id,omitempty"`          // ID
 	Name        string   `json:"name,omitempty"`         // 设置名称
 	Type        int      `json:"type,omitempty"`         // 设置类型
@@ -26,12 +26,12 @@ type SettingsUpdateReq struct {
 }
 
 // 设置详情接口响应参数
-type SettingsDetailRes struct {
-	*Settings
+type SysSettingsDetailRes struct {
+	*SysSettings
 }
 
 // 设置分页列表接口请求参数
-type SettingsPageReq struct {
+type SysSettingsPageReq struct {
 	Paging
 	Name        string   `json:"name,omitempty"`         // 设置名称
 	Type        int      `json:"type,omitempty"`         // 设置类型
@@ -44,12 +44,12 @@ type SettingsPageReq struct {
 }
 
 // 设置分页列表接口响应参数
-type SettingsPageRes struct {
-	Items  []*Settings `json:"items"`
-	Paging *Paging     `json:"paging"`
+type SysSettingsPageRes struct {
+	Items  []*SysSettings `json:"items"`
+	Paging *Paging        `json:"paging"`
 }
 
-type Settings struct {
+type SysSettings struct {
 	Id          string   `json:"_id,omitempty"`          // ID
 	SettingsId  int      `json:"app_id,omitempty"`       // 设置ID
 	Name        string   `json:"name,omitempty"`         // 设置名称

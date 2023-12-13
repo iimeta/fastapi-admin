@@ -1,7 +1,7 @@
 package model
 
 // 新建菜单接口请求参数
-type MenuCreateReq struct {
+type SysMenuCreateReq struct {
 	Name        string   `json:"name,omitempty"`         // 菜单名称
 	Type        int      `json:"type,omitempty"`         // 菜单类型
 	Models      []string `json:"models,omitempty"`       // 模型
@@ -13,7 +13,7 @@ type MenuCreateReq struct {
 }
 
 // 更新菜单接口请求参数
-type MenuUpdateReq struct {
+type SysMenuUpdateReq struct {
 	Id          string   `json:"_id,omitempty"`          // ID
 	Name        string   `json:"name,omitempty"`         // 菜单名称
 	Type        int      `json:"type,omitempty"`         // 菜单类型
@@ -26,12 +26,12 @@ type MenuUpdateReq struct {
 }
 
 // 菜单详情接口响应参数
-type MenuDetailRes struct {
-	*Menu
+type SysMenuDetailRes struct {
+	*SysMenu
 }
 
 // 菜单分页列表接口请求参数
-type MenuPageReq struct {
+type SysMenuPageReq struct {
 	Paging
 	Name        string   `json:"name,omitempty"`         // 菜单名称
 	Type        int      `json:"type,omitempty"`         // 菜单类型
@@ -44,12 +44,12 @@ type MenuPageReq struct {
 }
 
 // 菜单分页列表接口响应参数
-type MenuPageRes struct {
-	Items  []*Menu `json:"items"`
-	Paging *Paging `json:"paging"`
+type SysMenuPageRes struct {
+	Items  []*SysMenu `json:"items"`
+	Paging *Paging    `json:"paging"`
 }
 
-type Menu struct {
+type SysMenu struct {
 	Id          string   `json:"_id,omitempty"`          // ID
 	MenuId      int      `json:"app_id,omitempty"`       // 菜单ID
 	Name        string   `json:"name,omitempty"`         // 菜单名称

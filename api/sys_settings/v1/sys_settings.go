@@ -8,7 +8,7 @@ import (
 // 新建设置接口请求参数
 type CreateReq struct {
 	g.Meta `path:"/create" tags:"settings" method:"post" summary:"新建设置接口"`
-	model.SettingsCreateReq
+	model.SysSettingsCreateReq
 }
 
 // 新建设置接口响应参数
@@ -19,7 +19,7 @@ type CreateRes struct {
 // 更新设置接口请求参数
 type UpdateReq struct {
 	g.Meta `path:"/update" tags:"settings" method:"post" summary:"更新设置接口"`
-	model.SettingsUpdateReq
+	model.SysSettingsUpdateReq
 }
 
 // 更新设置接口响应参数
@@ -47,17 +47,17 @@ type DetailReq struct {
 // 设置详情接口响应参数
 type DetailRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.SettingsDetailRes
+	*model.SysSettingsDetailRes
 }
 
 // 设置分页列表接口请求参数
 type PageReq struct {
 	g.Meta `path:"/page" tags:"settings" method:"get" summary:"设置分页列表接口"`
-	model.SettingsPageReq
+	model.SysSettingsPageReq
 }
 
 // 设置分页列表接口响应参数
 type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.SettingsPageRes
+	*model.SysSettingsPageRes
 }

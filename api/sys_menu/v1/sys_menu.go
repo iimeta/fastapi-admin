@@ -8,7 +8,7 @@ import (
 // 新建菜单接口请求参数
 type CreateReq struct {
 	g.Meta `path:"/create" tags:"menu" method:"post" summary:"新建菜单接口"`
-	model.MenuCreateReq
+	model.SysMenuCreateReq
 }
 
 // 新建菜单接口响应参数
@@ -19,7 +19,7 @@ type CreateRes struct {
 // 更新菜单接口请求参数
 type UpdateReq struct {
 	g.Meta `path:"/update" tags:"menu" method:"post" summary:"更新菜单接口"`
-	model.MenuUpdateReq
+	model.SysMenuUpdateReq
 }
 
 // 更新菜单接口响应参数
@@ -47,17 +47,17 @@ type DetailReq struct {
 // 菜单详情接口响应参数
 type DetailRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.MenuDetailRes
+	*model.SysMenuDetailRes
 }
 
 // 菜单分页列表接口请求参数
 type PageReq struct {
 	g.Meta `path:"/page" tags:"menu" method:"get" summary:"菜单分页列表接口"`
-	model.MenuPageReq
+	model.SysMenuPageReq
 }
 
 // 菜单分页列表接口响应参数
 type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.MenuPageRes
+	*model.SysMenuPageRes
 }

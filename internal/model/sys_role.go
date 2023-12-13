@@ -1,7 +1,7 @@
 package model
 
 // 新建角色接口请求参数
-type RoleCreateReq struct {
+type SysRoleCreateReq struct {
 	Name        string   `json:"name,omitempty"`         // 角色名称
 	Type        int      `json:"type,omitempty"`         // 角色类型
 	Models      []string `json:"models,omitempty"`       // 模型
@@ -13,7 +13,7 @@ type RoleCreateReq struct {
 }
 
 // 更新角色接口请求参数
-type RoleUpdateReq struct {
+type SysRoleUpdateReq struct {
 	Id          string   `json:"_id,omitempty"`          // ID
 	Name        string   `json:"name,omitempty"`         // 角色名称
 	Type        int      `json:"type,omitempty"`         // 角色类型
@@ -26,12 +26,12 @@ type RoleUpdateReq struct {
 }
 
 // 角色详情接口响应参数
-type RoleDetailRes struct {
-	*Role
+type SysRoleDetailRes struct {
+	*SysRole
 }
 
 // 角色分页列表接口请求参数
-type RolePageReq struct {
+type SysRolePageReq struct {
 	Paging
 	Name        string   `json:"name,omitempty"`         // 角色名称
 	Type        int      `json:"type,omitempty"`         // 角色类型
@@ -44,12 +44,12 @@ type RolePageReq struct {
 }
 
 // 角色分页列表接口响应参数
-type RolePageRes struct {
-	Items  []*Role `json:"items"`
-	Paging *Paging `json:"paging"`
+type SysRolePageRes struct {
+	Items  []*SysRole `json:"items"`
+	Paging *Paging    `json:"paging"`
 }
 
-type Role struct {
+type SysRole struct {
 	Id          string   `json:"_id,omitempty"`          // ID
 	RoleId      int      `json:"app_id,omitempty"`       // 角色ID
 	Name        string   `json:"name,omitempty"`         // 角色名称
