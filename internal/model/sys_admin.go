@@ -2,27 +2,29 @@ package model
 
 // 新建管理员接口请求参数
 type SysAdminCreateReq struct {
-	Name        string   `json:"name,omitempty"`         // 管理员名称
-	Type        int      `json:"type,omitempty"`         // 管理员类型
-	Models      []string `json:"models,omitempty"`       // 模型
-	Keys        []string `json:"keys,omitempty"`         // 密钥
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常; 2:禁用; -1:删除]
+	Name     string `json:"name,omitempty"`     // 名称
+	Avatar   string `json:"avatar,omitempty"`   // 头像
+	Gender   int    `json:"gender,omitempty"`   // 性别[0:保密, 1:男, 2:女]
+	Mobile   string `json:"mobile,omitempty"`   // 手机号
+	Email    string `json:"email,omitempty"`    // 邮箱
+	Account  string `json:"account,omitempty"`  // 账号
+	Password string `json:"password,omitempty"` // 密码
+	Remark   string `json:"remark,omitempty"`   // 备注
+	Status   int    `json:"status,omitempty"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新管理员接口请求参数
 type SysAdminUpdateReq struct {
-	Id          string   `json:"_id,omitempty"`          // ID
-	Name        string   `json:"name,omitempty"`         // 管理员名称
-	Type        int      `json:"type,omitempty"`         // 管理员类型
-	Models      []string `json:"models,omitempty"`       // 模型
-	Keys        []string `json:"keys,omitempty"`         // 密钥
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常; 2:禁用; -1:删除]
+	Id       string `json:"id,omitempty"`       // ID
+	Name     string `json:"name,omitempty"`     // 名称
+	Avatar   string `json:"avatar,omitempty"`   // 头像
+	Gender   int    `json:"gender,omitempty"`   // 性别[0:保密, 1:男, 2:女]
+	Mobile   string `json:"mobile,omitempty"`   // 手机号
+	Email    string `json:"email,omitempty"`    // 邮箱
+	Account  string `json:"account,omitempty"`  // 账号
+	Password string `json:"password,omitempty"` // 密码
+	Remark   string `json:"remark,omitempty"`   // 备注
+	Status   int    `json:"status,omitempty"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 管理员详情接口响应参数
@@ -33,14 +35,15 @@ type SysAdminDetailRes struct {
 // 管理员分页列表接口请求参数
 type SysAdminPageReq struct {
 	Paging
-	Name        string   `json:"name,omitempty"`         // 管理员名称
-	Type        int      `json:"type,omitempty"`         // 管理员类型
-	Models      []string `json:"models,omitempty"`       // 模型
-	Keys        []string `json:"keys,omitempty"`         // 密钥
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常; 2:禁用; -1:删除]
+	Name     string `json:"name,omitempty"`     // 名称
+	Avatar   string `json:"avatar,omitempty"`   // 头像
+	Gender   int    `json:"gender,omitempty"`   // 性别[0:保密, 1:男, 2:女]
+	Mobile   string `json:"mobile,omitempty"`   // 手机号
+	Email    string `json:"email,omitempty"`    // 邮箱
+	Account  string `json:"account,omitempty"`  // 账号
+	Password string `json:"password,omitempty"` // 密码
+	Remark   string `json:"remark,omitempty"`   // 备注
+	Status   int    `json:"status,omitempty"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 管理员分页列表接口响应参数
@@ -50,18 +53,21 @@ type SysAdminPageRes struct {
 }
 
 type SysAdmin struct {
-	Id          string   `json:"_id,omitempty"`          // ID
-	AdminId     int      `json:"app_id,omitempty"`       // 管理员ID
-	Name        string   `json:"name,omitempty"`         // 管理员名称
-	Type        int      `json:"type,omitempty"`         // 管理员类型
-	Models      []string `json:"models,omitempty"`       // 模型
-	Keys        []string `json:"keys,omitempty"`         // 密钥
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常; 2:禁用; -1:删除]
-	Creator     string   `json:"creator,omitempty"`      // 创建人
-	Updater     string   `json:"updater,omitempty"`      // 更新人
-	CreatedAt   int64    `json:"created_at,omitempty"`   // 创建时间
-	UpdatedAt   int64    `json:"updated_at,omitempty"`   // 更新时间
+	Id            string `json:"id,omitempty"`              // ID
+	Name          string `json:"name,omitempty"`            // 名称
+	Avatar        string `json:"avatar,omitempty"`          // 头像
+	Gender        int    `json:"gender,omitempty"`          // 性别[0:保密, 1:男, 2:女]
+	Mobile        string `json:"mobile,omitempty"`          // 手机号
+	Email         string `json:"email,omitempty"`           // 邮箱
+	Account       string `json:"account,omitempty"`         // 账号
+	Password      string `json:"password,omitempty"`        // 密码
+	Salt          string `json:"salt,omitempty"`            // 盐
+	LastLoginIP   string `json:"last_login_ip,omitempty"`   // 最后登录IP
+	LastLoginTime int64  `json:"last_login_time,omitempty"` // 最后登录时间
+	Remark        string `json:"remark,omitempty"`          // 备注
+	Status        int    `json:"status,omitempty"`          // 状态[1:正常, 2:禁用, -1:删除]
+	Creator       string `json:"creator,omitempty"`         // 创建人
+	Updater       string `json:"updater,omitempty"`         // 更新人
+	CreatedAt     int64  `json:"created_at,omitempty"`      // 创建时间
+	UpdatedAt     int64  `json:"updated_at,omitempty"`      // 更新时间
 }

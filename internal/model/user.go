@@ -46,7 +46,7 @@ type UserEmailUpdateReq struct {
 }
 
 type User struct {
-	Id        string `json:"_id,omitempty"`        // ID
+	Id        string `json:"id,omitempty"`         // ID
 	UserId    int    `json:"user_id,omitempty"`    // 用户ID
 	Nickname  string `json:"nickname,omitempty"`   // 用户昵称
 	Avatar    string `json:"avatar,omitempty"`     // 用户头像地址
