@@ -13,14 +13,18 @@ import (
 
 type (
 	ISession interface {
-		// 保存会话信息
-		Save(ctx context.Context, user *model.User) error
+		// 保存用户会话信息
+		SaveUser(ctx context.Context, user *model.User) error
+		// 保存管理员会话信息
+		SaveAdmin(ctx context.Context, admin *model.SysAdmin) error
 		// 获取会话中用户主键ID
 		GetUid(ctx context.Context) string
 		// 获取会话中UserId
 		GetUserId(ctx context.Context) int
 		// 获取会话中用户信息
 		GetUser(ctx context.Context) *model.User
+		// 获取会话中用户信息
+		GetAdmin(ctx context.Context) *model.SysAdmin
 	}
 )
 

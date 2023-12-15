@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
@@ -141,20 +142,41 @@ func middleware(r *ghttp.Request) {
 		return
 	}
 
-	user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
-	if err != nil {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
-	}
+	if gstr.HasPrefix(token, consts.USER_TOKEN_PREFIX) {
 
-	err = service.Session().Save(r.GetCtx(), user)
-	if err != nil {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
+		user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+		err = service.Session().SaveUser(r.GetCtx(), user)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+	} else {
+
+		admin, err := service.Auth().GetAdminByToken(r.GetCtx(), token)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+		err = service.Session().SaveAdmin(r.GetCtx(), admin)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
 	}
 
 	if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
@@ -182,20 +204,41 @@ func sysMiddleware(r *ghttp.Request) {
 		return
 	}
 
-	user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
-	if err != nil {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
-	}
+	if gstr.HasPrefix(token, consts.USER_TOKEN_PREFIX) {
 
-	err = service.Session().Save(r.GetCtx(), user)
-	if err != nil {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
+		user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+		err = service.Session().SaveUser(r.GetCtx(), user)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+	} else {
+
+		admin, err := service.Auth().GetAdminByToken(r.GetCtx(), token)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+		err = service.Session().SaveAdmin(r.GetCtx(), admin)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
 	}
 
 	if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {

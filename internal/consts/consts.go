@@ -6,7 +6,17 @@ const (
 	LOCK_CODE            = "lock:code:%s"
 )
 
-const USER_SESSION = "user:session:%s"
+const (
+	USER_TOKEN_PREFIX = "U"
+	USER_SESSION      = "user:session:%s"
+	USER_CHANNEL      = "user"
+)
+
+const (
+	ADMIN_TOKEN_PREFIX = "A"
+	ADMIN_SESSION      = "admin:session:%s"
+	ADMIN_CHANNEL      = "admin"
+)
 
 const (
 	CORP_OPENAI     = "OpenAI"

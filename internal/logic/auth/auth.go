@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
@@ -18,6 +19,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/crypto"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
+	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -99,56 +101,102 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		return nil, errors.New("登录失败次数过多, 请稍后再试")
 	}
 
-	accountInfo, err := dao.User.FindAccount(ctx, params.Account)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
+	r := g.RequestFromCtx(ctx)
+	ip := r.GetClientIp()
+	token := ""
+
+	if params.Channel == consts.USER_CHANNEL {
+
+		accountInfo, err := dao.User.FindAccount(ctx, params.Account)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, errors.New("账号或密码不正确")
+			}
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if !crypto.VerifyPassword(accountInfo.Password, params.Password+accountInfo.Salt) {
 			return nil, errors.New("账号或密码不正确")
 		}
-		logger.Error(ctx, err)
-		return nil, err
-	}
 
-	if !crypto.VerifyPassword(accountInfo.Password, params.Password+accountInfo.Salt) {
-		return nil, errors.New("账号或密码不正确")
-	}
-
-	user, err := dao.User.FindById(ctx, accountInfo.Uid)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New("用户不存在或已被禁用")
+		user, err := dao.User.FindById(ctx, accountInfo.Uid)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, errors.New("用户不存在或已被禁用")
+			}
+			logger.Error(ctx, err)
+			return nil, err
 		}
-		logger.Error(ctx, err)
-		return nil, err
-	}
 
-	r := g.RequestFromCtx(ctx)
+		r.SetCtxVar("uid", user.Id)
 
-	r.SetCtxVar("uid", user.Id)
+		// 记录登录ip和时间
+		if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), accountInfo.Id, bson.M{
+			"last_login_ip":   ip,
+			"last_login_time": gtime.Timestamp(),
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
 
-	ip := r.GetClientIp()
+		token, err = s.GenUserToken(ctx, &model.User{
+			Id:        user.Id,
+			UserId:    user.UserId,
+			Nickname:  user.Nickname,
+			Avatar:    user.Avatar,
+			Gender:    user.Gender,
+			Email:     user.Email,
+			Mobile:    user.Mobile,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		}, true)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 
-	// 记录登录ip和时间
-	if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), accountInfo.Id, bson.M{
-		"last_login_ip":   ip,
-		"last_login_time": gtime.Timestamp(),
-	}); err != nil {
-		logger.Error(ctx, err)
-	}
+	} else if params.Channel == consts.ADMIN_CHANNEL {
 
-	token, err := s.GenUserToken(ctx, &model.User{
-		Id:        user.Id,
-		UserId:    user.UserId,
-		Nickname:  user.Nickname,
-		Avatar:    user.Avatar,
-		Gender:    user.Gender,
-		Email:     user.Email,
-		Mobile:    user.Mobile,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}, true)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
+		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{"account": params.Account})
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, errors.New("账号或密码不正确")
+			}
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if !crypto.VerifyPassword(admin.Password, params.Password+admin.Salt) {
+			return nil, errors.New("账号或密码不正确")
+		}
+
+		r.SetCtxVar("uid", admin.Id)
+
+		// 记录登录ip和时间
+		if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), admin.Id, bson.M{
+			"last_login_ip":   ip,
+			"last_login_time": gtime.Timestamp(),
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		token, err = s.GenAdminToken(ctx, &model.SysAdmin{
+			Id:        admin.Id,
+			Name:      admin.Name,
+			Avatar:    admin.Avatar,
+			Gender:    admin.Gender,
+			Mobile:    admin.Mobile,
+			Email:     admin.Email,
+			Account:   admin.Account,
+			Remark:    admin.Remark,
+			Status:    admin.Status,
+			CreatedAt: admin.CreatedAt,
+			UpdatedAt: admin.UpdatedAt,
+		}, true)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	return &model.LoginRes{
@@ -190,7 +238,7 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 // 生成用户Token
 func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSession bool) (token string, err error) {
 
-	token = grand.Letters(32)
+	token = util.NewKey(gconv.String(user.UserId), 32, consts.USER_TOKEN_PREFIX)
 
 	if isSaveSession {
 		err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 7200)
@@ -208,6 +256,10 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 		return nil, err
 	}
 
+	if reply == nil || reply.IsNil() {
+		return nil, errors.New("session is nil")
+	}
+
 	user := new(model.User)
 
 	err = reply.Struct(&user)
@@ -217,4 +269,40 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 	}
 
 	return user, nil
+}
+
+// 生成管理员Token
+func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSaveSession bool) (token string, err error) {
+
+	token = util.NewKey(admin.Id, 32, consts.ADMIN_TOKEN_PREFIX)
+
+	if isSaveSession {
+		err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), 7200)
+	}
+
+	return token, err
+}
+
+// 根据Token获取管理员信息
+func (s *sAuth) GetAdminByToken(ctx context.Context, token string) (*model.SysAdmin, error) {
+
+	reply, err := redis.Get(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token))
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	if reply == nil || reply.IsNil() {
+		return nil, errors.New("session is nil")
+	}
+
+	admin := new(model.SysAdmin)
+
+	err = reply.Struct(&admin)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return admin, nil
 }

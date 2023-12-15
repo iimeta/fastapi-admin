@@ -21,18 +21,16 @@ func New() service.ISysRole {
 	return &sSysRole{}
 }
 
-// 新建应用
+// 新建角色
 func (s *sSysRole) Create(ctx context.Context, params model.SysRoleCreateReq) error {
 
 	if _, err := dao.SysRole.Insert(ctx, &do.SysRole{
-		Name:        params.Name,
-		Type:        params.Type,
-		Models:      params.Models,
-		Keys:        params.Keys,
-		IpWhitelist: params.IpWhitelist,
-		IpBlacklist: params.IpBlacklist,
-		Remark:      params.Remark,
-		Status:      params.Status,
+		Pid:    params.Pid,
+		Name:   params.Name,
+		Type:   params.Type,
+		Perms:  params.Perms,
+		Remark: params.Remark,
+		Status: params.Status,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -41,18 +39,16 @@ func (s *sSysRole) Create(ctx context.Context, params model.SysRoleCreateReq) er
 	return nil
 }
 
-// 更新应用
+// 更新角色
 func (s *sSysRole) Update(ctx context.Context, params model.SysRoleUpdateReq) error {
 
 	if err := dao.SysRole.UpdateById(ctx, params.Id, &do.SysRole{
-		Name:        params.Name,
-		Type:        params.Type,
-		Models:      params.Models,
-		Keys:        params.Keys,
-		IpWhitelist: params.IpWhitelist,
-		IpBlacklist: params.IpBlacklist,
-		Remark:      params.Remark,
-		Status:      params.Status,
+		Pid:    params.Pid,
+		Name:   params.Name,
+		Type:   params.Type,
+		Perms:  params.Perms,
+		Remark: params.Remark,
+		Status: params.Status,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -61,7 +57,7 @@ func (s *sSysRole) Update(ctx context.Context, params model.SysRoleUpdateReq) er
 	return nil
 }
 
-// 删除应用
+// 删除角色
 func (s *sSysRole) Delete(ctx context.Context, id string) error {
 
 	if err := dao.SysRole.DeleteById(ctx, id); err != nil {
@@ -72,33 +68,31 @@ func (s *sSysRole) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// 应用详情
+// 角色详情
 func (s *sSysRole) Detail(ctx context.Context, id string) (*model.SysRole, error) {
 
-	app, err := dao.SysRole.FindById(ctx, id)
+	role, err := dao.SysRole.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	return &model.SysRole{
-		Id:          app.Id,
-		Name:        app.Name,
-		Type:        app.Type,
-		Models:      app.Models,
-		Keys:        app.Keys,
-		IpWhitelist: app.IpWhitelist,
-		IpBlacklist: app.IpBlacklist,
-		Remark:      app.Remark,
-		Status:      app.Status,
-		Creator:     app.Creator,
-		Updater:     app.Updater,
-		CreatedAt:   app.CreatedAt,
-		UpdatedAt:   app.UpdatedAt,
+		Id:        role.Id,
+		Pid:       role.Pid,
+		Name:      role.Name,
+		Type:      role.Type,
+		Perms:     role.Perms,
+		Remark:    role.Remark,
+		Status:    role.Status,
+		Creator:   role.Creator,
+		Updater:   role.Updater,
+		CreatedAt: role.CreatedAt,
+		UpdatedAt: role.UpdatedAt,
 	}, nil
 }
 
-// 应用分页列表
+// 角色分页列表
 func (s *sSysRole) Page(ctx context.Context, params model.SysRolePageReq) (*model.SysRolePageRes, error) {
 
 	paging := &db.Paging{
@@ -117,19 +111,17 @@ func (s *sSysRole) Page(ctx context.Context, params model.SysRolePageReq) (*mode
 	items := make([]*model.SysRole, 0)
 	for _, result := range results {
 		items = append(items, &model.SysRole{
-			Id:          result.Id,
-			Name:        result.Name,
-			Type:        result.Type,
-			Models:      result.Models,
-			Keys:        result.Keys,
-			IpWhitelist: result.IpWhitelist,
-			IpBlacklist: result.IpBlacklist,
-			Remark:      result.Remark,
-			Status:      result.Status,
-			Creator:     result.Creator,
-			Updater:     result.Updater,
-			CreatedAt:   result.CreatedAt,
-			UpdatedAt:   result.UpdatedAt,
+			Id:        result.Id,
+			Pid:       result.Pid,
+			Name:      result.Name,
+			Type:      result.Type,
+			Perms:     result.Perms,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			Creator:   result.Creator,
+			Updater:   result.Updater,
+			CreatedAt: result.CreatedAt,
+			UpdatedAt: result.UpdatedAt,
 		})
 	}
 

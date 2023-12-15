@@ -21,8 +21,14 @@ type (
 		Logout(ctx context.Context) error
 		// 账号找回接口
 		Forget(ctx context.Context, params model.ForgetReq) error
+		// 生成用户Token
 		GenUserToken(ctx context.Context, user *model.User, isSaveSession bool) (token string, err error)
+		// 根据Token获取用户信息
 		GetUserByToken(ctx context.Context, token string) (*model.User, error)
+		// 生成管理员Token
+		GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSaveSession bool) (token string, err error)
+		// 根据Token获取管理员信息
+		GetAdminByToken(ctx context.Context, token string) (*model.SysAdmin, error)
 	}
 )
 

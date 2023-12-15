@@ -2,9 +2,10 @@ package model
 
 // 登录接口请求参数
 type LoginReq struct {
-	Account  string `json:"account,omitempty" v:"required"`                                 // 登录账号
-	Password string `json:"password,omitempty" v:"required"`                                // 登录密码
-	Platform string `json:"platform,omitempty" v:"required|in:web,h5,ios,windows,mac,file"` // 登录平台
+	Account  string `json:"account,omitempty" v:"required"`                            // 账号
+	Password string `json:"password,omitempty" v:"required"`                           // 密码
+	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
+	Channel  string `json:"channel,omitempty" v:"required|in:user,admin"`              // 渠道
 }
 
 // 登录接口响应参数
@@ -16,11 +17,11 @@ type LoginRes struct {
 
 // 注册接口请求参数
 type RegisterReq struct {
-	Account  string `json:"account,omitempty" v:"required"`                                 // 登录账号
-	Password string `json:"password,omitempty" v:"required|min-length:6"`                   // 登录密码
-	Nickname string `json:"nickname,omitempty" v:"required|length:2,30"`                    // 昵称
-	Platform string `json:"platform,omitempty" v:"required|in:web,h5,ios,windows,mac,file"` // 登录平台
-	Code     string `json:"code,omitempty" v:"required"`                                    // 短信验证码
+	Account  string `json:"account,omitempty" v:"required"`                            // 账号
+	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
+	Nickname string `json:"nickname,omitempty" v:"required|length:2,30"`               // 昵称
+	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
+	Code     string `json:"code,omitempty" v:"required"`                               // 验证码
 }
 
 // Token 刷新接口响应参数
@@ -33,6 +34,6 @@ type RefreshRes struct {
 // 找回密码接口请求参数
 type ForgetReq struct {
 	Account  string `json:"account,omitempty" v:"required"`               // 账号
-	Password string `json:"password,omitempty" v:"required|min-length:6"` // 登录密码
-	Code     string `json:"code,omitempty" v:"required"`                  // 短信验证码
+	Password string `json:"password,omitempty" v:"required|min-length:6"` // 密码
+	Code     string `json:"code,omitempty" v:"required"`                  // 验证码
 }

@@ -19,8 +19,8 @@ func New() service.ISession {
 	return &sSession{}
 }
 
-// 保存会话信息
-func (s *sSession) Save(ctx context.Context, user *model.User) error {
+// 保存用户会话信息
+func (s *sSession) SaveUser(ctx context.Context, user *model.User) error {
 
 	if user == nil {
 		logger.Error(ctx, "user is nil")
@@ -32,6 +32,22 @@ func (s *sSession) Save(ctx context.Context, user *model.User) error {
 	r.SetCtxVar("uid", user.Id)
 	r.SetCtxVar("user_id", user.UserId)
 	r.SetCtxVar("user", user)
+
+	return nil
+}
+
+// 保存管理员会话信息
+func (s *sSession) SaveAdmin(ctx context.Context, admin *model.SysAdmin) error {
+
+	if admin == nil {
+		logger.Error(ctx, "admin is nil")
+		return errors.New("admin is nil")
+	}
+
+	r := g.RequestFromCtx(ctx)
+
+	r.SetCtxVar("uid", admin.Id)
+	r.SetCtxVar("admin", admin)
 
 	return nil
 }
@@ -68,13 +84,16 @@ func (s *sSession) GetUser(ctx context.Context) *model.User {
 		return value.(*model.User)
 	}
 
-	user, err := service.User().GetUserById(ctx, s.GetUserId(ctx))
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil
+	return nil
+}
+
+// 获取会话中用户信息
+func (s *sSession) GetAdmin(ctx context.Context) *model.SysAdmin {
+
+	value := ctx.Value("admin")
+	if value != nil {
+		return value.(*model.SysAdmin)
 	}
 
-	g.RequestFromCtx(ctx).SetCtxVar("user", user)
-
-	return user
+	return nil
 }
