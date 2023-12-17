@@ -149,10 +149,9 @@ func (s *sSysAdmin) Page(ctx context.Context, params model.SysAdminPageReq) (*mo
 	return &model.SysAdminPageRes{
 		Items: items,
 		Paging: &model.Paging{
-			Page:      paging.Page,
-			PageSize:  paging.PageSize,
-			Total:     paging.Total,
-			PageCount: paging.PageCount,
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
 		},
 	}, nil
 }

@@ -128,10 +128,9 @@ func (s *sSysRole) Page(ctx context.Context, params model.SysRolePageReq) (*mode
 	return &model.SysRolePageRes{
 		Items: items,
 		Paging: &model.Paging{
-			Page:      paging.Page,
-			PageSize:  paging.PageSize,
-			Total:     paging.Total,
-			PageCount: paging.PageCount,
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
 		},
 	}, nil
 }

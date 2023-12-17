@@ -144,10 +144,9 @@ func (s *sSysMenu) Page(ctx context.Context, params model.SysMenuPageReq) (*mode
 	return &model.SysMenuPageRes{
 		Items: items,
 		Paging: &model.Paging{
-			Page:      paging.Page,
-			PageSize:  paging.PageSize,
-			Total:     paging.Total,
-			PageCount: paging.PageCount,
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
 		},
 	}, nil
 }
