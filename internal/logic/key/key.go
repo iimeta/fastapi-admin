@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
@@ -24,15 +25,19 @@ func New() service.IKey {
 // 新建密钥
 func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 
-	if _, err := dao.Key.Insert(ctx, &do.Key{
-		Corp:   params.Corp,
-		Key:    params.Key,
-		Models: params.Models,
-		Remark: params.Remark,
-		Status: params.Status,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
+	keys := gstr.Split(params.Key, "\n")
+
+	for _, key := range keys {
+		if _, err := dao.Key.Insert(ctx, &do.Key{
+			Corp:   params.Corp,
+			Key:    key,
+			Models: params.Models,
+			Remark: params.Remark,
+			Status: params.Status,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil
