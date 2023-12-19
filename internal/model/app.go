@@ -9,7 +9,7 @@ type AppCreateReq struct {
 	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
 	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	Status      int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新应用接口请求参数
@@ -22,7 +22,7 @@ type AppUpdateReq struct {
 	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
 	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	Status      int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 应用详情接口响应参数

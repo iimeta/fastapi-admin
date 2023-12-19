@@ -2,21 +2,21 @@ package model
 
 // 新建密钥接口请求参数
 type KeyCreateReq struct {
-	Corp   string   `json:"corp,omitempty"`   // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
-	Key    string   `json:"key,omitempty"`    // 密钥
-	Models []string `json:"models,omitempty"` // 模型
-	Remark string   `json:"remark,omitempty"` // 备注
-	Status int      `json:"status,omitempty"` // 状态[1:正常, 2:禁用, -1:删除]
+	Corp   string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Key    string   `json:"key,omitempty"`          // 密钥
+	Models []string `json:"models,omitempty"`       // 模型
+	Remark string   `json:"remark,omitempty"`       // 备注
+	Status int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新密钥接口请求参数
 type KeyUpdateReq struct {
-	Id     string   `json:"id,omitempty"`     // ID
-	Corp   string   `json:"corp,omitempty"`   // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
-	Key    string   `json:"key,omitempty"`    // 密钥
-	Models []string `json:"models,omitempty"` // 模型
-	Remark string   `json:"remark,omitempty"` // 备注
-	Status int      `json:"status,omitempty"` // 状态[1:正常, 2:禁用, -1:删除]
+	Id     string   `json:"id,omitempty"`           // ID
+	Corp   string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Key    string   `json:"key,omitempty"`          // 密钥
+	Models []string `json:"models,omitempty"`       // 模型
+	Remark string   `json:"remark,omitempty"`       // 备注
+	Status int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 密钥详情接口响应参数
