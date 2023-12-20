@@ -5,7 +5,7 @@ type App struct {
 	AppId       int      `bson:"app_id,omitempty"`       // 应用ID
 	Name        string   `bson:"name,omitempty"`         // 应用名称
 	Type        int      `bson:"type,omitempty"`         // 应用类型
-	Models      []string `bson:"models,omitempty"`       // 模型
+	Models      []string `bson:"models,omitempty"`       // 模型权限
 	Quota       int      `bson:"quota,omitempty"`        // 额度
 	RPM         int      `bson:"rpm,omitempty"`          // 每分钟请求数
 	RPD         int      `bson:"rpd,omitempty"`          // 每天的请求数

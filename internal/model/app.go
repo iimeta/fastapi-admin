@@ -4,10 +4,10 @@ package model
 type AppCreateReq struct {
 	Name        string   `json:"name,omitempty"`         // 应用名称
 	Type        int      `json:"type,omitempty"`         // 应用类型
-	Models      []string `json:"models,omitempty"`       // 模型
+	Models      []string `json:"models,omitempty"`       // 模型权限
 	Quota       int      `json:"quota,omitempty"`        // 额度
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
+	IpWhitelist string   `json:"ip_whitelist,omitempty"` // IP白名单
+	IpBlacklist string   `json:"ip_blacklist,omitempty"` // IP黑名单
 	Remark      string   `json:"remark,omitempty"`       // 备注
 	Status      int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
@@ -17,7 +17,7 @@ type AppUpdateReq struct {
 	Id          string   `json:"id,omitempty"`           // ID
 	Name        string   `json:"name,omitempty"`         // 应用名称
 	Type        int      `json:"type,omitempty"`         // 应用类型
-	Models      []string `json:"models,omitempty"`       // 模型
+	Models      []string `json:"models,omitempty"`       // 模型权限
 	Quota       int      `json:"quota,omitempty"`        // 额度
 	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
@@ -35,7 +35,7 @@ type AppPageReq struct {
 	Paging
 	Name        string   `json:"name,omitempty"`         // 应用名称
 	Type        int      `json:"type,omitempty"`         // 应用类型
-	Models      []string `json:"models,omitempty"`       // 模型
+	Models      []string `json:"models,omitempty"`       // 模型权限
 	Quota       int      `json:"quota,omitempty"`        // 额度
 	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
@@ -53,7 +53,7 @@ type AppPageRes struct {
 type AppCreateKeyReq struct {
 	AppId       int      `bson:"app_id,omitempty"`       // 应用ID
 	Key         string   `json:"key,omitempty"`          // 密钥
-	Models      []string `json:"models,omitempty"`       // 模型
+	Models      []string `json:"models,omitempty"`       // 模型权限
 	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
 	Remark      string   `json:"remark,omitempty"`       // 备注
@@ -65,7 +65,7 @@ type App struct {
 	AppId       int      `json:"app_id,omitempty"`       // 应用ID
 	Name        string   `json:"name,omitempty"`         // 应用名称
 	Type        int      `json:"type,omitempty"`         // 应用类型
-	Models      []string `json:"models,omitempty"`       // 模型
+	Models      []string `json:"models,omitempty"`       // 模型权限
 	Quota       int      `json:"quota,omitempty"`        // 额度
 	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单

@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -30,8 +31,8 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 		Name:        params.Name,
 		Type:        params.Type,
 		Models:      params.Models,
-		IpWhitelist: params.IpWhitelist,
-		IpBlacklist: params.IpBlacklist,
+		IpWhitelist: gstr.Split(params.IpWhitelist, "\n"),
+		IpBlacklist: gstr.Split(params.IpBlacklist, "\n"),
 		Remark:      params.Remark,
 		Status:      params.Status,
 	}); err != nil {
