@@ -16,6 +16,7 @@ type User struct {
 	Mobile     string `bson:"mobile,omitempty"`     // 手机号
 	Email      string `bson:"email,omitempty"`      // 邮箱
 	VipLevel   int    `bson:"vip_level,omitempty"`  // 会员等级
+	Quota      int    `bson:"quota,omitempty"`      // 额度
 	Status     int    `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator    string `bson:"creator,omitempty"`    // 创建人
 	Updater    string `bson:"updater,omitempty"`    // 更新人

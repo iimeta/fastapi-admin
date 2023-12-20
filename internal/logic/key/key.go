@@ -31,6 +31,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 		if _, err := dao.Key.Insert(ctx, &do.Key{
 			Corp:   params.Corp,
 			Key:    key,
+			Type:   2,
 			Models: params.Models,
 			Remark: params.Remark,
 			Status: params.Status,

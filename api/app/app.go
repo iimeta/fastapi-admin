@@ -16,4 +16,5 @@ type IAppV1 interface {
 	Delete(ctx context.Context, req *v1.DeleteReq) (res *v1.DeleteRes, err error)
 	Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error)
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
+	CreateKey(ctx context.Context, req *v1.CreateKeyReq) (res *v1.CreateKeyRes, err error)
 }

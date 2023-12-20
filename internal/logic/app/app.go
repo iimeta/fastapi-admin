@@ -30,7 +30,6 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 		Name:        params.Name,
 		Type:        params.Type,
 		Models:      params.Models,
-		Keys:        params.Keys,
 		IpWhitelist: params.IpWhitelist,
 		IpBlacklist: params.IpBlacklist,
 		Remark:      params.Remark,
@@ -50,7 +49,6 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		Name:        params.Name,
 		Type:        params.Type,
 		Models:      params.Models,
-		Keys:        params.Keys,
 		IpWhitelist: params.IpWhitelist,
 		IpBlacklist: params.IpBlacklist,
 		Remark:      params.Remark,
@@ -89,7 +87,6 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		Name:        app.Name,
 		Type:        app.Type,
 		Models:      app.Models,
-		Keys:        app.Keys,
 		IpWhitelist: app.IpWhitelist,
 		IpBlacklist: app.IpBlacklist,
 		Remark:      app.Remark,
@@ -125,7 +122,6 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			Name:        result.Name,
 			Type:        result.Type,
 			Models:      result.Models,
-			Keys:        result.Keys,
 			IpWhitelist: result.IpWhitelist,
 			IpBlacklist: result.IpBlacklist,
 			Remark:      result.Remark,
@@ -145,4 +141,22 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			Total:    paging.Total,
 		},
 	}, nil
+}
+
+// 新建应用密钥
+func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) error {
+
+	if _, err := dao.Key.Insert(ctx, &do.Key{
+		AppId:  params.AppId,
+		Key:    params.Key,
+		Type:   1,
+		Models: params.Models,
+		Remark: params.Remark,
+		Status: params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
 }

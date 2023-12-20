@@ -61,3 +61,14 @@ type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.AppPageRes
 }
+
+// 新建应用密钥接口请求参数
+type CreateKeyReq struct {
+	g.Meta `path:"/create/key" tags:"app" method:"post" summary:"新建应用密钥接口"`
+	model.AppCreateKeyReq
+}
+
+// 新建应用密钥接口响应参数
+type CreateKeyRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

@@ -12,7 +12,9 @@ type App struct {
 	Name        string   `bson:"name,omitempty"`         // 应用名称
 	Type        int      `bson:"type,omitempty"`         // 应用类型
 	Models      []string `bson:"models,omitempty"`       // 模型
-	Keys        []string `bson:"keys,omitempty"`         // 密钥
+	Quota       int      `bson:"quota,omitempty"`        // 额度
+	RPM         int      `bson:"rpm,omitempty"`          // 每分钟请求数
+	RPD         int      `bson:"rpd,omitempty"`          // 每天的请求数
 	IpWhitelist []string `bson:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `bson:"ip_blacklist,omitempty"` // IP黑名单
 	Remark      string   `bson:"remark,omitempty"`       // 备注

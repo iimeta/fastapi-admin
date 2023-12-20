@@ -45,6 +45,7 @@ type Key struct {
 	Corp      string   `json:"corp,omitempty"`       // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
 	Key       string   `json:"key,omitempty"`        // 密钥
 	Models    []string `json:"models,omitempty"`     // 模型
+	Quota     int      `json:"quota,omitempty"`      // 额度
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator   string   `json:"creator,omitempty"`    // 创建人
