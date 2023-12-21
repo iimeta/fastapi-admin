@@ -61,3 +61,15 @@ type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.ModelPageRes
 }
+
+// 模型列表接口请求参数
+type ListReq struct {
+	g.Meta `path:"/list" tags:"model" method:"get" summary:"模型列表接口"`
+	model.ModelListReq
+}
+
+// 模型列表接口响应参数
+type ListRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ModelListRes
+}

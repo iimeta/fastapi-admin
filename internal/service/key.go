@@ -23,6 +23,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.Key, error)
 		// 密钥分页列表
 		Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPageRes, error)
+		// 密钥列表
+		List(ctx context.Context, params model.KeyListReq) ([]*model.Key, error)
 	}
 )
 

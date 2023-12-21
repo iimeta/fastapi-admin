@@ -23,6 +23,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.Model, error)
 		// 模型分页列表
 		Page(ctx context.Context, params model.ModelPageReq) (*model.ModelPageRes, error)
+		// 模型列表
+		List(ctx context.Context, params model.ModelListReq) ([]*model.Model, error)
 	}
 )
 

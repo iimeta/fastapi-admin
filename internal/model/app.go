@@ -49,6 +49,23 @@ type AppPageRes struct {
 	Paging *Paging `json:"paging"`
 }
 
+// 应用列表接口请求参数
+type AppListReq struct {
+	Name        string   `json:"name,omitempty"`         // 应用名称
+	Type        int      `json:"type,omitempty"`         // 应用类型
+	Models      []string `json:"models,omitempty"`       // 模型权限
+	Quota       int      `json:"quota,omitempty"`        // 额度
+	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
+	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
+	Remark      string   `json:"remark,omitempty"`       // 备注
+	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+}
+
+// 应用列表接口响应参数
+type AppListRes struct {
+	Items []*App `json:"items"`
+}
+
 // 新建应用密钥接口请求参数
 type AppCreateKeyReq struct {
 	AppId       int      `bson:"app_id,omitempty"`       // 应用ID

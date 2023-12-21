@@ -23,6 +23,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.App, error)
 		// 应用分页列表
 		Page(ctx context.Context, params model.AppPageReq) (*model.AppPageRes, error)
+		// 应用列表
+		List(ctx context.Context, params model.AppListReq) ([]*model.App, error)
 		// 新建应用密钥
 		CreateKey(ctx context.Context, params model.AppCreateKeyReq) error
 	}

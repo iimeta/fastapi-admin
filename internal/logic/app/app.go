@@ -144,6 +144,39 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 	}, nil
 }
 
+// 应用列表
+func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App, error) {
+
+	filter := bson.M{}
+
+	results, err := dao.App.Find(ctx, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.App, 0)
+	for _, result := range results {
+		items = append(items, &model.App{
+			Id:          result.Id,
+			AppId:       result.AppId,
+			Name:        result.Name,
+			Type:        result.Type,
+			Models:      result.Models,
+			IpWhitelist: result.IpWhitelist,
+			IpBlacklist: result.IpBlacklist,
+			Remark:      result.Remark,
+			Status:      result.Status,
+			Creator:     result.Creator,
+			Updater:     result.Updater,
+			CreatedAt:   result.CreatedAt,
+			UpdatedAt:   result.UpdatedAt,
+		})
+	}
+
+	return items, nil
+}
+
 // 新建应用密钥
 func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) error {
 

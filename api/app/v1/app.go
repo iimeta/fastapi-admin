@@ -62,6 +62,18 @@ type PageRes struct {
 	*model.AppPageRes
 }
 
+// 应用列表接口请求参数
+type ListReq struct {
+	g.Meta `path:"/list" tags:"app" method:"get" summary:"应用列表接口"`
+	model.AppListReq
+}
+
+// 应用列表接口响应参数
+type ListRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.AppListRes
+}
+
 // 新建应用密钥接口请求参数
 type CreateKeyReq struct {
 	g.Meta `path:"/create/key" tags:"app" method:"post" summary:"新建应用密钥接口"`

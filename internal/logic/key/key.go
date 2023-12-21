@@ -136,3 +136,33 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		},
 	}, nil
 }
+
+// 密钥列表
+func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key, error) {
+
+	filter := bson.M{}
+
+	results, err := dao.Key.Find(ctx, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.Key, 0)
+	for _, result := range results {
+		items = append(items, &model.Key{
+			Id:        result.Id,
+			Corp:      result.Corp,
+			Key:       result.Key,
+			Models:    result.Models,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			Creator:   result.Creator,
+			Updater:   result.Updater,
+			CreatedAt: result.CreatedAt,
+			UpdatedAt: result.UpdatedAt,
+		})
+	}
+
+	return items, nil
+}
