@@ -18,6 +18,7 @@ type Model struct {
 	BaseUrl         string  `bson:"base_url,omitempty"`         // 默认官方模型地址
 	Path            string  `bson:"path,omitempty"`             // 默认官方模型地址路径
 	Proxy           string  `bson:"proxy,omitempty"`            // 代理
+	IsPublic        bool    `bson:"is_public,omitempty"`        // 是否公开
 	Remark          string  `bson:"remark,omitempty"`           // 备注
 	Status          int     `bson:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
 	Creator         string  `bson:"creator,omitempty"`          // 创建人

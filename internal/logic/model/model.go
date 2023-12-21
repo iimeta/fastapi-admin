@@ -35,6 +35,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		BaseUrl:         params.BaseUrl,
 		Path:            params.Path,
 		Proxy:           params.Proxy,
+		IsPublic:        params.IsPublic,
 		Remark:          params.Remark,
 		Status:          params.Status,
 	}); err != nil {
@@ -59,6 +60,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		BaseUrl:         params.BaseUrl,
 		Path:            params.Path,
 		Proxy:           params.Proxy,
+		IsPublic:        params.IsPublic,
 		Remark:          params.Remark,
 		Status:          params.Status,
 	}); err != nil {
@@ -101,6 +103,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		BaseUrl:         m.BaseUrl,
 		Path:            m.Path,
 		Proxy:           m.Proxy,
+		IsPublic:        m.IsPublic,
 		Remark:          m.Remark,
 		Status:          m.Status,
 		Creator:         m.Creator,
@@ -140,6 +143,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			BaseUrl:         result.BaseUrl,
 			Path:            result.Path,
 			Proxy:           result.Proxy,
+			IsPublic:        result.IsPublic,
 			Remark:          result.Remark,
 			Status:          result.Status,
 			Creator:         result.Creator,
