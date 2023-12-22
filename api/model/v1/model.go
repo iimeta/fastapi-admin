@@ -52,7 +52,7 @@ type DetailRes struct {
 
 // 模型分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" tags:"model" method:"get" summary:"模型分页列表接口"`
+	g.Meta `path:"/page" tags:"model" method:"post" summary:"模型分页列表接口"`
 	model.ModelPageReq
 }
 

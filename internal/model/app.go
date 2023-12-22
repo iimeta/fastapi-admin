@@ -41,6 +41,7 @@ type AppPageReq struct {
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
 	Remark      string   `json:"remark,omitempty"`       // 备注
 	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt   []string `json:"created_at,omitempty"`   // 创建时间
 }
 
 // 应用分页列表接口响应参数
