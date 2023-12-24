@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 删除模型接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" tags:"model" method:"get" summary:"删除模型接口"`
+	g.Meta `path:"/delete" tags:"model" method:"post" summary:"删除模型接口"`
 	Id     string `json:"id"`
 }
 

@@ -74,7 +74,7 @@ func (s *sApp) Delete(ctx context.Context, id string) error {
 }
 
 // 应用详情
-func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
+func (s *sApp) Detail(ctx context.Context, id string) (*model.AppDetailRes, error) {
 
 	app, err := dao.App.FindById(ctx, id)
 	if err != nil {
@@ -82,14 +82,14 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		return nil, err
 	}
 
-	return &model.App{
+	return &model.AppDetailRes{
 		Id:          app.Id,
 		AppId:       app.AppId,
 		Name:        app.Name,
 		Type:        app.Type,
 		Models:      app.Models,
-		IpWhitelist: app.IpWhitelist,
-		IpBlacklist: app.IpBlacklist,
+		IpWhitelist: gstr.Join(app.IpWhitelist, "\n"),
+		IpBlacklist: gstr.Join(app.IpBlacklist, "\n"),
 		Remark:      app.Remark,
 		Status:      app.Status,
 		Creator:     app.Creator,
