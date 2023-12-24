@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -74,7 +75,7 @@ func (s *sApp) Delete(ctx context.Context, id string) error {
 }
 
 // 应用详情
-func (s *sApp) Detail(ctx context.Context, id string) (*model.AppDetailRes, error) {
+func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 
 	app, err := dao.App.FindById(ctx, id)
 	if err != nil {
@@ -82,20 +83,20 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.AppDetailRes, erro
 		return nil, err
 	}
 
-	return &model.AppDetailRes{
+	return &model.App{
 		Id:          app.Id,
 		AppId:       app.AppId,
 		Name:        app.Name,
 		Type:        app.Type,
 		Models:      app.Models,
-		IpWhitelist: gstr.Join(app.IpWhitelist, "\n"),
-		IpBlacklist: gstr.Join(app.IpBlacklist, "\n"),
+		IpWhitelist: app.IpWhitelist,
+		IpBlacklist: app.IpBlacklist,
 		Remark:      app.Remark,
 		Status:      app.Status,
 		Creator:     app.Creator,
 		Updater:     app.Updater,
-		CreatedAt:   app.CreatedAt,
-		UpdatedAt:   app.UpdatedAt,
+		CreatedAt:   util.FormatDatetime(app.CreatedAt),
+		UpdatedAt:   util.FormatDatetime(app.UpdatedAt),
 	}, nil
 }
 
@@ -129,8 +130,8 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			Status:      result.Status,
 			Creator:     result.Creator,
 			Updater:     result.Updater,
-			CreatedAt:   result.CreatedAt,
-			UpdatedAt:   result.UpdatedAt,
+			CreatedAt:   util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:   util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
@@ -169,8 +170,8 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 			Status:      result.Status,
 			Creator:     result.Creator,
 			Updater:     result.Updater,
-			CreatedAt:   result.CreatedAt,
-			UpdatedAt:   result.UpdatedAt,
+			CreatedAt:   util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:   util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 

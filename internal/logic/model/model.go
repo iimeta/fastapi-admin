@@ -8,6 +8,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -108,8 +109,8 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		Status:          m.Status,
 		Creator:         m.Creator,
 		Updater:         m.Updater,
-		CreatedAt:       m.CreatedAt,
-		UpdatedAt:       m.UpdatedAt,
+		CreatedAt:       util.FormatDatetime(m.CreatedAt),
+		UpdatedAt:       util.FormatDatetime(m.UpdatedAt),
 	}, nil
 }
 
@@ -148,8 +149,8 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			Status:          result.Status,
 			Creator:         result.Creator,
 			Updater:         result.Updater,
-			CreatedAt:       result.CreatedAt,
-			UpdatedAt:       result.UpdatedAt,
+			CreatedAt:       util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:       util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
@@ -192,8 +193,8 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 			Status:          result.Status,
 			Creator:         result.Creator,
 			Updater:         result.Updater,
-			CreatedAt:       result.CreatedAt,
-			UpdatedAt:       result.UpdatedAt,
+			CreatedAt:       util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:       util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 

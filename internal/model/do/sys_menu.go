@@ -15,7 +15,7 @@ type SysMenu struct {
 	Route      string `bson:"route,omitempty"`      // 路由/API
 	Sort       int    `bson:"sort,omitempty"`       // 排序
 	Level      int    `bson:"level,omitempty"`      // 层级
-	Hidden     bool   `bson:"hidden,omitempty"`     // 隐藏
+	Hidden     bool   `bson:"hidden"`               // 隐藏
 	Remark     string `bson:"remark,omitempty"`     // 备注
 	Status     int    `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator    string `bson:"creator,omitempty"`    // 创建人
