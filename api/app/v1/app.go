@@ -83,4 +83,16 @@ type CreateKeyReq struct {
 // 新建应用密钥接口响应参数
 type CreateKeyRes struct {
 	g.Meta `mime:"application/json" example:"json"`
+	*model.AppCreateKeyRes
+}
+
+// 应用密钥配置接口请求参数
+type KeyConfigReq struct {
+	g.Meta `path:"/key/config" tags:"app" method:"post" summary:"应用密钥配置接口"`
+	model.AppKeyConfigReq
+}
+
+// 应用密钥配置接口响应参数
+type KeyConfigRes struct {
+	g.Meta `mime:"application/json" example:"json"`
 }

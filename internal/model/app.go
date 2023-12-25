@@ -69,8 +69,20 @@ type AppListRes struct {
 
 // 新建应用密钥接口请求参数
 type AppCreateKeyReq struct {
-	AppId       int      `bson:"app_id,omitempty"`       // 应用ID
+	AppId int `json:"app_id,omitempty"` // 应用ID
+}
+
+// 新建应用密钥接口响应参数
+type AppCreateKeyRes struct {
+	AppId int    `json:"app_id,omitempty"` // 应用ID
+	Key   string `json:"key,omitempty"`    // 密钥
+}
+
+// 应用密钥配置接口请求参数
+type AppKeyConfigReq struct {
+	AppId       int      `json:"app_id,omitempty"`       // 应用ID
 	Key         string   `json:"key,omitempty"`          // 密钥
+	Quota       int      `json:"quota,omitempty"`        // 额度
 	Models      []string `json:"models,omitempty"`       // 模型权限
 	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
 	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单

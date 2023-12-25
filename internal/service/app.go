@@ -26,7 +26,9 @@ type (
 		// 应用列表
 		List(ctx context.Context, params model.AppListReq) ([]*model.App, error)
 		// 新建应用密钥
-		CreateKey(ctx context.Context, params model.AppCreateKeyReq) error
+		CreateKey(ctx context.Context, params model.AppCreateKeyReq) (string, error)
+		// 应用密钥配置
+		KeyConfig(ctx context.Context, params model.AppKeyConfigReq) error
 	}
 )
 

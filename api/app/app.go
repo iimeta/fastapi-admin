@@ -18,4 +18,5 @@ type IAppV1 interface {
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
 	CreateKey(ctx context.Context, req *v1.CreateKeyReq) (res *v1.CreateKeyRes, err error)
+	KeyConfig(ctx context.Context, req *v1.KeyConfigReq) (res *v1.KeyConfigRes, err error)
 }

@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -179,7 +180,12 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 }
 
 // 新建应用密钥
-func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) error {
+func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (string, error) {
+	return util.NewKey(gconv.String(params.AppId), 32), nil
+}
+
+// 应用密钥配置
+func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) error {
 
 	if _, err := dao.Key.Insert(ctx, &do.Key{
 		AppId:  params.AppId,
