@@ -86,6 +86,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		Id:        key.Id,
 		Corp:      key.Corp,
 		Key:       key.Key,
+		Type:      key.Type,
 		Models:    key.Models,
 		Remark:    key.Remark,
 		Status:    key.Status,
@@ -104,7 +105,17 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		PageSize: params.PageSize,
 	}
 
-	filter := bson.M{}
+	filter := bson.M{
+		"type": params.Type,
+	}
+
+	if params.Corp != "" {
+		filter["corp"] = params.Corp
+	}
+
+	if params.AppId != 0 {
+		filter["app_id"] = params.AppId
+	}
 
 	results, err := dao.Key.FindByPage(ctx, paging, filter, "-updated_at")
 	if err != nil {
@@ -118,6 +129,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Id:        result.Id,
 			Corp:      result.Corp,
 			Key:       result.Key,
+			Type:      result.Type,
 			Models:    result.Models,
 			Remark:    result.Remark,
 			Status:    result.Status,
@@ -141,7 +153,17 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 // 密钥列表
 func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key, error) {
 
-	filter := bson.M{}
+	filter := bson.M{
+		"type": 2,
+	}
+
+	if params.Corp != "" {
+		filter["corp"] = params.Corp
+	}
+
+	if params.AppId != 0 {
+		filter["app_id"] = params.AppId
+	}
 
 	results, err := dao.Key.Find(ctx, filter, "-updated_at")
 	if err != nil {
@@ -155,6 +177,7 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 			Id:        result.Id,
 			Corp:      result.Corp,
 			Key:       result.Key,
+			Type:      result.Type,
 			Models:    result.Models,
 			Remark:    result.Remark,
 			Status:    result.Status,

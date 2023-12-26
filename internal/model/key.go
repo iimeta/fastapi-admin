@@ -27,6 +27,8 @@ type KeyDetailRes struct {
 // 密钥分页列表接口请求参数
 type KeyPageReq struct {
 	Paging
+	Type      int      `bson:"type,omitempty"`       // 密钥类型[1:应用, 2:模型]
+	AppId     int      `bson:"app_id,omitempty"`     // 应用ID
 	Corp      string   `json:"corp,omitempty"`       // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
 	Key       string   `json:"key,omitempty"`        // 密钥
 	Models    []string `json:"models,omitempty"`     // 模型
@@ -43,6 +45,8 @@ type KeyPageRes struct {
 
 // 密钥列表接口请求参数
 type KeyListReq struct {
+	Type   int      `bson:"type,omitempty"`   // 密钥类型[1:应用, 2:模型]
+	AppId  int      `bson:"app_id,omitempty"` // 应用ID
 	Corp   string   `json:"corp,omitempty"`   // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
 	Key    string   `json:"key,omitempty"`    // 密钥
 	Models []string `json:"models,omitempty"` // 模型
@@ -58,8 +62,10 @@ type KeyListRes struct {
 
 type Key struct {
 	Id        string   `json:"id,omitempty"`         // ID
+	AppId     int      `bson:"app_id,omitempty"`     // 应用ID
 	Corp      string   `json:"corp,omitempty"`       // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
 	Key       string   `json:"key,omitempty"`        // 密钥
+	Type      int      `bson:"type,omitempty"`       // 密钥类型[1:应用, 2:模型]
 	Models    []string `json:"models,omitempty"`     // 模型
 	Quota     int      `json:"quota,omitempty"`      // 额度
 	Remark    string   `json:"remark,omitempty"`     // 备注
