@@ -80,12 +80,13 @@ type AppCreateKeyRes struct {
 
 // 应用密钥配置接口请求参数
 type AppKeyConfigReq struct {
+	Id          string   `json:"id,omitempty"`           // ID
 	AppId       int      `json:"app_id,omitempty"`       // 应用ID
 	Key         string   `json:"key,omitempty"`          // 密钥
 	Quota       int      `json:"quota,omitempty"`        // 额度
 	Models      []string `json:"models,omitempty"`       // 模型权限
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
+	IpWhitelist string   `json:"ip_whitelist,omitempty"` // IP白名单
+	IpBlacklist string   `json:"ip_blacklist,omitempty"` // IP黑名单
 	Remark      string   `json:"remark,omitempty"`       // 备注
 	Status      int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }

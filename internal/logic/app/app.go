@@ -187,16 +187,30 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 // 应用密钥配置
 func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) error {
 
-	if _, err := dao.Key.Insert(ctx, &do.Key{
-		AppId:  params.AppId,
-		Key:    params.Key,
-		Type:   1,
-		Models: params.Models,
-		Remark: params.Remark,
-		Status: params.Status,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
+	key := &do.Key{
+		AppId:       params.AppId,
+		Key:         params.Key,
+		Quota:       params.Quota,
+		Type:        1,
+		Models:      params.Models,
+		IpWhitelist: gstr.Split(params.IpWhitelist, "\n"),
+		IpBlacklist: gstr.Split(params.IpBlacklist, "\n"),
+		Remark:      params.Remark,
+		Status:      params.Status,
+	}
+
+	if params.Id != "" {
+		key.AppId = 0
+		key.Key = ""
+		if err := dao.Key.UpdateById(ctx, params.Id, key); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	} else {
+		if _, err := dao.Key.Insert(ctx, key); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil
