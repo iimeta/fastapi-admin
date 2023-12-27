@@ -467,6 +467,20 @@ func CountDocuments(ctx context.Context, database, collection string, filter map
 	return m.CountDocuments(ctx)
 }
 
+func (m *MongoDB[T]) EstimatedDocumentCount(ctx context.Context) (int64, error) {
+	return EstimatedDocumentCount(ctx, m.Database, m.Collection)
+}
+
+func EstimatedDocumentCount(ctx context.Context, database, collection string) (int64, error) {
+
+	m := &db.MongoDB{
+		Database:   database,
+		Collection: collection,
+	}
+
+	return m.EstimatedDocumentCount(ctx)
+}
+
 func (m *MongoDB[T]) Aggregate(ctx context.Context, pipeline []bson.M, result interface{}) error {
 	return Aggregate(ctx, m.Database, m.Collection, pipeline, result)
 }
