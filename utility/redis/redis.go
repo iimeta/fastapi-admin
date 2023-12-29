@@ -192,6 +192,14 @@ func Publish(ctx context.Context, channel string, message interface{}) (int64, e
 	return master.Publish(ctx, channel, message)
 }
 
+func Subscribe(ctx context.Context, channel string, channels ...string) (gredis.Conn, []*gredis.Subscription, error) {
+	return slave.Subscribe(ctx, channel, channels...)
+}
+
+func PSubscribe(ctx context.Context, pattern string, patterns ...string) (gredis.Conn, []*gredis.Subscription, error) {
+	return slave.PSubscribe(ctx, pattern, patterns...)
+}
+
 func RPush(ctx context.Context, key string, values ...interface{}) (int64, error) {
 	return master.RPush(ctx, key, values...)
 }
