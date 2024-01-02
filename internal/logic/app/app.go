@@ -181,7 +181,8 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 
 // 新建应用密钥
 func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (string, error) {
-	return util.NewKey("sk-FastAPI", 51, gconv.String(params.AppId)), nil
+	// 警告: 固定前缀, 修改请慎重, 可能会引发不可预知问题!!!
+	return util.NewKey("sk-FastAPI", 51, gconv.String(service.Session().GetUserId(ctx)), gconv.String(params.AppId)), nil
 }
 
 // 应用密钥配置
