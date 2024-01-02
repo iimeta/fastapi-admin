@@ -79,26 +79,30 @@ func NewMsgId() string {
 	return fmt.Sprintf("%s_%d", GenerateId(), gtime.Timestamp())
 }
 
-func NewKey(id string, length int, prefix ...string) string {
+func NewKey(prefix string, length int, ids ...string) string {
 
-	key := ""
-	n := length
+	key := prefix
 
-	if len(prefix) > 0 {
-		n -= len(prefix[0])
-		key += prefix[0]
-	}
+	if len(ids) > 0 {
 
-	l := len(id)
+		for _, id := range ids {
 
-	n = (n - l) / l
+			n := (length - len(prefix)) / len(ids)
+			l := len(id)
 
-	for i := 0; i < l; i++ {
-		key += strings.Join(slices.Insert(strings.Split(grand.Letters(n), ""), grand.Intn(n), id[i:i+1]), "")
-	}
+			n = (n - l) / l
 
-	if len(key) < length {
-		key += grand.Letters(length - len(key))
+			for i := 0; i < l; i++ {
+				key += strings.Join(slices.Insert(strings.Split(grand.Letters(n), ""), grand.Intn(n), id[i:i+1]), "")
+			}
+		}
+
+		if len(key) < length {
+			key += grand.Letters(length - len(key))
+		}
+
+	} else {
+		key += grand.Letters(length - len(prefix))
 	}
 
 	return key

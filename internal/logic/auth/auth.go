@@ -238,7 +238,7 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 // 生成用户Token
 func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSession bool) (token string, err error) {
 
-	token = util.NewKey(gconv.String(user.UserId), 32, consts.USER_TOKEN_PREFIX)
+	token = util.NewKey(consts.USER_TOKEN_PREFIX, 32, gconv.String(user.UserId))
 
 	if isSaveSession {
 		err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 7200)
@@ -274,7 +274,7 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 // 生成管理员Token
 func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSaveSession bool) (token string, err error) {
 
-	token = util.NewKey(admin.Id, 32, consts.ADMIN_TOKEN_PREFIX)
+	token = util.NewKey(consts.ADMIN_TOKEN_PREFIX, 32, admin.Id)
 
 	if isSaveSession {
 		err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), 7200)
