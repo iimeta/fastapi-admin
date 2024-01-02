@@ -1,4 +1,4 @@
-package model
+package key
 
 import (
 	"context"

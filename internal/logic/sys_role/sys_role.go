@@ -1,4 +1,4 @@
-package model
+package sys_role
 
 import (
 	"context"

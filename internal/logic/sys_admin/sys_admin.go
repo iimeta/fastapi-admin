@@ -1,4 +1,4 @@
-package model
+package sys_admin
 
 import (
 	"context"
