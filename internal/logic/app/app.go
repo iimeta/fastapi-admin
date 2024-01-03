@@ -29,14 +29,16 @@ func New() service.IApp {
 func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 
 	if _, err := dao.App.Insert(ctx, &do.App{
-		AppId:       core.IncrAppId(ctx),
-		Name:        params.Name,
-		Type:        params.Type,
-		Models:      params.Models,
-		IpWhitelist: gstr.Split(params.IpWhitelist, "\n"),
-		IpBlacklist: gstr.Split(params.IpBlacklist, "\n"),
-		Remark:      params.Remark,
-		Status:      params.Status,
+		AppId:        core.IncrAppId(ctx),
+		Name:         params.Name,
+		Type:         params.Type,
+		Models:       params.Models,
+		IsLimitQuota: params.IsLimitQuota,
+		Quota:        params.Quota,
+		IpWhitelist:  gstr.Split(params.IpWhitelist, "\n"),
+		IpBlacklist:  gstr.Split(params.IpBlacklist, "\n"),
+		Remark:       params.Remark,
+		Status:       params.Status,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -49,13 +51,15 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 
 	if err := dao.App.UpdateById(ctx, params.Id, &do.App{
-		Name:        params.Name,
-		Type:        params.Type,
-		Models:      params.Models,
-		IpWhitelist: params.IpWhitelist,
-		IpBlacklist: params.IpBlacklist,
-		Remark:      params.Remark,
-		Status:      params.Status,
+		Name:         params.Name,
+		Type:         params.Type,
+		Models:       params.Models,
+		IsLimitQuota: params.IsLimitQuota,
+		Quota:        params.Quota,
+		IpWhitelist:  params.IpWhitelist,
+		IpBlacklist:  params.IpBlacklist,
+		Remark:       params.Remark,
+		Status:       params.Status,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -85,19 +89,21 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 	}
 
 	return &model.App{
-		Id:          app.Id,
-		AppId:       app.AppId,
-		Name:        app.Name,
-		Type:        app.Type,
-		Models:      app.Models,
-		IpWhitelist: app.IpWhitelist,
-		IpBlacklist: app.IpBlacklist,
-		Remark:      app.Remark,
-		Status:      app.Status,
-		Creator:     app.Creator,
-		Updater:     app.Updater,
-		CreatedAt:   util.FormatDatetime(app.CreatedAt),
-		UpdatedAt:   util.FormatDatetime(app.UpdatedAt),
+		Id:           app.Id,
+		AppId:        app.AppId,
+		Name:         app.Name,
+		Type:         app.Type,
+		Models:       app.Models,
+		IsLimitQuota: app.IsLimitQuota,
+		Quota:        app.Quota,
+		IpWhitelist:  app.IpWhitelist,
+		IpBlacklist:  app.IpBlacklist,
+		Remark:       app.Remark,
+		Status:       app.Status,
+		Creator:      app.Creator,
+		Updater:      app.Updater,
+		CreatedAt:    util.FormatDatetime(app.CreatedAt),
+		UpdatedAt:    util.FormatDatetime(app.UpdatedAt),
 	}, nil
 }
 
@@ -120,19 +126,21 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 	items := make([]*model.App, 0)
 	for _, result := range results {
 		items = append(items, &model.App{
-			Id:          result.Id,
-			AppId:       result.AppId,
-			Name:        result.Name,
-			Type:        result.Type,
-			Models:      result.Models,
-			IpWhitelist: result.IpWhitelist,
-			IpBlacklist: result.IpBlacklist,
-			Remark:      result.Remark,
-			Status:      result.Status,
-			Creator:     result.Creator,
-			Updater:     result.Updater,
-			CreatedAt:   util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:   util.FormatDatetime(result.UpdatedAt),
+			Id:           result.Id,
+			AppId:        result.AppId,
+			Name:         result.Name,
+			Type:         result.Type,
+			Models:       result.Models,
+			IsLimitQuota: result.IsLimitQuota,
+			Quota:        result.Quota,
+			IpWhitelist:  result.IpWhitelist,
+			IpBlacklist:  result.IpBlacklist,
+			Remark:       result.Remark,
+			Status:       result.Status,
+			Creator:      result.Creator,
+			Updater:      result.Updater,
+			CreatedAt:    util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:    util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
@@ -160,19 +168,21 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 	items := make([]*model.App, 0)
 	for _, result := range results {
 		items = append(items, &model.App{
-			Id:          result.Id,
-			AppId:       result.AppId,
-			Name:        result.Name,
-			Type:        result.Type,
-			Models:      result.Models,
-			IpWhitelist: result.IpWhitelist,
-			IpBlacklist: result.IpBlacklist,
-			Remark:      result.Remark,
-			Status:      result.Status,
-			Creator:     result.Creator,
-			Updater:     result.Updater,
-			CreatedAt:   util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:   util.FormatDatetime(result.UpdatedAt),
+			Id:           result.Id,
+			AppId:        result.AppId,
+			Name:         result.Name,
+			Type:         result.Type,
+			Models:       result.Models,
+			IsLimitQuota: result.IsLimitQuota,
+			Quota:        result.Quota,
+			IpWhitelist:  result.IpWhitelist,
+			IpBlacklist:  result.IpBlacklist,
+			Remark:       result.Remark,
+			Status:       result.Status,
+			Creator:      result.Creator,
+			Updater:      result.Updater,
+			CreatedAt:    util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:    util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
@@ -189,15 +199,16 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) error {
 
 	key := &do.Key{
-		AppId:       params.AppId,
-		Key:         params.Key,
-		Quota:       params.Quota,
-		Type:        1,
-		Models:      params.Models,
-		IpWhitelist: gstr.Split(params.IpWhitelist, "\n"),
-		IpBlacklist: gstr.Split(params.IpBlacklist, "\n"),
-		Remark:      params.Remark,
-		Status:      params.Status,
+		AppId:        params.AppId,
+		Key:          params.Key,
+		IsLimitQuota: params.IsLimitQuota,
+		Quota:        params.Quota,
+		Type:         1,
+		Models:       params.Models,
+		IpWhitelist:  gstr.Split(params.IpWhitelist, "\n"),
+		IpBlacklist:  gstr.Split(params.IpBlacklist, "\n"),
+		Remark:       params.Remark,
+		Status:       params.Status,
 	}
 
 	if params.Id != "" {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/crypto/gmd5"
+	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -61,7 +62,7 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.
 		return nil, errors.New("发送异常")
 	}
 
-	code := util.GenValidateCode(6)
+	code := grand.Digits(6)
 
 	// 添加发送记录
 	if err := s.SetCode(ctx, params.Channel, params.Mobile, code, 15*time.Minute); err != nil {
@@ -123,7 +124,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 		return nil, errors.New("发送异常")
 	}
 
-	code := util.GenValidateCode(6)
+	code := grand.Digits(6)
 
 	// 添加发送记录
 	if err := s.SetCode(ctx, params.Channel, params.Email, code, 15*time.Minute); err != nil {
