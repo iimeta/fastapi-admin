@@ -35,6 +35,7 @@ type AppDetailRes struct {
 // 应用分页列表接口请求参数
 type AppPageReq struct {
 	Paging
+	AppId       int      `json:"app_id,omitempty"`       // 应用ID
 	Name        string   `json:"name,omitempty"`         // 应用名称
 	Type        int      `json:"type,omitempty"`         // 应用类型
 	Models      []string `json:"models,omitempty"`       // 模型权限
@@ -54,6 +55,7 @@ type AppPageRes struct {
 
 // 应用列表接口请求参数
 type AppListReq struct {
+	AppId       int      `json:"app_id,omitempty"`       // 应用ID
 	Name        string   `json:"name,omitempty"`         // 应用名称
 	Type        int      `json:"type,omitempty"`         // 应用类型
 	Models      []string `json:"models,omitempty"`       // 模型权限

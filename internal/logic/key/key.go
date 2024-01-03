@@ -83,21 +83,22 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 	}
 
 	return &model.Key{
-		Id:          key.Id,
-		AppId:       key.AppId,
-		Corp:        key.Corp,
-		Key:         key.Key,
-		Type:        key.Type,
-		Models:      key.Models,
-		Quota:       key.Quota,
-		IpWhitelist: key.IpWhitelist,
-		IpBlacklist: key.IpBlacklist,
-		Remark:      key.Remark,
-		Status:      key.Status,
-		Creator:     key.Creator,
-		Updater:     key.Updater,
-		CreatedAt:   util.FormatDatetime(key.CreatedAt),
-		UpdatedAt:   util.FormatDatetime(key.UpdatedAt),
+		Id:           key.Id,
+		AppId:        key.AppId,
+		Corp:         key.Corp,
+		Key:          key.Key,
+		Type:         key.Type,
+		Models:       key.Models,
+		IsLimitQuota: key.IsLimitQuota,
+		Quota:        key.Quota,
+		IpWhitelist:  key.IpWhitelist,
+		IpBlacklist:  key.IpBlacklist,
+		Remark:       key.Remark,
+		Status:       key.Status,
+		Creator:      key.Creator,
+		Updater:      key.Updater,
+		CreatedAt:    util.FormatDatetime(key.CreatedAt),
+		UpdatedAt:    util.FormatDatetime(key.UpdatedAt),
 	}, nil
 }
 
@@ -121,6 +122,16 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		filter["app_id"] = params.AppId
 	}
 
+	if params.Key != "" {
+		filter["key"] = params.Key
+	}
+
+	if len(params.Models) > 0 {
+		filter["models"] = bson.M{
+			"$in": params.Models,
+		}
+	}
+
 	results, err := dao.Key.FindByPage(ctx, paging, filter, "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
@@ -130,21 +141,22 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 		items = append(items, &model.Key{
-			Id:          result.Id,
-			AppId:       result.AppId,
-			Corp:        result.Corp,
-			Key:         result.Key,
-			Type:        result.Type,
-			Models:      result.Models,
-			Quota:       result.Quota,
-			IpWhitelist: result.IpWhitelist,
-			IpBlacklist: result.IpBlacklist,
-			Remark:      result.Remark,
-			Status:      result.Status,
-			Creator:     result.Creator,
-			Updater:     result.Updater,
-			CreatedAt:   util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:   util.FormatDatetime(result.UpdatedAt),
+			Id:           result.Id,
+			AppId:        result.AppId,
+			Corp:         result.Corp,
+			Key:          result.Key,
+			Type:         result.Type,
+			Models:       result.Models,
+			IsLimitQuota: result.IsLimitQuota,
+			Quota:        result.Quota,
+			IpWhitelist:  result.IpWhitelist,
+			IpBlacklist:  result.IpBlacklist,
+			Remark:       result.Remark,
+			Status:       result.Status,
+			Creator:      result.Creator,
+			Updater:      result.Updater,
+			CreatedAt:    util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:    util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 

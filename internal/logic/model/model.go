@@ -124,6 +124,22 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 	filter := bson.M{}
 
+	if params.Corp != "" {
+		filter["corp"] = params.Corp
+	}
+
+	if params.Name != "" {
+		filter["name"] = params.Name
+	}
+
+	if params.Model != "" {
+		filter["model"] = params.Model
+	}
+
+	if params.Type != 0 {
+		filter["type"] = params.Type
+	}
+
 	results, err := dao.Model.FindByPage(ctx, paging, filter, "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
