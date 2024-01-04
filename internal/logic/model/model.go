@@ -2,7 +2,9 @@ package model
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -10,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type sModel struct{}
@@ -25,10 +28,14 @@ func New() service.IModel {
 // 新建模型
 func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error {
 
+	if s.IsNameExist(ctx, params.Name) {
+		return errors.Newf("模型名称 \"%s\" 已存在", params.Name)
+	}
+
 	if _, err := dao.Model.Insert(ctx, &do.Model{
 		Corp:            params.Corp,
-		Name:            params.Name,
-		Model:           params.Model,
+		Name:            gstr.Trim(params.Name),
+		Model:           gstr.Trim(params.Model),
 		Type:            params.Type,
 		PromptRatio:     params.PromptRatio,
 		CompletionRatio: params.CompletionRatio,
@@ -50,10 +57,14 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 // 更新模型
 func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error {
 
+	if s.IsNameExist(ctx, params.Name, params.Id) {
+		return errors.Newf("模型名称 \"%s\" 已存在", params.Name)
+	}
+
 	if err := dao.Model.UpdateById(ctx, params.Id, &do.Model{
 		Corp:            params.Corp,
-		Name:            params.Name,
-		Model:           params.Model,
+		Name:            gstr.Trim(params.Name),
+		Model:           gstr.Trim(params.Model),
 		Type:            params.Type,
 		PromptRatio:     params.PromptRatio,
 		CompletionRatio: params.CompletionRatio,
@@ -215,4 +226,26 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	}
 
 	return items, nil
+}
+
+// 模型名称是否存在
+func (s *sModel) IsNameExist(ctx context.Context, name string, id ...string) bool {
+
+	model, err := dao.Model.FindOne(ctx, bson.M{"name": gstr.Trim(name)})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false
+		}
+		logger.Error(ctx, err)
+		return true
+	}
+
+	if model != nil {
+		if len(id) > 0 && model.Id == id[0] {
+			return false
+		}
+		return true
+	}
+
+	return false
 }

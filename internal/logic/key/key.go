@@ -26,7 +26,7 @@ func New() service.IKey {
 // 新建密钥
 func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 
-	keys := gstr.Split(params.Key, "\n")
+	keys := gstr.Split(gstr.Trim(params.Key), "\n")
 
 	for _, key := range keys {
 		if _, err := dao.Key.Insert(ctx, &do.Key{

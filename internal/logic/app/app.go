@@ -35,8 +35,8 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 		Models:       params.Models,
 		IsLimitQuota: params.IsLimitQuota,
 		Quota:        params.Quota,
-		IpWhitelist:  gstr.Split(params.IpWhitelist, "\n"),
-		IpBlacklist:  gstr.Split(params.IpBlacklist, "\n"),
+		IpWhitelist:  gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:       params.Remark,
 		Status:       params.Status,
 	}); err != nil {
@@ -56,8 +56,8 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		Models:       params.Models,
 		IsLimitQuota: params.IsLimitQuota,
 		Quota:        params.Quota,
-		IpWhitelist:  params.IpWhitelist,
-		IpBlacklist:  params.IpBlacklist,
+		IpWhitelist:  gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:       params.Remark,
 		Status:       params.Status,
 	}); err != nil {
@@ -219,8 +219,8 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) erro
 		Quota:        params.Quota,
 		Type:         1,
 		Models:       params.Models,
-		IpWhitelist:  gstr.Split(params.IpWhitelist, "\n"),
-		IpBlacklist:  gstr.Split(params.IpBlacklist, "\n"),
+		IpWhitelist:  gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:       params.Remark,
 		Status:       params.Status,
 	}

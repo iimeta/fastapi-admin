@@ -25,6 +25,8 @@ type (
 		Page(ctx context.Context, params model.ModelPageReq) (*model.ModelPageRes, error)
 		// 模型列表
 		List(ctx context.Context, params model.ModelListReq) ([]*model.Model, error)
+		// 模型名称是否存在
+		IsNameExist(ctx context.Context, name string, id ...string) bool
 	}
 )
 
