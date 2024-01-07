@@ -14,7 +14,7 @@ import (
 type (
 	IAuth interface {
 		// 注册接口
-		Register(ctx context.Context, params model.RegisterReq) error
+		Register(ctx context.Context, params model.RegisterReq, channel ...string) error
 		// 登录接口
 		Login(ctx context.Context, params model.LoginReq) (res *model.LoginRes, err error)
 		// 退出登录接口

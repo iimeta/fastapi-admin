@@ -35,10 +35,14 @@ func New() service.IAuth {
 }
 
 // 注册接口
-func (s *sAuth) Register(ctx context.Context, params model.RegisterReq) error {
+func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel ...string) error {
+
+	if len(channel) == 0 {
+		channel = []string{consts.CHANNEL_REGISTER}
+	}
 
 	// 验证验证码是否正确
-	if !service.Common().VerifyCode(ctx, consts.CHANNEL_REGISTER, params.Account, params.Code) {
+	if !service.Common().VerifyCode(ctx, channel[0], params.Account, params.Code) {
 		return errors.New("验证码填写错误")
 	}
 
@@ -51,7 +55,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq) error {
 	user := &do.User{
 		UserId:    core.IncrUserId(ctx),
 		Email:     params.Account,
-		Nickname:  params.Nickname,
+		Nickname:  params.Account,
 		CreatedAt: gtime.Timestamp(),
 	}
 
@@ -107,16 +111,57 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 	if params.Channel == consts.USER_CHANNEL {
 
-		accountInfo, err := dao.User.FindAccount(ctx, params.Account)
-		if err != nil {
-			if errors.Is(err, mongo.ErrNoDocuments) {
-				return nil, errors.New("账号或密码不正确")
+		if params.Method == consts.METHOD_CODE {
+			// 验证验证码是否正确
+			if !service.Common().VerifyCode(ctx, consts.CHANNEL_LOGIN, params.Account, params.Code) {
+				return nil, errors.New("验证码填写错误")
 			}
-			logger.Error(ctx, err)
-			return nil, err
 		}
 
-		if !crypto.VerifyPassword(accountInfo.Password, params.Password+accountInfo.Salt) {
+		accountInfo, err := dao.User.FindAccount(ctx, params.Account)
+
+		if params.Method == consts.METHOD_ACCOUNT {
+
+			if err != nil {
+				if errors.Is(err, mongo.ErrNoDocuments) {
+					return nil, errors.New("账号或密码不正确")
+				}
+				logger.Error(ctx, err)
+				return nil, err
+			}
+
+			if !crypto.VerifyPassword(accountInfo.Password, params.Password+accountInfo.Salt) {
+				return nil, errors.New("账号或密码不正确")
+			}
+
+		} else if params.Method == consts.METHOD_CODE {
+
+			if err != nil {
+				if errors.Is(err, mongo.ErrNoDocuments) {
+
+					if err = s.Register(ctx, model.RegisterReq{
+						Account:  params.Account,
+						Password: grand.Letters(8),
+						Terminal: params.Terminal,
+						Code:     params.Code,
+					}, consts.CHANNEL_LOGIN); err != nil {
+						logger.Error(ctx, err)
+						return nil, err
+					}
+
+					accountInfo, err = dao.User.FindAccount(ctx, params.Account)
+					if err != nil {
+						logger.Error(ctx, err)
+						return nil, err
+					}
+
+				} else {
+					logger.Error(ctx, err)
+					return nil, err
+				}
+			}
+
+		} else {
 			return nil, errors.New("账号或密码不正确")
 		}
 

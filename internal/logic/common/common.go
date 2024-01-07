@@ -104,9 +104,9 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 	switch params.Channel {
 	// 需要判断账号是否存在
 	case consts.CHANNEL_LOGIN:
-		if !dao.User.IsAccountExist(ctx, params.Email) {
-			return nil, errors.New("账号不存在或密码错误")
-		}
+		//if !dao.User.IsAccountExist(ctx, params.Email) {
+		//	return nil, errors.New("账号不存在或密码错误")
+		//}
 
 	// 需要判断账号是否存在
 	case consts.CHANNEL_FORGET_ACCOUNT:

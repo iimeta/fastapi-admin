@@ -82,6 +82,26 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		return nil, err
 	}
 
+	modelNames := make([]string, 0)
+	if len(key.Models) > 0 {
+
+		models, err := service.Model().List(ctx, model.ModelListReq{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		modelMap := util.ToMap(models, func(t *model.Model) string {
+			return t.Id
+		})
+
+		for _, id := range key.Models {
+			if modelMap[id] != nil {
+				modelNames = append(modelNames, modelMap[id].Name)
+			}
+		}
+	}
+
 	return &model.Key{
 		Id:           key.Id,
 		AppId:        key.AppId,
@@ -89,6 +109,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		Key:          key.Key,
 		Type:         key.Type,
 		Models:       key.Models,
+		ModelNames:   modelNames,
 		IsLimitQuota: key.IsLimitQuota,
 		Quota:        key.Quota,
 		IpWhitelist:  key.IpWhitelist,
@@ -138,8 +159,26 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		return nil, err
 	}
 
+	models, err := service.Model().List(ctx, model.ModelListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelMap := util.ToMap(models, func(t *model.Model) string {
+		return t.Id
+	})
+
 	items := make([]*model.Key, 0)
 	for _, result := range results {
+
+		modelNames := make([]string, 0)
+		for _, id := range result.Models {
+			if modelMap[id] != nil {
+				modelNames = append(modelNames, modelMap[id].Name)
+			}
+		}
+
 		items = append(items, &model.Key{
 			Id:           result.Id,
 			AppId:        result.AppId,
@@ -147,6 +186,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Key:          result.Key,
 			Type:         result.Type,
 			Models:       result.Models,
+			ModelNames:   modelNames,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
 			IpWhitelist:  result.IpWhitelist,

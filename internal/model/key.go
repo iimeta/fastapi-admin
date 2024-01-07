@@ -67,6 +67,7 @@ type Key struct {
 	Key          string   `json:"key,omitempty"`            // 密钥
 	Type         int      `json:"type,omitempty"`           // 密钥类型[1:应用, 2:模型]
 	Models       []string `json:"models,omitempty"`         // 模型
+	ModelNames   []string `json:"model_names,omitempty"`    // 模型名称
 	IsLimitQuota bool     `json:"is_limit_quota,omitempty"` // 是否限制额度
 	Quota        int      `json:"quota,omitempty"`          // 额度
 	IpWhitelist  []string `json:"ip_whitelist,omitempty"`   // IP白名单

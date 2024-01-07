@@ -88,12 +88,33 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		return nil, err
 	}
 
+	modelNames := make([]string, 0)
+	if len(app.Models) > 0 {
+
+		models, err := service.Model().List(ctx, model.ModelListReq{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		modelMap := util.ToMap(models, func(t *model.Model) string {
+			return t.Id
+		})
+
+		for _, id := range app.Models {
+			if modelMap[id] != nil {
+				modelNames = append(modelNames, modelMap[id].Name)
+			}
+		}
+	}
+
 	return &model.App{
 		Id:           app.Id,
 		AppId:        app.AppId,
 		Name:         app.Name,
 		Type:         app.Type,
 		Models:       app.Models,
+		ModelNames:   modelNames,
 		IsLimitQuota: app.IsLimitQuota,
 		Quota:        app.Quota,
 		IpWhitelist:  app.IpWhitelist,
@@ -137,14 +158,33 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 		return nil, err
 	}
 
+	models, err := service.Model().List(ctx, model.ModelListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelMap := util.ToMap(models, func(t *model.Model) string {
+		return t.Id
+	})
+
 	items := make([]*model.App, 0)
 	for _, result := range results {
+
+		modelNames := make([]string, 0)
+		for _, id := range result.Models {
+			if modelMap[id] != nil {
+				modelNames = append(modelNames, modelMap[id].Name)
+			}
+		}
+
 		items = append(items, &model.App{
 			Id:           result.Id,
 			AppId:        result.AppId,
 			Name:         result.Name,
 			Type:         result.Type,
 			Models:       result.Models,
+			ModelNames:   modelNames,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
 			IpWhitelist:  result.IpWhitelist,
