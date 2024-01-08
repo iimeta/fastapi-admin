@@ -36,6 +36,15 @@ var (
 
 			s.BindHookHandler("/*", ghttp.HookBeforeServe, beforeServeHook)
 
+			s.SetServerRoot("./resource/fastapi-web/")
+
+			s.AddStaticPath("/login", "./resource/fastapi-web/")
+			s.AddStaticPath("/dashboard/workplace", "./resource/fastapi-web/")
+			s.AddStaticPath("/app/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/model/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/key/model/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/key/app/list", "./resource/fastapi-web/")
+
 			s.Group("/", func(g *ghttp.RouterGroup) {
 				g.Middleware(ghttp.MiddlewareHandlerResponse)
 				g.Middleware(middleware)
