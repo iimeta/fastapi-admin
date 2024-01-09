@@ -4,7 +4,7 @@ const (
 	CHANNEL_LOGIN          = "login"
 	CHANNEL_REGISTER       = "register"
 	CHANNEL_FORGET_ACCOUNT = "forget_account"
-	CHANNEL_CHANGE_MOBILE  = "change_mobile"
+	CHANNEL_CHANGE_MOBILE  = "change_phone"
 	CHANNEL_CHANGE_EMAIL   = "change_email"
 )
 

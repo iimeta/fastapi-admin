@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -55,7 +56,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	user := &do.User{
 		UserId:    core.IncrUserId(ctx),
 		Email:     params.Account,
-		Nickname:  params.Account,
+		Name:      params.Account,
 		CreatedAt: gtime.Timestamp(),
 	}
 
@@ -187,11 +188,11 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		token, err = s.GenUserToken(ctx, &model.User{
 			Id:        user.Id,
 			UserId:    user.UserId,
-			Nickname:  user.Nickname,
+			Name:      user.Name,
 			Avatar:    user.Avatar,
 			Gender:    user.Gender,
 			Email:     user.Email,
-			Mobile:    user.Mobile,
+			Phone:     user.Phone,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		}, true)
@@ -205,10 +206,38 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{"account": params.Account})
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
-				return nil, errors.New("账号或密码不正确")
+
+				count, err := dao.SysAdmin.EstimatedDocumentCount(ctx)
+				if err != nil {
+					logger.Error(ctx, err)
+					return nil, err
+				}
+
+				// 初次登录自动创建账号
+				if count == 0 {
+
+					if err = service.SysAdmin().Create(ctx, model.SysAdminCreateReq{
+						Name:     params.Account,
+						Account:  params.Account,
+						Password: params.Password,
+					}); err != nil {
+						logger.Error(ctx, err)
+						return nil, err
+					}
+
+					admin, err = dao.SysAdmin.FindOne(ctx, bson.M{"account": params.Account})
+					if err != nil {
+						logger.Error(ctx, err)
+						return nil, err
+					}
+
+				} else {
+					return nil, errors.New("账号或密码不正确")
+				}
+			} else {
+				logger.Error(ctx, err)
+				return nil, err
 			}
-			logger.Error(ctx, err)
-			return nil, err
 		}
 
 		if !crypto.VerifyPassword(admin.Password, params.Password+admin.Salt) {
@@ -218,7 +247,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		r.SetCtxVar("uid", admin.Id)
 
 		// 记录登录ip和时间
-		if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), admin.Id, bson.M{
+		if err = dao.SysAdmin.UpdateById(gctx.WithCtx(r.GetCtx()), admin.Id, bson.M{
 			"last_login_ip":   ip,
 			"last_login_time": gtime.Timestamp(),
 		}); err != nil {
@@ -230,7 +259,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Name:      admin.Name,
 			Avatar:    admin.Avatar,
 			Gender:    admin.Gender,
-			Mobile:    admin.Mobile,
+			Phone:     admin.Phone,
 			Email:     admin.Email,
 			Account:   admin.Account,
 			Remark:    admin.Remark,
@@ -253,6 +282,18 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 // 退出登录接口
 func (s *sAuth) Logout(ctx context.Context) error {
+
+	token := service.Session().GetToken(ctx)
+	key := fmt.Sprintf(consts.USER_SESSION, token)
+
+	if gstr.HasPrefix(token, consts.ADMIN_TOKEN_PREFIX) {
+		key = fmt.Sprintf(consts.ADMIN_SESSION, token)
+	}
+
+	if _, err := redis.Del(ctx, key); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
 
 	return nil
 }

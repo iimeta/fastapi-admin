@@ -5,7 +5,7 @@ type SysAdminCreateReq struct {
 	Name     string `json:"name,omitempty"`     // 名称
 	Avatar   string `json:"avatar,omitempty"`   // 头像
 	Gender   int    `json:"gender,omitempty"`   // 性别[0:保密, 1:男, 2:女]
-	Mobile   string `json:"mobile,omitempty"`   // 手机号
+	Phone    string `json:"phone,omitempty"`    // 手机号
 	Email    string `json:"email,omitempty"`    // 邮箱
 	Account  string `json:"account,omitempty"`  // 账号
 	Password string `json:"password,omitempty"` // 密码
@@ -19,7 +19,7 @@ type SysAdminUpdateReq struct {
 	Name     string `json:"name,omitempty"`     // 名称
 	Avatar   string `json:"avatar,omitempty"`   // 头像
 	Gender   int    `json:"gender,omitempty"`   // 性别[0:保密, 1:男, 2:女]
-	Mobile   string `json:"mobile,omitempty"`   // 手机号
+	Phone    string `json:"phone,omitempty"`    // 手机号
 	Email    string `json:"email,omitempty"`    // 邮箱
 	Account  string `json:"account,omitempty"`  // 账号
 	Password string `json:"password,omitempty"` // 密码
@@ -38,7 +38,7 @@ type SysAdminPageReq struct {
 	Name     string `json:"name,omitempty"`     // 名称
 	Avatar   string `json:"avatar,omitempty"`   // 头像
 	Gender   int    `json:"gender,omitempty"`   // 性别[0:保密, 1:男, 2:女]
-	Mobile   string `json:"mobile,omitempty"`   // 手机号
+	Phone    string `json:"phone,omitempty"`    // 手机号
 	Email    string `json:"email,omitempty"`    // 邮箱
 	Account  string `json:"account,omitempty"`  // 账号
 	Password string `json:"password,omitempty"` // 密码
@@ -57,7 +57,7 @@ type SysAdmin struct {
 	Name          string `json:"name,omitempty"`            // 名称
 	Avatar        string `json:"avatar,omitempty"`          // 头像
 	Gender        int    `json:"gender,omitempty"`          // 性别[0:保密, 1:男, 2:女]
-	Mobile        string `json:"mobile,omitempty"`          // 手机号
+	Phone         string `json:"phone,omitempty"`           // 手机号
 	Email         string `json:"email,omitempty"`           // 邮箱
 	Account       string `json:"account,omitempty"`         // 账号
 	Password      string `json:"password,omitempty"`        // 密码

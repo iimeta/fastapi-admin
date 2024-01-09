@@ -20,7 +20,7 @@ func New() service.ISession {
 }
 
 // 保存用户会话信息
-func (s *sSession) SaveUser(ctx context.Context, user *model.User) error {
+func (s *sSession) SaveUser(ctx context.Context, token string, user *model.User) error {
 
 	if user == nil {
 		logger.Error(ctx, "user is nil")
@@ -29,6 +29,7 @@ func (s *sSession) SaveUser(ctx context.Context, user *model.User) error {
 
 	r := g.RequestFromCtx(ctx)
 
+	r.SetCtxVar("token", token)
 	r.SetCtxVar("uid", user.Id)
 	r.SetCtxVar("user_id", user.UserId)
 	r.SetCtxVar("user", user)
@@ -37,7 +38,7 @@ func (s *sSession) SaveUser(ctx context.Context, user *model.User) error {
 }
 
 // 保存管理员会话信息
-func (s *sSession) SaveAdmin(ctx context.Context, admin *model.SysAdmin) error {
+func (s *sSession) SaveAdmin(ctx context.Context, token string, admin *model.SysAdmin) error {
 
 	if admin == nil {
 		logger.Error(ctx, "admin is nil")
@@ -46,10 +47,23 @@ func (s *sSession) SaveAdmin(ctx context.Context, admin *model.SysAdmin) error {
 
 	r := g.RequestFromCtx(ctx)
 
+	r.SetCtxVar("token", token)
 	r.SetCtxVar("uid", admin.Id)
 	r.SetCtxVar("admin", admin)
 
 	return nil
+}
+
+// 获取会话中Token
+func (s *sSession) GetToken(ctx context.Context) string {
+
+	token := ctx.Value("token")
+	if token == nil {
+		logger.Error(ctx, "token is nil")
+		return ""
+	}
+
+	return token.(string)
 }
 
 // 获取会话中用户主键ID

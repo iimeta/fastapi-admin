@@ -22,7 +22,7 @@ type (
 		// 用户设置
 		Setting(ctx context.Context) (*model.UserSettingRes, error)
 		// 换绑手机号
-		ChangeMobile(ctx context.Context, params model.UserMobileUpdateReq) error
+		ChangePhone(ctx context.Context, params model.UserPhoneUpdateReq) error
 		// 换绑邮箱
 		ChangeEmail(ctx context.Context, params model.UserEmailUpdateReq) error
 		// 根据userId获取用户信息

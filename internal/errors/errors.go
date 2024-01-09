@@ -9,7 +9,7 @@ import (
 var (
 	ERR_SERVER_ERROR      = gerror.NewCode(gcode.New(-1, "Server errors", nil))
 	ERR_PERMISSION_DENIED = gerror.NewCode(gcode.New(999, "无权限访问", nil))
-	ERR_INVALID_ACCOUNT   = gerror.NewCode(gcode.New(10001, "Invalid Mobile", nil))
+	ERR_INVALID_ACCOUNT   = gerror.NewCode(gcode.New(10001, "Invalid Phone", nil))
 )
 
 func New(text string) error {

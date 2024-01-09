@@ -50,13 +50,13 @@ type UserPasswordUpdateRes struct {
 }
 
 // 用户手机号更新接口请求参数
-type UserMobileUpdateReq struct {
-	g.Meta `path:"/change/mobile" tags:"user" method:"post" summary:"用户手机号更新接口"`
-	model.UserMobileUpdateReq
+type UserPhoneUpdateReq struct {
+	g.Meta `path:"/change/phone" tags:"user" method:"post" summary:"用户手机号更新接口"`
+	model.UserPhoneUpdateReq
 }
 
 // 用户手机号更新接口响应参数
-type UserMobileUpdateRes struct {
+type UserPhoneUpdateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 

@@ -5,7 +5,7 @@ type SysAdmin struct {
 	Name          string `bson:"name,omitempty"`            // 名称
 	Avatar        string `bson:"avatar,omitempty"`          // 头像
 	Gender        int    `bson:"gender,omitempty"`          // 性别[0:保密, 1:男, 2:女]
-	Mobile        string `bson:"mobile,omitempty"`          // 手机号
+	Phone         string `bson:"phone,omitempty"`           // 手机号
 	Email         string `bson:"email,omitempty"`           // 邮箱
 	Account       string `bson:"account,omitempty"`         // 账号
 	Password      string `bson:"password,omitempty"`        // 密码

@@ -62,13 +62,13 @@ func (d *UserDao) FindUserListByUserIds(ctx context.Context, userIds []int) ([]*
 }
 
 // 判断手机号是否存在
-func (d *UserDao) IsMobileExist(ctx context.Context, mobile string) bool {
+func (d *UserDao) IsPhoneExist(ctx context.Context, phone string) bool {
 
-	if len(mobile) == 0 {
+	if len(phone) == 0 {
 		return false
 	}
 
-	total, err := d.CountDocuments(ctx, bson.M{"mobile": mobile})
+	total, err := d.CountDocuments(ctx, bson.M{"phone": phone})
 	if err != nil {
 		logger.Error(ctx, err)
 		return false

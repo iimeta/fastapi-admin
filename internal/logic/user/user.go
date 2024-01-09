@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -38,12 +39,12 @@ func (s *sUser) Info(ctx context.Context) (*model.UserInfoRes, error) {
 	}
 
 	return &model.UserInfoRes{
-		Id:       user.UserId,
-		Mobile:   user.Mobile,
-		Nickname: user.Nickname,
-		Avatar:   user.Avatar,
-		Gender:   user.Gender,
-		Email:    user.Email,
+		Id:     gconv.String(user.UserId),
+		Phone:  user.Phone,
+		Name:   user.Name,
+		Avatar: user.Avatar,
+		Gender: user.Gender,
+		Email:  user.Email,
 	}, nil
 }
 
@@ -57,9 +58,9 @@ func (s *sUser) ChangeDetail(ctx context.Context, params model.UserDetailUpdateR
 	}
 
 	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, &do.User{
-		Nickname: strings.TrimSpace(strings.Replace(params.Nickname, " ", "", -1)),
-		Avatar:   params.Avatar,
-		Gender:   params.Gender,
+		Name:   strings.TrimSpace(strings.Replace(params.Name, " ", "", -1)),
+		Avatar: params.Avatar,
+		Gender: params.Gender,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return errors.New("个人信息修改失败")
@@ -123,21 +124,21 @@ func (s *sUser) Setting(ctx context.Context) (*model.UserSettingRes, error) {
 
 	return &model.UserSettingRes{
 		User: &model.User{
-			UserId:   user.UserId,
-			Nickname: user.Nickname,
-			Avatar:   user.Avatar,
-			Gender:   user.Gender,
-			Mobile:   user.Mobile,
-			Email:    user.Email,
+			UserId: user.UserId,
+			Name:   user.Name,
+			Avatar: user.Avatar,
+			Gender: user.Gender,
+			Phone:  user.Phone,
+			Email:  user.Email,
 		},
 		Setting: &model.SettingInfo{},
 	}, nil
 }
 
 // 换绑手机号
-func (s *sUser) ChangeMobile(ctx context.Context, params model.UserMobileUpdateReq) error {
+func (s *sUser) ChangePhone(ctx context.Context, params model.UserPhoneUpdateReq) error {
 
-	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_MOBILE, params.Mobile, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_MOBILE, params.Phone, params.Code) {
 		return errors.New("短信验证码填写错误")
 	}
 
@@ -157,36 +158,36 @@ func (s *sUser) ChangeMobile(ctx context.Context, params model.UserMobileUpdateR
 		return errors.New("登录密码有误, 请重新输入")
 	}
 
-	if user.Mobile == params.Mobile {
+	if user.Phone == params.Phone {
 		return errors.New("手机号与原手机号一致无需修改")
 	}
 
-	if dao.User.IsAccountExist(ctx, params.Mobile) {
-		return errors.New(params.Mobile + " 手机号已被其它账号使用")
+	if dao.User.IsAccountExist(ctx, params.Phone) {
+		return errors.New(params.Phone + " 手机号已被其它账号使用")
 	}
 
 	if err = dao.User.UpdateById(ctx, user.Id, bson.M{
-		"mobile": params.Mobile,
+		"phone": params.Phone,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return errors.New("手机号修改失败")
 	}
 
-	if account.Account == user.Mobile {
-		if err = dao.User.ChangeAccountById(ctx, account.Id, params.Mobile); err != nil {
+	if account.Account == user.Phone {
+		if err = dao.User.ChangeAccountById(ctx, account.Id, params.Phone); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
 	} else {
 
-		accountInfo, err := dao.User.FindAccount(ctx, user.Mobile)
+		accountInfo, err := dao.User.FindAccount(ctx, user.Phone)
 		if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 			logger.Error(ctx, err)
 			return err
 		}
 
 		if accountInfo != nil {
-			if err = dao.User.ChangeAccountById(ctx, accountInfo.Id, params.Mobile); err != nil {
+			if err = dao.User.ChangeAccountById(ctx, accountInfo.Id, params.Phone); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
@@ -194,7 +195,7 @@ func (s *sUser) ChangeMobile(ctx context.Context, params model.UserMobileUpdateR
 			if _, err := dao.User.CreateAccount(ctx, &do.Account{
 				Uid:      account.Uid,
 				UserId:   account.UserId,
-				Account:  params.Mobile,
+				Account:  params.Phone,
 				Password: account.Password,
 				Salt:     account.Salt,
 				Status:   1,
@@ -294,8 +295,8 @@ func (s *sUser) GetUserById(ctx context.Context, userId int) (*model.User, error
 	return &model.User{
 		Id:        user.Id,
 		UserId:    user.UserId,
-		Mobile:    user.Mobile,
-		Nickname:  user.Nickname,
+		Phone:     user.Phone,
+		Name:      user.Name,
 		Avatar:    user.Avatar,
 		Gender:    user.Gender,
 		Email:     user.Email,

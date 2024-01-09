@@ -33,13 +33,13 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.
 
 	if !config.Cfg.App.Debug {
 		defer func() {
-			val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Mobile))
+			val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone))
 			if val == 1 {
-				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Mobile), 30*60) // 锁定30分钟
+				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone), 30*60) // 锁定30分钟
 			}
 		}()
 
-		val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Mobile))
+		val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone))
 		if err == nil && val >= 5 {
 			return nil, errors.New("发送验证码过于频繁, 请稍后再试")
 		}
@@ -48,13 +48,13 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.
 	switch params.Channel {
 	// 需要判断账号是否存在
 	case consts.CHANNEL_LOGIN, consts.CHANNEL_FORGET_ACCOUNT:
-		if !dao.User.IsAccountExist(ctx, params.Mobile) {
+		if !dao.User.IsAccountExist(ctx, params.Phone) {
 			return nil, errors.New("账号不存在或密码错误")
 		}
 
 	// 需要判断账号是否存在
 	case consts.CHANNEL_REGISTER, consts.CHANNEL_CHANGE_MOBILE:
-		if dao.User.IsAccountExist(ctx, params.Mobile) {
+		if dao.User.IsAccountExist(ctx, params.Phone) {
 			return nil, errors.New("手机号已被他人使用")
 		}
 
@@ -65,7 +65,7 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.
 	code := grand.Digits(6)
 
 	// 添加发送记录
-	if err := s.SetCode(ctx, params.Channel, params.Mobile, code, 15*time.Minute); err != nil {
+	if err := s.SetCode(ctx, params.Channel, params.Phone, code, 15*time.Minute); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}

@@ -169,7 +169,7 @@ func middleware(r *ghttp.Request) {
 			return
 		}
 
-		err = service.Session().SaveUser(r.GetCtx(), user)
+		err = service.Session().SaveUser(r.GetCtx(), token, user)
 		if err != nil {
 			r.Response.Header().Set("Content-Type", "application/json")
 			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
@@ -187,7 +187,7 @@ func middleware(r *ghttp.Request) {
 			return
 		}
 
-		err = service.Session().SaveAdmin(r.GetCtx(), admin)
+		err = service.Session().SaveAdmin(r.GetCtx(), token, admin)
 		if err != nil {
 			r.Response.Header().Set("Content-Type", "application/json")
 			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
@@ -221,41 +221,20 @@ func sysMiddleware(r *ghttp.Request) {
 		return
 	}
 
-	if gstr.HasPrefix(token, consts.USER_TOKEN_PREFIX) {
+	admin, err := service.Auth().GetAdminByToken(r.GetCtx(), token)
+	if err != nil {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
 
-		user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
-		if err != nil {
-			r.Response.Header().Set("Content-Type", "application/json")
-			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-			r.Exit()
-			return
-		}
-
-		err = service.Session().SaveUser(r.GetCtx(), user)
-		if err != nil {
-			r.Response.Header().Set("Content-Type", "application/json")
-			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-			r.Exit()
-			return
-		}
-
-	} else {
-
-		admin, err := service.Auth().GetAdminByToken(r.GetCtx(), token)
-		if err != nil {
-			r.Response.Header().Set("Content-Type", "application/json")
-			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-			r.Exit()
-			return
-		}
-
-		err = service.Session().SaveAdmin(r.GetCtx(), admin)
-		if err != nil {
-			r.Response.Header().Set("Content-Type", "application/json")
-			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-			r.Exit()
-			return
-		}
+	err = service.Session().SaveAdmin(r.GetCtx(), token, admin)
+	if err != nil {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
 	}
 
 	if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
