@@ -21,6 +21,16 @@ const (
 )
 
 const (
+	SESSION_TOKEN   = "token"
+	SESSION_UID     = "uid"
+	SESSION_USER_ID = "user_id"
+	SESSION_USER    = "user"
+	SESSION_ADMIN   = "admin"
+	SESSION_ROLE    = "role"
+	SESSION_CREATOR = "creator"
+)
+
+const (
 	CORP_OPENAI     = "OpenAI"
 	CORP_BAIDU      = "Baidu"
 	CORP_XFYUN      = "Xfyun"

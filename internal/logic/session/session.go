@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -29,10 +30,12 @@ func (s *sSession) SaveUser(ctx context.Context, token string, user *model.User)
 
 	r := g.RequestFromCtx(ctx)
 
-	r.SetCtxVar("token", token)
-	r.SetCtxVar("uid", user.Id)
-	r.SetCtxVar("user_id", user.UserId)
-	r.SetCtxVar("user", user)
+	r.SetCtxVar(consts.SESSION_TOKEN, token)
+	r.SetCtxVar(consts.SESSION_UID, user.Id)
+	r.SetCtxVar(consts.SESSION_USER_ID, user.UserId)
+	r.SetCtxVar(consts.SESSION_USER, user)
+	r.SetCtxVar(consts.SESSION_ROLE, consts.SESSION_USER)
+	r.SetCtxVar(consts.SESSION_CREATOR, user.Id)
 
 	return nil
 }
@@ -47,9 +50,10 @@ func (s *sSession) SaveAdmin(ctx context.Context, token string, admin *model.Sys
 
 	r := g.RequestFromCtx(ctx)
 
-	r.SetCtxVar("token", token)
-	r.SetCtxVar("uid", admin.Id)
-	r.SetCtxVar("admin", admin)
+	r.SetCtxVar(consts.SESSION_TOKEN, token)
+	r.SetCtxVar(consts.SESSION_UID, admin.Id)
+	r.SetCtxVar(consts.SESSION_ADMIN, admin)
+	r.SetCtxVar(consts.SESSION_ROLE, consts.SESSION_ADMIN)
 
 	return nil
 }
@@ -57,7 +61,7 @@ func (s *sSession) SaveAdmin(ctx context.Context, token string, admin *model.Sys
 // 获取会话中Token
 func (s *sSession) GetToken(ctx context.Context) string {
 
-	token := ctx.Value("token")
+	token := ctx.Value(consts.SESSION_TOKEN)
 	if token == nil {
 		logger.Error(ctx, "token is nil")
 		return ""
@@ -69,7 +73,7 @@ func (s *sSession) GetToken(ctx context.Context) string {
 // 获取会话中用户主键ID
 func (s *sSession) GetUid(ctx context.Context) string {
 
-	uid := ctx.Value("uid")
+	uid := ctx.Value(consts.SESSION_UID)
 	if uid == nil {
 		logger.Error(ctx, "uid is nil")
 		return ""
@@ -81,7 +85,7 @@ func (s *sSession) GetUid(ctx context.Context) string {
 // 获取会话中UserId
 func (s *sSession) GetUserId(ctx context.Context) int {
 
-	userId := ctx.Value("user_id")
+	userId := ctx.Value(consts.SESSION_USER_ID)
 	if userId == nil {
 		logger.Error(ctx, "user_id is nil")
 		return 0
@@ -90,24 +94,50 @@ func (s *sSession) GetUserId(ctx context.Context) int {
 	return userId.(int)
 }
 
-// 获取会话中用户信息
-func (s *sSession) GetUser(ctx context.Context) *model.User {
+// 获取会话中角色
+func (s *sSession) GetRole(ctx context.Context) string {
 
-	value := ctx.Value("user")
-	if value != nil {
-		return value.(*model.User)
+	role := ctx.Value(consts.SESSION_ROLE)
+	if role == nil {
+		logger.Error(ctx, "role is nil")
+		return ""
 	}
 
-	return nil
+	return role.(string)
+}
+
+// 获取会话中创建人
+func (s *sSession) GetCreator(ctx context.Context) string {
+
+	creator := ctx.Value(consts.SESSION_CREATOR)
+	if creator == nil {
+		logger.Error(ctx, "creator is nil")
+		return ""
+	}
+
+	return creator.(string)
 }
 
 // 获取会话中用户信息
-func (s *sSession) GetAdmin(ctx context.Context) *model.SysAdmin {
+func (s *sSession) GetUser(ctx context.Context) *model.User {
 
-	value := ctx.Value("admin")
-	if value != nil {
-		return value.(*model.SysAdmin)
+	user := ctx.Value(consts.SESSION_USER)
+	if user == nil {
+		logger.Error(ctx, "user is nil")
+		return nil
 	}
 
-	return nil
+	return user.(*model.User)
+}
+
+// 获取会话中管理员信息
+func (s *sSession) GetAdmin(ctx context.Context) *model.SysAdmin {
+
+	admin := ctx.Value(consts.SESSION_ADMIN)
+	if admin == nil {
+		logger.Error(ctx, "admin is nil")
+		return nil
+	}
+
+	return admin.(*model.SysAdmin)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/gmeta"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -41,6 +42,13 @@ func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, so
 
 func Find(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, sortFields ...string) error {
 
+	if service.Session().GetRole(ctx) != consts.SESSION_ADMIN {
+		if filter == nil {
+			filter = bson.M{}
+		}
+		filter["creator"] = service.Session().GetCreator(ctx)
+	}
+
 	m := &db.MongoDB{
 		Database:   database,
 		Collection: collection,
@@ -61,6 +69,13 @@ func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{},
 }
 
 func FindOne(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, sortFields ...string) error {
+
+	if service.Session().GetRole(ctx) != consts.SESSION_ADMIN {
+		if filter == nil {
+			filter = bson.M{}
+		}
+		filter["creator"] = service.Session().GetCreator(ctx)
+	}
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -83,10 +98,15 @@ func (m *MongoDB[T]) FindById(ctx context.Context, id interface{}) (*T, error) {
 
 func FindById(ctx context.Context, database, collection string, id, result interface{}) error {
 
+	filter := bson.M{"_id": id}
+	if service.Session().GetRole(ctx) != consts.SESSION_ADMIN {
+		filter["creator"] = service.Session().GetCreator(ctx)
+	}
+
 	m := &db.MongoDB{
 		Database:   database,
 		Collection: collection,
-		Filter:     bson.M{"_id": id},
+		Filter:     filter,
 	}
 
 	return m.FindOne(ctx, result)
@@ -104,10 +124,15 @@ func (m *MongoDB[T]) FindByIds(ctx context.Context, ids interface{}) ([]*T, erro
 
 func FindByIds(ctx context.Context, database, collection string, ids, result interface{}) error {
 
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+	if service.Session().GetRole(ctx) != consts.SESSION_ADMIN {
+		filter["creator"] = service.Session().GetCreator(ctx)
+	}
+
 	m := &db.MongoDB{
 		Database:   database,
 		Collection: collection,
-		Filter:     bson.M{"_id": bson.M{"$in": ids}},
+		Filter:     filter,
 	}
 
 	return m.Find(ctx, result)
@@ -124,6 +149,13 @@ func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter m
 }
 
 func FindByPage(ctx context.Context, database, collection string, paging *db.Paging, filter map[string]interface{}, result interface{}, sortFields ...string) error {
+
+	if service.Session().GetRole(ctx) != consts.SESSION_ADMIN {
+		if filter == nil {
+			filter = bson.M{}
+		}
+		filter["creator"] = service.Session().GetCreator(ctx)
+	}
 
 	m := &db.MongoDB{
 		Database:   database,

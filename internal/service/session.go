@@ -23,9 +23,13 @@ type (
 		GetUid(ctx context.Context) string
 		// 获取会话中UserId
 		GetUserId(ctx context.Context) int
+		// 获取会话中角色
+		GetRole(ctx context.Context) string
+		// 获取会话中创建人
+		GetCreator(ctx context.Context) string
 		// 获取会话中用户信息
 		GetUser(ctx context.Context) *model.User
-		// 获取会话中用户信息
+		// 获取会话中管理员信息
 		GetAdmin(ctx context.Context) *model.SysAdmin
 	}
 )

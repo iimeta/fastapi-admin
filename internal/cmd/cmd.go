@@ -39,6 +39,7 @@ var (
 			s.SetServerRoot("./resource/fastapi-web/")
 
 			s.AddStaticPath("/login", "./resource/fastapi-web/")
+			s.AddStaticPath("/admin", "./resource/fastapi-web/")
 			s.AddStaticPath("/dashboard/workplace", "./resource/fastapi-web/")
 			s.AddStaticPath("/app/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/model/list", "./resource/fastapi-web/")
