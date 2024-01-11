@@ -1,6 +1,9 @@
 package entity
 
+import "github.com/gogf/gf/v2/util/gmeta"
+
 type SysAdmin struct {
+	gmeta.Meta    `role:"admin" bson:"-"`
 	Id            string `bson:"_id,omitempty"`             // ID
 	Name          string `bson:"name,omitempty"`            // 名称
 	Avatar        string `bson:"avatar,omitempty"`          // 头像

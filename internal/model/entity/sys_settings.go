@@ -1,6 +1,9 @@
 package entity
 
+import "github.com/gogf/gf/v2/util/gmeta"
+
 type SysSettings struct {
+	gmeta.Meta  `role:"admin" bson:"-"`
 	Id          string   `bson:"_id,omitempty"`          // ID
 	AppId       int      `bson:"app_id,omitempty"`       // 应用ID
 	Name        string   `bson:"name,omitempty"`         // 应用名称

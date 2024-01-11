@@ -99,7 +99,6 @@ func (s *sSession) GetRole(ctx context.Context) string {
 
 	role := ctx.Value(consts.SESSION_ROLE)
 	if role == nil {
-		logger.Error(ctx, "role is nil")
 		return ""
 	}
 

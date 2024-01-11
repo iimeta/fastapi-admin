@@ -1,6 +1,9 @@
 package entity
 
+import "github.com/gogf/gf/v2/util/gmeta"
+
 type Key struct {
+	gmeta.Meta   `role:"user,admin" bson:"-"`
 	Id           string   `bson:"_id,omitempty"`            // ID
 	AppId        int      `bson:"app_id,omitempty"`         // 应用ID
 	Corp         string   `bson:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]

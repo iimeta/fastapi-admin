@@ -71,7 +71,14 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 // 删除应用
 func (s *sApp) Delete(ctx context.Context, id string) error {
 
-	if err := dao.App.DeleteById(ctx, id); err != nil {
+	app, err := dao.App.FindOneAndDeleteById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	_, err = dao.Key.DeleteMany(ctx, bson.M{"app_id": app.AppId})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

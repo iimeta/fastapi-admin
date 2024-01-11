@@ -68,7 +68,7 @@ func (s *sSysMenu) Update(ctx context.Context, params model.SysMenuUpdateReq) er
 // 删除菜单
 func (s *sSysMenu) Delete(ctx context.Context, id string) error {
 
-	if err := dao.SysMenu.DeleteById(ctx, id); err != nil {
+	if _, err := dao.SysMenu.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

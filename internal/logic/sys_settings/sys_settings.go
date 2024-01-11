@@ -64,7 +64,7 @@ func (s *sSysSettings) Update(ctx context.Context, params model.SysSettingsUpdat
 // 删除应用
 func (s *sSysSettings) Delete(ctx context.Context, id string) error {
 
-	if err := dao.SysSettings.DeleteById(ctx, id); err != nil {
+	if _, err := dao.SysSettings.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

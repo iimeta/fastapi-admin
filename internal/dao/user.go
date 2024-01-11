@@ -31,7 +31,7 @@ func NewUserDao(database ...string) *UserDao {
 // 判断账号是否存在
 func (d *UserDao) IsAccountExist(ctx context.Context, account string) bool {
 
-	total, err := CountDocuments(ctx, d.Database, do.ACCOUNT_COLLECTION, bson.M{"account": account})
+	total, err := Account.CountDocuments(ctx, bson.M{"account": account})
 	if err != nil {
 		logger.Error(ctx, err)
 		return false
@@ -43,8 +43,8 @@ func (d *UserDao) IsAccountExist(ctx context.Context, account string) bool {
 // 根据账号查询用户
 func (d *UserDao) FindUserByAccount(ctx context.Context, account string) (*entity.User, error) {
 
-	accountInfo := new(entity.Account)
-	if err := FindOne(ctx, d.Database, do.ACCOUNT_COLLECTION, bson.M{"account": account}, &accountInfo); err != nil {
+	accountInfo, err := Account.FindOne(ctx, bson.M{"account": account})
+	if err != nil {
 		return nil, err
 	}
 
@@ -94,13 +94,13 @@ func (d *UserDao) IsEmailExist(ctx context.Context, email string) bool {
 }
 
 func (d *UserDao) CreateAccount(ctx context.Context, account *do.Account) (string, error) {
-	return Insert(ctx, d.Database, account)
+	return Account.Insert(ctx, account)
 }
 
 func (d *UserDao) FindAccount(ctx context.Context, account string) (*entity.Account, error) {
 
-	accountInfo := new(entity.Account)
-	if err := FindOne(ctx, d.Database, do.ACCOUNT_COLLECTION, bson.M{"account": account}, &accountInfo); err != nil {
+	accountInfo, err := Account.FindOne(ctx, bson.M{"account": account})
+	if err != nil {
 		return nil, err
 	}
 
@@ -109,8 +109,8 @@ func (d *UserDao) FindAccount(ctx context.Context, account string) (*entity.Acco
 
 func (d *UserDao) FindAccountByUserId(ctx context.Context, userId int) (*entity.Account, error) {
 
-	accountInfo := new(entity.Account)
-	if err := FindOne(ctx, d.Database, do.ACCOUNT_COLLECTION, bson.M{"user_id": userId}, &accountInfo); err != nil {
+	accountInfo, err := Account.FindOne(ctx, bson.M{"user_id": userId})
+	if err != nil {
 		return nil, err
 	}
 
@@ -119,8 +119,8 @@ func (d *UserDao) FindAccountByUserId(ctx context.Context, userId int) (*entity.
 
 func (d *UserDao) FindAccountsByUserId(ctx context.Context, userId int) ([]*entity.Account, error) {
 
-	accounts := make([]*entity.Account, 0)
-	if err := Find(ctx, d.Database, do.ACCOUNT_COLLECTION, bson.M{"user_id": userId}, &accounts); err != nil {
+	accounts, err := Account.Find(ctx, bson.M{"user_id": userId})
+	if err != nil {
 		return nil, err
 	}
 
@@ -128,13 +128,13 @@ func (d *UserDao) FindAccountsByUserId(ctx context.Context, userId int) ([]*enti
 }
 
 func (d *UserDao) ChangeAccountById(ctx context.Context, id, account string) error {
-	return UpdateById(ctx, d.Database, do.ACCOUNT_COLLECTION, id, bson.M{"account": account})
+	return Account.UpdateById(ctx, id, bson.M{"account": account})
 }
 
 func (d *UserDao) ChangePasswordByUserId(ctx context.Context, userId int, password string) error {
 
 	salt := grand.Letters(8)
-	if err := UpdateMany(ctx, d.Database, do.ACCOUNT_COLLECTION, bson.M{"user_id": userId}, bson.M{
+	if err := Account.UpdateMany(ctx, bson.M{"user_id": userId}, bson.M{
 		"password": crypto.EncryptPassword(password + salt),
 		"salt":     salt,
 	}); err != nil {

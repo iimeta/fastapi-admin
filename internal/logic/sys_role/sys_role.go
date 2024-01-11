@@ -60,7 +60,7 @@ func (s *sSysRole) Update(ctx context.Context, params model.SysRoleUpdateReq) er
 // 删除角色
 func (s *sSysRole) Delete(ctx context.Context, id string) error {
 
-	if err := dao.SysRole.DeleteById(ctx, id); err != nil {
+	if _, err := dao.SysRole.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

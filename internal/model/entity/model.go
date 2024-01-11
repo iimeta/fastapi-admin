@@ -1,6 +1,9 @@
 package entity
 
+import "github.com/gogf/gf/v2/util/gmeta"
+
 type Model struct {
+	gmeta.Meta      `role:"*" bson:"-"`
 	Id              string  `bson:"_id,omitempty"`              // ID
 	Corp            string  `bson:"corp,omitempty"`             // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
 	Name            string  `bson:"name,omitempty"`             // 模型名称

@@ -23,6 +23,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"strings"
 )
 
 type sAuth struct{}
@@ -283,7 +284,9 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 // 退出登录接口
 func (s *sAuth) Logout(ctx context.Context) error {
 
-	token := service.Session().GetToken(ctx)
+	token := g.RequestFromCtx(ctx).GetHeader("Authorization")
+	token = strings.TrimSpace(strings.TrimPrefix(token, "Bearer"))
+
 	key := fmt.Sprintf(consts.USER_SESSION, token)
 
 	if gstr.HasPrefix(token, consts.ADMIN_TOKEN_PREFIX) {

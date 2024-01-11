@@ -86,7 +86,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 // 删除模型
 func (s *sModel) Delete(ctx context.Context, id string) error {
 
-	if err := dao.Model.DeleteById(ctx, id); err != nil {
+	if _, err := dao.Model.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

@@ -65,7 +65,7 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 // 删除密钥
 func (s *sKey) Delete(ctx context.Context, id string) error {
 
-	if err := dao.Key.DeleteById(ctx, id); err != nil {
+	if _, err := dao.Key.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
