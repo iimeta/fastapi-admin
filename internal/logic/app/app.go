@@ -39,6 +39,7 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:       params.Remark,
 		Status:       params.Status,
+		UserId:       service.Session().GetUserId(ctx),
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
