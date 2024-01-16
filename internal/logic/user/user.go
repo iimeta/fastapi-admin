@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
+	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
+	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
@@ -303,4 +305,142 @@ func (s *sUser) GetUserById(ctx context.Context, userId int) (*model.User, error
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}, nil
+}
+
+// 新建用户
+func (s *sUser) Create(ctx context.Context, params model.UserCreateReq) error {
+
+	if _, err := dao.User.Insert(ctx, &do.User{
+		UserId: core.IncrUserId(ctx),
+		Name:   params.Name,
+		Quota:  params.Quota,
+		Status: params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更新用户
+func (s *sUser) Update(ctx context.Context, params model.UserUpdateReq) error {
+
+	if err := dao.User.UpdateById(ctx, params.Id, &do.User{
+		Name:   params.Name,
+		Quota:  params.Quota,
+		Status: params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 删除用户
+func (s *sUser) Delete(ctx context.Context, id string) error {
+
+	user, err := dao.User.FindOneAndDeleteById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	_, err = dao.Key.DeleteMany(ctx, bson.M{"user_id": user.UserId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 用户详情
+func (s *sUser) Detail(ctx context.Context, id string) (*model.User, error) {
+
+	user, err := dao.User.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return &model.User{
+		Id:     user.Id,
+		UserId: user.UserId,
+		Name:   user.Name,
+		Quota:  user.Quota,
+		Remark: user.Remark,
+	}, nil
+}
+
+// 用户分页列表
+func (s *sUser) Page(ctx context.Context, params model.UserPageReq) (*model.UserPageRes, error) {
+
+	paging := &db.Paging{
+		Page:     params.Page,
+		PageSize: params.PageSize,
+	}
+
+	filter := bson.M{}
+
+	if params.UserId != 0 {
+		filter["user_id"] = params.UserId
+	}
+
+	if params.Name != "" {
+		filter["name"] = params.Name
+	}
+
+	results, err := dao.User.FindByPage(ctx, paging, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.User, 0)
+	for _, result := range results {
+
+		items = append(items, &model.User{
+			Id:     result.Id,
+			UserId: result.UserId,
+			Name:   result.Name,
+			Quota:  result.Quota,
+			Remark: result.Remark,
+		})
+	}
+
+	return &model.UserPageRes{
+		Items: items,
+		Paging: &model.Paging{
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
+		},
+	}, nil
+}
+
+// 用户列表
+func (s *sUser) List(ctx context.Context, params model.UserListReq) ([]*model.User, error) {
+
+	filter := bson.M{}
+
+	results, err := dao.User.Find(ctx, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.User, 0)
+	for _, result := range results {
+		items = append(items, &model.User{
+			Id:     result.Id,
+			UserId: result.UserId,
+			Name:   result.Name,
+			Quota:  result.Quota,
+			Remark: result.Remark,
+		})
+	}
+
+	return items, nil
 }

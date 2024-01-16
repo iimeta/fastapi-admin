@@ -70,3 +70,72 @@ type UserEmailUpdateReq struct {
 type UserEmailUpdateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 新建用户接口请求参数
+type CreateReq struct {
+	g.Meta `path:"/create" tags:"user" method:"post" summary:"新建用户接口"`
+	model.UserCreateReq
+}
+
+// 新建用户接口响应参数
+type CreateRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+}
+
+// 更新用户接口请求参数
+type UpdateReq struct {
+	g.Meta `path:"/update" tags:"user" method:"post" summary:"更新用户接口"`
+	model.UserUpdateReq
+}
+
+// 更新用户接口响应参数
+type UpdateRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+}
+
+// 删除用户接口请求参数
+type DeleteReq struct {
+	g.Meta `path:"/delete" tags:"user" method:"post" summary:"删除用户接口"`
+	Id     string `json:"id"`
+}
+
+// 删除用户接口响应参数
+type DeleteRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+}
+
+// 用户详情接口请求参数
+type DetailReq struct {
+	g.Meta `path:"/detail" tags:"user" method:"get" summary:"用户详情接口"`
+	Id     string `json:"id"`
+}
+
+// 用户详情接口响应参数
+type DetailRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+	*model.UserDetailRes
+}
+
+// 用户分页列表接口请求参数
+type PageReq struct {
+	g.Meta `path:"/page" tags:"user" method:"post" summary:"用户分页列表接口"`
+	model.UserPageReq
+}
+
+// 用户分页列表接口响应参数
+type PageRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+	*model.UserPageRes
+}
+
+// 用户列表接口请求参数
+type ListReq struct {
+	g.Meta `path:"/list" tags:"user" method:"get" summary:"用户列表接口"`
+	model.UserListReq
+}
+
+// 用户列表接口响应参数
+type ListRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+	*model.UserListRes
+}

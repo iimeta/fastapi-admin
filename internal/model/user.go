@@ -46,6 +46,77 @@ type UserEmailUpdateReq struct {
 	Code     string `json:"code,omitempty" v:"required|length:0,6"`
 }
 
+// 新建用户接口请求参数
+type UserCreateReq struct {
+	Name         string   `json:"name,omitempty"`           // 用户名称
+	Type         int      `json:"type,omitempty"`           // 用户类型
+	Models       []string `json:"models,omitempty"`         // 模型权限
+	IsLimitQuota bool     `json:"is_limit_quota,omitempty"` // 是否限制额度
+	Quota        int      `json:"quota,omitempty"`          // 额度
+	IpWhitelist  string   `json:"ip_whitelist,omitempty"`   // IP白名单
+	IpBlacklist  string   `json:"ip_blacklist,omitempty"`   // IP黑名单
+	Remark       string   `json:"remark,omitempty"`         // 备注
+	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+}
+
+// 更新用户接口请求参数
+type UserUpdateReq struct {
+	Id           string   `json:"id,omitempty"`             // ID
+	Name         string   `json:"name,omitempty"`           // 用户名称
+	Type         int      `json:"type,omitempty"`           // 用户类型
+	Models       []string `json:"models,omitempty"`         // 模型权限
+	IsLimitQuota bool     `json:"is_limit_quota,omitempty"` // 是否限制额度
+	Quota        int      `json:"quota,omitempty"`          // 额度
+	IpWhitelist  string   `json:"ip_whitelist,omitempty"`   // IP白名单
+	IpBlacklist  string   `json:"ip_blacklist,omitempty"`   // IP黑名单
+	Remark       string   `json:"remark,omitempty"`         // 备注
+	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+}
+
+// 用户详情接口响应参数
+type UserDetailRes struct {
+	*User
+}
+
+// 用户分页列表接口请求参数
+type UserPageReq struct {
+	Paging
+	UserId      int      `json:"user_id,omitempty"`      // 用户ID
+	Name        string   `json:"name,omitempty"`         // 用户名称
+	Type        int      `json:"type,omitempty"`         // 用户类型
+	Models      []string `json:"models,omitempty"`       // 模型权限
+	Quota       int      `json:"quota,omitempty"`        // 额度
+	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
+	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
+	Remark      string   `json:"remark,omitempty"`       // 备注
+	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt   []string `json:"created_at,omitempty"`   // 创建时间
+}
+
+// 用户分页列表接口响应参数
+type UserPageRes struct {
+	Items  []*User `json:"items"`
+	Paging *Paging `json:"paging"`
+}
+
+// 用户列表接口请求参数
+type UserListReq struct {
+	UserId      int      `json:"user_id,omitempty"`      // 用户ID
+	Name        string   `json:"name,omitempty"`         // 用户名称
+	Type        int      `json:"type,omitempty"`         // 用户类型
+	Models      []string `json:"models,omitempty"`       // 模型权限
+	Quota       int      `json:"quota,omitempty"`        // 额度
+	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
+	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
+	Remark      string   `json:"remark,omitempty"`       // 备注
+	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+}
+
+// 用户列表接口响应参数
+type UserListRes struct {
+	Items []*User `json:"items"`
+}
+
 type User struct {
 	Id        string `json:"id,omitempty"`         // ID
 	UserId    int    `json:"user_id,omitempty"`    // 用户ID

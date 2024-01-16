@@ -17,4 +17,10 @@ type IUserV1 interface {
 	UserPasswordUpdate(ctx context.Context, req *v1.UserPasswordUpdateReq) (res *v1.UserPasswordUpdateRes, err error)
 	UserPhoneUpdate(ctx context.Context, req *v1.UserPhoneUpdateReq) (res *v1.UserPhoneUpdateRes, err error)
 	UserEmailUpdate(ctx context.Context, req *v1.UserEmailUpdateReq) (res *v1.UserEmailUpdateRes, err error)
+	Create(ctx context.Context, req *v1.CreateReq) (res *v1.CreateRes, err error)
+	Update(ctx context.Context, req *v1.UpdateReq) (res *v1.UpdateRes, err error)
+	Delete(ctx context.Context, req *v1.DeleteReq) (res *v1.DeleteRes, err error)
+	Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error)
+	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
+	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
 }

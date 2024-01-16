@@ -27,6 +27,18 @@ type (
 		ChangeEmail(ctx context.Context, params model.UserEmailUpdateReq) error
 		// 根据userId获取用户信息
 		GetUserById(ctx context.Context, userId int) (*model.User, error)
+		// 新建用户
+		Create(ctx context.Context, params model.UserCreateReq) error
+		// 更新用户
+		Update(ctx context.Context, params model.UserUpdateReq) error
+		// 删除用户
+		Delete(ctx context.Context, id string) error
+		// 用户详情
+		Detail(ctx context.Context, id string) (*model.User, error)
+		// 用户分页列表
+		Page(ctx context.Context, params model.UserPageReq) (*model.UserPageRes, error)
+		// 用户列表
+		List(ctx context.Context, params model.UserListReq) ([]*model.User, error)
 	}
 )
 
