@@ -48,11 +48,12 @@ type UserEmailUpdateReq struct {
 
 // 新建用户接口请求参数
 type UserCreateReq struct {
+	Name     string `json:"name,omitempty" v:"required"`                               // 姓名
 	Account  string `json:"account,omitempty" v:"required"`                            // 账号
 	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
 	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
-	Code     string `json:"code,omitempty"`                                            // 验证码
 	Quota    int    `json:"quota,omitempty"`                                           // 额度
+	Remark   string `json:"remark,omitempty"`                                          // 备注
 }
 
 // 更新用户接口请求参数

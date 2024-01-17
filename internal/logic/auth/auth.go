@@ -174,10 +174,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 		r.SetCtxVar("uid", user.Id)
 
-		// 记录登录ip和时间
+		// 记录登录IP和时间
 		if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), accountInfo.Id, bson.M{
-			"last_login_ip":   ip,
-			"last_login_time": gtime.Timestamp(),
+			"login_ip":   ip,
+			"login_time": gtime.Timestamp(),
 		}); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -245,8 +245,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 		// 记录登录ip和时间
 		if err = dao.SysAdmin.UpdateById(gctx.WithCtx(r.GetCtx()), admin.Id, bson.M{
-			"last_login_ip":   ip,
-			"last_login_time": gtime.Timestamp(),
+			"login_ip":   ip,
+			"login_time": gtime.Timestamp(),
 		}); err != nil {
 			logger.Error(ctx, err)
 		}

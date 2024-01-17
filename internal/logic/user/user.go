@@ -319,9 +319,10 @@ func (s *sUser) Create(ctx context.Context, params model.UserCreateReq) error {
 
 	user := &do.User{
 		UserId: core.IncrUserId(ctx),
+		Name:   params.Name,
 		Email:  params.Account,
-		Name:   params.Account,
 		Quota:  params.Quota,
+		Remark: params.Remark,
 	}
 
 	uid, err := dao.User.Insert(ctx, user)
