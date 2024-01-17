@@ -75,10 +75,6 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		Salt:     salt,
 		Status:   1,
 	}); err != nil {
-		return err
-	}
-
-	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

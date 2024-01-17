@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -310,11 +311,32 @@ func (s *sUser) GetUserById(ctx context.Context, userId int) (*model.User, error
 // 新建用户
 func (s *sUser) Create(ctx context.Context, params model.UserCreateReq) error {
 
-	if _, err := dao.User.Insert(ctx, &do.User{
+	if dao.User.IsAccountExist(ctx, params.Account) {
+		return errors.New(params.Account + " 账号已存在")
+	}
+
+	salt := grand.Letters(8)
+
+	user := &do.User{
 		UserId: core.IncrUserId(ctx),
-		Name:   params.Name,
+		Email:  params.Account,
+		Name:   params.Account,
 		Quota:  params.Quota,
-		Status: params.Status,
+	}
+
+	uid, err := dao.User.Insert(ctx, user)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = dao.User.CreateAccount(ctx, &do.Account{
+		Uid:      uid,
+		UserId:   user.UserId,
+		Account:  params.Account,
+		Password: crypto.EncryptPassword(params.Password + salt),
+		Salt:     salt,
+		Status:   1,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -347,7 +369,7 @@ func (s *sUser) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	_, err = dao.Key.DeleteMany(ctx, bson.M{"user_id": user.UserId})
+	_, err = dao.Account.DeleteMany(ctx, bson.M{"user_id": user.UserId})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err

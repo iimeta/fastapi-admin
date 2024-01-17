@@ -48,15 +48,11 @@ type UserEmailUpdateReq struct {
 
 // 新建用户接口请求参数
 type UserCreateReq struct {
-	Name         string   `json:"name,omitempty"`           // 用户名称
-	Type         int      `json:"type,omitempty"`           // 用户类型
-	Models       []string `json:"models,omitempty"`         // 模型权限
-	IsLimitQuota bool     `json:"is_limit_quota,omitempty"` // 是否限制额度
-	Quota        int      `json:"quota,omitempty"`          // 额度
-	IpWhitelist  string   `json:"ip_whitelist,omitempty"`   // IP白名单
-	IpBlacklist  string   `json:"ip_blacklist,omitempty"`   // IP黑名单
-	Remark       string   `json:"remark,omitempty"`         // 备注
-	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+	Account  string `json:"account,omitempty" v:"required"`                            // 账号
+	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
+	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
+	Code     string `json:"code,omitempty"`                                            // 验证码
+	Quota    int    `json:"quota,omitempty"`                                           // 额度
 }
 
 // 更新用户接口请求参数
