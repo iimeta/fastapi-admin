@@ -303,8 +303,8 @@ func (s *sUser) GetUserById(ctx context.Context, userId int) (*model.User, error
 		Avatar:    user.Avatar,
 		Gender:    user.Gender,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		CreatedAt: util.FormatDatetime(user.CreatedAt),
+		UpdatedAt: util.FormatDatetime(user.UpdatedAt),
 	}, nil
 }
 
@@ -323,6 +323,7 @@ func (s *sUser) Create(ctx context.Context, params model.UserCreateReq) error {
 		Email:  params.Account,
 		Quota:  params.Quota,
 		Remark: params.Remark,
+		Status: 1,
 	}
 
 	uid, err := dao.User.Insert(ctx, user)
@@ -425,11 +426,16 @@ func (s *sUser) Page(ctx context.Context, params model.UserPageReq) (*model.User
 	for _, result := range results {
 
 		items = append(items, &model.User{
-			Id:     result.Id,
-			UserId: result.UserId,
-			Name:   result.Name,
-			Quota:  result.Quota,
-			Remark: result.Remark,
+			Id:        result.Id,
+			UserId:    result.UserId,
+			Name:      result.Name,
+			Email:     result.Email,
+			Phone:     result.Phone,
+			Quota:     result.Quota,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			CreatedAt: util.FormatDatetime(result.CreatedAt),
+			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
@@ -457,11 +463,16 @@ func (s *sUser) List(ctx context.Context, params model.UserListReq) ([]*model.Us
 	items := make([]*model.User, 0)
 	for _, result := range results {
 		items = append(items, &model.User{
-			Id:     result.Id,
-			UserId: result.UserId,
-			Name:   result.Name,
-			Quota:  result.Quota,
-			Remark: result.Remark,
+			Id:        result.Id,
+			UserId:    result.UserId,
+			Name:      result.Name,
+			Email:     result.Email,
+			Phone:     result.Phone,
+			Quota:     result.Quota,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			CreatedAt: util.FormatDatetime(result.CreatedAt),
+			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 

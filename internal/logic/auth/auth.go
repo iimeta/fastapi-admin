@@ -190,8 +190,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Gender:    user.Gender,
 			Email:     user.Email,
 			Phone:     user.Phone,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
+			CreatedAt: util.FormatDatetime(user.CreatedAt),
+			UpdatedAt: util.FormatDatetime(user.UpdatedAt),
 		}, true)
 		if err != nil {
 			logger.Error(ctx, err)
