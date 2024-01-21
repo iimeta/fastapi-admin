@@ -139,3 +139,14 @@ type ListRes struct {
 	g.Meta `mime:"userlication/json" example:"json"`
 	*model.UserListRes
 }
+
+// 用户授予额度接口请求参数
+type GrantQuotaReq struct {
+	g.Meta `path:"/grant/quota" tags:"user" method:"post" summary:"用户授予额度列表接口"`
+	model.UserGrantQuotaReq
+}
+
+// 用户授予额度接口响应参数
+type GrantQuotaRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+}

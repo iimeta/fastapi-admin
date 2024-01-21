@@ -114,6 +114,12 @@ type UserListRes struct {
 	Items []*User `json:"items"`
 }
 
+// 用户授予额度接口请求参数
+type UserGrantQuotaReq struct {
+	UserId int `json:"user_id,omitempty"`            // 用户ID
+	Quota  int `json:"quota,omitempty" v:"required"` // 额度
+}
+
 type User struct {
 	Id        string `json:"id,omitempty"`         // ID
 	UserId    int    `json:"user_id,omitempty"`    // 用户ID

@@ -58,6 +58,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		UserId:    core.IncrUserId(ctx),
 		Email:     params.Account,
 		Name:      params.Account,
+		Status:    1,
 		CreatedAt: gtime.Timestamp(),
 	}
 

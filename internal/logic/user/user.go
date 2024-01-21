@@ -478,3 +478,18 @@ func (s *sUser) List(ctx context.Context, params model.UserListReq) ([]*model.Us
 
 	return items, nil
 }
+
+// 用户授予额度
+func (s *sUser) GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error {
+
+	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": params.UserId}, bson.M{
+		"$inc": bson.M{
+			"quota": params.Quota,
+		},
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}

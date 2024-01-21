@@ -7,7 +7,6 @@ package service
 
 import (
 	"context"
-
 	"github.com/iimeta/fastapi-admin/internal/model"
 )
 
@@ -39,6 +38,8 @@ type (
 		Page(ctx context.Context, params model.UserPageReq) (*model.UserPageRes, error)
 		// 用户列表
 		List(ctx context.Context, params model.UserListReq) ([]*model.User, error)
+		// 用户授予额度
+		GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error
 	}
 )
 

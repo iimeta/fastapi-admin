@@ -73,4 +73,4 @@ email:
   port: 465
   username: xxx@xxx.com
   password: xxx
-  fromname: "FastAPI"
+  fromname: "智元 Fast API"
