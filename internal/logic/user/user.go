@@ -491,5 +491,10 @@ func (s *sUser) GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) 
 		return err
 	}
 
+	if _, err := redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }

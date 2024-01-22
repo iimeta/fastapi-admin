@@ -168,6 +168,10 @@ func HGetInt(ctx context.Context, key, field string) (int, error) {
 	return reply.Int(), nil
 }
 
+func HIncrBy(ctx context.Context, key, field string, increment int64) (int64, error) {
+	return master.HIncrBy(ctx, key, field, increment)
+}
+
 func SetEX(ctx context.Context, key string, value interface{}, ttlInSeconds int64) error {
 	return master.SetEX(ctx, key, value, ttlInSeconds)
 }

@@ -37,3 +37,8 @@ const (
 	CORP_ALIYUN     = "Aliyun"
 	CORP_MIDJOURNEY = "Midjourney"
 )
+
+const (
+	API_USAGE_KEY           = "api:%d:usage"
+	USER_TOTAL_TOKENS_FIELD = "user.total_tokens"
+)
