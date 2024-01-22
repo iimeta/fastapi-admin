@@ -390,11 +390,16 @@ func (s *sUser) Detail(ctx context.Context, id string) (*model.User, error) {
 	}
 
 	return &model.User{
-		Id:     user.Id,
-		UserId: user.UserId,
-		Name:   user.Name,
-		Quota:  user.Quota,
-		Remark: user.Remark,
+		Id:        user.Id,
+		UserId:    user.UserId,
+		Name:      user.Name,
+		Phone:     user.Phone,
+		Email:     user.Email,
+		Quota:     user.Quota,
+		Remark:    user.Remark,
+		Status:    user.Status,
+		CreatedAt: util.FormatDatetime(user.CreatedAt),
+		UpdatedAt: util.FormatDatetime(user.UpdatedAt),
 	}, nil
 }
 
@@ -414,6 +419,10 @@ func (s *sUser) Page(ctx context.Context, params model.UserPageReq) (*model.User
 
 	if params.Name != "" {
 		filter["name"] = params.Name
+	}
+
+	if params.Email != "" {
+		filter["email"] = params.Email
 	}
 
 	results, err := dao.User.FindByPage(ctx, paging, filter, "-updated_at")

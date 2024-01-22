@@ -59,7 +59,7 @@ type UserCreateReq struct {
 // 更新用户接口请求参数
 type UserUpdateReq struct {
 	Id           string   `json:"id,omitempty"`             // ID
-	Name         string   `json:"name,omitempty"`           // 用户名称
+	Name         string   `json:"name,omitempty"`           // 姓名
 	Type         int      `json:"type,omitempty"`           // 用户类型
 	Models       []string `json:"models,omitempty"`         // 模型权限
 	IsLimitQuota bool     `json:"is_limit_quota,omitempty"` // 是否限制额度
@@ -78,16 +78,15 @@ type UserDetailRes struct {
 // 用户分页列表接口请求参数
 type UserPageReq struct {
 	Paging
-	UserId      int      `json:"user_id,omitempty"`      // 用户ID
-	Name        string   `json:"name,omitempty"`         // 用户名称
-	Type        int      `json:"type,omitempty"`         // 用户类型
-	Models      []string `json:"models,omitempty"`       // 模型权限
-	Quota       int      `json:"quota,omitempty"`        // 额度
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt   []string `json:"created_at,omitempty"`   // 创建时间
+	UserId    int      `json:"user_id,omitempty"`    // 用户ID
+	Name      string   `json:"name,omitempty"`       // 姓名
+	Phone     string   `json:"phone,omitempty"`      // 手机号
+	Email     string   `json:"email,omitempty"`      // 邮箱
+	Key       string   `json:"key,omitempty"`        // 密钥
+	Quota     int      `json:"quota,omitempty"`      // 额度
+	Remark    string   `json:"remark,omitempty"`     // 备注
+	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
 }
 
 // 用户分页列表接口响应参数
@@ -99,7 +98,7 @@ type UserPageRes struct {
 // 用户列表接口请求参数
 type UserListReq struct {
 	UserId      int      `json:"user_id,omitempty"`      // 用户ID
-	Name        string   `json:"name,omitempty"`         // 用户名称
+	Name        string   `json:"name,omitempty"`         // 姓名
 	Type        int      `json:"type,omitempty"`         // 用户类型
 	Models      []string `json:"models,omitempty"`       // 模型权限
 	Quota       int      `json:"quota,omitempty"`        // 额度
