@@ -2,15 +2,20 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -51,7 +56,7 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 // 更新应用
 func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 
-	if err := dao.App.UpdateById(ctx, params.Id, &do.App{
+	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, &do.App{
 		Name:         params.Name,
 		Type:         params.Type,
 		Models:       params.Models,
@@ -61,7 +66,20 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:       params.Remark,
 		Status:       params.Status,
-	}); err != nil {
+	})
+
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	fields := g.Map{
+		fmt.Sprintf(consts.APP_TOTAL_TOKENS_FIELD, app.AppId):   app.Quota,
+		fmt.Sprintf(consts.APP_IS_LIMIT_QUOTA_FIELD, app.AppId): app.IsLimitQuota,
+	}
+
+	_, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields)
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -258,7 +276,7 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 }
 
 // 应用密钥配置
-func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) error {
+func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err error) {
 
 	key := &do.Key{
 		AppId:        params.AppId,
@@ -273,10 +291,12 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) erro
 		Status:       params.Status,
 	}
 
+	var keyInfo *entity.Key
+
 	if params.Id != "" {
 		key.AppId = 0
 		key.Key = ""
-		if err := dao.Key.UpdateById(ctx, params.Id, key); err != nil {
+		if keyInfo, err = dao.Key.FindOneAndUpdateById(ctx, params.Id, key); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
@@ -285,6 +305,25 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) erro
 			logger.Error(ctx, err)
 			return err
 		}
+		keyInfo.AppId = key.AppId
+		keyInfo.Key = key.Key
+	}
+
+	app, err := dao.App.FindByAppId(ctx, keyInfo.AppId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	fields := g.Map{
+		fmt.Sprintf(consts.KEY_TOTAL_TOKENS_FIELD, keyInfo.AppId, keyInfo.Key):   key.Quota,
+		fmt.Sprintf(consts.KEY_IS_LIMIT_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key): key.IsLimitQuota,
+	}
+
+	_, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
 	return nil

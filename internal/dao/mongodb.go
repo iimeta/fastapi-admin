@@ -464,6 +464,131 @@ func updateMany(ctx context.Context, database, collection string, filter map[str
 	return m.UpdateMany(ctx, update, opt)
 }
 
+func (m *MongoDB[T]) FindOneAndUpdateById(ctx context.Context, id interface{}, update interface{}, isUpsert ...bool) (*T, error) {
+	return m.FindOneAndUpdate(ctx, bson.M{"_id": id}, update, isUpsert...)
+}
+
+func (m *MongoDB[T]) FindOneAndUpdate(ctx context.Context, filter map[string]interface{}, update interface{}, isUpsert ...bool) (*T, error) {
+
+	var result *T
+
+	role := gmeta.Get(result, "role").String()
+	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
+		if filter == nil {
+			filter = bson.M{}
+		}
+		filter["creator"] = service.Session().GetCreator(ctx)
+	}
+
+	if err := findOneAndUpdate(ctx, m.Database, m.Collection, filter, update, &result, isUpsert...); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func findOneAndUpdate(ctx context.Context, database, collection string, filter map[string]interface{}, update interface{}, result interface{}, isUpsert ...bool) error {
+
+	m := &db.MongoDB{
+		Database:   database,
+		Collection: collection,
+		Filter:     filter,
+	}
+
+	if isStruct(update) {
+
+		bytes, err := bson.Marshal(update)
+		if err != nil {
+			return err
+		}
+
+		value := bson.M{}
+		err = bson.Unmarshal(bytes, &value)
+		if err != nil {
+			return err
+		}
+
+		if value["updater"] == nil || value["updater"] == "" {
+			value["updater"] = service.Session().GetUid(ctx)
+		}
+
+		if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
+			value["updated_at"] = gtime.Timestamp()
+		}
+
+		update = bson.M{
+			"$set": value,
+		}
+
+	} else {
+
+		value := gconv.Map(update)
+
+		containKey := false
+		for key := range value {
+			if gstr.Contains(key, "$") {
+				containKey = true
+				break
+			}
+		}
+
+		if containKey {
+
+			if value["updater"] == nil || value["updater"] == "" {
+				if value["$set"] != nil {
+					setValues := gconv.Map(value["$set"])
+					if setValues["updater"] == nil || setValues["updater"] == "" {
+						setValues["updater"] = service.Session().GetUid(ctx)
+						value["$set"] = setValues
+					}
+				} else {
+					value["$set"] = bson.M{
+						"updater": service.Session().GetUid(ctx),
+					}
+				}
+			}
+
+			if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
+				if value["$set"] != nil {
+					setValues := gconv.Map(value["$set"])
+					if setValues["updated_at"] == nil || gconv.Int(setValues["updated_at"]) == 0 {
+						setValues["updated_at"] = gtime.Timestamp()
+						value["$set"] = setValues
+					}
+				} else {
+					value["$set"] = bson.M{
+						"updated_at": gtime.Timestamp(),
+					}
+				}
+			}
+		} else {
+
+			if value["updater"] == nil || value["updater"] == "" {
+				value["updater"] = service.Session().GetUid(ctx)
+			}
+
+			if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
+				value["updated_at"] = gtime.Timestamp()
+			}
+		}
+
+		if !containKey {
+			update = bson.M{
+				"$set": value,
+			}
+		} else {
+			update = value
+		}
+	}
+
+	opt := &options.FindOneAndUpdateOptions{}
+	if len(isUpsert) > 0 && isUpsert[0] {
+		opt.SetUpsert(true)
+	}
+
+	return m.FindOneAndUpdate(ctx, update, result, opt)
+}
+
 func (m *MongoDB[T]) DeleteById(ctx context.Context, id interface{}) (int64, error) {
 	return m.DeleteOne(ctx, bson.M{"_id": id})
 }

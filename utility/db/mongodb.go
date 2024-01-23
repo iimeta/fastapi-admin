@@ -196,6 +196,16 @@ func (m *MongoDB) UpdateMany(ctx context.Context, update interface{}, opts ...*o
 	return nil
 }
 
+func (m *MongoDB) FindOneAndUpdate(ctx context.Context, update interface{}, result interface{}, opts ...*options.FindOneAndUpdateOptions) error {
+
+	singleResult := client.Database(m.Database).Collection(m.Collection).FindOneAndUpdate(ctx, m.Filter, update, opts...)
+	if err := singleResult.Decode(result); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *MongoDB) CountDocuments(ctx context.Context) (int64, error) {
 
 	total, err := client.Database(m.Database).Collection(m.Collection).CountDocuments(ctx, m.Filter)
