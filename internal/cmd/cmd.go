@@ -7,6 +7,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
+	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
@@ -106,6 +107,13 @@ var (
 					g.Middleware(middleware)
 					g.Bind(
 						key.NewV1(),
+					)
+				})
+
+				v1.Group("/dashboard", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						dashboard.NewV1(),
 					)
 				})
 			})

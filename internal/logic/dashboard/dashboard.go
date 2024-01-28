@@ -85,3 +85,13 @@ func (s *sDashboard) BaseData(ctx context.Context) (*model.Dashboard, error) {
 		TodayUser: todayUserCount,
 	}, nil
 }
+
+// 费用
+func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
+
+	user := service.Session().GetUser(ctx)
+
+	return &model.Expense{
+		Quota: user.Quota,
+	}, nil
+}
