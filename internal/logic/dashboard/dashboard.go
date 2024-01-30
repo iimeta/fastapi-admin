@@ -2,11 +2,14 @@ package dashboard
 
 import (
 	"context"
+	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -89,9 +92,17 @@ func (s *sDashboard) BaseData(ctx context.Context) (*model.Dashboard, error) {
 // 费用
 func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
-	user := service.Session().GetUser(ctx)
+	if service.Session().GetRole(ctx) == consts.SESSION_ADMIN {
+		return &model.Expense{}, nil
+	}
+
+	quota, err := redis.HGetInt(ctx, fmt.Sprintf(consts.API_USAGE_KEY, service.Session().GetUserId(ctx)), consts.USER_TOTAL_TOKENS_FIELD)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
 
 	return &model.Expense{
-		Quota: user.Quota,
+		Quota: quota,
 	}, nil
 }
