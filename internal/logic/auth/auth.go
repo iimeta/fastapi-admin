@@ -55,11 +55,10 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	salt := grand.Letters(8)
 
 	user := &do.User{
-		UserId:    core.IncrUserId(ctx),
-		Email:     params.Account,
-		Name:      params.Account,
-		Status:    1,
-		CreatedAt: gtime.Timestamp(),
+		UserId: core.IncrUserId(ctx),
+		Email:  params.Account,
+		Name:   params.Account,
+		Status: 1,
 	}
 
 	uid, err := dao.User.Insert(ctx, user)
@@ -178,7 +177,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		// 记录登录IP和时间
 		if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), accountInfo.Id, bson.M{
 			"login_ip":   ip,
-			"login_time": gtime.Timestamp(),
+			"login_time": gtime.TimestampMilli(),
 		}); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -248,7 +247,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		// 记录登录ip和时间
 		if err = dao.SysAdmin.UpdateById(gctx.WithCtx(r.GetCtx()), admin.Id, bson.M{
 			"login_ip":   ip,
-			"login_time": gtime.Timestamp(),
+			"login_time": gtime.TimestampMilli(),
 		}); err != nil {
 			logger.Error(ctx, err)
 		}

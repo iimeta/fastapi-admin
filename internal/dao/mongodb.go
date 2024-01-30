@@ -206,11 +206,11 @@ func insert(ctx context.Context, database string, document interface{}) (string,
 	}
 
 	if value["created_at"] == nil || gconv.Int(value["created_at"]) == 0 {
-		value["created_at"] = gtime.Timestamp()
+		value["created_at"] = gtime.TimestampMilli()
 	}
 
 	if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
-		value["updated_at"] = gtime.Timestamp()
+		value["updated_at"] = gtime.TimestampMilli()
 	}
 
 	m := &db.MongoDB{
@@ -259,11 +259,11 @@ func inserts(ctx context.Context, database string, documents []interface{}) ([]s
 		}
 
 		if value["created_at"] == nil || gconv.Int(value["created_at"]) == 0 {
-			value["created_at"] = gtime.Timestamp()
+			value["created_at"] = gtime.TimestampMilli()
 		}
 
 		if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
-			value["updated_at"] = gtime.Timestamp()
+			value["updated_at"] = gtime.TimestampMilli()
 		}
 
 		values = append(values, value)
@@ -325,7 +325,7 @@ func updateOne(ctx context.Context, database, collection string, filter map[stri
 		}
 
 		if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
-			value["updated_at"] = gtime.Timestamp()
+			value["updated_at"] = gtime.TimestampMilli()
 		}
 
 		update = bson.M{
@@ -364,12 +364,12 @@ func updateOne(ctx context.Context, database, collection string, filter map[stri
 				if value["$set"] != nil {
 					setValues := gconv.Map(value["$set"])
 					if setValues["updated_at"] == nil || gconv.Int(setValues["updated_at"]) == 0 {
-						setValues["updated_at"] = gtime.Timestamp()
+						setValues["updated_at"] = gtime.TimestampMilli()
 						value["$set"] = setValues
 					}
 				} else {
 					value["$set"] = bson.M{
-						"updated_at": gtime.Timestamp(),
+						"updated_at": gtime.TimestampMilli(),
 					}
 				}
 			}
@@ -380,7 +380,7 @@ func updateOne(ctx context.Context, database, collection string, filter map[stri
 			}
 
 			if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
-				value["updated_at"] = gtime.Timestamp()
+				value["updated_at"] = gtime.TimestampMilli()
 			}
 		}
 
@@ -513,7 +513,7 @@ func findOneAndUpdate(ctx context.Context, database, collection string, filter m
 		}
 
 		if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
-			value["updated_at"] = gtime.Timestamp()
+			value["updated_at"] = gtime.TimestampMilli()
 		}
 
 		update = bson.M{
@@ -552,12 +552,12 @@ func findOneAndUpdate(ctx context.Context, database, collection string, filter m
 				if value["$set"] != nil {
 					setValues := gconv.Map(value["$set"])
 					if setValues["updated_at"] == nil || gconv.Int(setValues["updated_at"]) == 0 {
-						setValues["updated_at"] = gtime.Timestamp()
+						setValues["updated_at"] = gtime.TimestampMilli()
 						value["$set"] = setValues
 					}
 				} else {
 					value["$set"] = bson.M{
-						"updated_at": gtime.Timestamp(),
+						"updated_at": gtime.TimestampMilli(),
 					}
 				}
 			}
@@ -568,7 +568,7 @@ func findOneAndUpdate(ctx context.Context, database, collection string, filter m
 			}
 
 			if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
-				value["updated_at"] = gtime.Timestamp()
+				value["updated_at"] = gtime.TimestampMilli()
 			}
 		}
 
