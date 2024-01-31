@@ -305,6 +305,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 			logger.Error(ctx, err)
 			return err
 		}
+		keyInfo = new(entity.Key)
 		keyInfo.AppId = key.AppId
 		keyInfo.Key = key.Key
 	}
