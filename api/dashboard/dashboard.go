@@ -12,5 +12,6 @@ import (
 
 type IDashboardV1 interface {
 	BaseData(ctx context.Context, req *v1.BaseDataReq) (res *v1.BaseDataRes, err error)
+	CallData(ctx context.Context, req *v1.CallDataReq) (res *v1.CallDataRes, err error)
 	Expense(ctx context.Context, req *v1.ExpenseReq) (res *v1.ExpenseRes, err error)
 }

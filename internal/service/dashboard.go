@@ -15,6 +15,8 @@ type (
 	IDashboard interface {
 		// 基础数据
 		BaseData(ctx context.Context) (*model.Dashboard, error)
+		// 调用数据
+		CallData(ctx context.Context) ([]*model.CallData, error)
 		// 费用
 		Expense(ctx context.Context) (*model.Expense, error)
 	}

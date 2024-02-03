@@ -54,12 +54,6 @@ func (s *sUser) Info(ctx context.Context) (*model.UserInfoRes, error) {
 // 修改用户信息
 func (s *sUser) ChangeDetail(ctx context.Context, params model.UserDetailUpdateReq) error {
 
-	if params.Birthday != "" {
-		if !util.IsDateFormat(params.Birthday) {
-			return errors.New("birthday 格式错误")
-		}
-	}
-
 	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, &do.User{
 		Name:   strings.TrimSpace(strings.Replace(params.Name, " ", "", -1)),
 		Avatar: params.Avatar,

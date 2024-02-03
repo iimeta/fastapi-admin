@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
+	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -87,6 +89,53 @@ func (s *sDashboard) BaseData(ctx context.Context) (*model.Dashboard, error) {
 		User:      userCount,
 		TodayUser: todayUserCount,
 	}, nil
+}
+
+// 调用数据
+func (s *sDashboard) CallData(ctx context.Context) ([]*model.CallData, error) {
+
+	startTime := gtime.Now().AddDate(0, 0, -9).StartOfDay()
+	endTime := gtime.Now().EndOfDay()
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"req_time": bson.M{
+					"$gte": startTime.TimestampMilli(),
+					"$lte": endTime.TimestampMilli(),
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id":   "$req_date",
+				"count": bson.M{"$sum": 1},
+			},
+		},
+	}
+
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	resultMap := make(map[string]int)
+	for _, res := range result {
+		resultMap[gconv.String(res["_id"])] = gconv.Int(res["count"])
+	}
+
+	items := make([]*model.CallData, 0)
+	days := util.Day(startTime.String(), endTime.String())
+
+	for _, day := range days {
+		items = append(items, &model.CallData{
+			Date:  day.StartDate,
+			Count: resultMap[day.StartDate],
+		})
+	}
+
+	return items, nil
 }
 
 // 费用

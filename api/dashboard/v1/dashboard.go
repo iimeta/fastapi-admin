@@ -16,6 +16,17 @@ type BaseDataRes struct {
 	*model.DashboardBaseDataRes
 }
 
+// 仪表盘调用数据接口请求参数
+type CallDataReq struct {
+	g.Meta `path:"/call/data" tags:"dashboard" method:"get" summary:"仪表盘调用数据接口"`
+}
+
+// 仪表盘调用数据接口响应参数
+type CallDataRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.DashboardCallDataRes
+}
+
 // 仪表盘费用接口请求参数
 type ExpenseReq struct {
 	g.Meta `path:"/expense" tags:"dashboard" method:"get" summary:"仪表盘费用接口"`
