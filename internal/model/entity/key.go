@@ -5,6 +5,7 @@ import "github.com/gogf/gf/v2/util/gmeta"
 type Key struct {
 	gmeta.Meta   `role:"user,admin" bson:"-"`
 	Id           string   `bson:"_id,omitempty"`            // ID
+	UserId       int      `bson:"user_id,omitempty"`        // 用户ID
 	AppId        int      `bson:"app_id,omitempty"`         // 应用ID
 	Corp         string   `bson:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
 	Key          string   `bson:"key,omitempty"`            // 密钥
