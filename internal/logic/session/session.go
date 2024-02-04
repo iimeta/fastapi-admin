@@ -140,3 +140,13 @@ func (s *sSession) GetAdmin(ctx context.Context) *model.SysAdmin {
 
 	return admin.(*model.SysAdmin)
 }
+
+// 判断获取会话中角色是否为用户
+func (s *sSession) IsUserRole(ctx context.Context) bool {
+	return s.GetRole(ctx) == consts.SESSION_USER
+}
+
+// 判断获取会话中角色是否为管理员
+func (s *sSession) IsAdminRole(ctx context.Context) bool {
+	return s.GetRole(ctx) == consts.SESSION_ADMIN
+}

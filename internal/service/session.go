@@ -31,6 +31,10 @@ type (
 		GetUser(ctx context.Context) *model.User
 		// 获取会话中管理员信息
 		GetAdmin(ctx context.Context) *model.SysAdmin
+		// 判断获取会话中角色是否为用户
+		IsUserRole(ctx context.Context) bool
+		// 判断获取会话中角色是否为管理员
+		IsAdminRole(ctx context.Context) bool
 	}
 )
 
