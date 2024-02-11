@@ -3,8 +3,7 @@ package do
 import "github.com/gogf/gf/v2/util/gmeta"
 
 const (
-	MODEL_COLLECTION       = "model"
-	MODEL_AGENT_COLLECTION = "model_agent"
+	MODEL_COLLECTION = "model"
 )
 
 type Model struct {
@@ -25,16 +24,4 @@ type Model struct {
 	Updater            string   `bson:"updater,omitempty"`          // 更新人
 	CreatedAt          int64    `bson:"created_at,omitempty"`       // 创建时间
 	UpdatedAt          int64    `bson:"updated_at,omitempty"`       // 更新时间
-}
-
-type ModelAgent struct {
-	gmeta.Meta `collection:"model_agent" bson:"-"`
-	Url        string `bson:"url,omitempty"`        // 默认官方模型地址
-	Path       string `bson:"path,omitempty"`       // 默认官方模型地址路径
-	Remark     string `bson:"remark,omitempty"`     // 备注
-	Status     int    `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
-	Creator    string `bson:"creator,omitempty"`    // 创建人
-	Updater    string `bson:"updater,omitempty"`    // 更新人
-	CreatedAt  int64  `bson:"created_at,omitempty"` // 创建时间
-	UpdatedAt  int64  `bson:"updated_at,omitempty"` // 更新时间
 }
