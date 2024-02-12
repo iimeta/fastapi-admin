@@ -36,6 +36,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		Name:    gstr.Trim(params.Name),
 		BaseUrl: params.BaseUrl,
 		Path:    params.Path,
+		Weight:  params.Weight,
 		Remark:  params.Remark,
 		Status:  params.Status,
 	}); err != nil {
@@ -57,6 +58,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		Name:    gstr.Trim(params.Name),
 		BaseUrl: params.BaseUrl,
 		Path:    params.Path,
+		Weight:  params.Weight,
 		Remark:  params.Remark,
 		Status:  params.Status,
 	}); err != nil {
@@ -81,23 +83,24 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 // 模型代理详情
 func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent, error) {
 
-	m, err := dao.ModelAgent.FindById(ctx, id)
+	modelAgent, err := dao.ModelAgent.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	return &model.ModelAgent{
-		Id:        m.Id,
-		Name:      m.Name,
-		BaseUrl:   m.BaseUrl,
-		Path:      m.Path,
-		Remark:    m.Remark,
-		Status:    m.Status,
-		Creator:   m.Creator,
-		Updater:   m.Updater,
-		CreatedAt: util.FormatDatetime(m.CreatedAt),
-		UpdatedAt: util.FormatDatetime(m.UpdatedAt),
+		Id:        modelAgent.Id,
+		Name:      modelAgent.Name,
+		BaseUrl:   modelAgent.BaseUrl,
+		Path:      modelAgent.Path,
+		Weight:    modelAgent.Weight,
+		Remark:    modelAgent.Remark,
+		Status:    modelAgent.Status,
+		Creator:   modelAgent.Creator,
+		Updater:   modelAgent.Updater,
+		CreatedAt: util.FormatDatetime(modelAgent.CreatedAt),
+		UpdatedAt: util.FormatDatetime(modelAgent.UpdatedAt),
 	}, nil
 }
 
@@ -132,6 +135,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Name:      result.Name,
 			BaseUrl:   result.BaseUrl,
 			Path:      result.Path,
+			Weight:    result.Weight,
 			Remark:    result.Remark,
 			Status:    result.Status,
 			Creator:   result.Creator,
@@ -169,6 +173,7 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 			Name:      result.Name,
 			BaseUrl:   result.BaseUrl,
 			Path:      result.Path,
+			Weight:    result.Weight,
 			Remark:    result.Remark,
 			Status:    result.Status,
 			Creator:   result.Creator,

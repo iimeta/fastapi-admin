@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
+	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_menu"
@@ -100,6 +101,13 @@ var (
 					g.Middleware(middleware)
 					g.Bind(
 						model.NewV1(),
+					)
+				})
+
+				v1.Group("/model/agent", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						model_agent.NewV1(),
 					)
 				})
 

@@ -1,1 +1,0 @@
-import{_ as o,o as t,f as _,w as a,j as s,E as c}from"./index.9d2a6f93.js";const n={};function r(d,f){const e=c;return t(),_(e,{class:"footer"},{default:a(()=>[s("Copyright \xA9 2023-2024 IIM. All Rights Reserved.")]),_:1})}const l=o(n,[["render",r],["__scopeId","data-v-8e075daa"]]);export{l as F};

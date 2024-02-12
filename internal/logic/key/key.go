@@ -30,12 +30,13 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 
 	for _, key := range keys {
 		if _, err := dao.Key.Insert(ctx, &do.Key{
-			Corp:   params.Corp,
-			Key:    key,
-			Type:   2,
-			Models: params.Models,
-			Remark: params.Remark,
-			Status: params.Status,
+			Corp:        params.Corp,
+			Key:         key,
+			Type:        2,
+			Models:      params.Models,
+			ModelAgents: params.ModelAgents,
+			Remark:      params.Remark,
+			Status:      params.Status,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -49,11 +50,12 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 
 	if err := dao.Key.UpdateById(ctx, params.Id, &do.Key{
-		Corp:   params.Corp,
-		Key:    params.Key,
-		Models: params.Models,
-		Remark: params.Remark,
-		Status: params.Status,
+		Corp:        params.Corp,
+		Key:         params.Key,
+		Models:      params.Models,
+		ModelAgents: params.ModelAgents,
+		Remark:      params.Remark,
+		Status:      params.Status,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -110,6 +112,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		Type:         key.Type,
 		Models:       key.Models,
 		ModelNames:   modelNames,
+		ModelAgents:  key.ModelAgents,
 		IsLimitQuota: key.IsLimitQuota,
 		Quota:        key.Quota,
 		IpWhitelist:  key.IpWhitelist,
@@ -187,6 +190,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Type:         result.Type,
 			Models:       result.Models,
 			ModelNames:   modelNames,
+			ModelAgents:  result.ModelAgents,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
 			IpWhitelist:  result.IpWhitelist,
@@ -234,17 +238,18 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 		items = append(items, &model.Key{
-			Id:        result.Id,
-			Corp:      result.Corp,
-			Key:       result.Key,
-			Type:      result.Type,
-			Models:    result.Models,
-			Remark:    result.Remark,
-			Status:    result.Status,
-			Creator:   result.Creator,
-			Updater:   result.Updater,
-			CreatedAt: util.FormatDatetime(result.CreatedAt),
-			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
+			Id:          result.Id,
+			Corp:        result.Corp,
+			Key:         result.Key,
+			Type:        result.Type,
+			Models:      result.Models,
+			ModelAgents: result.ModelAgents,
+			Remark:      result.Remark,
+			Status:      result.Status,
+			Creator:     result.Creator,
+			Updater:     result.Updater,
+			CreatedAt:   util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:   util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
