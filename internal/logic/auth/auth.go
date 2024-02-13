@@ -274,7 +274,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 	return &model.LoginRes{
 		Type:      "Bearer",
 		Token:     token,
-		ExpiresIn: 7200,
+		ExpiresIn: 3600 * 6,
 	}, nil
 }
 
@@ -327,7 +327,7 @@ func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSessio
 	token = util.NewKey(consts.USER_TOKEN_PREFIX, 32, gconv.String(user.UserId))
 
 	if isSaveSession {
-		err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 7200)
+		err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 3600*6)
 	}
 
 	return token, err
@@ -363,7 +363,7 @@ func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSave
 	token = util.NewKey(consts.ADMIN_TOKEN_PREFIX, 32, admin.Id)
 
 	if isSaveSession {
-		err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), 7200)
+		err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), 3600*6)
 	}
 
 	return token, err

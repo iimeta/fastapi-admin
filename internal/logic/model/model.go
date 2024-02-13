@@ -101,6 +101,21 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		return nil, err
 	}
 
+	modelAgentNames := make([]string, 0)
+
+	if len(m.ModelAgents) > 0 {
+
+		modelAgentList, err := dao.ModelAgent.Find(ctx, bson.M{"_id": bson.M{"$in": m.ModelAgents}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, modelAgent := range modelAgentList {
+			modelAgentNames = append(modelAgentNames, modelAgent.Name)
+		}
+	}
+
 	return &model.Model{
 		Id:                 m.Id,
 		Corp:               m.Corp,
@@ -112,6 +127,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		DataFormat:         m.DataFormat,
 		IsEnableModelAgent: m.IsEnableModelAgent,
 		ModelAgents:        m.ModelAgents,
+		ModelAgentNames:    modelAgentNames,
 		IsPublic:           m.IsPublic,
 		Remark:             m.Remark,
 		Status:             m.Status,

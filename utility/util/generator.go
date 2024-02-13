@@ -2,6 +2,7 @@ package util
 
 import (
 	"github.com/bwmarrin/snowflake"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/grand"
 	"slices"
 	"strings"
@@ -37,7 +38,7 @@ func NewKey(prefix string, length int, ids ...string) string {
 			n = (n - l) / l
 
 			for i := 0; i < l; i++ {
-				key += strings.Join(slices.Insert(strings.Split(grand.Letters(n), ""), grand.Intn(n), id[i:i+1]), "")
+				key += gstr.Join(slices.Insert(strings.Split(grand.Letters(n), ""), grand.Intn(n), id[i:i+1]), "")
 			}
 		}
 

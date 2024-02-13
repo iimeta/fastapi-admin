@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -55,7 +56,7 @@ func FindAddress(ctx context.Context, ip string) (string, error) {
 	}
 
 	arr := []string{data.Result.Country, data.Result.Province, data.Result.City, data.Result.Isp}
-	val := strings.Join(Unique(arr), " ")
+	val := gstr.Join(Unique(arr), " ")
 	val = strings.TrimSpace(val)
 
 	_ = setCache(ctx, ip, val)

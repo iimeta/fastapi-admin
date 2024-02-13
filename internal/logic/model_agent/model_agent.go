@@ -32,16 +32,29 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		return errors.Newf("模型代理名称 \"%s\" 已存在", params.Name)
 	}
 
-	if _, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
+	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
 		Name:    gstr.Trim(params.Name),
 		BaseUrl: params.BaseUrl,
 		Path:    params.Path,
 		Weight:  params.Weight,
 		Remark:  params.Remark,
 		Status:  params.Status,
-	}); err != nil {
+	})
+
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if len(params.Models) > 0 {
+		if err = dao.Model.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": params.Models}}, bson.M{
+			"$push": bson.M{
+				"model_agents": id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil
@@ -66,6 +79,26 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		return err
 	}
 
+	if err := dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
+		"$pull": bson.M{
+			"model_agents": params.Id,
+		},
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if len(params.Models) > 0 {
+		if err := dao.Model.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": params.Models}}, bson.M{
+			"$addToSet": bson.M{
+				"model_agents": params.Id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -73,6 +106,15 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 
 	if _, err := dao.ModelAgent.DeleteById(ctx, id); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err := dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
+		"$pull": bson.M{
+			"model_agents": id,
+		},
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -89,18 +131,46 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		return nil, err
 	}
 
+	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	models := make([]string, 0)
+	modelNames := make([]string, 0)
+
+	for _, model := range modelList {
+		models = append(models, model.Id)
+		modelNames = append(modelNames, model.Name)
+	}
+
+	keyList, err := dao.Key.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	keys := make([]string, 0)
+	for _, key := range keyList {
+		keys = append(keys, key.Key)
+	}
+
 	return &model.ModelAgent{
-		Id:        modelAgent.Id,
-		Name:      modelAgent.Name,
-		BaseUrl:   modelAgent.BaseUrl,
-		Path:      modelAgent.Path,
-		Weight:    modelAgent.Weight,
-		Remark:    modelAgent.Remark,
-		Status:    modelAgent.Status,
-		Creator:   modelAgent.Creator,
-		Updater:   modelAgent.Updater,
-		CreatedAt: util.FormatDatetime(modelAgent.CreatedAt),
-		UpdatedAt: util.FormatDatetime(modelAgent.UpdatedAt),
+		Id:         modelAgent.Id,
+		Name:       modelAgent.Name,
+		BaseUrl:    modelAgent.BaseUrl,
+		Path:       modelAgent.Path,
+		Weight:     modelAgent.Weight,
+		Models:     models,
+		ModelNames: modelNames,
+		Key:        gstr.Join(keys, "\n"),
+		Remark:     modelAgent.Remark,
+		Status:     modelAgent.Status,
+		Creator:    modelAgent.Creator,
+		Updater:    modelAgent.Updater,
+		CreatedAt:  util.FormatDatetime(modelAgent.CreatedAt),
+		UpdatedAt:  util.FormatDatetime(modelAgent.UpdatedAt),
 	}, nil
 }
 
@@ -128,20 +198,38 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		return nil, err
 	}
 
+	modelList, err := service.Model().List(ctx, model.ModelListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelMap := make(map[string][]string)
+	modelNameMap := make(map[string][]string)
+
+	for _, model := range modelList {
+		for _, id := range model.ModelAgents {
+			modelMap[id] = append(modelMap[id], model.Id)
+			modelNameMap[id] = append(modelNameMap[id], model.Name)
+		}
+	}
+
 	items := make([]*model.ModelAgent, 0)
 	for _, result := range results {
 		items = append(items, &model.ModelAgent{
-			Id:        result.Id,
-			Name:      result.Name,
-			BaseUrl:   result.BaseUrl,
-			Path:      result.Path,
-			Weight:    result.Weight,
-			Remark:    result.Remark,
-			Status:    result.Status,
-			Creator:   result.Creator,
-			Updater:   result.Updater,
-			CreatedAt: util.FormatDatetime(result.CreatedAt),
-			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
+			Id:         result.Id,
+			Name:       result.Name,
+			BaseUrl:    result.BaseUrl,
+			Path:       result.Path,
+			Weight:     result.Weight,
+			Models:     modelMap[result.Id],
+			ModelNames: modelNameMap[result.Id],
+			Remark:     result.Remark,
+			Status:     result.Status,
+			Creator:    result.Creator,
+			Updater:    result.Updater,
+			CreatedAt:  util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:  util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
@@ -166,20 +254,38 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 		return nil, err
 	}
 
+	modelList, err := service.Model().List(ctx, model.ModelListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelMap := make(map[string][]string)
+	modelNameMap := make(map[string][]string)
+
+	for _, model := range modelList {
+		for _, id := range model.ModelAgents {
+			modelMap[id] = append(modelMap[id], model.Id)
+			modelNameMap[id] = append(modelNameMap[id], model.Name)
+		}
+	}
+
 	items := make([]*model.ModelAgent, 0)
 	for _, result := range results {
 		items = append(items, &model.ModelAgent{
-			Id:        result.Id,
-			Name:      result.Name,
-			BaseUrl:   result.BaseUrl,
-			Path:      result.Path,
-			Weight:    result.Weight,
-			Remark:    result.Remark,
-			Status:    result.Status,
-			Creator:   result.Creator,
-			Updater:   result.Updater,
-			CreatedAt: util.FormatDatetime(result.CreatedAt),
-			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
+			Id:         result.Id,
+			Name:       result.Name,
+			BaseUrl:    result.BaseUrl,
+			Path:       result.Path,
+			Weight:     result.Weight,
+			Models:     modelMap[result.Id],
+			ModelNames: modelNameMap[result.Id],
+			Remark:     result.Remark,
+			Status:     result.Status,
+			Creator:    result.Creator,
+			Updater:    result.Updater,
+			CreatedAt:  util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:  util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 

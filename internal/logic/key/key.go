@@ -104,25 +104,41 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		}
 	}
 
+	modelAgentNames := make([]string, 0)
+
+	if len(key.ModelAgents) > 0 {
+
+		modelAgentList, err := dao.ModelAgent.Find(ctx, bson.M{"_id": bson.M{"$in": key.ModelAgents}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, modelAgent := range modelAgentList {
+			modelAgentNames = append(modelAgentNames, modelAgent.Name)
+		}
+	}
+
 	return &model.Key{
-		Id:           key.Id,
-		AppId:        key.AppId,
-		Corp:         key.Corp,
-		Key:          key.Key,
-		Type:         key.Type,
-		Models:       key.Models,
-		ModelNames:   modelNames,
-		ModelAgents:  key.ModelAgents,
-		IsLimitQuota: key.IsLimitQuota,
-		Quota:        key.Quota,
-		IpWhitelist:  key.IpWhitelist,
-		IpBlacklist:  key.IpBlacklist,
-		Remark:       key.Remark,
-		Status:       key.Status,
-		Creator:      key.Creator,
-		Updater:      key.Updater,
-		CreatedAt:    util.FormatDatetime(key.CreatedAt),
-		UpdatedAt:    util.FormatDatetime(key.UpdatedAt),
+		Id:              key.Id,
+		AppId:           key.AppId,
+		Corp:            key.Corp,
+		Key:             key.Key,
+		Type:            key.Type,
+		Models:          key.Models,
+		ModelNames:      modelNames,
+		ModelAgents:     key.ModelAgents,
+		ModelAgentNames: modelAgentNames,
+		IsLimitQuota:    key.IsLimitQuota,
+		Quota:           key.Quota,
+		IpWhitelist:     key.IpWhitelist,
+		IpBlacklist:     key.IpBlacklist,
+		Remark:          key.Remark,
+		Status:          key.Status,
+		Creator:         key.Creator,
+		Updater:         key.Updater,
+		CreatedAt:       util.FormatDatetime(key.CreatedAt),
+		UpdatedAt:       util.FormatDatetime(key.UpdatedAt),
 	}, nil
 }
 
@@ -154,6 +170,16 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		filter["models"] = bson.M{
 			"$in": params.Models,
 		}
+	}
+
+	if len(params.ModelAgents) > 0 {
+		filter["model_agents"] = bson.M{
+			"$in": params.ModelAgents,
+		}
+	}
+
+	if params.Status != 0 {
+		filter["status"] = params.Status
 	}
 
 	results, err := dao.Key.FindByPage(ctx, paging, filter, "-updated_at")

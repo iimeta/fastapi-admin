@@ -12,9 +12,9 @@ type Model struct {
 	PromptRatio        float64  `bson:"prompt_ratio,omitempty"`          // 提示倍率(提问倍率)
 	CompletionRatio    float64  `bson:"completion_ratio,omitempty"`      // 补全倍率(回答倍率)
 	DataFormat         int      `bson:"data_format,omitempty"`           // 数据格式[1:统一格式, 2:官方格式]
+	IsPublic           bool     `bson:"is_public,omitempty"`             // 是否公开
 	IsEnableModelAgent bool     `bson:"is_enable_model_agent,omitempty"` // 是否启用模型代理
 	ModelAgents        []string `bson:"model_agents,omitempty"`          // 模型代理
-	IsPublic           bool     `bson:"is_public,omitempty"`             // 是否公开
 	Remark             string   `bson:"remark,omitempty"`                // 备注
 	Status             int      `bson:"status,omitempty"`                // 状态[1:正常, 2:禁用, -1:删除]
 	Creator            string   `bson:"creator,omitempty"`               // 创建人

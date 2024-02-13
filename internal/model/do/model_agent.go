@@ -11,7 +11,7 @@ type ModelAgent struct {
 	Name       string `bson:"name,omitempty"`       // 模型代理名称
 	BaseUrl    string `bson:"base_url,omitempty"`   // 模型代理地址
 	Path       string `bson:"path,omitempty"`       // 模型代理地址路径
-	Weight     int    `bson:"weight,omitempty"`     // 权重
+	Weight     int    `bson:"weight"`               // 权重
 	Remark     string `bson:"remark,omitempty"`     // 备注
 	Status     int    `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator    string `bson:"creator,omitempty"`    // 创建人

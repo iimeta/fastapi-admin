@@ -90,10 +90,10 @@ type Model struct {
 	PromptRatio        float64  `json:"prompt_ratio,omitempty"`      // 提示倍率(提问倍率)
 	CompletionRatio    float64  `json:"completion_ratio,omitempty"`  // 补全倍率(回答倍率)
 	DataFormat         int      `json:"data_format,omitempty"`       // 数据格式[1:统一格式, 2:官方格式]
+	IsPublic           bool     `json:"is_public"`                   // 是否公开
 	IsEnableModelAgent bool     `json:"is_enable_model_agent"`       // 是否启用模型代理
 	ModelAgents        []string `json:"model_agents,omitempty"`      // 模型代理
 	ModelAgentNames    []string `json:"model_agent_names,omitempty"` // 模型代理名称
-	IsPublic           bool     `json:"is_public"`                   // 是否公开
 	Remark             string   `json:"remark,omitempty"`            // 备注
 	Status             int      `json:"status,omitempty"`            // 状态[1:正常, 2:禁用, -1:删除]
 	Creator            string   `json:"creator,omitempty"`           // 创建人
