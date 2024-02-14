@@ -89,6 +89,15 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	if err := dao.Key.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
+		"$pull": bson.M{
+			"models": id,
+		},
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 

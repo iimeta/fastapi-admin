@@ -57,6 +57,20 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		}
 	}
 
+	if params.Key != "" {
+		if err = service.Key().Create(ctx, model.KeyCreateReq{
+			Corp:        "OpenAI",
+			Key:         params.Key,
+			Models:      params.Models,
+			ModelAgents: []string{id},
+			Remark:      params.Remark,
+			Status:      params.Status,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -93,6 +107,29 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 			"$addToSet": bson.M{
 				"model_agents": params.Id,
 			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if err := dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
+		"$pull": bson.M{
+			"model_agents": params.Id,
+		},
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if params.Key != "" {
+		if err := service.Key().Create(ctx, model.KeyCreateReq{
+			Corp:        "OpenAI",
+			Key:         params.Key,
+			Models:      params.Models,
+			ModelAgents: []string{params.Id},
+			Remark:      params.Remark,
+			Status:      params.Status,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err

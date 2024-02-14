@@ -435,24 +435,76 @@ func updateMany(ctx context.Context, database, collection string, filter map[str
 			return err
 		}
 
+		if value["updater"] == nil || value["updater"] == "" {
+			value["updater"] = service.Session().GetUid(ctx)
+		}
+
+		if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
+			value["updated_at"] = gtime.TimestampMilli()
+		}
+
 		update = bson.M{
 			"$set": value,
 		}
 
 	} else {
 
+		value := gconv.Map(update)
+
 		containKey := false
-		for key := range gconv.Map(update) {
+		for key := range value {
 			if gstr.Contains(key, "$") {
 				containKey = true
 				break
 			}
 		}
 
+		if containKey {
+
+			if value["updater"] == nil || value["updater"] == "" {
+				if value["$set"] != nil {
+					setValues := gconv.Map(value["$set"])
+					if setValues["updater"] == nil || setValues["updater"] == "" {
+						setValues["updater"] = service.Session().GetUid(ctx)
+						value["$set"] = setValues
+					}
+				} else {
+					value["$set"] = bson.M{
+						"updater": service.Session().GetUid(ctx),
+					}
+				}
+			}
+
+			if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
+				if value["$set"] != nil {
+					setValues := gconv.Map(value["$set"])
+					if setValues["updated_at"] == nil || gconv.Int(setValues["updated_at"]) == 0 {
+						setValues["updated_at"] = gtime.TimestampMilli()
+						value["$set"] = setValues
+					}
+				} else {
+					value["$set"] = bson.M{
+						"updated_at": gtime.TimestampMilli(),
+					}
+				}
+			}
+		} else {
+
+			if value["updater"] == nil || value["updater"] == "" {
+				value["updater"] = service.Session().GetUid(ctx)
+			}
+
+			if value["updated_at"] == nil || gconv.Int(value["updated_at"]) == 0 {
+				value["updated_at"] = gtime.TimestampMilli()
+			}
+		}
+
 		if !containKey {
 			update = bson.M{
-				"$set": update,
+				"$set": value,
 			}
+		} else {
+			update = value
 		}
 	}
 

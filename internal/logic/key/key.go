@@ -2,10 +2,12 @@ package key
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -28,18 +30,55 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 
 	keys := gstr.Split(gstr.Trim(params.Key), "\n")
 
-	for _, key := range keys {
-		if _, err := dao.Key.Insert(ctx, &do.Key{
-			Corp:        params.Corp,
-			Key:         key,
-			Type:        2,
-			Models:      params.Models,
-			ModelAgents: params.ModelAgents,
-			Remark:      params.Remark,
-			Status:      params.Status,
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
+	keyList, err := dao.Key.Find(ctx, bson.M{"key": bson.M{"$in": keys}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	keyMap := util.ToMap(keyList, func(t *entity.Key) string {
+		return t.Key
+	})
+
+	for _, k := range keys {
+
+		key := keyMap[k]
+
+		if key == nil {
+			if _, err := dao.Key.Insert(ctx, &do.Key{
+				Corp:        params.Corp,
+				Key:         k,
+				Type:        2,
+				Models:      params.Models,
+				ModelAgents: params.ModelAgents,
+				Remark:      params.Remark,
+				Status:      params.Status,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		} else {
+
+			modelSet := gset.NewStrSet()
+			modelSet.Add(key.Models...)
+			modelSet.Add(params.Models...)
+
+			modelAgentSet := gset.NewStrSet()
+			modelAgentSet.Add(key.ModelAgents...)
+			modelAgentSet.Add(params.ModelAgents...)
+
+			if err := s.Update(ctx, model.KeyUpdateReq{
+				Id:          key.Id,
+				Corp:        params.Corp,
+				Key:         params.Key,
+				Models:      modelSet.Slice(),
+				ModelAgents: modelAgentSet.Slice(),
+				Remark:      params.Remark,
+				Status:      params.Status,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
 		}
 	}
 
