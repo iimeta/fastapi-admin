@@ -103,6 +103,19 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 	return nil
 }
 
+// 更改密钥状态
+func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error {
+
+	if err := dao.Key.UpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 删除密钥
 func (s *sKey) Delete(ctx context.Context, id string) error {
 

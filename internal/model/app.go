@@ -27,6 +27,12 @@ type AppUpdateReq struct {
 	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 更改应用状态接口请求参数
+type AppChangeStatusReq struct {
+	Id     string `json:"id,omitempty"`           // ID
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+}
+
 // 应用详情接口响应参数
 type AppDetailRes struct {
 	*App

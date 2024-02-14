@@ -139,6 +139,19 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	return nil
 }
 
+// 更改模型代理状态
+func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) error {
+
+	if err := dao.ModelAgent.UpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 删除模型代理
 func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 

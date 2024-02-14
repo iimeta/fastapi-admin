@@ -81,6 +81,19 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 	return nil
 }
 
+// 更改模型状态
+func (s *sModel) ChangeStatus(ctx context.Context, params model.ModelChangeStatusReq) error {
+
+	if err := dao.Model.UpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 删除模型
 func (s *sModel) Delete(ctx context.Context, id string) error {
 

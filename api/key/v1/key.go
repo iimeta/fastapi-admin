@@ -27,6 +27,17 @@ type UpdateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 更改密钥状态接口请求参数
+type ChangeStatusReq struct {
+	g.Meta `path:"/change/status" tags:"key" method:"post" summary:"更改密钥状态接口"`
+	model.KeyChangeStatusReq
+}
+
+// 更改密钥状态接口响应参数
+type ChangeStatusRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 删除密钥接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" tags:"key" method:"post" summary:"删除密钥接口"`

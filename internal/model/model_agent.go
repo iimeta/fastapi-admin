@@ -1,6 +1,6 @@
 package model
 
-// 新建模型接口请求参数
+// 新建模型代理接口请求参数
 type ModelAgentCreateReq struct {
 	Name    string   `json:"name,omitempty"`         // 模型代理名称
 	BaseUrl string   `json:"base_url,omitempty"`     // 模型代理地址
@@ -12,7 +12,7 @@ type ModelAgentCreateReq struct {
 	Status  int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
-// 更新模型接口请求参数
+// 更新模型代理接口请求参数
 type ModelAgentUpdateReq struct {
 	Id      string   `json:"id" v:"required"`        // ID
 	Name    string   `json:"name,omitempty"`         // 模型代理名称
@@ -23,6 +23,12 @@ type ModelAgentUpdateReq struct {
 	Key     string   `json:"key,omitempty"`          // 密钥
 	Remark  string   `json:"remark,omitempty"`       // 备注
 	Status  int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+}
+
+// 更改模型代理状态接口请求参数
+type ModelAgentChangeStatusReq struct {
+	Id     string `json:"id" v:"required"`        // ID
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 模型代理详情接口响应参数

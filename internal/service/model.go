@@ -17,6 +17,8 @@ type (
 		Create(ctx context.Context, params model.ModelCreateReq) error
 		// 更新模型
 		Update(ctx context.Context, params model.ModelUpdateReq) error
+		// 更改模型状态
+		ChangeStatus(ctx context.Context, params model.ModelChangeStatusReq) error
 		// 删除模型
 		Delete(ctx context.Context, id string) error
 		// 模型详情

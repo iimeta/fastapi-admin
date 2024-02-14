@@ -17,6 +17,8 @@ type (
 		Create(ctx context.Context, params model.AppCreateReq) error
 		// 更新应用
 		Update(ctx context.Context, params model.AppUpdateReq) error
+		// 更改应用状态
+		ChangeStatus(ctx context.Context, params model.AppChangeStatusReq) error
 		// 删除应用
 		Delete(ctx context.Context, id string) error
 		// 应用详情

@@ -27,6 +27,17 @@ type UpdateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 更改应用状态接口请求参数
+type ChangeStatusReq struct {
+	g.Meta `path:"/change/status" tags:"app" method:"post" summary:"更改应用状态接口"`
+	model.AppChangeStatusReq
+}
+
+// 更改应用状态接口响应参数
+type ChangeStatusRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 删除应用接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" tags:"app" method:"post" summary:"删除应用接口"`

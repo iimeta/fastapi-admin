@@ -31,6 +31,8 @@ type (
 		Create(ctx context.Context, params model.UserCreateReq) error
 		// 更新用户
 		Update(ctx context.Context, params model.UserUpdateReq) error
+		// 更改用户状态
+		ChangeStatus(ctx context.Context, params model.UserChangeStatusReq) error
 		// 删除用户
 		Delete(ctx context.Context, id string) error
 		// 用户详情

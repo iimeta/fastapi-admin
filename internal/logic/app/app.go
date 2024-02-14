@@ -87,6 +87,19 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 	return nil
 }
 
+// 更改应用状态
+func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq) error {
+
+	if err := dao.App.UpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 删除应用
 func (s *sApp) Delete(ctx context.Context, id string) error {
 

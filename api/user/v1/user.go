@@ -93,6 +93,17 @@ type UpdateRes struct {
 	g.Meta `mime:"userlication/json" example:"json"`
 }
 
+// 更改用户状态接口请求参数
+type ChangeStatusReq struct {
+	g.Meta `path:"/change/status" tags:"user" method:"post" summary:"更改用户状态接口"`
+	model.UserChangeStatusReq
+}
+
+// 更改用户状态接口响应参数
+type ChangeStatusRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 删除用户接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" tags:"user" method:"post" summary:"删除用户接口"`

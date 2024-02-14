@@ -27,6 +27,17 @@ type UpdateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 更改模型代理状态接口请求参数
+type ChangeStatusReq struct {
+	g.Meta `path:"/change/status" tags:"ModelAgent" method:"post" summary:"更改模型代理状态接口"`
+	model.ModelAgentChangeStatusReq
+}
+
+// 更改模型代理状态接口响应参数
+type ChangeStatusRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 删除模型代理接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" tags:"ModelAgent" method:"post" summary:"删除模型代理接口"`

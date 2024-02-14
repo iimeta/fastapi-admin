@@ -70,6 +70,12 @@ type UserUpdateReq struct {
 	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 更新用户接口请求参数
+type UserChangeStatusReq struct {
+	Id     string `json:"id,omitempty"`           // ID
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+}
+
 // 用户详情接口响应参数
 type UserDetailRes struct {
 	*User

@@ -356,6 +356,19 @@ func (s *sUser) Update(ctx context.Context, params model.UserUpdateReq) error {
 	return nil
 }
 
+// 更改用户状态
+func (s *sUser) ChangeStatus(ctx context.Context, params model.UserChangeStatusReq) error {
+
+	if err := dao.User.UpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 删除用户
 func (s *sUser) Delete(ctx context.Context, id string) error {
 

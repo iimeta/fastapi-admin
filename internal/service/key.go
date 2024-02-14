@@ -17,6 +17,8 @@ type (
 		Create(ctx context.Context, params model.KeyCreateReq) error
 		// 更新密钥
 		Update(ctx context.Context, params model.KeyUpdateReq) error
+		// 更改密钥状态
+		ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error
 		// 删除密钥
 		Delete(ctx context.Context, id string) error
 		// 密钥详情

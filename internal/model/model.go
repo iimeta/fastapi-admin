@@ -33,6 +33,12 @@ type ModelUpdateReq struct {
 	Status             int      `json:"status,omitempty" d:"1"`          // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 更改模型状态接口请求参数
+type ModelChangeStatusReq struct {
+	Id     string `json:"id" v:"required"`        // ID
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+}
+
 // 模型详情接口响应参数
 type ModelDetailRes struct {
 	*Model
