@@ -163,7 +163,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			return nil, errors.New("账号或密码不正确")
 		}
 
-		user, err := dao.User.FindById(ctx, accountInfo.Uid)
+		user, err := dao.User.FindOne(ctx, bson.M{"_id": accountInfo.Uid, "status": 1})
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				return nil, errors.New("用户不存在或已被禁用")
