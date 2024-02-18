@@ -46,13 +46,14 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 
 		if key == nil {
 			if _, err := dao.Key.Insert(ctx, &do.Key{
-				Corp:        params.Corp,
-				Key:         k,
-				Type:        2,
-				Models:      params.Models,
-				ModelAgents: params.ModelAgents,
-				Remark:      params.Remark,
-				Status:      params.Status,
+				Corp:         params.Corp,
+				Key:          k,
+				Type:         2,
+				Models:       params.Models,
+				ModelAgents:  params.ModelAgents,
+				IsAgentsOnly: params.IsAgentsOnly,
+				Remark:       params.Remark,
+				Status:       params.Status,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -68,13 +69,14 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 			modelAgentSet.Add(params.ModelAgents...)
 
 			if err := s.Update(ctx, model.KeyUpdateReq{
-				Id:          key.Id,
-				Corp:        params.Corp,
-				Key:         params.Key,
-				Models:      modelSet.Slice(),
-				ModelAgents: modelAgentSet.Slice(),
-				Remark:      params.Remark,
-				Status:      params.Status,
+				Id:           key.Id,
+				Corp:         params.Corp,
+				Key:          params.Key,
+				Models:       modelSet.Slice(),
+				ModelAgents:  modelAgentSet.Slice(),
+				IsAgentsOnly: key.IsAgentsOnly,
+				Remark:       params.Remark,
+				Status:       params.Status,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -89,12 +91,13 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 
 	if err := dao.Key.UpdateById(ctx, params.Id, &do.Key{
-		Corp:        params.Corp,
-		Key:         params.Key,
-		Models:      params.Models,
-		ModelAgents: params.ModelAgents,
-		Remark:      params.Remark,
-		Status:      params.Status,
+		Corp:         params.Corp,
+		Key:          params.Key,
+		Models:       params.Models,
+		ModelAgents:  params.ModelAgents,
+		IsAgentsOnly: params.IsAgentsOnly,
+		Remark:       params.Remark,
+		Status:       params.Status,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -181,6 +184,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		ModelNames:      modelNames,
 		ModelAgents:     key.ModelAgents,
 		ModelAgentNames: modelAgentNames,
+		IsAgentsOnly:    key.IsAgentsOnly,
 		IsLimitQuota:    key.IsLimitQuota,
 		Quota:           key.Quota,
 		IpWhitelist:     key.IpWhitelist,
@@ -269,6 +273,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Models:       result.Models,
 			ModelNames:   modelNames,
 			ModelAgents:  result.ModelAgents,
+			IsAgentsOnly: result.IsAgentsOnly,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
 			IpWhitelist:  result.IpWhitelist,

@@ -1,1 +1,0 @@
-import{_ as o}from"./index.95d19ec3.js";import{B as t,aD as a,aG as _,aL as s,bc as c}from"./arco.a6f3e581.js";const r={};function n(d,i){const e=c;return t(),a(e,{class:"footer"},{default:_(()=>[s("Copyright \xA9 2023-2024 IIM. All Rights Reserved.")]),_:1})}const l=o(r,[["render",n],["__scopeId","data-v-8e075daa"]]);export{l as F};

@@ -2,23 +2,25 @@ package model
 
 // 新建密钥接口请求参数
 type KeyCreateReq struct {
-	Corp        string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
-	Key         string   `json:"key,omitempty"`          // 密钥
-	Models      []string `json:"models,omitempty"`       // 模型
-	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Key          string   `json:"key,omitempty"`            // 密钥
+	Models       []string `json:"models,omitempty"`         // 模型
+	ModelAgents  []string `json:"model_agents,omitempty"`   // 模型代理
+	IsAgentsOnly bool     `json:"is_agents_only,omitempty"` // 是否代理专用
+	Remark       string   `json:"remark,omitempty"`         // 备注
+	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新密钥接口请求参数
 type KeyUpdateReq struct {
-	Id          string   `json:"id,omitempty"`           // ID
-	Corp        string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
-	Key         string   `json:"key,omitempty"`          // 密钥
-	Models      []string `json:"models,omitempty"`       // 模型
-	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Id           string   `json:"id,omitempty"`             // ID
+	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Key          string   `json:"key,omitempty"`            // 密钥
+	Models       []string `json:"models,omitempty"`         // 模型
+	ModelAgents  []string `json:"model_agents,omitempty"`   // 模型代理
+	IsAgentsOnly bool     `json:"is_agents_only,omitempty"` // 是否代理专用
+	Remark       string   `json:"remark,omitempty"`         // 备注
+	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改密钥状态接口请求参数
@@ -80,7 +82,8 @@ type Key struct {
 	ModelNames      []string `json:"model_names,omitempty"`       // 模型名称
 	ModelAgents     []string `json:"model_agents,omitempty"`      // 模型代理
 	ModelAgentNames []string `json:"model_agent_names,omitempty"` // 模型代理名称
-	IsLimitQuota    bool     `json:"is_limit_quota,omitempty"`    // 是否限制额度
+	IsAgentsOnly    bool     `json:"is_agents_only"`              // 是否代理专用
+	IsLimitQuota    bool     `json:"is_limit_quota"`              // 是否限制额度
 	Quota           int      `json:"quota,omitempty"`             // 额度
 	IpWhitelist     []string `json:"ip_whitelist,omitempty"`      // IP白名单
 	IpBlacklist     []string `json:"ip_blacklist,omitempty"`      // IP黑名单
