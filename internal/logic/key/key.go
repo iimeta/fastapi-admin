@@ -71,7 +71,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 			if err := s.Update(ctx, model.KeyUpdateReq{
 				Id:           key.Id,
 				Corp:         params.Corp,
-				Key:          params.Key,
+				Key:          key.Key,
 				Models:       modelSet.Slice(),
 				ModelAgents:  modelAgentSet.Slice(),
 				IsAgentsOnly: key.IsAgentsOnly,
