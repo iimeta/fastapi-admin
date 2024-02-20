@@ -84,15 +84,26 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		return err
 	}
 
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, app); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 
 // 更改应用状态
 func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq) error {
 
-	if err := dao.App.UpdateById(ctx, params.Id, bson.M{
+	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
-	}); err != nil {
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, app); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -111,6 +122,12 @@ func (s *sApp) Delete(ctx context.Context, id string) error {
 
 	_, err = dao.Key.DeleteMany(ctx, bson.M{"app_id": app.AppId})
 	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	app.Status = -1
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, app); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

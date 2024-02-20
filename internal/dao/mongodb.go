@@ -634,6 +634,8 @@ func findOneAndUpdate(ctx context.Context, database, collection string, filter m
 	}
 
 	opt := &options.FindOneAndUpdateOptions{}
+	opt.SetReturnDocument(options.After)
+
 	if len(isUpsert) > 0 && isUpsert[0] {
 		opt.SetUpsert(true)
 	}

@@ -128,6 +128,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 				return nil, err
 			}
 
+			if accountInfo.Status == 2 {
+				return nil, errors.New("账号已被禁用")
+			}
+
 			if !crypto.VerifyPassword(accountInfo.Password, params.Password+accountInfo.Salt) {
 				return nil, errors.New("账号或密码不正确")
 			}
@@ -151,6 +155,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 					if err != nil {
 						logger.Error(ctx, err)
 						return nil, err
+					}
+
+					if accountInfo.Status == 2 {
+						return nil, errors.New("账号已被禁用")
 					}
 
 				} else {
@@ -236,6 +244,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 				logger.Error(ctx, err)
 				return nil, err
 			}
+		}
+
+		if admin.Status == 2 {
+			return nil, errors.New("账号已被禁用")
 		}
 
 		if !crypto.VerifyPassword(admin.Password, params.Password+admin.Salt) {

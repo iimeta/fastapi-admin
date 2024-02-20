@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
@@ -11,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -90,7 +92,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 // 更新密钥
 func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 
-	if err := dao.Key.UpdateById(ctx, params.Id, &do.Key{
+	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, &do.Key{
 		Corp:         params.Corp,
 		Key:          params.Key,
 		Models:       params.Models,
@@ -98,7 +100,13 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 		IsAgentsOnly: params.IsAgentsOnly,
 		Remark:       params.Remark,
 		Status:       params.Status,
-	}); err != nil {
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, key); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -109,9 +117,15 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 // 更改密钥状态
 func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error {
 
-	if err := dao.Key.UpdateById(ctx, params.Id, bson.M{
+	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
-	}); err != nil {
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, key); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -122,7 +136,13 @@ func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq
 // 删除密钥
 func (s *sKey) Delete(ctx context.Context, id string) error {
 
-	if _, err := dao.Key.DeleteById(ctx, id); err != nil {
+	key, err := dao.Key.FindOneAndDeleteById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, key); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

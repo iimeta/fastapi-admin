@@ -359,9 +359,22 @@ func (s *sUser) Update(ctx context.Context, params model.UserUpdateReq) error {
 // 更改用户状态
 func (s *sUser) ChangeStatus(ctx context.Context, params model.UserChangeStatusReq) error {
 
-	if err := dao.User.UpdateById(ctx, params.Id, bson.M{
+	user, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err = dao.Account.UpdateMany(ctx, bson.M{"user_id": user.UserId}, bson.M{
 		"status": params.Status,
 	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, user); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -378,8 +391,13 @@ func (s *sUser) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	_, err = dao.Account.DeleteMany(ctx, bson.M{"user_id": user.UserId})
-	if err != nil {
+	if _, err = dao.Account.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	user.Status = -1
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, user); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

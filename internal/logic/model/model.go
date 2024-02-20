@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -10,6 +11,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -60,7 +62,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		return errors.Newf("模型名称 \"%s\" 已存在", params.Name)
 	}
 
-	if err := dao.Model.UpdateById(ctx, params.Id, &do.Model{
+	model, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, &do.Model{
 		Corp:               params.Corp,
 		Name:               gstr.Trim(params.Name),
 		Model:              gstr.Trim(params.Model),
@@ -73,7 +75,13 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		IsPublic:           params.IsPublic,
 		Remark:             params.Remark,
 		Status:             params.Status,
-	}); err != nil {
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -84,9 +92,15 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 // 更改模型状态
 func (s *sModel) ChangeStatus(ctx context.Context, params model.ModelChangeStatusReq) error {
 
-	if err := dao.Model.UpdateById(ctx, params.Id, bson.M{
+	model, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
-	}); err != nil {
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -97,16 +111,23 @@ func (s *sModel) ChangeStatus(ctx context.Context, params model.ModelChangeStatu
 // 删除模型
 func (s *sModel) Delete(ctx context.Context, id string) error {
 
-	if _, err := dao.Model.DeleteById(ctx, id); err != nil {
+	model, err := dao.Model.FindOneAndDeleteById(ctx, id)
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if err := dao.Key.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
+	if err = dao.Key.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
 		"$pull": bson.M{
 			"models": id,
 		},
 	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	model.Status = -1
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
