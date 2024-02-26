@@ -61,6 +61,7 @@ var (
 			s.AddStaticPath("/user/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/detail", "./resource/fastapi-web/")
+			s.AddStaticPath("/chat/list", "./resource/fastapi-web/")
 
 			s.Group("/", func(g *ghttp.RouterGroup) {
 				g.Middleware(ghttp.MiddlewareHandlerResponse)

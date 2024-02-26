@@ -8,6 +8,7 @@ type ChatDetailRes struct {
 // 聊天分页列表接口请求参数
 type ChatPageReq struct {
 	Paging
+	UserId    int      `json:"user_id,omitempty"`    // 用户ID
 	AppId     int      `json:"app_id,omitempty"`     // 应用ID
 	Key       string   `json:"key,omitempty"`        // 密钥
 	Models    []string `json:"models,omitempty"`     // 模型

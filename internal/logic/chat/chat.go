@@ -111,6 +111,8 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else if params.UserId != 0 {
+		filter["user_id"] = params.UserId
 	}
 
 	if params.AppId != 0 {
