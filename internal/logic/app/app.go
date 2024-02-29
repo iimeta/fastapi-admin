@@ -358,5 +358,10 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 		return err
 	}
 
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, keyInfo); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
