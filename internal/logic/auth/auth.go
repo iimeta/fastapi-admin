@@ -89,8 +89,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 	defer func() {
 		if err != nil {
-			val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_LOGIN, params.Account))
-			if val == 1 {
+			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_LOGIN, params.Account)); val == 1 {
 				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_LOGIN, params.Account), 30*60) // 锁定30分钟
 			}
 		} else {
@@ -231,8 +230,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						return nil, err
 					}
 
-					admin, err = dao.SysAdmin.FindOne(ctx, bson.M{"account": params.Account})
-					if err != nil {
+					if admin, err = dao.SysAdmin.FindOne(ctx, bson.M{"account": params.Account}); err != nil {
 						logger.Error(ctx, err)
 						return nil, err
 					}
@@ -359,9 +357,7 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 	}
 
 	user := new(model.User)
-
-	err = reply.Struct(&user)
-	if err != nil {
+	if err = reply.Struct(&user); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
@@ -395,9 +391,7 @@ func (s *sAuth) GetAdminByToken(ctx context.Context, token string) (*model.SysAd
 	}
 
 	admin := new(model.SysAdmin)
-
-	err = reply.Struct(&admin)
-	if err != nil {
+	if err = reply.Struct(&admin); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}

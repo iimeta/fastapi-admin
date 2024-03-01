@@ -44,8 +44,8 @@ func FindAddress(ctx context.Context, ip string) (string, error) {
 	}
 
 	data := &IpAddressResponse{}
-	err := HttpGet(ctx, url, nil, params, &data)
-	if err != nil {
+
+	if err := HttpGet(ctx, url, nil, params, &data); err != nil {
 		logger.Error(ctx, err)
 		return "", err
 	}

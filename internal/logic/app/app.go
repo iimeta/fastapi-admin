@@ -84,8 +84,7 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		fmt.Sprintf(consts.APP_IS_LIMIT_QUOTA_FIELD, app.AppId): app.IsLimitQuota,
 	}
 
-	_, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields)
-	if err != nil {
+	if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -133,8 +132,7 @@ func (s *sApp) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	_, err = dao.Key.DeleteMany(ctx, bson.M{"app_id": app.AppId})
-	if err != nil {
+	if _, err = dao.Key.DeleteMany(ctx, bson.M{"app_id": app.AppId}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -391,13 +389,12 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 		fmt.Sprintf(consts.KEY_IS_LIMIT_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key): key.IsLimitQuota,
 	}
 
-	_, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields)
-	if err != nil {
+	if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP_KEY, model.PubMessage{
 		Action:  action,
 		OldData: oldData,
 		NewData: keyInfo,

@@ -82,8 +82,7 @@ func (s *sUser) ChangePassword(ctx context.Context, params model.UserPasswordUpd
 		}
 	}()
 
-	val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CHANGE_PASSWORD, uid))
-	if err == nil && val >= 5 {
+	if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CHANGE_PASSWORD, uid)); err == nil && val >= 5 {
 		return errors.New("失败次数过多, 请稍后再试")
 	}
 

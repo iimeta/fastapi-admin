@@ -44,6 +44,7 @@ func SendMail(email *Option, opt ...OptionFunc) error {
 }
 
 func do(msg *gomail.Message) error {
+
 	dialer := gomail.NewDialer(config.Cfg.Email.Host, config.Cfg.Email.Port, config.Cfg.Email.UserName, config.Cfg.Email.Password)
 
 	// 自动开启SSL

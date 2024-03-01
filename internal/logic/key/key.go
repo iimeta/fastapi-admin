@@ -42,12 +42,14 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 		return t.Key
 	})
 
+	// 不知道性能咋样
 	for _, k := range keys {
 
 		key := keyMap[k]
 
 		if key == nil {
-			if _, err := dao.Key.Insert(ctx, &do.Key{
+
+			id, err := dao.Key.Insert(ctx, &do.Key{
 				Corp:         params.Corp,
 				Key:          k,
 				Type:         2,
@@ -56,10 +58,26 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 				IsAgentsOnly: params.IsAgentsOnly,
 				Remark:       params.Remark,
 				Status:       params.Status,
+			})
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			key, err := dao.Key.FindById(ctx, id)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+				Action:  consts.ACTION_CREATE,
+				NewData: key,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
+
 		} else {
 
 			modelSet := gset.NewStrSet()

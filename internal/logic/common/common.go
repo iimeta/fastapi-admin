@@ -33,14 +33,12 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.
 
 	if !config.Cfg.App.Debug {
 		defer func() {
-			val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone))
-			if val == 1 {
+			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone)); val == 1 {
 				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone), 30*60) // 锁定30分钟
 			}
 		}()
 
-		val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone))
-		if err == nil && val >= 5 {
+		if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone)); err == nil && val >= 5 {
 			return nil, errors.New("发送验证码过于频繁, 请稍后再试")
 		}
 	}
@@ -89,14 +87,12 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 
 	if !config.Cfg.App.Debug {
 		defer func() {
-			val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email))
-			if val == 1 {
+			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); val == 1 {
 				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email), 30*60) // 锁定30分钟
 			}
 		}()
 
-		val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email))
-		if err == nil && val >= 5 {
+		if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); err == nil && val >= 5 {
 			return nil, errors.New("发送验证码过于频繁, 请稍后再试")
 		}
 	}
@@ -185,8 +181,7 @@ func (s *sCommon) VerifyCode(ctx context.Context, channel, account, code string)
 	defer func() {
 		if !pass {
 			// 3分钟内同一个邮件验证码错误次数超过5次, 删除验证码
-			num, _ := redis.Incr(ctx, s.failName(channel, account))
-			if num >= 5 {
+			if num, _ := redis.Incr(ctx, s.failName(channel, account)); num >= 5 {
 				pipe := redis.Pipeline(ctx)
 				pipe.Del(ctx, s.name(channel, account))
 				pipe.Del(ctx, s.failName(channel, account))

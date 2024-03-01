@@ -73,6 +73,20 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		}
 	}
 
+	modelAgent, err := dao.ModelAgent.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+		Action:  consts.ACTION_CREATE,
+		NewData: modelAgent,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 

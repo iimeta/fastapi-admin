@@ -193,8 +193,7 @@ func insert(ctx context.Context, database string, document interface{}) (string,
 	}
 
 	value := bson.M{}
-	err = bson.Unmarshal(bytes, &value)
-	if err != nil {
+	if err = bson.Unmarshal(bytes, &value); err != nil {
 		return "", err
 	}
 
@@ -246,8 +245,7 @@ func inserts(ctx context.Context, database string, documents []interface{}) ([]s
 		}
 
 		value := bson.M{}
-		err = bson.Unmarshal(bytes, &value)
-		if err != nil {
+		if err = bson.Unmarshal(bytes, &value); err != nil {
 			return nil, err
 		}
 
@@ -315,8 +313,7 @@ func updateOne(ctx context.Context, database, collection string, filter map[stri
 		}
 
 		value := bson.M{}
-		err = bson.Unmarshal(bytes, &value)
-		if err != nil {
+		if err = bson.Unmarshal(bytes, &value); err != nil {
 			return err
 		}
 
@@ -430,8 +427,7 @@ func updateMany(ctx context.Context, database, collection string, filter map[str
 		}
 
 		value := bson.M{}
-		err = bson.Unmarshal(bytes, &value)
-		if err != nil {
+		if err = bson.Unmarshal(bytes, &value); err != nil {
 			return err
 		}
 
@@ -555,8 +551,7 @@ func findOneAndUpdate(ctx context.Context, database, collection string, filter m
 		}
 
 		value := bson.M{}
-		err = bson.Unmarshal(bytes, &value)
-		if err != nil {
+		if err = bson.Unmarshal(bytes, &value); err != nil {
 			return err
 		}
 
@@ -796,8 +791,7 @@ func AggregateByPage(ctx context.Context, database, collection, countField strin
 	}
 
 	countResult := make([]map[string]interface{}, 0)
-	err := m.AggregateByPage(ctx, &countResult, result)
-	if err != nil {
+	if err := m.AggregateByPage(ctx, &countResult, result); err != nil {
 		return err
 	}
 

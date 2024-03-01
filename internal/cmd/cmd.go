@@ -212,8 +212,7 @@ func middleware(r *ghttp.Request) {
 			return
 		}
 
-		err = service.Session().SaveUser(r.GetCtx(), token, user)
-		if err != nil {
+		if err = service.Session().SaveUser(r.GetCtx(), token, user); err != nil {
 			r.Response.Header().Set("Content-Type", "application/json")
 			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
 			r.Exit()
@@ -230,8 +229,7 @@ func middleware(r *ghttp.Request) {
 			return
 		}
 
-		err = service.Session().SaveAdmin(r.GetCtx(), token, admin)
-		if err != nil {
+		if err = service.Session().SaveAdmin(r.GetCtx(), token, admin); err != nil {
 			r.Response.Header().Set("Content-Type", "application/json")
 			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
 			r.Exit()
@@ -272,8 +270,7 @@ func sysMiddleware(r *ghttp.Request) {
 		return
 	}
 
-	err = service.Session().SaveAdmin(r.GetCtx(), token, admin)
-	if err != nil {
+	if err = service.Session().SaveAdmin(r.GetCtx(), token, admin); err != nil {
 		r.Response.Header().Set("Content-Type", "application/json")
 		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
 		r.Exit()

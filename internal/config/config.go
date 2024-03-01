@@ -27,8 +27,7 @@ func init() {
 	// 监听配置文件变化, 热加载
 	_, _ = gfsnotify.Add(path, func(event *gfsnotify.Event) {
 		ctx := gctx.New()
-		data, err := gcfg.Instance().Data(ctx)
-		if err != nil {
+		if data, err := gcfg.Instance().Data(ctx); err != nil {
 			logger.Errorf(ctx, "热加载 获取配置文件 %s 数据错误: %v", path, err)
 		} else {
 			if err = gjson.Unmarshal(gjson.MustEncode(data), &Cfg); err != nil {
