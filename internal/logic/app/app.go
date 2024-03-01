@@ -56,6 +56,12 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 // 更新应用
 func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 
+	oldData, err := dao.App.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, &do.App{
 		Name:         params.Name,
 		Type:         params.Type,
@@ -84,7 +90,11 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, app); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: app,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -103,7 +113,10 @@ func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, app); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: app,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -126,8 +139,10 @@ func (s *sApp) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	app.Status = -1
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, app); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, model.PubMessage{
+		Action:  consts.ACTION_DELETE,
+		OldData: app,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -323,22 +338,46 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 	}
 
 	var keyInfo *entity.Key
+	var oldData *entity.Key
+	action := consts.ACTION_CREATE
 
 	if params.Id != "" {
+
+		action = consts.ACTION_UPDATE
+		if oldData, err = dao.Key.FindById(ctx, params.Id); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
 		key.AppId = 0
 		key.Key = ""
 		if keyInfo, err = dao.Key.FindOneAndUpdateById(ctx, params.Id, key); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
+
 	} else {
-		if _, err := dao.Key.Insert(ctx, key); err != nil {
+
+		id, err := dao.Key.Insert(ctx, key)
+		if err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
-		keyInfo = new(entity.Key)
-		keyInfo.AppId = key.AppId
-		keyInfo.Key = key.Key
+
+		keyInfo = &entity.Key{
+			Id:           id,
+			UserId:       key.UserId,
+			AppId:        key.AppId,
+			Key:          key.Key,
+			IsLimitQuota: key.IsLimitQuota,
+			Quota:        key.Quota,
+			Type:         key.Type,
+			Models:       key.Models,
+			IpWhitelist:  key.IpWhitelist,
+			IpBlacklist:  key.IpBlacklist,
+			Remark:       key.Remark,
+			Status:       key.Status,
+		}
 	}
 
 	app, err := dao.App.FindByAppId(ctx, keyInfo.AppId)
@@ -358,7 +397,11 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, keyInfo); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+		Action:  action,
+		OldData: oldData,
+		NewData: keyInfo,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

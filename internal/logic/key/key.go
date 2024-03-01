@@ -92,6 +92,12 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 // 更新密钥
 func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 
+	oldData, err := dao.Key.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, &do.Key{
 		Corp:         params.Corp,
 		Key:          params.Key,
@@ -106,7 +112,11 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, key); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: key,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -125,7 +135,10 @@ func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, key); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: key,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -142,7 +155,10 @@ func (s *sKey) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, key); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+		Action:  consts.ACTION_DELETE,
+		OldData: key,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

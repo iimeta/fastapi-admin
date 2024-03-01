@@ -374,7 +374,10 @@ func (s *sUser) ChangeStatus(ctx context.Context, params model.UserChangeStatusR
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, user); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: user,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -396,8 +399,10 @@ func (s *sUser) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	user.Status = -1
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, user); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_DELETE,
+		OldData: user,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

@@ -62,7 +62,13 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		return errors.Newf("模型名称 \"%s\" 已存在", params.Name)
 	}
 
-	model, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, &do.Model{
+	oldData, err := dao.Model.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, &do.Model{
 		Corp:               params.Corp,
 		Name:               gstr.Trim(params.Name),
 		Model:              gstr.Trim(params.Model),
@@ -81,7 +87,11 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -92,7 +102,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 // 更改模型状态
 func (s *sModel) ChangeStatus(ctx context.Context, params model.ModelChangeStatusReq) error {
 
-	model, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, bson.M{
+	newData, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
 	})
 	if err != nil {
@@ -100,7 +110,10 @@ func (s *sModel) ChangeStatus(ctx context.Context, params model.ModelChangeStatu
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: newData,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -111,7 +124,7 @@ func (s *sModel) ChangeStatus(ctx context.Context, params model.ModelChangeStatu
 // 删除模型
 func (s *sModel) Delete(ctx context.Context, id string) error {
 
-	model, err := dao.Model.FindOneAndDeleteById(ctx, id)
+	oldData, err := dao.Model.FindOneAndDeleteById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -126,8 +139,10 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	model.Status = -1
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model); err != nil {
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+		Action:  consts.ACTION_DELETE,
+		OldData: oldData,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
