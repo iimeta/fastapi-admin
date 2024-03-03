@@ -88,6 +88,23 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		return err
 	}
 
+	for _, id := range modelAgent.Models {
+
+		newData, err := dao.Model.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			NewData: newData,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -246,6 +263,23 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	for _, id := range modelAgent.Models {
+
+		newData, err := dao.Model.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			NewData: newData,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
