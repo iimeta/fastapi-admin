@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -171,6 +172,27 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	modelSet := gset.NewStrSet()
+	modelSet.Add(oldData.Models...)
+	modelSet.Add(modelAgent.Models...)
+
+	for _, id := range modelSet.Slice() {
+
+		newData, err := dao.Model.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			NewData: newData,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil
