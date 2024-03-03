@@ -73,7 +73,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		}
 	}
 
-	modelAgent, err := dao.ModelAgent.FindById(ctx, id)
+	modelAgent, err := s.Detail(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -97,21 +97,20 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		return errors.Newf("模型代理名称 \"%s\" 已存在", params.Name)
 	}
 
-	oldData, err := dao.ModelAgent.FindById(ctx, params.Id)
+	oldData, err := s.Detail(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	modelAgent, err := dao.ModelAgent.FindOneAndUpdateById(ctx, params.Id, &do.ModelAgent{
+	if err = dao.ModelAgent.UpdateById(ctx, params.Id, &do.ModelAgent{
 		Name:    gstr.Trim(params.Name),
 		BaseUrl: params.BaseUrl,
 		Path:    params.Path,
 		Weight:  params.Weight,
 		Remark:  params.Remark,
 		Status:  params.Status,
-	})
-	if err != nil {
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -159,6 +158,12 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		}
 	}
 
+	modelAgent, err := s.Detail(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
 		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
@@ -174,15 +179,20 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 // 更改模型代理状态
 func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) error {
 
-	modelAgent, err := dao.ModelAgent.FindOneAndUpdateById(ctx, params.Id, bson.M{
+	if err := dao.ModelAgent.UpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
-	})
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	modelAgent, err := s.Detail(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+	if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
 		Action:  consts.ACTION_STATUS,
 		NewData: modelAgent,
 	}); err != nil {
@@ -196,8 +206,13 @@ func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentC
 // 删除模型代理
 func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 
-	modelAgent, err := dao.ModelAgent.FindOneAndDeleteById(ctx, id)
+	modelAgent, err := s.Detail(ctx, id)
 	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = dao.ModelAgent.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
