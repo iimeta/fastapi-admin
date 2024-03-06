@@ -17,7 +17,7 @@ type Model struct {
 	DataFormat         int      `bson:"data_format,omitempty"`      // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool     `bson:"is_public"`                  // 是否公开
 	IsEnableModelAgent bool     `bson:"is_enable_model_agent"`      // 是否启用模型代理
-	ModelAgents        []string `bson:"model_agents,omitempty"`     // 模型代理
+	ModelAgents        []string `bson:"model_agents"`               // 模型代理
 	Remark             string   `bson:"remark"`                     // 备注
 	Status             int      `bson:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
 	Creator            string   `bson:"creator,omitempty"`          // 创建人
