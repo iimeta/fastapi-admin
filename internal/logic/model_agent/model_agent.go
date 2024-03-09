@@ -265,6 +265,15 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	if err := dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
+		"$pull": bson.M{
+			"model_agents": id,
+		},
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	for _, id := range modelAgent.Models {
 
 		newData, err := dao.Model.FindById(ctx, id)

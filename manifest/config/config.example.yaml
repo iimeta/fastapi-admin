@@ -10,9 +10,9 @@ redis:
     db: 2
     pass: fastapi666
 #    masterName: default  # 哨兵模式必填
-    minIdle: 2
-    maxIdle: 5
-    maxActive: 100
+    minIdle: 20
+    maxIdle: 200
+    maxActive: 200
     waitTimeout: 60
     dialTimeout: 60
     readTimeout: 60

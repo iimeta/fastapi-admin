@@ -78,7 +78,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 			return nil, err
 		}
 
-		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 2}); err != nil {
+		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 2, "status": 1}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}

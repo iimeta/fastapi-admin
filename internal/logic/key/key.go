@@ -3,6 +3,8 @@ package key
 import (
 	"context"
 	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -38,70 +40,72 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 		return err
 	}
 
-	keyMap := util.ToMap(keyList, func(t *entity.Key) string {
-		return t.Key
-	})
+	// 异步处理, 存在一定程度的延迟性
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-	// 不知道性能咋样
-	for _, k := range keys {
+		keyMap := util.ToMap(keyList, func(t *entity.Key) string {
+			return t.Key
+		})
 
-		key := keyMap[k]
+		for _, k := range keys {
 
-		if key == nil {
+			key := keyMap[k]
 
-			id, err := dao.Key.Insert(ctx, &do.Key{
-				Corp:         params.Corp,
-				Key:          k,
-				Type:         2,
-				Models:       params.Models,
-				ModelAgents:  params.ModelAgents,
-				IsAgentsOnly: params.IsAgentsOnly,
-				Remark:       params.Remark,
-				Status:       params.Status,
-			})
-			if err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
+			if key == nil {
 
-			key, err := dao.Key.FindById(ctx, id)
-			if err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
+				id, err := dao.Key.Insert(ctx, &do.Key{
+					Corp:         params.Corp,
+					Key:          k,
+					Type:         2,
+					Models:       params.Models,
+					ModelAgents:  params.ModelAgents,
+					IsAgentsOnly: params.IsAgentsOnly,
+					Remark:       params.Remark,
+					Status:       params.Status,
+				})
+				if err != nil {
+					logger.Error(ctx, err)
+				}
 
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
-				Action:  consts.ACTION_CREATE,
-				NewData: key,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
+				key, err := dao.Key.FindById(ctx, id)
+				if err != nil {
+					logger.Error(ctx, err)
+				}
 
-		} else {
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+					Action:  consts.ACTION_CREATE,
+					NewData: key,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
 
-			modelSet := gset.NewStrSet()
-			modelSet.Add(key.Models...)
-			modelSet.Add(params.Models...)
+			} else {
 
-			modelAgentSet := gset.NewStrSet()
-			modelAgentSet.Add(key.ModelAgents...)
-			modelAgentSet.Add(params.ModelAgents...)
+				modelSet := gset.NewStrSet()
+				modelSet.Add(key.Models...)
+				modelSet.Add(params.Models...)
 
-			if err := s.Update(ctx, model.KeyUpdateReq{
-				Id:           key.Id,
-				Corp:         params.Corp,
-				Key:          key.Key,
-				Models:       modelSet.Slice(),
-				ModelAgents:  modelAgentSet.Slice(),
-				IsAgentsOnly: key.IsAgentsOnly,
-				Remark:       params.Remark,
-				Status:       params.Status,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
+				modelAgentSet := gset.NewStrSet()
+				modelAgentSet.Add(key.ModelAgents...)
+				modelAgentSet.Add(params.ModelAgents...)
+
+				if err := s.Update(ctx, model.KeyUpdateReq{
+					Id:           key.Id,
+					Corp:         params.Corp,
+					Key:          key.Key,
+					Models:       modelSet.Slice(),
+					ModelAgents:  modelAgentSet.Slice(),
+					IsAgentsOnly: key.IsAgentsOnly,
+					Remark:       params.Remark,
+					Status:       params.Status,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
 			}
 		}
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
 	return nil
@@ -292,7 +296,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		filter["status"] = params.Status
 	}
 
-	results, err := dao.Key.FindByPage(ctx, paging, filter, "-updated_at")
+	results, err := dao.Key.FindByPage(ctx, paging, filter, "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

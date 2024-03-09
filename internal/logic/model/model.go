@@ -130,6 +130,15 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	if err = dao.App.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
+		"$pull": bson.M{
+			"models": id,
+		},
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	if err = dao.Key.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
 		"$pull": bson.M{
 			"models": id,
@@ -265,6 +274,10 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.Model, error) {
 
 	filter := bson.M{}
+
+	if service.Session().IsUserRole(ctx) {
+		filter["is_public"] = true
+	}
 
 	results, err := dao.Model.Find(ctx, filter, "-updated_at")
 	if err != nil {
