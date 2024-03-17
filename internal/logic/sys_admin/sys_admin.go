@@ -26,14 +26,20 @@ func New() service.ISysAdmin {
 // 新建管理员
 func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) error {
 
+	count, err := dao.SysAdmin.EstimatedDocumentCount(ctx)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	salt := grand.Letters(8)
 
-	if _, err := dao.SysAdmin.Insert(ctx, &do.SysAdmin{
+	if _, err = dao.SysAdmin.Insert(ctx, &do.SysAdmin{
+		UserId:   int(count + 1),
 		Name:     params.Name,
 		Avatar:   params.Avatar,
-		Gender:   params.Gender,
-		Phone:    params.Phone,
 		Email:    params.Email,
+		Phone:    params.Phone,
 		Account:  params.Account,
 		Password: crypto.EncryptPassword(params.Password + salt),
 		Salt:     salt,
@@ -53,9 +59,8 @@ func (s *sSysAdmin) Update(ctx context.Context, params model.SysAdminUpdateReq) 
 	if err := dao.SysAdmin.UpdateById(ctx, params.Id, &do.SysAdmin{
 		Name:   params.Name,
 		Avatar: params.Avatar,
-		Gender: params.Gender,
-		Phone:  params.Phone,
 		Email:  params.Email,
+		Phone:  params.Phone,
 		Remark: params.Remark,
 		Status: params.Status,
 	}); err != nil {
@@ -90,12 +95,9 @@ func (s *sSysAdmin) Detail(ctx context.Context, id string) (*model.SysAdmin, err
 		Id:        admin.Id,
 		Name:      admin.Name,
 		Avatar:    admin.Avatar,
-		Gender:    admin.Gender,
-		Phone:     admin.Phone,
 		Email:     admin.Email,
+		Phone:     admin.Phone,
 		Account:   admin.Account,
-		Password:  admin.Password,
-		Salt:      admin.Salt,
 		LoginIP:   admin.LoginIP,
 		LoginTime: admin.LoginTime,
 		Remark:    admin.Remark,
@@ -129,12 +131,9 @@ func (s *sSysAdmin) Page(ctx context.Context, params model.SysAdminPageReq) (*mo
 			Id:        result.Id,
 			Name:      result.Name,
 			Avatar:    result.Avatar,
-			Gender:    result.Gender,
-			Phone:     result.Phone,
 			Email:     result.Email,
+			Phone:     result.Phone,
 			Account:   result.Account,
-			Password:  result.Password,
-			Salt:      result.Salt,
 			LoginIP:   result.LoginIP,
 			LoginTime: result.LoginTime,
 			Remark:    result.Remark,

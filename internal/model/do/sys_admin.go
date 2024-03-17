@@ -8,11 +8,11 @@ const (
 
 type SysAdmin struct {
 	gmeta.Meta `collection:"sys_admin" bson:"-"`
-	Name       string `bson:"name,omitempty"`       // 名称
+	UserId     int    `bson:"user_id,omitempty"`    // 用户ID
+	Name       string `bson:"name,omitempty"`       // 姓名
 	Avatar     string `bson:"avatar,omitempty"`     // 头像
-	Gender     int    `bson:"gender,omitempty"`     // 性别[0:保密, 1:男, 2:女]
-	Phone      string `bson:"phone,omitempty"`      // 手机号
 	Email      string `bson:"email,omitempty"`      // 邮箱
+	Phone      string `bson:"phone,omitempty"`      // 手机号
 	Account    string `bson:"account,omitempty"`    // 账号
 	Password   string `bson:"password,omitempty"`   // 密码
 	Salt       string `bson:"salt,omitempty"`       // 盐

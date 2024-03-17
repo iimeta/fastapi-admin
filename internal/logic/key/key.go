@@ -396,3 +396,23 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 
 	return items, nil
 }
+
+// 根据Keys查询密钥详情列表
+func (s *sKey) DetailListByKey(ctx context.Context, keys []string) ([]*entity.Key, error) {
+
+	filter := bson.M{
+		"type": 2,
+		"key": bson.M{
+			"$in": keys,
+		},
+		"status": 1,
+	}
+
+	results, err := dao.Key.Find(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return results, nil
+}

@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 )
 
 type (
@@ -27,6 +28,8 @@ type (
 		Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPageRes, error)
 		// 密钥列表
 		List(ctx context.Context, params model.KeyListReq) ([]*model.Key, error)
+		// 根据Keys查询密钥详情列表
+		DetailListByKey(ctx context.Context, keys []string) ([]*entity.Key, error)
 	}
 )
 

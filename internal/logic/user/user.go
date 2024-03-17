@@ -4,22 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
-	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
-	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"strings"
 )
 
 type sUser struct{}
@@ -42,32 +37,38 @@ func (s *sUser) Info(ctx context.Context) (*model.UserInfoRes, error) {
 	}
 
 	return &model.UserInfoRes{
-		Id:     gconv.String(user.UserId),
-		Phone:  user.Phone,
-		Name:   user.Name,
-		Avatar: user.Avatar,
-		Gender: user.Gender,
-		Email:  user.Email,
+		UserId:    user.UserId,
+		Name:      user.Name,
+		Avatar:    user.Avatar,
+		Email:     user.Email,
+		Phone:     user.Phone,
+		CreatedAt: util.FormatDatetime(user.CreatedAt),
 	}, nil
 }
 
-// 修改用户信息
-func (s *sUser) ChangeDetail(ctx context.Context, params model.UserDetailUpdateReq) error {
+// 用户更新信息
+func (s *sUser) UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error {
 
-	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, &do.User{
-		Name:   strings.TrimSpace(strings.Replace(params.Name, " ", "", -1)),
-		Avatar: params.Avatar,
-		Gender: params.Gender,
+	if err := dao.User.UpdateById(ctx, service.Session().GetUid(ctx), &do.User{
+		Name: params.Name,
 	}); err != nil {
 		logger.Error(ctx, err)
-		return errors.New("个人信息修改失败")
+		return err
+	}
+
+	user := service.Session().GetUser(ctx)
+	user.Name = params.Name
+
+	if err := service.Session().UpdateSession(ctx, user); err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
 	return nil
 }
 
-// 修改密码接口
-func (s *sUser) ChangePassword(ctx context.Context, params model.UserPasswordUpdateReq) (err error) {
+// 用户修改密码接口
+func (s *sUser) ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error) {
 
 	uid := service.Session().GetUserId(ctx)
 
@@ -109,104 +110,8 @@ func (s *sUser) ChangePassword(ctx context.Context, params model.UserPasswordUpd
 	return nil
 }
 
-// 用户设置
-func (s *sUser) Setting(ctx context.Context) (*model.UserSettingRes, error) {
-
-	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	return &model.UserSettingRes{
-		User: &model.User{
-			UserId: user.UserId,
-			Name:   user.Name,
-			Avatar: user.Avatar,
-			Gender: user.Gender,
-			Phone:  user.Phone,
-			Email:  user.Email,
-		},
-		Setting: &model.SettingInfo{},
-	}, nil
-}
-
-// 换绑手机号
-func (s *sUser) ChangePhone(ctx context.Context, params model.UserPhoneUpdateReq) error {
-
-	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_MOBILE, params.Phone, params.Code) {
-		return errors.New("短信验证码填写错误")
-	}
-
-	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	account, err := dao.User.FindAccountByUserId(ctx, user.UserId)
-	if err != nil {
-		logger.Error(ctx, err)
-		return errors.New("账号信息有误")
-	}
-
-	if !crypto.VerifyPassword(account.Password, params.Password+account.Salt) {
-		return errors.New("登录密码有误, 请重新输入")
-	}
-
-	if user.Phone == params.Phone {
-		return errors.New("手机号与原手机号一致无需修改")
-	}
-
-	if dao.User.IsAccountExist(ctx, params.Phone) {
-		return errors.New(params.Phone + " 手机号已被其它账号使用")
-	}
-
-	if err = dao.User.UpdateById(ctx, user.Id, bson.M{
-		"phone": params.Phone,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return errors.New("手机号修改失败")
-	}
-
-	if account.Account == user.Phone {
-		if err = dao.User.ChangeAccountById(ctx, account.Id, params.Phone); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-	} else {
-
-		accountInfo, err := dao.User.FindAccount(ctx, user.Phone)
-		if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if accountInfo != nil {
-			if err = dao.User.ChangeAccountById(ctx, accountInfo.Id, params.Phone); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		} else {
-			if _, err := dao.User.CreateAccount(ctx, &do.Account{
-				Uid:      account.Uid,
-				UserId:   account.UserId,
-				Account:  params.Phone,
-				Password: account.Password,
-				Salt:     account.Salt,
-				Status:   1,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// 换绑邮箱
-func (s *sUser) ChangeEmail(ctx context.Context, params model.UserEmailUpdateReq) error {
+// 用户修改邮箱
+func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error {
 
 	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email, params.Code) {
 		return errors.New("邮件验证码填写错误")
@@ -291,248 +196,11 @@ func (s *sUser) GetUserById(ctx context.Context, userId int) (*model.User, error
 	return &model.User{
 		Id:        user.Id,
 		UserId:    user.UserId,
-		Phone:     user.Phone,
 		Name:      user.Name,
 		Avatar:    user.Avatar,
-		Gender:    user.Gender,
 		Email:     user.Email,
-		CreatedAt: util.FormatDatetime(user.CreatedAt),
-		UpdatedAt: util.FormatDatetime(user.UpdatedAt),
-	}, nil
-}
-
-// 新建用户
-func (s *sUser) Create(ctx context.Context, params model.UserCreateReq) error {
-
-	if dao.User.IsAccountExist(ctx, params.Account) {
-		return errors.New(params.Account + " 账号已存在")
-	}
-
-	salt := grand.Letters(8)
-
-	user := &do.User{
-		UserId: core.IncrUserId(ctx),
-		Name:   params.Name,
-		Email:  params.Account,
-		Quota:  params.Quota,
-		Remark: params.Remark,
-		Status: 1,
-	}
-
-	uid, err := dao.User.Insert(ctx, user)
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err = dao.User.CreateAccount(ctx, &do.Account{
-		Uid:      uid,
-		UserId:   user.UserId,
-		Account:  params.Account,
-		Password: crypto.EncryptPassword(params.Password + salt),
-		Salt:     salt,
-		Status:   1,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
-}
-
-// 更新用户
-func (s *sUser) Update(ctx context.Context, params model.UserUpdateReq) error {
-
-	if err := dao.User.UpdateById(ctx, params.Id, &do.User{
-		Name:   params.Name,
-		Quota:  params.Quota,
-		Status: params.Status,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
-}
-
-// 更改用户状态
-func (s *sUser) ChangeStatus(ctx context.Context, params model.UserChangeStatusReq) error {
-
-	user, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"status": params.Status,
-	})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if err = dao.Account.UpdateMany(ctx, bson.M{"user_id": user.UserId}, bson.M{
-		"status": params.Status,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-		Action:  consts.ACTION_STATUS,
-		NewData: user,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
-}
-
-// 删除用户
-func (s *sUser) Delete(ctx context.Context, id string) error {
-
-	user, err := dao.User.FindOneAndDeleteById(ctx, id)
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err = dao.Account.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-		Action:  consts.ACTION_DELETE,
-		OldData: user,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
-}
-
-// 用户详情
-func (s *sUser) Detail(ctx context.Context, id string) (*model.User, error) {
-
-	user, err := dao.User.FindById(ctx, id)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	return &model.User{
-		Id:        user.Id,
-		UserId:    user.UserId,
-		Name:      user.Name,
 		Phone:     user.Phone,
-		Email:     user.Email,
-		Quota:     user.Quota,
-		Remark:    user.Remark,
-		Status:    user.Status,
 		CreatedAt: util.FormatDatetime(user.CreatedAt),
 		UpdatedAt: util.FormatDatetime(user.UpdatedAt),
 	}, nil
-}
-
-// 用户分页列表
-func (s *sUser) Page(ctx context.Context, params model.UserPageReq) (*model.UserPageRes, error) {
-
-	paging := &db.Paging{
-		Page:     params.Page,
-		PageSize: params.PageSize,
-	}
-
-	filter := bson.M{}
-
-	if params.UserId != 0 {
-		filter["user_id"] = params.UserId
-	}
-
-	if params.Name != "" {
-		filter["name"] = params.Name
-	}
-
-	if params.Email != "" {
-		filter["email"] = params.Email
-	}
-
-	results, err := dao.User.FindByPage(ctx, paging, filter, "-updated_at")
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	items := make([]*model.User, 0)
-	for _, result := range results {
-
-		items = append(items, &model.User{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			Name:      result.Name,
-			Email:     result.Email,
-			Phone:     result.Phone,
-			Quota:     result.Quota,
-			Remark:    result.Remark,
-			Status:    result.Status,
-			CreatedAt: util.FormatDatetime(result.CreatedAt),
-			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
-		})
-	}
-
-	return &model.UserPageRes{
-		Items: items,
-		Paging: &model.Paging{
-			Page:     paging.Page,
-			PageSize: paging.PageSize,
-			Total:    paging.Total,
-		},
-	}, nil
-}
-
-// 用户列表
-func (s *sUser) List(ctx context.Context, params model.UserListReq) ([]*model.User, error) {
-
-	filter := bson.M{}
-
-	results, err := dao.User.Find(ctx, filter, "-updated_at")
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	items := make([]*model.User, 0)
-	for _, result := range results {
-		items = append(items, &model.User{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			Name:      result.Name,
-			Email:     result.Email,
-			Phone:     result.Phone,
-			Quota:     result.Quota,
-			Remark:    result.Remark,
-			Status:    result.Status,
-			CreatedAt: util.FormatDatetime(result.CreatedAt),
-			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
-		})
-	}
-
-	return items, nil
-}
-
-// 用户授予额度
-func (s *sUser) GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error {
-
-	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": params.UserId}, bson.M{
-		"$inc": bson.M{
-			"quota": params.Quota,
-		},
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err := redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
 }

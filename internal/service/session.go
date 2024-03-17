@@ -35,6 +35,8 @@ type (
 		IsUserRole(ctx context.Context) bool
 		// 判断获取会话中角色是否为管理员
 		IsAdminRole(ctx context.Context) bool
+		// 更新会话信息
+		UpdateSession(ctx context.Context, user *model.User) error
 	}
 )
 

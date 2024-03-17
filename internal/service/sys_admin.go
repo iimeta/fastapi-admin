@@ -13,15 +13,15 @@ import (
 
 type (
 	ISysAdmin interface {
-		// 新建应用
+		// 新建管理员
 		Create(ctx context.Context, params model.SysAdminCreateReq) error
-		// 更新应用
+		// 更新管理员
 		Update(ctx context.Context, params model.SysAdminUpdateReq) error
-		// 删除应用
+		// 删除管理员
 		Delete(ctx context.Context, id string) error
-		// 应用详情
+		// 管理员详情
 		Detail(ctx context.Context, id string) (*model.SysAdmin, error)
-		// 应用分页列表
+		// 管理员分页列表
 		Page(ctx context.Context, params model.SysAdminPageReq) (*model.SysAdminPageRes, error)
 	}
 )

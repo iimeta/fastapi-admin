@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -153,6 +154,19 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		}
 	}
 
+	var oldKeyList []*entity.Key
+
+	if oldData.Key != "" {
+
+		oldKeys := gstr.Split(gstr.Trim(oldData.Key), "\n")
+
+		oldKeyList, err = service.Key().DetailListByKey(ctx, oldKeys)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	if err := dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
 		"$pull": bson.M{
 			"model_agents": params.Id,
@@ -173,6 +187,45 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
+		}
+	}
+
+	if oldKeyList != nil && len(oldKeyList) > 0 {
+
+		oldKeyMap := util.ToMap(oldKeyList, func(t *entity.Key) string {
+			return t.Key
+		})
+
+		newKeys := gstr.Split(gstr.Trim(params.Key), "\n")
+		newKeyMap := util.ToMap(newKeys, func(t string) string {
+			return t
+		})
+
+		updateKeys := make([]string, 0)
+		for _, key := range oldKeyList {
+			if newKeyMap[key.Key] == "" {
+				updateKeys = append(updateKeys, key.Key)
+			}
+		}
+
+		if len(updateKeys) > 0 {
+
+			keys, err := service.Key().DetailListByKey(ctx, updateKeys)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			for _, key := range keys {
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+					Action:  consts.ACTION_UPDATE,
+					OldData: oldKeyMap[key.Key],
+					NewData: key,
+				}); err != nil {
+					logger.Error(ctx, err)
+					return err
+				}
+			}
 		}
 	}
 

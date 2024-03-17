@@ -1,0 +1,266 @@
+package user
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/internal/consts"
+	"github.com/iimeta/fastapi-admin/internal/core"
+	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/service"
+	"github.com/iimeta/fastapi-admin/utility/crypto"
+	"github.com/iimeta/fastapi-admin/utility/db"
+	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
+	"github.com/iimeta/fastapi-admin/utility/util"
+	"go.mongodb.org/mongo-driver/bson"
+)
+
+type sAdminUser struct{}
+
+func init() {
+	service.RegisterAdminUser(New())
+}
+
+func New() service.IAdminUser {
+	return &sAdminUser{}
+}
+
+// 新建用户
+func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) error {
+
+	if dao.User.IsAccountExist(ctx, params.Account) {
+		return errors.New(params.Account + " 账号已存在")
+	}
+
+	salt := grand.Letters(8)
+
+	user := &do.User{
+		UserId: core.IncrUserId(ctx),
+		Name:   params.Name,
+		Email:  params.Account,
+		Quota:  params.Quota,
+		Remark: params.Remark,
+		Status: 1,
+	}
+
+	uid, err := dao.User.Insert(ctx, user)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = dao.User.CreateAccount(ctx, &do.Account{
+		Uid:      uid,
+		UserId:   user.UserId,
+		Account:  params.Account,
+		Password: crypto.EncryptPassword(params.Password + salt),
+		Salt:     salt,
+		Status:   1,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更新用户
+func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) error {
+
+	if err := dao.User.UpdateById(ctx, params.Id, &do.User{
+		Name:   params.Name,
+		Quota:  params.Quota,
+		Status: params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更改用户状态
+func (s *sAdminUser) ChangeStatus(ctx context.Context, params model.UserChangeStatusReq) error {
+
+	user, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err = dao.Account.UpdateMany(ctx, bson.M{"user_id": user.UserId}, bson.M{
+		"status": params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: user,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 删除用户
+func (s *sAdminUser) Delete(ctx context.Context, id string) error {
+
+	user, err := dao.User.FindOneAndDeleteById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = dao.Account.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_DELETE,
+		OldData: user,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 用户详情
+func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error) {
+
+	user, err := dao.User.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return &model.User{
+		Id:        user.Id,
+		UserId:    user.UserId,
+		Name:      user.Name,
+		Phone:     user.Phone,
+		Email:     user.Email,
+		Quota:     user.Quota,
+		Remark:    user.Remark,
+		Status:    user.Status,
+		CreatedAt: util.FormatDatetime(user.CreatedAt),
+		UpdatedAt: util.FormatDatetime(user.UpdatedAt),
+	}, nil
+}
+
+// 用户分页列表
+func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model.UserPageRes, error) {
+
+	paging := &db.Paging{
+		Page:     params.Page,
+		PageSize: params.PageSize,
+	}
+
+	filter := bson.M{}
+
+	if params.UserId != 0 {
+		filter["user_id"] = params.UserId
+	}
+
+	if params.Name != "" {
+		filter["name"] = params.Name
+	}
+
+	if params.Email != "" {
+		filter["email"] = params.Email
+	}
+
+	results, err := dao.User.FindByPage(ctx, paging, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.User, 0)
+	for _, result := range results {
+
+		items = append(items, &model.User{
+			Id:        result.Id,
+			UserId:    result.UserId,
+			Name:      result.Name,
+			Email:     result.Email,
+			Phone:     result.Phone,
+			Quota:     result.Quota,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			CreatedAt: util.FormatDatetime(result.CreatedAt),
+			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
+		})
+	}
+
+	return &model.UserPageRes{
+		Items: items,
+		Paging: &model.Paging{
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
+		},
+	}, nil
+}
+
+// 用户列表
+func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*model.User, error) {
+
+	filter := bson.M{}
+
+	results, err := dao.User.Find(ctx, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.User, 0)
+	for _, result := range results {
+		items = append(items, &model.User{
+			Id:        result.Id,
+			UserId:    result.UserId,
+			Name:      result.Name,
+			Email:     result.Email,
+			Phone:     result.Phone,
+			Quota:     result.Quota,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			CreatedAt: util.FormatDatetime(result.CreatedAt),
+			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
+		})
+	}
+
+	return items, nil
+}
+
+// 授予用户额度
+func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error {
+
+	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": params.UserId}, bson.M{
+		"$inc": bson.M{
+			"quota": params.Quota,
+		},
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err := redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}

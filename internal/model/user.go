@@ -1,49 +1,32 @@
 package model
 
-// 登录用户信息接口响应参数
+// 用户信息接口响应参数
 type UserInfoRes struct {
-	Id     string `json:"id"`
-	Phone  string `json:"phone"`
-	Email  string `json:"email"`
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
-	Gender int    `json:"gender"`
-	Role   string `json:"role"`
+	UserId    int    `json:"user_id"`
+	Name      string `json:"name"`
+	Avatar    string `json:"avatar"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Role      string `json:"role"`
+	CreatedAt string `json:"created_at"` // 注册时间
 }
 
-// 用户配置信息响应参数
-type UserSettingRes struct {
-	User    *User        `json:"user,omitempty"`
-	Setting *SettingInfo `json:"setting,omitempty"`
-}
-
-// 用户信息更新接口请求参数
-type UserDetailUpdateReq struct {
-	Name     string `json:"name,omitempty" v:"required|max-length:30"`
-	Avatar   string `json:"avatar,omitempty"`
-	Gender   int    `json:"gender,omitempty" v:"in:0,1,2"`
-	Motto    string `json:"motto,omitempty" v:"max-length:1024"`
-	Birthday string `json:"birthday,omitempty" v:"length:0,10"`
-}
-
-// 用户密码更新接口请求参数
-type UserPasswordUpdateReq struct {
+// 用户修改密码接口请求参数
+type UserChangePasswordReq struct {
 	OldPassword string `json:"old_password,omitempty" v:"required"`
 	NewPassword string `json:"new_password,omitempty" v:"required|min-length:6"`
 }
 
-// 用户手机号更新接口请求参数
-type UserPhoneUpdateReq struct {
-	Phone    string `json:"phone,omitempty" v:"required"`
-	Password string `json:"password,omitempty" v:"required"`
+// 用户修改邮箱接口请求参数
+type UserChangeEmailReq struct {
+	Email    string `json:"email,omitempty" v:"required"`
 	Code     string `json:"code,omitempty" v:"required|length:0,6"`
+	Password string `json:"password,omitempty" v:"required"`
 }
 
-// 用户邮箱更新接口请求参数
-type UserEmailUpdateReq struct {
-	Email    string `json:"email,omitempty" v:"required"`
-	Password string `json:"password,omitempty" v:"required"`
-	Code     string `json:"code,omitempty" v:"required|length:0,6"`
+// 用户更新信息接口请求参数
+type UserUpdateInfoReq struct {
+	Name string `json:"name,omitempty" v:"required"`
 }
 
 // 新建用户接口请求参数
@@ -70,7 +53,7 @@ type UserUpdateReq struct {
 	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
 }
 
-// 更新用户接口请求参数
+// 更改用户状态接口请求参数
 type UserChangeStatusReq struct {
 	Id     string `json:"id,omitempty"`           // ID
 	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
@@ -84,15 +67,15 @@ type UserDetailRes struct {
 // 用户分页列表接口请求参数
 type UserPageReq struct {
 	Paging
-	UserId    int      `json:"user_id,omitempty"`    // 用户ID
-	Name      string   `json:"name,omitempty"`       // 姓名
-	Phone     string   `json:"phone,omitempty"`      // 手机号
-	Email     string   `json:"email,omitempty"`      // 邮箱
-	Key       string   `json:"key,omitempty"`        // 密钥
-	Quota     int      `json:"quota,omitempty"`      // 额度
-	Remark    string   `json:"remark,omitempty"`     // 备注
-	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
+	UserId    int    `json:"user_id,omitempty"`    // 用户ID
+	Name      string `json:"name,omitempty"`       // 姓名
+	Phone     string `json:"phone,omitempty"`      // 手机号
+	Email     string `json:"email,omitempty"`      // 邮箱
+	Key       string `json:"key,omitempty"`        // 密钥
+	Quota     int    `json:"quota,omitempty"`      // 额度
+	Remark    string `json:"remark,omitempty"`     // 备注
+	Status    int    `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt string `json:"created_at,omitempty"` // 创建时间
 }
 
 // 用户分页列表接口响应参数
@@ -119,7 +102,7 @@ type UserListRes struct {
 	Items []*User `json:"items"`
 }
 
-// 用户授予额度接口请求参数
+// 授予用户额度接口请求参数
 type UserGrantQuotaReq struct {
 	UserId int `json:"user_id,omitempty"`            // 用户ID
 	Quota  int `json:"quota,omitempty" v:"required"` // 额度
@@ -129,21 +112,12 @@ type User struct {
 	Id        string `json:"id,omitempty"`         // ID
 	UserId    int    `json:"user_id,omitempty"`    // 用户ID
 	Name      string `json:"name,omitempty"`       // 姓名
-	Avatar    string `json:"avatar,omitempty"`     // 用户头像地址
-	Gender    int    `json:"gender,omitempty"`     // 用户性别  0:未知  1:男   2:女
+	Avatar    string `json:"avatar,omitempty"`     // 头像
+	Email     string `json:"email,omitempty"`      // 邮箱
 	Phone     string `json:"phone,omitempty"`      // 手机号
-	Email     string `json:"email,omitempty"`      // 用户邮箱
 	Quota     int    `json:"quota"`                // 额度
 	Remark    string `json:"remark,omitempty"`     // 备注
 	Status    int    `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	CreatedAt string `json:"created_at,omitempty"` // 创建时间
 	UpdatedAt string `json:"updated_at,omitempty"` // 更新时间
-}
-
-type SettingInfo struct {
-	ThemeMode           string `json:"theme_mode,omitempty"`
-	ThemeBagImg         string `json:"theme_bag_img,omitempty"`
-	ThemeColor          string `json:"theme_color,omitempty"`
-	NotifyCueTone       string `json:"notify_cue_tone,omitempty"`
-	KeyboardEventNotify string `json:"keyboard_event_notify,omitempty"`
 }

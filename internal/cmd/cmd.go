@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/consts"
+	"github.com/iimeta/fastapi-admin/internal/controller/admin_user"
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/chat"
@@ -93,6 +94,13 @@ var (
 					g.Middleware(middleware)
 					g.Bind(
 						user.NewV1(),
+					)
+				})
+
+				v1.Group("/admin/user", func(g *ghttp.RouterGroup) {
+					g.Middleware(sysMiddleware)
+					g.Bind(
+						admin_user.NewV1(),
 					)
 				})
 

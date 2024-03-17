@@ -2,12 +2,15 @@ package session
 
 import (
 	"context"
+	"fmt"
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 )
 
 type sSession struct{}
@@ -149,4 +152,9 @@ func (s *sSession) IsUserRole(ctx context.Context) bool {
 // 判断获取会话中角色是否为管理员
 func (s *sSession) IsAdminRole(ctx context.Context) bool {
 	return s.GetRole(ctx) == consts.SESSION_ADMIN
+}
+
+// 更新会话信息
+func (s *sSession) UpdateSession(ctx context.Context, user *model.User) error {
+	return redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, s.GetToken(ctx)), gjson.MustEncodeString(user), 3600*6)
 }
