@@ -9,7 +9,13 @@ import (
 
 func (c *ControllerV1) UpdateInfo(ctx context.Context, req *v1.UpdateInfoReq) (res *v1.UpdateInfoRes, err error) {
 
-	err = service.User().UpdateInfo(ctx, req.UserUpdateInfoReq)
+	if service.Session().IsUserRole(ctx) {
+		err = service.User().UpdateInfo(ctx, req.UserUpdateInfoReq)
+	}
+
+	if service.Session().IsAdminRole(ctx) {
+		err = service.SysAdmin().UpdateInfo(ctx, req.UserUpdateInfoReq)
+	}
 
 	return
 }

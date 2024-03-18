@@ -13,6 +13,12 @@ import (
 
 type (
 	ISysAdmin interface {
+		// 管理员更新信息
+		UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error
+		// 管理员修改密码
+		ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error)
+		// 管理员修改邮箱
+		ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error
 		// 新建管理员
 		Create(ctx context.Context, params model.SysAdminCreateReq) error
 		// 更新管理员

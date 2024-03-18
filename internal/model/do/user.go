@@ -9,6 +9,7 @@ const (
 
 type User struct {
 	gmeta.Meta `collection:"user" bson:"-"`
+	Id         string `bson:"_id,omitempty"`        // ID
 	UserId     int    `bson:"user_id,omitempty"`    // 用户ID
 	Name       string `bson:"name,omitempty"`       // 姓名
 	Avatar     string `bson:"avatar,omitempty"`     // 头像
@@ -26,6 +27,7 @@ type User struct {
 
 type Account struct {
 	gmeta.Meta `collection:"account" bson:"-"`
+	Id         string `bson:"_id,omitempty"`        // ID
 	Uid        string `bson:"uid,omitempty"`        // 用户主键ID
 	UserId     int    `bson:"user_id,omitempty"`    // 用户ID
 	Account    string `bson:"account,omitempty"`    // 账号

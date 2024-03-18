@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/grand"
+	"math/rand"
 	"slices"
 	"strings"
 )
@@ -13,7 +14,7 @@ var node *snowflake.Node
 func init() {
 
 	var err error
-	if node, err = snowflake.NewNode(1); err != nil {
+	if node, err = snowflake.NewNode(rand.Int63n(1023)); err != nil {
 		panic(err)
 	}
 }

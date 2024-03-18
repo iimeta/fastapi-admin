@@ -3,6 +3,7 @@ package model
 // 用户信息接口响应参数
 type UserInfoRes struct {
 	UserId    int    `json:"user_id"`
+	Account   string `json:"account"`
 	Name      string `json:"name"`
 	Avatar    string `json:"avatar"`
 	Email     string `json:"email"`
@@ -116,6 +117,7 @@ type User struct {
 	Email     string `json:"email,omitempty"`      // 邮箱
 	Phone     string `json:"phone,omitempty"`      // 手机号
 	Quota     int    `json:"quota"`                // 额度
+	Account   string `json:"account,omitempty"`    // 账号
 	Remark    string `json:"remark,omitempty"`     // 备注
 	Status    int    `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	CreatedAt string `json:"created_at,omitempty"` // 创建时间

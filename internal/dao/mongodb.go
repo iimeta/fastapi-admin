@@ -198,7 +198,9 @@ func insert(ctx context.Context, database string, document interface{}) (string,
 	}
 
 	// 统一主键成int类型的string格式, 雪花ID
-	value["_id"] = util.GenerateId()
+	if value["_id"] == nil || value["_id"] == "" {
+		value["_id"] = util.GenerateId()
+	}
 
 	if value["creator"] == nil || value["creator"] == "" {
 		value["creator"] = service.Session().GetUid(ctx)
@@ -250,7 +252,9 @@ func inserts(ctx context.Context, database string, documents []interface{}) ([]s
 		}
 
 		// 统一主键成int类型的string格式, 雪花ID
-		value["_id"] = util.GenerateId()
+		if value["_id"] == nil || value["_id"] == "" {
+			value["_id"] = util.GenerateId()
+		}
 
 		if value["creator"] == nil || value["creator"] == "" {
 			value["creator"] = service.Session().GetUid(ctx)

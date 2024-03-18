@@ -37,14 +37,17 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 	}
 
 	salt := grand.Letters(8)
+	id := util.GenerateId()
 
 	user := &do.User{
-		UserId: core.IncrUserId(ctx),
-		Name:   params.Name,
-		Email:  params.Account,
-		Quota:  params.Quota,
-		Remark: params.Remark,
-		Status: 1,
+		Id:      id,
+		UserId:  core.IncrUserId(ctx),
+		Name:    params.Name,
+		Email:   params.Account,
+		Quota:   params.Quota,
+		Remark:  params.Remark,
+		Status:  1,
+		Creator: id,
 	}
 
 	uid, err := dao.User.Insert(ctx, user)
@@ -60,6 +63,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		Password: crypto.EncryptPassword(params.Password + salt),
 		Salt:     salt,
 		Status:   1,
+		Creator:  uid,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err

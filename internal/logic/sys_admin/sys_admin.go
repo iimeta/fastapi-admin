@@ -2,14 +2,19 @@ package sys_admin
 
 import (
 	"context"
+	"fmt"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
+	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -23,6 +28,117 @@ func New() service.ISysAdmin {
 	return &sSysAdmin{}
 }
 
+// 管理员更新信息
+func (s *sSysAdmin) UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error {
+
+	if err := dao.SysAdmin.UpdateById(ctx, service.Session().GetUid(ctx), &do.User{
+		Name: params.Name,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	admin := service.Session().GetAdmin(ctx)
+	admin.Name = params.Name
+
+	if err := service.Session().UpdateAdminSession(ctx, admin); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 管理员修改密码
+func (s *sSysAdmin) ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error) {
+
+	uid := service.Session().GetUserId(ctx)
+
+	defer func() {
+		if err != nil {
+			val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CHANGE_PASSWORD, uid))
+			if val == 1 {
+				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CHANGE_PASSWORD, uid), 30*60) // 锁定30分钟
+			}
+		} else {
+			_, _ = redis.Del(ctx, fmt.Sprintf(consts.LOCK_CHANGE_PASSWORD, uid))
+		}
+	}()
+
+	if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CHANGE_PASSWORD, uid)); err == nil && val >= 5 {
+		return errors.New("失败次数过多, 请稍后再试")
+	}
+
+	admin, err := dao.SysAdmin.FindById(ctx, service.Session().GetUid(ctx))
+	if err != nil || admin.Id == "" {
+		return errors.New("管理员不存在")
+	}
+
+	if !crypto.VerifyPassword(admin.Password, params.OldPassword+admin.Salt) {
+		return errors.New("登录密码有误, 请重新输入")
+	}
+
+	if err = dao.SysAdmin.ChangePassword(ctx, service.Session().GetUid(ctx), params.NewPassword); err != nil {
+		logger.Error(ctx, err)
+		return errors.New("修改密码失败")
+	}
+
+	return nil
+}
+
+// 管理员修改邮箱
+func (s *sSysAdmin) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error {
+
+	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email, params.Code) {
+		return errors.New("邮件验证码填写错误")
+	}
+
+	admin, err := dao.SysAdmin.FindById(ctx, service.Session().GetUid(ctx))
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if !crypto.VerifyPassword(admin.Password, params.Password+admin.Salt) {
+		return errors.New("登录密码有误, 请重新输入")
+	}
+
+	defer func() {
+		_ = service.Common().DelCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email)
+	}()
+
+	if admin.Email == params.Email {
+		return errors.New("邮箱与原邮箱一致无需修改")
+	}
+
+	count, err := dao.SysAdmin.CountDocuments(ctx, bson.M{"email": params.Email})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if count > 0 {
+		return errors.New(params.Email + " 邮箱已被其它账号使用")
+	}
+
+	if err = dao.SysAdmin.UpdateById(ctx, admin.Id, bson.M{
+		"email": params.Email,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return errors.New("邮箱修改失败")
+	}
+
+	adminSession := service.Session().GetAdmin(ctx)
+	adminSession.Email = params.Email
+
+	if err = service.Session().UpdateAdminSession(ctx, adminSession); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 新建管理员
 func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) error {
 
@@ -34,7 +150,15 @@ func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) 
 
 	salt := grand.Letters(8)
 
+	id := util.GenerateId()
+
+	creator := service.Session().GetUid(ctx)
+	if creator == "" {
+		creator = id
+	}
+
 	if _, err = dao.SysAdmin.Insert(ctx, &do.SysAdmin{
+		Id:       id,
 		UserId:   int(count + 1),
 		Name:     params.Name,
 		Avatar:   params.Avatar,
@@ -45,6 +169,7 @@ func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) 
 		Salt:     salt,
 		Remark:   params.Remark,
 		Status:   params.Status,
+		Creator:  creator,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err

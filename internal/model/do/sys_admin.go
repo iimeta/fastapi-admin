@@ -8,6 +8,7 @@ const (
 
 type SysAdmin struct {
 	gmeta.Meta `collection:"sys_admin" bson:"-"`
+	Id         string `bson:"_id,omitempty"`        // ID
 	UserId     int    `bson:"user_id,omitempty"`    // 用户ID
 	Name       string `bson:"name,omitempty"`       // 姓名
 	Avatar     string `bson:"avatar,omitempty"`     // 头像

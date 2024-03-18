@@ -53,12 +53,15 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	}
 
 	salt := grand.Letters(8)
+	id := util.GenerateId()
 
 	user := &do.User{
-		UserId: core.IncrUserId(ctx),
-		Email:  params.Account,
-		Name:   params.Account,
-		Status: 1,
+		Id:      id,
+		UserId:  core.IncrUserId(ctx),
+		Email:   params.Account,
+		Name:    params.Account,
+		Status:  1,
+		Creator: id,
 	}
 
 	uid, err := dao.User.Insert(ctx, user)
@@ -74,6 +77,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		Password: crypto.EncryptPassword(params.Password + salt),
 		Salt:     salt,
 		Status:   1,
+		Creator:  uid,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -197,6 +201,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Email:     user.Email,
 			Phone:     user.Phone,
 			Quota:     user.Quota,
+			Account:   accountInfo.Account,
 			CreatedAt: util.FormatDatetime(user.CreatedAt),
 			UpdatedAt: util.FormatDatetime(user.UpdatedAt),
 		}, true)
@@ -207,7 +212,12 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 	} else if params.Channel == consts.ADMIN_CHANNEL {
 
-		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{"account": params.Account})
+		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{
+			"$or": bson.A{
+				bson.M{"account": params.Account},
+				bson.M{"email": params.Account},
+			},
+		})
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 

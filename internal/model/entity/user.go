@@ -21,7 +21,7 @@ type User struct {
 }
 
 type Account struct {
-	gmeta.Meta `role:"user,admin" bson:"-"`
+	gmeta.Meta `role:"*" bson:"-"`
 	Id         string `bson:"_id,omitempty"`        // ID
 	Uid        string `bson:"uid,omitempty"`        // 用户主键ID
 	UserId     int    `bson:"user_id,omitempty"`    // 用户ID

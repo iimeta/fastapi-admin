@@ -9,7 +9,13 @@ import (
 
 func (c *ControllerV1) ChangePassword(ctx context.Context, req *v1.ChangePasswordReq) (res *v1.ChangePasswordRes, err error) {
 
-	err = service.User().ChangePassword(ctx, req.UserChangePasswordReq)
+	if service.Session().IsUserRole(ctx) {
+		err = service.User().ChangePassword(ctx, req.UserChangePasswordReq)
+	}
+
+	if service.Session().IsAdminRole(ctx) {
+		err = service.SysAdmin().ChangePassword(ctx, req.UserChangePasswordReq)
+	}
 
 	return
 }

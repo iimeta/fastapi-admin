@@ -27,25 +27,6 @@ func New() service.IUser {
 	return &sUser{}
 }
 
-// 用户信息
-func (s *sUser) Info(ctx context.Context) (*model.UserInfoRes, error) {
-
-	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	return &model.UserInfoRes{
-		UserId:    user.UserId,
-		Name:      user.Name,
-		Avatar:    user.Avatar,
-		Email:     user.Email,
-		Phone:     user.Phone,
-		CreatedAt: util.FormatDatetime(user.CreatedAt),
-	}, nil
-}
-
 // 用户更新信息
 func (s *sUser) UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error {
 
@@ -59,7 +40,7 @@ func (s *sUser) UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) 
 	user := service.Session().GetUser(ctx)
 	user.Name = params.Name
 
-	if err := service.Session().UpdateSession(ctx, user); err != nil {
+	if err := service.Session().UpdateUserSession(ctx, user); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -67,7 +48,7 @@ func (s *sUser) UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) 
 	return nil
 }
 
-// 用户修改密码接口
+// 用户修改密码
 func (s *sUser) ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error) {
 
 	uid := service.Session().GetUserId(ctx)
@@ -133,6 +114,10 @@ func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq
 		return errors.New("登录密码有误, 请重新输入")
 	}
 
+	defer func() {
+		_ = service.Common().DelCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email)
+	}()
+
 	if user.Email == params.Email {
 		return errors.New("邮箱与原邮箱一致无需修改")
 	}
@@ -179,6 +164,14 @@ func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq
 				return err
 			}
 		}
+	}
+
+	userSession := service.Session().GetUser(ctx)
+	userSession.Email = params.Email
+
+	if err := service.Session().UpdateUserSession(ctx, userSession); err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
 	return nil

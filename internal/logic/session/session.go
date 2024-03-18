@@ -78,7 +78,6 @@ func (s *sSession) GetUid(ctx context.Context) string {
 
 	uid := ctx.Value(consts.SESSION_UID)
 	if uid == nil {
-		logger.Error(ctx, "uid is nil")
 		return ""
 	}
 
@@ -154,7 +153,12 @@ func (s *sSession) IsAdminRole(ctx context.Context) bool {
 	return s.GetRole(ctx) == consts.SESSION_ADMIN
 }
 
-// 更新会话信息
-func (s *sSession) UpdateSession(ctx context.Context, user *model.User) error {
+// 更新用户会话信息
+func (s *sSession) UpdateUserSession(ctx context.Context, user *model.User) error {
 	return redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, s.GetToken(ctx)), gjson.MustEncodeString(user), 3600*6)
+}
+
+// 更新管理员会话信息
+func (s *sSession) UpdateAdminSession(ctx context.Context, admin *model.SysAdmin) error {
+	return redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, s.GetToken(ctx)), gjson.MustEncodeString(admin), 3600*6)
 }

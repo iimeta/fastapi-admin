@@ -13,11 +13,9 @@ import (
 
 type (
 	IUser interface {
-		// 用户信息
-		Info(ctx context.Context) (*model.UserInfoRes, error)
 		// 用户更新信息
 		UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error
-		// 用户修改密码接口
+		// 用户修改密码
 		ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error)
 		// 用户修改邮箱
 		ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error
