@@ -126,9 +126,9 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 }
 
 // 调用数据
-func (s *sDashboard) CallData(ctx context.Context) ([]*model.CallData, error) {
+func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error) {
 
-	startTime := gtime.Now().AddDate(0, 0, -9).StartOfDay()
+	startTime := gtime.Now().AddDate(0, 0, -params.Days-1).StartOfDay()
 	endTime := gtime.Now().EndOfDay(true)
 
 	pipeline := []bson.M{

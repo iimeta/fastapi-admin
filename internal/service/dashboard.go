@@ -16,7 +16,7 @@ type (
 		// 基础数据
 		BaseData(ctx context.Context) (dashboard *model.Dashboard, err error)
 		// 调用数据
-		CallData(ctx context.Context) ([]*model.CallData, error)
+		CallData(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error)
 		// 费用
 		Expense(ctx context.Context) (*model.Expense, error)
 	}

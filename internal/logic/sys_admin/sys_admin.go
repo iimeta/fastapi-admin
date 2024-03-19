@@ -3,6 +3,7 @@ package sys_admin
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -49,7 +50,7 @@ func (s *sSysAdmin) UpdateInfo(ctx context.Context, params model.UserUpdateInfoR
 	return nil
 }
 
-// 管理员修改密码
+// 管理员更改密码
 func (s *sSysAdmin) ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error) {
 
 	uid := service.Session().GetUserId(ctx)
@@ -86,7 +87,7 @@ func (s *sSysAdmin) ChangePassword(ctx context.Context, params model.UserChangeP
 	return nil
 }
 
-// 管理员修改邮箱
+// 管理员更改邮箱
 func (s *sSysAdmin) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error {
 
 	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email, params.Code) {
@@ -132,6 +133,40 @@ func (s *sSysAdmin) ChangeEmail(ctx context.Context, params model.UserChangeEmai
 	adminSession.Email = params.Email
 
 	if err = service.Session().UpdateAdminSession(ctx, adminSession); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 管理员更改头像
+func (s *sSysAdmin) ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error {
+
+	if file.Size > 1024*1024*8 {
+		return errors.New("头像文件过大, 请更换或压缩后再上传")
+	}
+
+	root := "./resource"
+	path := "/public/avatar/"
+
+	filename, err := file.Save(root+path, true)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err = dao.SysAdmin.UpdateById(ctx, service.Session().GetUid(ctx), &do.User{
+		Avatar: path + filename,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	admin := service.Session().GetAdmin(ctx)
+	admin.Avatar = path + filename
+
+	if err = service.Session().UpdateAdminSession(ctx, admin); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

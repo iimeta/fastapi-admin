@@ -5,6 +5,11 @@ type DashboardBaseDataRes struct {
 	*Dashboard
 }
 
+// 仪表盘调用数据接口请求参数
+type DashboardCallDataReq struct {
+	Days int `json:"days"` // 天数
+}
+
 // 仪表盘调用数据接口响应参数
 type DashboardCallDataRes struct {
 	Items []*CallData `json:"items"`

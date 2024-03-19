@@ -8,6 +8,7 @@ package service
 import (
 	"context"
 
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/iimeta/fastapi-admin/internal/model"
 )
 
@@ -19,6 +20,8 @@ type (
 		ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error)
 		// 用户修改邮箱
 		ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error
+		// 用户更改头像
+		ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error
 		// 根据userId获取用户信息
 		GetUserById(ctx context.Context, userId int) (*model.User, error)
 	}

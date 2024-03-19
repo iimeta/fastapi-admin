@@ -18,7 +18,8 @@ type BaseDataRes struct {
 
 // 仪表盘调用数据接口请求参数
 type CallDataReq struct {
-	g.Meta `path:"/call/data" tags:"dashboard" method:"get" summary:"仪表盘调用数据接口"`
+	g.Meta `path:"/call/data/:days" tags:"dashboard" method:"get" summary:"仪表盘调用数据接口"`
+	model.DashboardCallDataReq
 }
 
 // 仪表盘调用数据接口响应参数
