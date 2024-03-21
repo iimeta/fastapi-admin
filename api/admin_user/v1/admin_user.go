@@ -7,7 +7,7 @@ import (
 
 // 新建用户接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" tags:"user" method:"post" summary:"新建用户接口"`
+	g.Meta `path:"/create" tags:"admin_user" method:"post" summary:"新建用户接口"`
 	model.UserCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新用户接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" tags:"user" method:"post" summary:"更新用户接口"`
+	g.Meta `path:"/update" tags:"admin_user" method:"post" summary:"更新用户接口"`
 	model.UserUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改用户状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" tags:"user" method:"post" summary:"更改用户状态接口"`
+	g.Meta `path:"/change/status" tags:"admin_user" method:"post" summary:"更改用户状态接口"`
 	model.UserChangeStatusReq
 }
 
@@ -40,7 +40,7 @@ type ChangeStatusRes struct {
 
 // 删除用户接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" tags:"user" method:"post" summary:"删除用户接口"`
+	g.Meta `path:"/delete" tags:"admin_user" method:"post" summary:"删除用户接口"`
 	Id     string `json:"id"`
 }
 
@@ -51,7 +51,7 @@ type DeleteRes struct {
 
 // 用户详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" tags:"user" method:"get" summary:"用户详情接口"`
+	g.Meta `path:"/detail" tags:"admin_user" method:"get" summary:"用户详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -63,7 +63,7 @@ type DetailRes struct {
 
 // 用户分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" tags:"user" method:"post" summary:"用户分页列表接口"`
+	g.Meta `path:"/page" tags:"admin_user" method:"post" summary:"用户分页列表接口"`
 	model.UserPageReq
 }
 
@@ -75,7 +75,7 @@ type PageRes struct {
 
 // 用户列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" tags:"user" method:"get" summary:"用户列表接口"`
+	g.Meta `path:"/list" tags:"admin_user" method:"get" summary:"用户列表接口"`
 	model.UserListReq
 }
 
@@ -87,7 +87,7 @@ type ListRes struct {
 
 // 用户授予额度接口请求参数
 type GrantQuotaReq struct {
-	g.Meta `path:"/grant/quota" tags:"user" method:"post" summary:"用户授予额度列表接口"`
+	g.Meta `path:"/grant/quota" tags:"admin_user" method:"post" summary:"用户授予额度列表接口"`
 	model.UserGrantQuotaReq
 }
 

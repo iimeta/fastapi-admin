@@ -166,7 +166,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 	for _, res := range result {
 		resultMap[gconv.String(res["_id"])] = &model.CallData{
 			Date:   gconv.String(res["_id"])[5:],
-			Count:  len(gconv.SliceAny(res["count"])),
+			Call:   len(gconv.SliceAny(res["count"])),
 			Tokens: gconv.Int(res["tokens"]),
 			User:   len(gconv.SliceAny(res["user"])),
 			App:    len(gconv.SliceAny(res["app"])),
@@ -203,4 +203,145 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 	return &model.Expense{
 		Quota: quota,
 	}, nil
+}
+
+// 数据TOP5
+func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop5Req) ([]*model.DataTop5, error) {
+
+	startTime := gtime.Now().AddDate(0, 0, -params.Days-1).StartOfDay()
+	endTime := gtime.Now().EndOfDay(true)
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"req_time": bson.M{
+					"$gte": startTime.TimestampMilli(),
+					"$lte": endTime.TimestampMilli(),
+				},
+			},
+		},
+	}
+
+	switch params.DataType {
+	case "user":
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":    "$user_id",
+				"count":  bson.M{"$sum": 1},
+				"models": bson.M{"$addToSet": "$model"},
+				"tokens": bson.M{"$sum": "$total_tokens"},
+			},
+		})
+	case "app":
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":    "$app_id",
+				"count":  bson.M{"$sum": 1},
+				"models": bson.M{"$addToSet": "$model"},
+				"tokens": bson.M{"$sum": "$total_tokens"},
+			},
+		})
+	case "model":
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":    "$model",
+				"count":  bson.M{"$sum": 1},
+				"users":  bson.M{"$addToSet": "$user_id"},
+				"apps":   bson.M{"$addToSet": "$app_id"},
+				"tokens": bson.M{"$sum": "$total_tokens"},
+			},
+		})
+	}
+
+	pipeline = append(pipeline, bson.M{"$sort": bson.M{"count": -1}}, bson.M{"$limit": 5})
+
+	if service.Session().IsUserRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+	}
+
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.DataTop5, 0)
+	switch params.DataType {
+	case "user":
+		for _, res := range result {
+			items = append(items, &model.DataTop5{
+				UserId: gconv.Int(res["_id"]),
+				Call:   gconv.Int(res["count"]),
+				Models: len(gconv.SliceAny(res["models"])),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+	case "app":
+		for _, res := range result {
+			items = append(items, &model.DataTop5{
+				AppId:  gconv.Int(res["_id"]),
+				Call:   gconv.Int(res["count"]),
+				Models: len(gconv.SliceAny(res["models"])),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+	case "model":
+		for _, res := range result {
+			items = append(items, &model.DataTop5{
+				Model:  gconv.String(res["_id"]),
+				Call:   gconv.Int(res["count"]),
+				User:   len(gconv.SliceAny(res["users"])),
+				App:    len(gconv.SliceAny(res["apps"])),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+	}
+
+	return items, nil
+}
+
+// 模型占比
+func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]*model.ModelPercent, error) {
+
+	startTime := gtime.Now().AddDate(0, 0, -params.Days-1).StartOfDay()
+	endTime := gtime.Now().EndOfDay(true)
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"req_time": bson.M{
+					"$gte": startTime.TimestampMilli(),
+					"$lte": endTime.TimestampMilli(),
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id":   "$model",
+				"count": bson.M{"$sum": 1},
+			},
+		},
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+	}
+
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.ModelPercent, 0)
+	for _, res := range result {
+		items = append(items, &model.ModelPercent{
+			Model: gconv.String(res["_id"]),
+			Count: gconv.Int(res["count"]),
+		})
+	}
+
+	return items, nil
 }

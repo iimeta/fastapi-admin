@@ -38,3 +38,27 @@ type ExpenseRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.DashboardExpenseRes
 }
+
+// 仪表盘数据TOP5接口请求参数
+type DataTop5Req struct {
+	g.Meta `path:"/data/top5/:days" tags:"dashboard" method:"get" summary:"仪表盘数据TOP5接口"`
+	model.DashboardDataTop5Req
+}
+
+// 仪表盘数据TOP5接口响应参数
+type DataTop5Res struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.DashboardDataTop5Res
+}
+
+// 仪表盘模型占比接口请求参数
+type ModelPercentReq struct {
+	g.Meta `path:"/model/percent/:days" tags:"dashboard" method:"get" summary:"仪表盘模型占比接口"`
+	model.DashboardModelPercentReq
+}
+
+// 仪表盘模型占比接口响应参数
+type ModelPercentRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.DashboardModelPercentRes
+}
