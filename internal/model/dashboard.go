@@ -38,7 +38,8 @@ type DashboardModelPercentReq struct {
 
 // 仪表盘模型占比接口响应参数
 type DashboardModelPercentRes struct {
-	Items []*ModelPercent `json:"items"`
+	Models []string        `json:"models"`
+	Items  []*ModelPercent `json:"items"`
 }
 
 // 基础数据
@@ -81,6 +82,6 @@ type DataTop5 struct {
 
 // 模型占比
 type ModelPercent struct {
-	Model string `json:"model"` // 模型
-	Count int    `json:"count"` // 调用数
+	Name  string `json:"name"`  // 模型
+	Value int    `json:"value"` // 调用数
 }

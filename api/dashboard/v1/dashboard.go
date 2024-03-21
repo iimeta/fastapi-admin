@@ -41,7 +41,7 @@ type ExpenseRes struct {
 
 // 仪表盘数据TOP5接口请求参数
 type DataTop5Req struct {
-	g.Meta `path:"/data/top5/:days" tags:"dashboard" method:"get" summary:"仪表盘数据TOP5接口"`
+	g.Meta `path:"/data/top5" tags:"dashboard" method:"get" summary:"仪表盘数据TOP5接口"`
 	model.DashboardDataTop5Req
 }
 

@@ -302,7 +302,7 @@ func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop
 }
 
 // 模型占比
-func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]*model.ModelPercent, error) {
+func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error) {
 
 	startTime := gtime.Now().AddDate(0, 0, -params.Days-1).StartOfDay()
 	endTime := gtime.Now().EndOfDay(true)
@@ -322,6 +322,11 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 				"count": bson.M{"$sum": 1},
 			},
 		},
+		{
+			"$sort": bson.M{
+				"count": -1,
+			},
+		},
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -332,16 +337,18 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 	result := make([]map[string]interface{}, 0)
 	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
-		return nil, err
+		return nil, nil, err
 	}
 
+	models := make([]string, 0)
 	items := make([]*model.ModelPercent, 0)
 	for _, res := range result {
+		models = append(models, gconv.String(res["_id"]))
 		items = append(items, &model.ModelPercent{
-			Model: gconv.String(res["_id"]),
-			Count: gconv.Int(res["count"]),
+			Name:  gconv.String(res["_id"]),
+			Value: gconv.Int(res["count"]),
 		})
 	}
 
-	return items, nil
+	return models, items, nil
 }
