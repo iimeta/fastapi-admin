@@ -202,6 +202,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			Email:     result.Email,
 			Phone:     result.Phone,
 			Quota:     result.Quota,
+			Models:    result.Models,
 			Remark:    result.Remark,
 			Status:    result.Status,
 			CreatedAt: util.FormatDatetime(result.CreatedAt),
@@ -239,6 +240,7 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 			Email:     result.Email,
 			Phone:     result.Phone,
 			Quota:     result.Quota,
+			Models:    result.Models,
 			Remark:    result.Remark,
 			Status:    result.Status,
 			CreatedAt: util.FormatDatetime(result.CreatedAt),
@@ -262,6 +264,19 @@ func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuota
 	}
 
 	if _, err := redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 用户模型权限
+func (s *sAdminUser) Models(ctx context.Context, params model.UserModelsReq) error {
+
+	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": params.UserId}, bson.M{
+		"models": params.Models,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

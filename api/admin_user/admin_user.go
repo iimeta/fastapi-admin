@@ -19,4 +19,5 @@ type IAdminUserV1 interface {
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
 	GrantQuota(ctx context.Context, req *v1.GrantQuotaReq) (res *v1.GrantQuotaRes, err error)
+	Models(ctx context.Context, req *v1.ModelsReq) (res *v1.ModelsRes, err error)
 }

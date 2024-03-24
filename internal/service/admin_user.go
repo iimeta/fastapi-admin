@@ -29,6 +29,8 @@ type (
 		List(ctx context.Context, params model.UserListReq) ([]*model.User, error)
 		// 授予用户额度
 		GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error
+		// 授予用户额度
+		Models(ctx context.Context, params model.UserModelsReq) error
 	}
 )
 

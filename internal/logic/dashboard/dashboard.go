@@ -128,7 +128,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 // 调用数据
 func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error) {
 
-	startTime := gtime.Now().AddDate(0, 0, -params.Days-1).StartOfDay()
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
 	endTime := gtime.Now().EndOfDay(true)
 
 	pipeline := []bson.M{
@@ -208,7 +208,7 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 // 数据TOP5
 func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop5Req) ([]*model.DataTop5, error) {
 
-	startTime := gtime.Now().AddDate(0, 0, -params.Days-1).StartOfDay()
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
 	endTime := gtime.Now().EndOfDay(true)
 
 	pipeline := []bson.M{
@@ -304,7 +304,7 @@ func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop
 // 模型占比
 func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error) {
 
-	startTime := gtime.Now().AddDate(0, 0, -params.Days-1).StartOfDay()
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
 	endTime := gtime.Now().EndOfDay(true)
 
 	pipeline := []bson.M{
@@ -326,6 +326,9 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 			"$sort": bson.M{
 				"count": -1,
 			},
+		},
+		{
+			"$limit": 10,
 		},
 	}
 

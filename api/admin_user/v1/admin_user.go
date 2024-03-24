@@ -85,13 +85,24 @@ type ListRes struct {
 	*model.UserListRes
 }
 
-// 用户授予额度接口请求参数
+// 授予用户额度接口请求参数
 type GrantQuotaReq struct {
-	g.Meta `path:"/grant/quota" tags:"admin_user" method:"post" summary:"用户授予额度列表接口"`
+	g.Meta `path:"/grant/quota" tags:"admin_user" method:"post" summary:"授予用户额度接口"`
 	model.UserGrantQuotaReq
 }
 
-// 用户授予额度接口响应参数
+// 授予用户额度接口响应参数
 type GrantQuotaRes struct {
+	g.Meta `mime:"userlication/json" example:"json"`
+}
+
+// 用户模型权限接口请求参数
+type ModelsReq struct {
+	g.Meta `path:"/models" tags:"admin_user" method:"post" summary:"用户模型权限接口"`
+	model.UserModelsReq
+}
+
+// 用户模型权限接口响应参数
+type ModelsRes struct {
 	g.Meta `mime:"userlication/json" example:"json"`
 }
