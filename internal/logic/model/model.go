@@ -8,6 +8,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -34,7 +35,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		return errors.Newf("模型名称 \"%s\" 已存在", params.Name)
 	}
 
-	if _, err := dao.Model.Insert(ctx, &do.Model{
+	id, err := dao.Model.Insert(ctx, &do.Model{
 		Corp:               params.Corp,
 		Name:               gstr.Trim(params.Name),
 		Model:              gstr.Trim(params.Model),
@@ -47,9 +48,21 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		IsPublic:           params.IsPublic,
 		Remark:             params.Remark,
 		Status:             params.Status,
-	}); err != nil {
+	})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if params.IsPublic {
+		if err = dao.User.UpdateMany(ctx, bson.M{}, bson.M{
+			"$push": bson.M{
+				"models": id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil
@@ -85,6 +98,30 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	// 旧数据是公开, 新数据改为了私有
+	if oldData.IsPublic && !newData.IsPublic {
+
+		if err = dao.User.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}}, bson.M{
+			"$pull": bson.M{
+				"models": params.Id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+	} else if !oldData.IsPublic && newData.IsPublic { // 旧数据是私有, 新数据改为了公开
+
+		if err = dao.User.UpdateMany(ctx, bson.M{}, bson.M{
+			"$addToSet": bson.M{
+				"models": params.Id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
@@ -126,6 +163,15 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 
 	oldData, err := dao.Model.FindOneAndDeleteById(ctx, id)
 	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err = dao.User.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
+		"$pull": bson.M{
+			"models": id,
+		},
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -276,7 +322,9 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	filter := bson.M{}
 
 	if service.Session().IsUserRole(ctx) {
-		filter["is_public"] = true
+		filter["_id"] = bson.M{
+			"$in": service.Session().GetUser(ctx).Models,
+		}
 	}
 
 	results, err := dao.Model.Find(ctx, filter, "-updated_at")
@@ -308,6 +356,56 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	}
 
 	return items, nil
+}
+
+// 公开的模型Ids
+func (s *sModel) PublicModels(ctx context.Context) ([]string, error) {
+
+	filter := bson.M{
+		"is_public": true,
+		"status":    1,
+	}
+
+	results, err := dao.Model.Find(ctx, filter, "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	ids := make([]string, 0)
+	for _, result := range results {
+		ids = append(ids, result.Id)
+	}
+
+	return ids, nil
+}
+
+// 根据模型Ids查询模型名称
+func (s *sModel) ModelNames(ctx context.Context, models []string) ([]string, error) {
+
+	if models == nil || len(models) == 0 {
+		return nil, nil
+	}
+
+	results, err := dao.Model.Find(ctx, bson.M{"_id": bson.M{"$in": models}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelNames := make([]string, 0)
+
+	modelMap := util.ToMap(results, func(t *entity.Model) string {
+		return t.Id
+	})
+
+	for _, id := range models {
+		if modelMap[id] != nil {
+			modelNames = append(modelNames, modelMap[id].Name)
+		}
+	}
+
+	return modelNames, nil
 }
 
 // 模型名称是否存在

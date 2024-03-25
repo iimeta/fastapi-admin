@@ -36,6 +36,12 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return errors.New(params.Account + " 账号已存在")
 	}
 
+	models, err := service.Model().PublicModels(ctx)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	salt := grand.Letters(8)
 	id := util.GenerateId()
 
@@ -45,6 +51,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		Name:    params.Name,
 		Email:   params.Account,
 		Quota:   params.Quota,
+		Models:  models,
 		Remark:  params.Remark,
 		Status:  1,
 		Creator: id,
@@ -150,17 +157,25 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		return nil, err
 	}
 
+	modelNames, err := service.Model().ModelNames(ctx, user.Models)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
 	return &model.User{
-		Id:        user.Id,
-		UserId:    user.UserId,
-		Name:      user.Name,
-		Phone:     user.Phone,
-		Email:     user.Email,
-		Quota:     user.Quota,
-		Remark:    user.Remark,
-		Status:    user.Status,
-		CreatedAt: util.FormatDatetime(user.CreatedAt),
-		UpdatedAt: util.FormatDatetime(user.UpdatedAt),
+		Id:         user.Id,
+		UserId:     user.UserId,
+		Name:       user.Name,
+		Phone:      user.Phone,
+		Email:      user.Email,
+		Quota:      user.Quota,
+		Models:     user.Models,
+		ModelNames: modelNames,
+		Remark:     user.Remark,
+		Status:     user.Status,
+		CreatedAt:  util.FormatDatetime(user.CreatedAt),
+		UpdatedAt:  util.FormatDatetime(user.UpdatedAt),
 	}, nil
 }
 
@@ -274,8 +289,24 @@ func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuota
 // 用户模型权限
 func (s *sAdminUser) Models(ctx context.Context, params model.UserModelsReq) error {
 
-	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": params.UserId}, bson.M{
+	oldData, err := dao.User.FindOne(ctx, bson.M{"user_id": params.UserId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
 		"models": params.Models,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_MODELS,
+		OldData: oldData,
+		NewData: newData,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err

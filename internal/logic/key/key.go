@@ -197,24 +197,10 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		return nil, err
 	}
 
-	modelNames := make([]string, 0)
-	if len(key.Models) > 0 {
-
-		models, err := service.Model().List(ctx, model.ModelListReq{})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		modelMap := util.ToMap(models, func(t *model.Model) string {
-			return t.Id
-		})
-
-		for _, id := range key.Models {
-			if modelMap[id] != nil {
-				modelNames = append(modelNames, modelMap[id].Name)
-			}
-		}
+	modelNames, err := service.Model().ModelNames(ctx, key.Models)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
 	}
 
 	modelAgentNames := make([]string, 0)

@@ -52,6 +52,12 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		return errors.New(params.Account + " 账号已存在")
 	}
 
+	models, err := service.Model().PublicModels(ctx)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	salt := grand.Letters(8)
 	id := util.GenerateId()
 
@@ -60,6 +66,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		UserId:  core.IncrUserId(ctx),
 		Email:   params.Account,
 		Name:    params.Account,
+		Models:  models,
 		Status:  1,
 		Creator: id,
 	}
@@ -193,7 +200,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			logger.Error(ctx, err)
 		}
 
-		token, err = s.GenUserToken(ctx, &model.User{
+		if token, err = s.GenUserToken(ctx, &model.User{
 			Id:        user.Id,
 			UserId:    user.UserId,
 			Name:      user.Name,
@@ -201,11 +208,11 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Email:     user.Email,
 			Phone:     user.Phone,
 			Quota:     user.Quota,
+			Models:    user.Models,
 			Account:   accountInfo.Account,
 			CreatedAt: util.FormatDatetime(user.CreatedAt),
 			UpdatedAt: util.FormatDatetime(user.UpdatedAt),
-		}, true)
-		if err != nil {
+		}, true); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -271,7 +278,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			logger.Error(ctx, err)
 		}
 
-		token, err = s.GenAdminToken(ctx, &model.SysAdmin{
+		if token, err = s.GenAdminToken(ctx, &model.SysAdmin{
 			Id:        admin.Id,
 			Name:      admin.Name,
 			Avatar:    admin.Avatar,
@@ -282,8 +289,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Status:    admin.Status,
 			CreatedAt: admin.CreatedAt,
 			UpdatedAt: admin.UpdatedAt,
-		}, true)
-		if err != nil {
+		}, true); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
