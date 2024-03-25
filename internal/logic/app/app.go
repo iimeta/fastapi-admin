@@ -308,7 +308,7 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err error) {
 
 	key := &do.Key{
-		UserId:       service.Session().GetUserId(ctx), // todo
+		UserId:       service.Session().GetUserId(ctx),
 		AppId:        params.AppId,
 		Key:          params.Key,
 		IsLimitQuota: params.IsLimitQuota,

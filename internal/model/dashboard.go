@@ -20,15 +20,15 @@ type DashboardExpenseRes struct {
 	*Expense
 }
 
-// 仪表盘数据TOP5接口请求参数
-type DashboardDataTop5Req struct {
+// 仪表盘数据TOP接口请求参数
+type DashboardDataTopReq struct {
 	Days     int    `json:"days"`      // 天数
 	DataType string `json:"data_type"` // 数据类型
 }
 
-// 仪表盘数据TOP5接口响应参数
-type DashboardDataTop5Res struct {
-	Items []*DataTop5 `json:"items"`
+// 仪表盘数据TOP接口响应参数
+type DashboardDataTopRes struct {
+	Items []*DataTop `json:"items"`
 }
 
 // 仪表盘模型占比接口请求参数
@@ -68,8 +68,8 @@ type Expense struct {
 	Quota int `json:"quota"` // 额度
 }
 
-// 数据TOP5
-type DataTop5 struct {
+// 数据TOP
+type DataTop struct {
 	UserId int    `json:"user_id,omitempty"` // 用户ID
 	AppId  int    `json:"app_id,omitempty"`  // 应用ID
 	Model  string `json:"model,omitempty"`   // 模型

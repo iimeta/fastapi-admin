@@ -8,15 +8,15 @@ import (
 	"github.com/iimeta/fastapi-admin/api/dashboard/v1"
 )
 
-func (c *ControllerV1) DataTop5(ctx context.Context, req *v1.DataTop5Req) (res *v1.DataTop5Res, err error) {
+func (c *ControllerV1) DataTop(ctx context.Context, req *v1.DataTopReq) (res *v1.DataTopRes, err error) {
 
-	items, err := service.Dashboard().DataTop5(ctx, req.DashboardDataTop5Req)
+	items, err := service.Dashboard().DataTop(ctx, req.DashboardDataTopReq)
 	if err != nil {
 		return nil, err
 	}
 
-	res = &v1.DataTop5Res{
-		DashboardDataTop5Res: &model.DashboardDataTop5Res{
+	res = &v1.DataTopRes{
+		DashboardDataTopRes: &model.DashboardDataTopRes{
 			Items: items,
 		},
 	}

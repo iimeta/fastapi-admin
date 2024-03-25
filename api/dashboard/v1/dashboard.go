@@ -39,16 +39,16 @@ type ExpenseRes struct {
 	*model.DashboardExpenseRes
 }
 
-// 仪表盘数据TOP5接口请求参数
-type DataTop5Req struct {
-	g.Meta `path:"/data/top5" tags:"dashboard" method:"get" summary:"仪表盘数据TOP5接口"`
-	model.DashboardDataTop5Req
+// 仪表盘数据TOP接口请求参数
+type DataTopReq struct {
+	g.Meta `path:"/data/top" tags:"dashboard" method:"get" summary:"仪表盘数据TOP接口"`
+	model.DashboardDataTopReq
 }
 
-// 仪表盘数据TOP5接口响应参数
-type DataTop5Res struct {
+// 仪表盘数据TOP接口响应参数
+type DataTopRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.DashboardDataTop5Res
+	*model.DashboardDataTopRes
 }
 
 // 仪表盘模型占比接口请求参数

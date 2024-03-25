@@ -19,8 +19,8 @@ type (
 		CallData(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error)
 		// 费用
 		Expense(ctx context.Context) (*model.Expense, error)
-		// 数据TOP5
-		DataTop5(ctx context.Context, params model.DashboardDataTop5Req) ([]*model.DataTop5, error)
+		// 数据TOP
+		DataTop(ctx context.Context, params model.DashboardDataTopReq) ([]*model.DataTop, error)
 		// 模型占比
 		ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error)
 	}

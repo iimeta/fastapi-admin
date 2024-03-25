@@ -205,8 +205,8 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 	}, nil
 }
 
-// 数据TOP5
-func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop5Req) ([]*model.DataTop5, error) {
+// 数据TOP
+func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopReq) ([]*model.DataTop, error) {
 
 	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
 	endTime := gtime.Now().EndOfDay(true)
@@ -253,7 +253,7 @@ func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop
 		})
 	}
 
-	pipeline = append(pipeline, bson.M{"$sort": bson.M{"count": -1}}, bson.M{"$limit": 5})
+	pipeline = append(pipeline, bson.M{"$sort": bson.M{"count": -1}}, bson.M{"$limit": 10})
 
 	if service.Session().IsUserRole(ctx) {
 		match := pipeline[0]["$match"].(bson.M)
@@ -266,11 +266,11 @@ func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop
 		return nil, err
 	}
 
-	items := make([]*model.DataTop5, 0)
+	items := make([]*model.DataTop, 0)
 	switch params.DataType {
 	case "user":
 		for _, res := range result {
-			items = append(items, &model.DataTop5{
+			items = append(items, &model.DataTop{
 				UserId: gconv.Int(res["_id"]),
 				Call:   gconv.Int(res["count"]),
 				Models: len(gconv.SliceAny(res["models"])),
@@ -279,7 +279,7 @@ func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop
 		}
 	case "app":
 		for _, res := range result {
-			items = append(items, &model.DataTop5{
+			items = append(items, &model.DataTop{
 				AppId:  gconv.Int(res["_id"]),
 				Call:   gconv.Int(res["count"]),
 				Models: len(gconv.SliceAny(res["models"])),
@@ -288,7 +288,7 @@ func (s *sDashboard) DataTop5(ctx context.Context, params model.DashboardDataTop
 		}
 	case "model":
 		for _, res := range result {
-			items = append(items, &model.DataTop5{
+			items = append(items, &model.DataTop{
 				Model:  gconv.String(res["_id"]),
 				Call:   gconv.Int(res["count"]),
 				User:   len(gconv.SliceAny(res["users"])),
