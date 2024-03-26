@@ -261,6 +261,18 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 	filter := bson.M{}
 
+	if service.Session().IsUserRole(ctx) {
+
+		models := service.Session().GetUser(ctx).Models
+		if len(models) == 0 {
+			return nil, nil
+		}
+
+		filter["_id"] = bson.M{
+			"$in": models,
+		}
+	}
+
 	if params.Corp != "" {
 		filter["corp"] = params.Corp
 	}
@@ -286,23 +298,19 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 	items := make([]*model.Model, 0)
 	for _, result := range results {
 		items = append(items, &model.Model{
-			Id:                 result.Id,
-			Corp:               result.Corp,
-			Name:               result.Name,
-			Model:              result.Model,
-			Type:               result.Type,
-			PromptRatio:        result.PromptRatio,
-			CompletionRatio:    result.CompletionRatio,
-			DataFormat:         result.DataFormat,
-			IsEnableModelAgent: result.IsEnableModelAgent,
-			ModelAgents:        result.ModelAgents,
-			IsPublic:           result.IsPublic,
-			Remark:             result.Remark,
-			Status:             result.Status,
-			Creator:            result.Creator,
-			Updater:            result.Updater,
-			CreatedAt:          util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:          util.FormatDatetime(result.UpdatedAt),
+			Id:              result.Id,
+			Corp:            result.Corp,
+			Name:            result.Name,
+			Model:           result.Model,
+			Type:            result.Type,
+			PromptRatio:     result.PromptRatio,
+			CompletionRatio: result.CompletionRatio,
+			DataFormat:      result.DataFormat,
+			IsPublic:        result.IsPublic,
+			Remark:          result.Remark,
+			Status:          result.Status,
+			CreatedAt:       util.FormatDatetime(result.CreatedAt),
+			UpdatedAt:       util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 
