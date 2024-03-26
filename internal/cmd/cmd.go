@@ -14,10 +14,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
-	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
-	"github.com/iimeta/fastapi-admin/internal/controller/sys_menu"
-	"github.com/iimeta/fastapi-admin/internal/controller/sys_role"
-	"github.com/iimeta/fastapi-admin/internal/controller/sys_settings"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -157,30 +153,6 @@ var (
 				v1.Group("/admin", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						sys_admin.NewV1(),
-					)
-				})
-
-				v1.Group("/config", func(g *ghttp.RouterGroup) {
-					g.Bind(
-						sys_config.NewV1(),
-					)
-				})
-
-				v1.Group("/menu", func(g *ghttp.RouterGroup) {
-					g.Bind(
-						sys_menu.NewV1(),
-					)
-				})
-
-				v1.Group("/role", func(g *ghttp.RouterGroup) {
-					g.Bind(
-						sys_role.NewV1(),
-					)
-				})
-
-				v1.Group("/settings", func(g *ghttp.RouterGroup) {
-					g.Bind(
-						sys_settings.NewV1(),
 					)
 				})
 			})

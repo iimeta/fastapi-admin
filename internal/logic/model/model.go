@@ -322,8 +322,14 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	filter := bson.M{}
 
 	if service.Session().IsUserRole(ctx) {
+
+		models := service.Session().GetUser(ctx).Models
+		if len(models) == 0 {
+			return nil, nil
+		}
+
 		filter["_id"] = bson.M{
-			"$in": service.Session().GetUser(ctx).Models,
+			"$in": models,
 		}
 	}
 
