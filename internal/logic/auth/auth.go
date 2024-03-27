@@ -280,10 +280,11 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 		if token, err = s.GenAdminToken(ctx, &model.SysAdmin{
 			Id:        admin.Id,
+			UserId:    admin.UserId,
 			Name:      admin.Name,
 			Avatar:    admin.Avatar,
-			Phone:     admin.Phone,
 			Email:     admin.Email,
+			Phone:     admin.Phone,
 			Account:   admin.Account,
 			Remark:    admin.Remark,
 			Status:    admin.Status,

@@ -43,6 +43,7 @@ func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoR
 
 		res = &v1.InfoRes{
 			UserInfoRes: &model.UserInfoRes{
+				UserId:    admin.UserId,
 				Name:      admin.Name,
 				Avatar:    admin.Avatar,
 				Email:     admin.Email,

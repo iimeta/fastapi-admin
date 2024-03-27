@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -55,6 +56,13 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 	}
 
 	if params.IsPublic {
+
+		userList, err := dao.User.Find(ctx, bson.M{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
 		if err = dao.User.UpdateMany(ctx, bson.M{}, bson.M{
 			"$push": bson.M{
 				"models": id,
@@ -62,6 +70,22 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
+		}
+
+		for _, user := range userList {
+
+			newUserData := *user
+
+			newUserData.Models = append(newUserData.Models, id)
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+				Action:  consts.ACTION_MODELS,
+				OldData: user,
+				NewData: newUserData,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
 		}
 	}
 
@@ -103,6 +127,12 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 	// 旧数据是公开, 新数据改为了私有
 	if oldData.IsPublic && !newData.IsPublic {
 
+		userList, err := dao.User.Find(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
 		if err = dao.User.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}}, bson.M{
 			"$pull": bson.M{
 				"models": params.Id,
@@ -112,7 +142,34 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			return err
 		}
 
+		for _, user := range userList {
+
+			newUserData := *user
+
+			for i, id := range newUserData.Models {
+				if id == params.Id {
+					newUserData.Models = append(newUserData.Models[:i], newUserData.Models[i+1:]...)
+					break
+				}
+			}
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+				Action:  consts.ACTION_MODELS,
+				OldData: user,
+				NewData: newUserData,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+
 	} else if !oldData.IsPublic && newData.IsPublic { // 旧数据是私有, 新数据改为了公开
+
+		userList, err := dao.User.Find(ctx, bson.M{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 
 		if err = dao.User.UpdateMany(ctx, bson.M{}, bson.M{
 			"$addToSet": bson.M{
@@ -121,6 +178,22 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
+		}
+
+		for _, user := range userList {
+
+			newUserData := *user
+
+			newUserData.Models = gset.NewStrSetFrom(append(newUserData.Models, params.Id)).Slice()
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+				Action:  consts.ACTION_MODELS,
+				OldData: user,
+				NewData: newUserData,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
 		}
 	}
 
