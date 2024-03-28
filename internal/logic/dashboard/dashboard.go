@@ -43,9 +43,12 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	}
 
 	if service.Session().IsUserRole(ctx) {
-		if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"is_public": true}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
+		models := service.Session().GetUser(ctx).Models
+		if len(models) > 0 {
+			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
 		}
 	} else {
 		if dashboard.Model, err = dao.Model.EstimatedDocumentCount(ctx); err != nil {
@@ -88,7 +91,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 			return nil, err
 		}
 
-		if dashboard.TodayUser, err = dao.App.CountDocuments(ctx, bson.M{
+		if dashboard.TodayUser, err = dao.User.CountDocuments(ctx, bson.M{
 			"created_at": bson.M{
 				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
 				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
@@ -116,7 +119,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	}
 
 	result := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+	if err = dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
