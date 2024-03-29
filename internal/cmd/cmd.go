@@ -49,6 +49,7 @@ var (
 			s.AddStaticPath("/model/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/model/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/model/detail", "./resource/fastapi-web/")
+			s.AddStaticPath("/my/model", "./resource/fastapi-web/")
 			s.AddStaticPath("/key/model/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/key/app/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/key/create", "./resource/fastapi-web/")
@@ -62,6 +63,7 @@ var (
 			s.AddStaticPath("/user/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/detail", "./resource/fastapi-web/")
+			s.AddStaticPath("/user/center", "./resource/fastapi-web/")
 			s.AddStaticPath("/chat/list", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
