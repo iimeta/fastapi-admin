@@ -9,12 +9,11 @@
 **/.DS_Store
 gf
 main
-main.exe
+*.exe
+*.bat
+*.log
 output/
 manifest/output/
 temp/
 temp.yaml
-log/
-logs/
-bin/
-**/config/config.yaml
+log/*.log
