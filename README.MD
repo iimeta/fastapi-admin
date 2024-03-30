@@ -34,6 +34,7 @@ docker run -d \
 ```
 9. 用户端访问: http://ip:8080/login 如: http://127.0.0.1:8080/login
 10. 管理端访问: http://ip:8080/admin 如: http://127.0.0.1:8080/admin
+11. 默认管理员账号密码: 无默认账号和密码, 当首次登录时输入的账号和密码将自动创建为管理员的账号和密码
 
 ## 自动Docker部署
 0. 需提前安装好Redis和MongoDB以及Docker服务
@@ -43,6 +44,7 @@ docker run -d \
 4. 启动服务: `chmod +777 start.sh && ./start.sh`
 5. 用户端访问: http://ip:8080/login 如: http://127.0.0.1:8080/login
 6. 管理端访问: http://ip:8080/admin 如: http://127.0.0.1:8080/admin
+7. 默认管理员账号密码: 无默认账号和密码, 当首次登录时输入的账号和密码将自动创建为管理员的账号和密码
 
 ## 备用国内镜像地址
 ```shell
