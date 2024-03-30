@@ -56,7 +56,6 @@ docker run -d \
   -v /etc/localtime:/etc/localtime:ro \
   -v /data/fastapi-admin/manifest/config/config.yaml:/app/manifest/config/config.yaml \
   -v /data/fastapi-admin/resource/public:/app/resource/public \
-  -v /data/fastapi-admin/resource/private:/app/resource/private \
   --name fastapi-admin \
   registry.cn-hangzhou.aliyuncs.com/iimeta/fastapi-admin:0.1.0
 ```
