@@ -17,10 +17,10 @@
 1. 拉取镜像: `docker pull iimeta/fastapi-admin:0.1.0`
 2. 创建配置文件目录: `mkdir -p /data/fastapi-admin/manifest/config`
 3. 创建公开文件目录: `mkdir -p /data/fastapi-admin/resource/public`
-5. 进入配置文件目录: `cd /data/fastapi-admin/manifest/config`
-6. 下载配置文件: `wget https://github.com/iimeta/fastapi-admin/raw/docker/manifest/config/config.yaml`
-7. 修改配置文件: `vi config.yaml` 按 config.yaml 中配置项的注释, 修改对应参数
-8. 启动服务: 
+4. 进入配置文件目录: `cd /data/fastapi-admin/manifest/config`
+5. 下载配置文件: `wget https://github.com/iimeta/fastapi-admin/raw/docker/manifest/config/config.yaml`
+6. 修改配置文件: `vi config.yaml` 按 config.yaml 中配置项的注释, 修改对应参数
+7. 启动服务: 
 ```shell
 docker run -d \
   --network host \
@@ -32,9 +32,9 @@ docker run -d \
   --name fastapi-admin \
   iimeta/fastapi-admin:0.1.0
 ```
-9. 用户端访问: http://ip:8080/login 如: http://127.0.0.1:8080/login
-10. 管理端访问: http://ip:8080/admin 如: http://127.0.0.1:8080/admin
-11. 默认管理员账号密码: 无默认账号和密码, 当首次登录时输入的账号和密码将自动创建为管理员的账号和密码
+8. 用户端访问: http://ip:8080/login 如: http://127.0.0.1:8080/login
+9. 管理端访问: http://ip:8080/admin 如: http://127.0.0.1:8080/admin
+10. 默认管理员账号密码: 无默认账号和密码, 当首次登录时输入的账号和密码将自动创建为管理员的账号和密码
 
 ## 自动Docker部署
 0. 需提前安装好Redis和MongoDB以及Docker服务
