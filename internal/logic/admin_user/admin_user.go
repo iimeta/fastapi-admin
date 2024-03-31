@@ -76,6 +76,11 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return err
 	}
 
+	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 
