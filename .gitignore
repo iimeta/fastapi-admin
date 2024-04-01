@@ -16,5 +16,6 @@ temp/
 temp.yaml
 log/
 logs/
-bin/
+bin/fastapi*
+bin/*.zip
 **/config/config.yaml
