@@ -55,6 +55,7 @@ type Chat struct {
 	ReqDate            string      `json:"req_date,omitempty"`              // 请求日期
 	ClientIp           string      `json:"client_ip,omitempty"`             // 客户端IP
 	RemoteIp           string      `json:"remote_ip,omitempty"`             // 远程IP
+	LocalIp            string      `json:"local_ip,omitempty"`              // 本地IP
 	ErrMsg             string      `json:"err_msg,omitempty"`               // 错误信息
 	Status             int         `json:"status,omitempty"`                // 状态[1:成功, -1:失败]
 	Creator            string      `json:"creator,omitempty"`               // 创建人

@@ -74,6 +74,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.IsEnableModelAgent = key.IsEnableModelAgent
 		chat.ModelAgentId = key.ModelAgentId
 		chat.RemoteIp = key.RemoteIp
+		chat.LocalIp = key.LocalIp
 		chat.Updater = key.Updater
 		chat.CreatedAt = util.FormatDatetime(key.CreatedAt)
 		chat.UpdatedAt = util.FormatDatetime(key.UpdatedAt)
