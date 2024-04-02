@@ -39,9 +39,10 @@ func init() {
 
 // 配置信息
 type Config struct {
-	App   *App   `json:"app"`
-	Http  *Http  `json:"http"`
-	Email *Email `json:"email"`
+	AdminServerAddress string `json:"admin_server_address"`
+	App                *App   `json:"app"`
+	Http               *Http  `json:"http"`
+	Email              *Email `json:"email"`
 }
 
 type App struct {

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/controller/admin_user"
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
@@ -158,6 +159,10 @@ var (
 					)
 				})
 			})
+
+			if config.Cfg.AdminServerAddress != "" {
+				s.SetAddr(config.Cfg.AdminServerAddress)
+			}
 
 			s.Run()
 			return nil

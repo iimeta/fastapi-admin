@@ -1,7 +1,7 @@
+admin_server_address: ":8080"
+
 server:
-  address:     ":8080"
-  openapiPath: "/api.json"
-  swaggerPath: "/swagger"
+  clientMaxBodySize: 20m
 
 # Redis 配置
 redis:
