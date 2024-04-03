@@ -5,6 +5,7 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -41,4 +42,34 @@ func init() {
 	}
 
 	DefaultDatabase = database.String()
+
+	unique := new(bool)
+	*unique = true
+
+	if _, err = client.Database(DefaultDatabase).Collection("user").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"user_id": 1},
+		Options: &options.IndexOptions{
+			Unique: unique,
+		},
+	}); err != nil {
+		panic(err)
+	}
+
+	if _, err = client.Database(DefaultDatabase).Collection("account").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"account": 1},
+		Options: &options.IndexOptions{
+			Unique: unique,
+		},
+	}); err != nil {
+		panic(err)
+	}
+
+	if _, err = client.Database(DefaultDatabase).Collection("app").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"app_id": 1},
+		Options: &options.IndexOptions{
+			Unique: unique,
+		},
+	}); err != nil {
+		panic(err)
+	}
 }

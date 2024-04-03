@@ -134,7 +134,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		return err
 	}
 
-	if err := dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
+	if err = dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
 		"$pull": bson.M{
 			"model_agents": params.Id,
 		},
@@ -144,7 +144,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}
 
 	if len(params.Models) > 0 {
-		if err := dao.Model.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": params.Models}}, bson.M{
+		if err = dao.Model.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": params.Models}}, bson.M{
 			"$addToSet": bson.M{
 				"model_agents": params.Id,
 			},
@@ -167,7 +167,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		}
 	}
 
-	if err := dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
+	if err = dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
 		"$pull": bson.M{
 			"model_agents": params.Id,
 		},
@@ -177,7 +177,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}
 
 	if params.Key != "" {
-		if err := service.Key().Create(ctx, model.KeyCreateReq{
+		if err = service.Key().Create(ctx, model.KeyCreateReq{
 			Corp:        "OpenAI",
 			Key:         params.Key,
 			Models:      params.Models,
@@ -309,7 +309,7 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	if err := dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
+	if err = dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
 		"$pull": bson.M{
 			"model_agents": id,
 		},
@@ -318,7 +318,7 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	if err := dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
+	if err = dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
 		"$pull": bson.M{
 			"model_agents": id,
 		},
@@ -457,10 +457,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Weight:     result.Weight,
 			Models:     modelMap[result.Id],
 			ModelNames: modelNameMap[result.Id],
-			Remark:     result.Remark,
 			Status:     result.Status,
-			Creator:    result.Creator,
-			Updater:    result.Updater,
 			CreatedAt:  util.FormatDatetime(result.CreatedAt),
 			UpdatedAt:  util.FormatDatetime(result.UpdatedAt),
 		})
@@ -513,12 +510,7 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 			Weight:     result.Weight,
 			Models:     modelMap[result.Id],
 			ModelNames: modelNameMap[result.Id],
-			Remark:     result.Remark,
 			Status:     result.Status,
-			Creator:    result.Creator,
-			Updater:    result.Updater,
-			CreatedAt:  util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:  util.FormatDatetime(result.UpdatedAt),
 		})
 	}
 

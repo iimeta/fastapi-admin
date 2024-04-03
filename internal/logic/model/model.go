@@ -320,8 +320,6 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		IsPublic:           m.IsPublic,
 		Remark:             m.Remark,
 		Status:             m.Status,
-		Creator:            m.Creator,
-		Updater:            m.Updater,
 		CreatedAt:          util.FormatDatetime(m.CreatedAt),
 		UpdatedAt:          util.FormatDatetime(m.UpdatedAt),
 	}, nil
@@ -383,7 +381,6 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			CompletionRatio: result.CompletionRatio,
 			DataFormat:      result.DataFormat,
 			IsPublic:        result.IsPublic,
-			Remark:          result.Remark,
 			Status:          result.Status,
 			CreatedAt:       util.FormatDatetime(result.CreatedAt),
 			UpdatedAt:       util.FormatDatetime(result.UpdatedAt),
@@ -425,7 +422,8 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 
 	items := make([]*model.Model, 0)
 	for _, result := range results {
-		items = append(items, &model.Model{
+
+		model := &model.Model{
 			Id:              result.Id,
 			Corp:            result.Corp,
 			Name:            result.Name,
@@ -434,13 +432,14 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 			PromptRatio:     result.PromptRatio,
 			CompletionRatio: result.CompletionRatio,
 			DataFormat:      result.DataFormat,
-			Remark:          result.Remark,
 			Status:          result.Status,
-			Creator:         result.Creator,
-			Updater:         result.Updater,
-			CreatedAt:       util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:       util.FormatDatetime(result.UpdatedAt),
-		})
+		}
+
+		if service.Session().IsAdminRole(ctx) {
+			model.ModelAgents = result.ModelAgents
+		}
+
+		items = append(items, model)
 	}
 
 	return items, nil

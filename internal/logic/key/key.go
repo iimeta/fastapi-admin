@@ -320,12 +320,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			IsAgentsOnly: result.IsAgentsOnly,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
-			IpWhitelist:  result.IpWhitelist,
-			IpBlacklist:  result.IpBlacklist,
-			Remark:       result.Remark,
 			Status:       result.Status,
-			Creator:      result.Creator,
-			Updater:      result.Updater,
 			CreatedAt:    util.FormatDatetime(result.CreatedAt),
 			UpdatedAt:    util.FormatDatetime(result.UpdatedAt),
 		})
@@ -365,18 +360,11 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 		items = append(items, &model.Key{
-			Id:          result.Id,
-			Corp:        result.Corp,
-			Key:         result.Key,
-			Type:        result.Type,
-			Models:      result.Models,
-			ModelAgents: result.ModelAgents,
-			Remark:      result.Remark,
-			Status:      result.Status,
-			Creator:     result.Creator,
-			Updater:     result.Updater,
-			CreatedAt:   util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:   util.FormatDatetime(result.UpdatedAt),
+			Id:     result.Id,
+			Corp:   result.Corp,
+			Key:    result.Key,
+			Type:   result.Type,
+			Status: result.Status,
 		})
 	}
 

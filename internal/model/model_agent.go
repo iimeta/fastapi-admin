@@ -14,15 +14,15 @@ type ModelAgentCreateReq struct {
 
 // 更新模型代理接口请求参数
 type ModelAgentUpdateReq struct {
-	Id      string   `json:"id" v:"required"`        // ID
-	Name    string   `json:"name,omitempty"`         // 模型代理名称
-	BaseUrl string   `json:"base_url,omitempty"`     // 模型代理地址
-	Path    string   `json:"path,omitempty"`         // 模型代理地址路径
-	Weight  int      `json:"weight,omitempty"`       // 权重
-	Models  []string `json:"models,omitempty"`       // 绑定模型
-	Key     string   `json:"key,omitempty"`          // 密钥
-	Remark  string   `json:"remark,omitempty"`       // 备注
-	Status  int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Id      string   `json:"id" v:"required"`         // ID
+	Name    string   `json:"name,omitempty"`          // 模型代理名称
+	BaseUrl string   `json:"base_url,omitempty"`      // 模型代理地址
+	Path    string   `json:"path,omitempty"`          // 模型代理地址路径
+	Weight  int      `json:"weight,omitempty"`        // 权重
+	Models  []string `json:"models,omitempty" d:"[]"` // 绑定模型
+	Key     string   `json:"key,omitempty"`           // 密钥
+	Remark  string   `json:"remark,omitempty"`        // 备注
+	Status  int      `json:"status,omitempty" d:"1"`  // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改模型代理状态接口请求参数

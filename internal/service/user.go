@@ -16,9 +16,9 @@ type (
 	IUser interface {
 		// 用户更新信息
 		UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error
-		// 用户修改密码
+		// 用户更改密码
 		ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error)
-		// 用户修改邮箱
+		// 用户更改邮箱
 		ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error
 		// 用户更改头像
 		ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error

@@ -26,40 +26,38 @@ func New() service.IChat {
 // 聊天详情
 func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
-	key, err := dao.Chat.FindById(ctx, id)
+	result, err := dao.Chat.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	chat := &model.Chat{
-		Id:               key.Id,
-		TraceId:          key.TraceId,
-		UserId:           key.UserId,
-		AppId:            key.AppId,
-		Corp:             key.Corp,
-		Model:            key.Model,
-		Type:             key.Type,
-		Stream:           key.Stream,
-		Prompt:           key.Prompt,
-		Completion:       key.Completion,
-		PromptRatio:      key.PromptRatio,
-		CompletionRatio:  key.CompletionRatio,
-		PromptTokens:     key.PromptTokens,
-		CompletionTokens: key.CompletionTokens,
-		TotalTokens:      key.TotalTokens,
-		ConnTime:         key.ConnTime,
-		Duration:         key.Duration,
-		TotalTime:        key.TotalTime,
-		InternalTime:     key.InternalTime,
-		ReqTime:          util.FormatDatetime(key.ReqTime),
-		ClientIp:         key.ClientIp,
-		ErrMsg:           key.ErrMsg,
-		Status:           key.Status,
-		Creator:          key.Creator,
+		Id:               result.Id,
+		TraceId:          result.TraceId,
+		UserId:           result.UserId,
+		AppId:            result.AppId,
+		Corp:             result.Corp,
+		Model:            result.Model,
+		Type:             result.Type,
+		Stream:           result.Stream,
+		Prompt:           result.Prompt,
+		Completion:       result.Completion,
+		PromptRatio:      result.PromptRatio,
+		CompletionRatio:  result.CompletionRatio,
+		PromptTokens:     result.PromptTokens,
+		CompletionTokens: result.CompletionTokens,
+		TotalTokens:      result.TotalTokens,
+		ConnTime:         result.ConnTime,
+		Duration:         result.Duration,
+		TotalTime:        result.TotalTime,
+		ReqTime:          util.FormatDatetime(result.ReqTime),
+		ClientIp:         result.ClientIp,
+		Status:           result.Status,
+		Creator:          result.Creator,
 	}
 
-	for _, message := range key.Messages {
+	for _, message := range result.Messages {
 		chat.Messages = append(chat.Messages, model.Message{
 			Role:    message.Role,
 			Content: message.Content,
@@ -68,31 +66,26 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
 	if service.Session().IsAdminRole(ctx) {
 
-		chat.ModelId = key.ModelId
-		chat.Name = key.Name
-		chat.Key = key.Key
-		chat.IsEnableModelAgent = key.IsEnableModelAgent
-		chat.ModelAgentId = key.ModelAgentId
-		chat.RemoteIp = key.RemoteIp
-		chat.LocalIp = key.LocalIp
-		chat.Updater = key.Updater
-		chat.CreatedAt = util.FormatDatetime(key.CreatedAt)
-		chat.UpdatedAt = util.FormatDatetime(key.UpdatedAt)
-		chat.UpdatedAt = util.FormatDatetime(key.UpdatedAt)
+		chat.ModelId = result.ModelId
+		chat.Name = result.Name
+		chat.Key = result.Key
+		chat.IsEnableModelAgent = result.IsEnableModelAgent
+		chat.ModelAgentId = result.ModelAgentId
+		chat.RemoteIp = result.RemoteIp
+		chat.LocalIp = result.LocalIp
+		chat.InternalTime = result.InternalTime
+		chat.ErrMsg = result.ErrMsg
+		chat.CreatedAt = util.FormatDatetime(result.CreatedAt)
+		chat.UpdatedAt = util.FormatDatetime(result.UpdatedAt)
 
-		if key.ModelAgent != nil {
+		if result.ModelAgent != nil {
 			chat.ModelAgent = &model.ModelAgent{
-				Id:        key.ModelAgent.Id,
-				Name:      key.ModelAgent.Name,
-				BaseUrl:   key.ModelAgent.BaseUrl,
-				Path:      key.ModelAgent.Path,
-				Weight:    key.ModelAgent.Weight,
-				Remark:    key.ModelAgent.Remark,
-				Status:    key.ModelAgent.Status,
-				Creator:   key.ModelAgent.Creator,
-				Updater:   key.ModelAgent.Updater,
-				CreatedAt: util.FormatDatetime(key.ModelAgent.CreatedAt),
-				UpdatedAt: util.FormatDatetime(key.ModelAgent.UpdatedAt),
+				Name:    result.ModelAgent.Name,
+				BaseUrl: result.ModelAgent.BaseUrl,
+				Path:    result.ModelAgent.Path,
+				Weight:  result.ModelAgent.Weight,
+				Remark:  result.ModelAgent.Remark,
+				Status:  result.ModelAgent.Status,
 			}
 		}
 	}
@@ -157,7 +150,8 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 
 	items := make([]*model.Chat, 0)
 	for _, result := range results {
-		items = append(items, &model.Chat{
+
+		chat := &model.Chat{
 			Id:               result.Id,
 			UserId:           result.UserId,
 			AppId:            result.AppId,
@@ -170,11 +164,16 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			ConnTime:         result.ConnTime,
 			Duration:         result.Duration,
 			TotalTime:        result.TotalTime,
-			InternalTime:     result.InternalTime,
 			ReqTime:          util.FormatDatetime(result.ReqTime)[5:],
 			Status:           result.Status,
 			Creator:          result.Creator,
-		})
+		}
+
+		if service.Session().IsAdminRole(ctx) {
+			chat.InternalTime = result.InternalTime
+		}
+
+		items = append(items, chat)
 	}
 
 	return &model.ChatPageRes{

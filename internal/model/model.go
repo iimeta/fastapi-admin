@@ -29,7 +29,7 @@ type ModelUpdateReq struct {
 	CompletionRatio    float64  `json:"completion_ratio,omitempty"`      // 补全倍率(回答倍率)
 	DataFormat         int      `json:"data_format,omitempty"`           // 数据格式[1:统一格式, 2:官方格式]
 	IsEnableModelAgent bool     `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
-	ModelAgents        []string `json:"model_agents,omitempty"`          // 模型代理
+	ModelAgents        []string `json:"model_agents,omitempty" d:"[]"`   // 模型代理
 	IsPublic           bool     `json:"is_public,omitempty"`             // 是否公开
 	Remark             string   `json:"remark,omitempty"`                // 备注
 	Status             int      `json:"status,omitempty" d:"1"`          // 状态[1:正常, 2:禁用, -1:删除]

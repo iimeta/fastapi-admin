@@ -45,7 +45,7 @@ type UserUpdateReq struct {
 	Id           string   `json:"id,omitempty"`             // ID
 	Name         string   `json:"name,omitempty"`           // 姓名
 	Type         int      `json:"type,omitempty"`           // 用户类型
-	Models       []string `json:"models,omitempty"`         // 模型权限
+	Models       []string `json:"models,omitempty" d:"[]"`  // 模型权限
 	IsLimitQuota bool     `json:"is_limit_quota,omitempty"` // 是否限制额度
 	Quota        int      `json:"quota,omitempty"`          // 额度
 	IpWhitelist  string   `json:"ip_whitelist,omitempty"`   // IP白名单
@@ -111,8 +111,8 @@ type UserGrantQuotaReq struct {
 
 // 用户模型权限接口请求参数
 type UserModelsReq struct {
-	UserId int      `json:"user_id,omitempty"` // 用户ID
-	Models []string `json:"models,omitempty"`  // 模型权限
+	UserId int      `json:"user_id,omitempty"`       // 用户ID
+	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
 }
 
 type User struct {
