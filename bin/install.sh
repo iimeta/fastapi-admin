@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker pull iimeta/fastapi-admin:0.1.0
+docker pull iimeta/fastapi-admin:0.1.1
 
 mkdir -p /data/fastapi-admin/manifest/config
 mkdir -p /data/fastapi-admin/resource/public

@@ -8,4 +8,4 @@ docker run -d \
   -v /data/fastapi-admin/manifest/config/config.yaml:/app/manifest/config/config.yaml \
   -v /data/fastapi-admin/resource/public:/app/resource/public \
   --name fastapi-admin \
-  iimeta/fastapi-admin:0.1.0
+  iimeta/fastapi-admin:0.1.1

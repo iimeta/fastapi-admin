@@ -14,7 +14,7 @@
 
 ## 手动Docker部署
 0. 需提前安装好Redis和MongoDB以及Docker服务
-1. 拉取镜像: `docker pull iimeta/fastapi-admin:0.1.0`
+1. 拉取镜像: `docker pull iimeta/fastapi-admin:0.1.1`
 2. 创建配置文件目录: `mkdir -p /data/fastapi-admin/manifest/config`
 3. 创建公开文件目录: `mkdir -p /data/fastapi-admin/resource/public`
 4. 进入配置文件目录: `cd /data/fastapi-admin/manifest/config`
@@ -30,7 +30,7 @@ docker run -d \
   -v /data/fastapi-admin/manifest/config/config.yaml:/app/manifest/config/config.yaml \
   -v /data/fastapi-admin/resource/public:/app/resource/public \
   --name fastapi-admin \
-  iimeta/fastapi-admin:0.1.0
+  iimeta/fastapi-admin:0.1.1
 ```
 8. 用户端访问: http://ip:8080/login 如: http://127.0.0.1:8080/login
 9. 管理端访问: http://ip:8080/admin 如: http://127.0.0.1:8080/admin
@@ -48,7 +48,7 @@ docker run -d \
 
 ## 备用国内镜像地址
 ```shell
-docker pull registry.cn-hangzhou.aliyuncs.com/iimeta/fastapi-admin:0.1.0
+docker pull registry.cn-hangzhou.aliyuncs.com/iimeta/fastapi-admin:0.1.1
 ```
 ```shell
 docker run -d \
@@ -59,7 +59,7 @@ docker run -d \
   -v /data/fastapi-admin/manifest/config/config.yaml:/app/manifest/config/config.yaml \
   -v /data/fastapi-admin/resource/public:/app/resource/public \
   --name fastapi-admin \
-  registry.cn-hangzhou.aliyuncs.com/iimeta/fastapi-admin:0.1.0
+  registry.cn-hangzhou.aliyuncs.com/iimeta/fastapi-admin:0.1.1
 ```
 
 
