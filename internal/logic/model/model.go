@@ -363,6 +363,10 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		filter["type"] = params.Type
 	}
 
+	if params.Status != 0 {
+		filter["status"] = params.Status
+	}
+
 	results, err := dao.Model.FindByPage(ctx, paging, filter, "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)

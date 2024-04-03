@@ -39,14 +39,14 @@ type ModelAgentDetailRes struct {
 // 模型代理分页列表接口请求参数
 type ModelAgentPageReq struct {
 	Paging
-	Name      string   `json:"name,omitempty"`         // 模型代理名称
-	BaseUrl   string   `json:"base_url,omitempty"`     // 模型代理地址
-	Path      string   `json:"path,omitempty"`         // 模型代理地址路径
-	Weight    int      `json:"weight,omitempty"`       // 权重
-	Models    []string `json:"models,omitempty"`       // 绑定模型
-	Remark    string   `json:"remark,omitempty"`       // 备注
-	Status    int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt []string `json:"created_at,omitempty"`   // 创建时间
+	Name      string   `json:"name,omitempty"`       // 模型代理名称
+	BaseUrl   string   `json:"base_url,omitempty"`   // 模型代理地址
+	Path      string   `json:"path,omitempty"`       // 模型代理地址路径
+	Weight    int      `json:"weight,omitempty"`     // 权重
+	Models    []string `json:"models,omitempty"`     // 绑定模型
+	Remark    string   `json:"remark,omitempty"`     // 备注
+	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
 }
 
 // 模型代理分页列表接口响应参数

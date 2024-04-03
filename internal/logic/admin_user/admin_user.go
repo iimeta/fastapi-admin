@@ -206,6 +206,10 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		filter["email"] = params.Email
 	}
 
+	if params.Status != 0 {
+		filter["status"] = params.Status
+	}
+
 	results, err := dao.User.FindByPage(ctx, paging, filter, "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)

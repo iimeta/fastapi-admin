@@ -60,7 +60,7 @@ type ModelPageReq struct {
 	IsEnableModelAgent bool     `json:"is_enable_model_agent"`      // 是否启用模型代理
 	IsPublic           bool     `json:"is_public"`                  // 是否公开
 	Remark             string   `json:"remark,omitempty"`           // 备注
-	Status             int      `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
+	Status             int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
 	CreatedAt          []string `json:"created_at,omitempty"`       // 创建时间
 }
 
