@@ -276,16 +276,32 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 // 授予用户额度
 func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error {
 
-	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": params.UserId}, bson.M{
-		"$inc": bson.M{
-			"quota": params.Quota,
-		},
-	}); err != nil {
+	oldData, err := dao.User.FindOne(ctx, bson.M{"user_id": params.UserId})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if _, err := redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+	newData, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
+		"$inc": bson.M{
+			"quota": params.Quota,
+		},
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
