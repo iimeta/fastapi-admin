@@ -33,28 +33,33 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 	}
 
 	chat := &model.Chat{
-		Id:               result.Id,
-		TraceId:          result.TraceId,
-		UserId:           result.UserId,
-		AppId:            result.AppId,
-		Corp:             result.Corp,
-		Model:            result.Model,
-		Type:             result.Type,
-		Stream:           result.Stream,
-		Prompt:           result.Prompt,
-		Completion:       result.Completion,
-		PromptRatio:      result.PromptRatio,
-		CompletionRatio:  result.CompletionRatio,
-		PromptTokens:     result.PromptTokens,
-		CompletionTokens: result.CompletionTokens,
-		TotalTokens:      result.TotalTokens,
-		ConnTime:         result.ConnTime,
-		Duration:         result.Duration,
-		TotalTime:        result.TotalTime,
-		ReqTime:          util.FormatDatetime(result.ReqTime),
-		ClientIp:         result.ClientIp,
-		Status:           result.Status,
-		Creator:          result.Creator,
+		Id:            result.Id,
+		TraceId:       result.TraceId,
+		UserId:        result.UserId,
+		AppId:         result.AppId,
+		Corp:          result.Corp,
+		Model:         result.Model,
+		Type:          result.Type,
+		Stream:        result.Stream,
+		Prompt:        result.Prompt,
+		Completion:    result.Completion,
+		BillingMethod: result.BillingMethod,
+		TotalTokens:   result.TotalTokens,
+		FixedQuota:    result.FixedQuota,
+		ConnTime:      result.ConnTime,
+		Duration:      result.Duration,
+		TotalTime:     result.TotalTime,
+		ReqTime:       util.FormatDatetime(result.ReqTime),
+		ClientIp:      result.ClientIp,
+		Status:        result.Status,
+		Creator:       result.Creator,
+	}
+
+	if result.BillingMethod == 1 {
+		chat.PromptRatio = result.PromptRatio
+		chat.CompletionRatio = result.CompletionRatio
+		chat.PromptTokens = result.PromptTokens
+		chat.CompletionTokens = result.CompletionTokens
 	}
 
 	for _, message := range result.Messages {
@@ -69,6 +74,10 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.ModelId = result.ModelId
 		chat.Name = result.Name
 		chat.Key = result.Key
+		chat.PromptRatio = result.PromptRatio
+		chat.CompletionRatio = result.CompletionRatio
+		chat.PromptTokens = result.PromptTokens
+		chat.CompletionTokens = result.CompletionTokens
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
 		chat.ModelAgentId = result.ModelAgentId
 		chat.RemoteIp = result.RemoteIp
@@ -152,24 +161,34 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	for _, result := range results {
 
 		chat := &model.Chat{
-			Id:               result.Id,
-			UserId:           result.UserId,
-			AppId:            result.AppId,
-			Corp:             result.Corp,
-			Model:            result.Model,
-			Stream:           result.Stream,
-			PromptTokens:     result.PromptTokens,
-			CompletionTokens: result.CompletionTokens,
-			TotalTokens:      result.TotalTokens,
-			ConnTime:         result.ConnTime,
-			Duration:         result.Duration,
-			TotalTime:        result.TotalTime,
-			ReqTime:          util.FormatDatetime(result.ReqTime)[5:],
-			Status:           result.Status,
-			Creator:          result.Creator,
+			Id:            result.Id,
+			UserId:        result.UserId,
+			AppId:         result.AppId,
+			Corp:          result.Corp,
+			Model:         result.Model,
+			Stream:        result.Stream,
+			BillingMethod: result.BillingMethod,
+			TotalTokens:   result.TotalTokens,
+			ConnTime:      result.ConnTime,
+			Duration:      result.Duration,
+			TotalTime:     result.TotalTime,
+			ReqTime:       util.FormatDatetime(result.ReqTime)[5:],
+			Status:        result.Status,
+			Creator:       result.Creator,
+		}
+
+		if result.BillingMethod == 1 {
+			chat.PromptRatio = result.PromptRatio
+			chat.CompletionRatio = result.CompletionRatio
+			chat.PromptTokens = result.PromptTokens
+			chat.CompletionTokens = result.CompletionTokens
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			chat.PromptRatio = result.PromptRatio
+			chat.CompletionRatio = result.CompletionRatio
+			chat.PromptTokens = result.PromptTokens
+			chat.CompletionTokens = result.CompletionTokens
 			chat.InternalTime = result.InternalTime
 		}
 

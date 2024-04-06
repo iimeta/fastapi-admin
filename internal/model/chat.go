@@ -42,11 +42,13 @@ type Chat struct {
 	Messages           []Message   `json:"messages,omitempty"`              // 完整提示(提问)
 	Prompt             string      `json:"prompt,omitempty"`                // 提示(提问)
 	Completion         string      `json:"completion,omitempty"`            // 补全(回答)
+	BillingMethod      int         `json:"billing_method,omitempty"`        // 计费方式[1:倍率, 2:固定额度]
 	PromptRatio        float64     `json:"prompt_ratio,omitempty"`          // 提示倍率(提问倍率)
 	CompletionRatio    float64     `json:"completion_ratio,omitempty"`      // 补全倍率(回答倍率)
 	PromptTokens       int         `json:"prompt_tokens,omitempty"`         // 提示令牌数(提问令牌数)
 	CompletionTokens   int         `json:"completion_tokens,omitempty"`     // 补全令牌数(回答令牌数)
 	TotalTokens        int         `json:"total_tokens,omitempty"`          // 总令牌数
+	FixedQuota         int         `json:"fixed_quota,omitempty"`           // 固定额度
 	ConnTime           int64       `json:"conn_time,omitempty"`             // 连接时间
 	Duration           int64       `json:"duration,omitempty"`              // 持续时间
 	TotalTime          int64       `json:"total_time,omitempty"`            // 总时间
