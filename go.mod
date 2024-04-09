@@ -4,8 +4,8 @@ go 1.22
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/gogf/gf/contrib/nosql/redis/v2 v2.6.4
-	github.com/gogf/gf/v2 v2.6.4
+	github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.0
+	github.com/gogf/gf/v2 v2.7.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/tjfoc/gmsm v1.4.1
