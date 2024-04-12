@@ -109,6 +109,66 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		return err
 	}
 
+	for _, modelAgentId := range params.ModelAgents {
+
+		if !slices.Contains(oldData.ModelAgents, modelAgentId) {
+
+			modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
+				Id:      modelAgent.Id,
+				Name:    modelAgent.Name,
+				BaseUrl: modelAgent.BaseUrl,
+				Path:    modelAgent.Path,
+				Weight:  modelAgent.Weight,
+				Models:  append(modelAgent.Models, params.Id),
+				Key:     modelAgent.Key,
+				Remark:  modelAgent.Remark,
+				Status:  modelAgent.Status,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	for _, modelAgentId := range oldData.ModelAgents {
+
+		if !slices.Contains(params.ModelAgents, modelAgentId) {
+
+			modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			for i, modelId := range modelAgent.Models {
+				if modelId == params.Id {
+					modelAgent.Models = util.Delete(modelAgent.Models, i)
+				}
+			}
+
+			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
+				Id:      modelAgent.Id,
+				Name:    modelAgent.Name,
+				BaseUrl: modelAgent.BaseUrl,
+				Path:    modelAgent.Path,
+				Weight:  modelAgent.Weight,
+				Models:  modelAgent.Models,
+				Key:     modelAgent.Key,
+				Remark:  modelAgent.Remark,
+				Status:  modelAgent.Status,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
 	newData, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, &do.Model{
 		Corp:               params.Corp,
 		Name:               gstr.Trim(params.Name),
@@ -211,66 +271,6 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
-	}
-
-	for _, modelAgentId := range newData.ModelAgents {
-
-		if !slices.Contains(oldData.ModelAgents, modelAgentId) {
-
-			modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
-			if err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-
-			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:      modelAgent.Id,
-				Name:    modelAgent.Name,
-				BaseUrl: modelAgent.BaseUrl,
-				Path:    modelAgent.Path,
-				Weight:  modelAgent.Weight,
-				Models:  append(modelAgent.Models, newData.Id),
-				Key:     modelAgent.Key,
-				Remark:  modelAgent.Remark,
-				Status:  modelAgent.Status,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-	}
-
-	for _, modelAgentId := range oldData.ModelAgents {
-
-		if !slices.Contains(newData.ModelAgents, modelAgentId) {
-
-			modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
-			if err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-
-			for i, modelId := range modelAgent.Models {
-				if modelId == newData.Id {
-					modelAgent.Models = append(modelAgent.Models[:i], modelAgent.Models[i+1:]...)
-				}
-			}
-
-			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:      modelAgent.Id,
-				Name:    modelAgent.Name,
-				BaseUrl: modelAgent.BaseUrl,
-				Path:    modelAgent.Path,
-				Weight:  modelAgent.Weight,
-				Models:  modelAgent.Models,
-				Key:     modelAgent.Key,
-				Remark:  modelAgent.Remark,
-				Status:  modelAgent.Status,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
 	}
 
 	return nil

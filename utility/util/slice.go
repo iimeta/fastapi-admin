@@ -29,3 +29,18 @@ func ToMap[T any, K int | string](arr []T, fn func(T) K) map[K]T {
 
 	return m
 }
+
+func Delete(slice []string, index int) (newSlice []string) {
+
+	if index < 0 || index >= len(slice) {
+		return slice
+	}
+
+	if index == 0 {
+		return slice[1:]
+	} else if index == len(slice)-1 {
+		return slice[:index]
+	}
+
+	return append(slice[:index], slice[index+1:]...)
+}
