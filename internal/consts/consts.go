@@ -35,6 +35,7 @@ const (
 	CORP_BAIDU      = "Baidu"
 	CORP_XFYUN      = "Xfyun"
 	CORP_ALIYUN     = "Aliyun"
+	CORP_ZHIPUAI    = "ZhipuAI"
 	CORP_MIDJOURNEY = "Midjourney"
 )
 

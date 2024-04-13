@@ -238,9 +238,19 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 	case "app":
 		pipeline = append(pipeline, bson.M{
 			"$group": bson.M{
-				"_id":    "$app_id",
+				"_id":     "$app_id",
+				"user_id": bson.M{"$first": "$user_id"},
+				"count":   bson.M{"$sum": 1},
+				"models":  bson.M{"$addToSet": "$model"},
+				"tokens":  bson.M{"$sum": "$total_tokens"},
+			},
+		})
+	case "app_key":
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":    "$creator",
+				"app_id": bson.M{"$first": "$app_id"},
 				"count":  bson.M{"$sum": 1},
-				"models": bson.M{"$addToSet": "$model"},
 				"tokens": bson.M{"$sum": "$total_tokens"},
 			},
 		})
@@ -284,8 +294,18 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 		for _, res := range result {
 			items = append(items, &model.DataTop{
 				AppId:  gconv.Int(res["_id"]),
+				UserId: gconv.Int(res["user_id"]),
 				Call:   gconv.Int(res["count"]),
 				Models: len(gconv.SliceAny(res["models"])),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+	case "app_key":
+		for _, res := range result {
+			items = append(items, &model.DataTop{
+				AppKey: gconv.String(res["_id"]),
+				AppId:  gconv.Int(res["app_id"]),
+				Call:   gconv.Int(res["count"]),
 				Tokens: gconv.Int(res["tokens"]),
 			})
 		}

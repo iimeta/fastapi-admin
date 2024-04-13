@@ -72,6 +72,7 @@ type Expense struct {
 type DataTop struct {
 	UserId int    `json:"user_id,omitempty"` // 用户ID
 	AppId  int    `json:"app_id,omitempty"`  // 应用ID
+	AppKey string `json:"app_key,omitempty"` // 应用密钥
 	Model  string `json:"model,omitempty"`   // 模型
 	Call   int    `json:"call"`              // 调用数
 	Models int    `json:"models"`            // 模型数
