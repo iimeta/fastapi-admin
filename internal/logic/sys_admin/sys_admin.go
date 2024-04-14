@@ -32,8 +32,8 @@ func New() service.ISysAdmin {
 // 管理员更新信息
 func (s *sSysAdmin) UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error {
 
-	if err := dao.SysAdmin.UpdateById(ctx, service.Session().GetUid(ctx), &do.User{
-		Name: params.Name,
+	if err := dao.SysAdmin.UpdateById(ctx, service.Session().GetUid(ctx), bson.M{
+		"name": params.Name,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -156,8 +156,8 @@ func (s *sSysAdmin) ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) er
 		return err
 	}
 
-	if err = dao.SysAdmin.UpdateById(ctx, service.Session().GetUid(ctx), &do.User{
-		Avatar: path + filename,
+	if err = dao.SysAdmin.UpdateById(ctx, service.Session().GetUid(ctx), bson.M{
+		"avatar": path + filename,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err

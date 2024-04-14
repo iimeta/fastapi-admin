@@ -31,8 +31,8 @@ func New() service.IUser {
 // 用户更新信息
 func (s *sUser) UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error {
 
-	if err := dao.User.UpdateById(ctx, service.Session().GetUid(ctx), &do.User{
-		Name: params.Name,
+	if err := dao.User.UpdateById(ctx, service.Session().GetUid(ctx), bson.M{
+		"name": params.Name,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -194,8 +194,8 @@ func (s *sUser) ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error 
 		return err
 	}
 
-	if err = dao.User.UpdateById(ctx, service.Session().GetUid(ctx), &do.User{
-		Avatar: path + filename,
+	if err = dao.User.UpdateById(ctx, service.Session().GetUid(ctx), bson.M{
+		"avatar": path + filename,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
