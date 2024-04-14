@@ -43,6 +43,7 @@ type Config struct {
 	App                *App   `json:"app"`
 	Http               *Http  `json:"http"`
 	Email              *Email `json:"email"`
+	Debug              bool   `json:"debug"`
 }
 
 type App struct {
@@ -54,9 +55,8 @@ type App struct {
 }
 
 type Http struct {
-	Timeout   time.Duration `json:"timeout"`
-	ProxyOpen bool          `json:"proxy_open"`
-	ProxyUrl  string        `json:"proxy_url"`
+	Timeout  time.Duration `json:"timeout"`
+	ProxyUrl string        `json:"proxy_url"`
 }
 
 // 邮件配置信息
