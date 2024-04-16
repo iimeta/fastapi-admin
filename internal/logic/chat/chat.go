@@ -151,7 +151,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		}
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, paging, filter, "-updated_at")
+	results, err := dao.Chat.FindByPage(ctx, paging, filter, "-req_time")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
