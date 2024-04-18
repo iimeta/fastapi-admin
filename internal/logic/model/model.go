@@ -37,7 +37,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		return errors.Newf("模型名称 \"%s\" 已存在", params.Name)
 	}
 
-	id, err := dao.Model.Insert(ctx, &do.Model{
+	m := &do.Model{
 		Corp:               params.Corp,
 		Name:               gstr.Trim(params.Name),
 		Model:              gstr.Trim(params.Model),
@@ -50,12 +50,24 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		CompletionRatio:    params.CompletionRatio,
 		FixedQuota:         params.FixedQuota,
 		DataFormat:         params.DataFormat,
+		IsPublic:           params.IsPublic,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		ModelAgents:        params.ModelAgents,
-		IsPublic:           params.IsPublic,
+		IsForward:          params.IsForward,
 		Remark:             params.Remark,
 		Status:             params.Status,
-	})
+	}
+
+	if params.ForwardConfig != nil {
+		m.ForwardConfig = &do.ForwardConfig{
+			ForwardRule:  params.ForwardConfig.ForwardRule,
+			TargetModel:  params.ForwardConfig.TargetModel,
+			Keywords:     params.ForwardConfig.Keywords,
+			TargetModels: params.ForwardConfig.TargetModels,
+		}
+	}
+
+	id, err := dao.Model.Insert(ctx, m)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -171,7 +183,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		}
 	}
 
-	newData, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, &do.Model{
+	m := &do.Model{
 		Corp:               params.Corp,
 		Name:               gstr.Trim(params.Name),
 		Model:              gstr.Trim(params.Model),
@@ -184,12 +196,24 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		CompletionRatio:    params.CompletionRatio,
 		FixedQuota:         params.FixedQuota,
 		DataFormat:         params.DataFormat,
+		IsPublic:           params.IsPublic,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		ModelAgents:        params.ModelAgents,
-		IsPublic:           params.IsPublic,
+		IsForward:          params.IsForward,
 		Remark:             params.Remark,
 		Status:             params.Status,
-	})
+	}
+
+	if params.ForwardConfig != nil {
+		m.ForwardConfig = &do.ForwardConfig{
+			ForwardRule:  params.ForwardConfig.ForwardRule,
+			TargetModel:  params.ForwardConfig.TargetModel,
+			Keywords:     params.ForwardConfig.Keywords,
+			TargetModels: params.ForwardConfig.TargetModels,
+		}
+	}
+
+	newData, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, m)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -373,7 +397,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		}
 	}
 
-	return &model.Model{
+	detail := &model.Model{
 		Id:                 m.Id,
 		Corp:               m.Corp,
 		Name:               m.Name,
@@ -387,15 +411,27 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		CompletionRatio:    m.CompletionRatio,
 		FixedQuota:         m.FixedQuota,
 		DataFormat:         m.DataFormat,
+		IsPublic:           m.IsPublic,
 		IsEnableModelAgent: m.IsEnableModelAgent,
 		ModelAgents:        m.ModelAgents,
 		ModelAgentNames:    modelAgentNames,
-		IsPublic:           m.IsPublic,
+		IsForward:          m.IsForward,
 		Remark:             m.Remark,
 		Status:             m.Status,
 		CreatedAt:          util.FormatDatetime(m.CreatedAt),
 		UpdatedAt:          util.FormatDatetime(m.UpdatedAt),
-	}, nil
+	}
+
+	if m.ForwardConfig != nil {
+		detail.ForwardConfig = &model.ForwardConfig{
+			ForwardRule:  m.ForwardConfig.ForwardRule,
+			TargetModel:  m.ForwardConfig.TargetModel,
+			Keywords:     m.ForwardConfig.Keywords,
+			TargetModels: m.ForwardConfig.TargetModels,
+		}
+	}
+
+	return detail, nil
 }
 
 // 模型分页列表
