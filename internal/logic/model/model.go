@@ -423,11 +423,30 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 	}
 
 	if m.ForwardConfig != nil {
+
 		detail.ForwardConfig = &model.ForwardConfig{
 			ForwardRule:  m.ForwardConfig.ForwardRule,
 			TargetModel:  m.ForwardConfig.TargetModel,
 			Keywords:     m.ForwardConfig.Keywords,
 			TargetModels: m.ForwardConfig.TargetModels,
+		}
+
+		if detail.ForwardConfig.TargetModel != "" {
+			modelNames, err := s.ModelNames(ctx, []string{detail.ForwardConfig.TargetModel})
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			detail.ForwardConfig.TargetModelName = modelNames[0]
+		}
+
+		if detail.ForwardConfig.TargetModels != nil && len(detail.ForwardConfig.TargetModels) > 0 {
+			modelNames, err := s.ModelNames(ctx, detail.ForwardConfig.TargetModels)
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			detail.ForwardConfig.TargetModelNames = modelNames
 		}
 	}
 
