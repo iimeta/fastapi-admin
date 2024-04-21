@@ -266,7 +266,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 		})
 	}
 
-	pipeline = append(pipeline, bson.M{"$sort": bson.M{"count": -1}}, bson.M{"$limit": 10})
+	pipeline = append(pipeline, bson.M{"$sort": bson.M{"tokens": -1, "count": -1}}, bson.M{"$limit": 10})
 
 	if service.Session().IsUserRole(ctx) {
 		match := pipeline[0]["$match"].(bson.M)

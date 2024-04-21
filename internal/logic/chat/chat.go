@@ -80,6 +80,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.CompletionTokens = result.CompletionTokens
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
 		chat.ModelAgentId = result.ModelAgentId
+		chat.IsForward = result.IsForward
 		chat.RemoteIp = result.RemoteIp
 		chat.LocalIp = result.LocalIp
 		chat.InternalTime = result.InternalTime
@@ -96,6 +97,20 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 				Remark:  result.ModelAgent.Remark,
 				Status:  result.ModelAgent.Status,
 			}
+		}
+
+		if chat.IsForward && result.ForwardConfig != nil {
+
+			chat.ForwardConfig = &model.ForwardConfig{
+				ForwardRule:  result.ForwardConfig.ForwardRule,
+				TargetModel:  result.ForwardConfig.TargetModel,
+				Keywords:     result.ForwardConfig.Keywords,
+				TargetModels: result.ForwardConfig.TargetModels,
+			}
+
+			chat.RealModelId = result.RealModelId
+			chat.RealModelName = result.RealModelName
+			chat.RealModel = result.RealModel
 		}
 	}
 
