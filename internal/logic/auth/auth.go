@@ -208,6 +208,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Email:     user.Email,
 			Phone:     user.Phone,
 			Quota:     user.Quota,
+			UsedQuota: user.UsedQuota,
 			Models:    user.Models,
 			Account:   accountInfo.Account,
 			CreatedAt: util.FormatDatetime(user.CreatedAt),

@@ -80,7 +80,7 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 	}
 
 	fields := g.Map{
-		fmt.Sprintf(consts.APP_TOTAL_TOKENS_FIELD, app.AppId):   app.Quota,
+		fmt.Sprintf(consts.APP_QUOTA_FIELD, app.AppId):          app.Quota,
 		fmt.Sprintf(consts.APP_IS_LIMIT_QUOTA_FIELD, app.AppId): app.IsLimitQuota,
 	}
 
@@ -172,6 +172,7 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		ModelNames:   modelNames,
 		IsLimitQuota: app.IsLimitQuota,
 		Quota:        app.Quota,
+		UsedQuota:    app.UsedQuota,
 		IpWhitelist:  app.IpWhitelist,
 		IpBlacklist:  app.IpBlacklist,
 		Remark:       app.Remark,
@@ -244,6 +245,7 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			ModelNames:   modelNames,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
+			UsedQuota:    result.UsedQuota,
 			Status:       result.Status,
 			CreatedAt:    util.FormatDatetime(result.CreatedAt),
 			UpdatedAt:    util.FormatDatetime(result.UpdatedAt),
@@ -280,6 +282,7 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 			Type:         result.Type,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
+			UsedQuota:    result.UsedQuota,
 			Status:       result.Status,
 		})
 	}
@@ -344,6 +347,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 			Key:          key.Key,
 			IsLimitQuota: key.IsLimitQuota,
 			Quota:        key.Quota,
+			UsedQuota:    key.UsedQuota,
 			Type:         key.Type,
 			Models:       key.Models,
 			IpWhitelist:  key.IpWhitelist,
@@ -360,7 +364,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 	}
 
 	fields := g.Map{
-		fmt.Sprintf(consts.KEY_TOTAL_TOKENS_FIELD, keyInfo.AppId, keyInfo.Key):   key.Quota,
+		fmt.Sprintf(consts.KEY_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key):          key.Quota,
 		fmt.Sprintf(consts.KEY_IS_LIMIT_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key): key.IsLimitQuota,
 	}
 

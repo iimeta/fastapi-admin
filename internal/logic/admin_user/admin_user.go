@@ -76,7 +76,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return err
 	}
 
-	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -175,6 +175,7 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		Phone:      user.Phone,
 		Email:      user.Email,
 		Quota:      user.Quota,
+		UsedQuota:  user.UsedQuota,
 		Models:     user.Models,
 		ModelNames: modelNames,
 		Remark:     user.Remark,
@@ -226,6 +227,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			Email:     result.Email,
 			Phone:     result.Phone,
 			Quota:     result.Quota,
+			UsedQuota: result.UsedQuota,
 			Models:    result.Models,
 			Status:    result.Status,
 			CreatedAt: util.FormatDatetime(result.CreatedAt),
@@ -263,6 +265,7 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 			Email:     result.Email,
 			Phone:     result.Phone,
 			Quota:     result.Quota,
+			UsedQuota: result.UsedQuota,
 			Models:    result.Models,
 			Status:    result.Status,
 			CreatedAt: util.FormatDatetime(result.CreatedAt),
@@ -292,7 +295,7 @@ func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuota
 		return err
 	}
 
-	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_TOTAL_TOKENS_FIELD, int64(params.Quota)); err != nil {
+	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

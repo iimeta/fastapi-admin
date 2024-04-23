@@ -84,7 +84,8 @@ type Key struct {
 	ModelAgentNames []string `json:"model_agent_names,omitempty"` // 模型代理名称
 	IsAgentsOnly    bool     `json:"is_agents_only"`              // 是否代理专用
 	IsLimitQuota    bool     `json:"is_limit_quota"`              // 是否限制额度
-	Quota           int      `json:"quota,omitempty"`             // 额度
+	Quota           int      `json:"quota,omitempty"`             // 剩余额度
+	UsedQuota       int      `json:"used_quota,omitempty"`        // 已用额度
 	IpWhitelist     []string `json:"ip_whitelist,omitempty"`      // IP白名单
 	IpBlacklist     []string `json:"ip_blacklist,omitempty"`      // IP黑名单
 	Remark          string   `json:"remark,omitempty"`            // 备注

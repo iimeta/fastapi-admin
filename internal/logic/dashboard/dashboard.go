@@ -197,7 +197,7 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 		return &model.Expense{}, nil
 	}
 
-	quota, err := redis.HGetInt(ctx, fmt.Sprintf(consts.API_USAGE_KEY, service.Session().GetUserId(ctx)), consts.USER_TOTAL_TOKENS_FIELD)
+	quota, err := redis.HGetInt(ctx, fmt.Sprintf(consts.API_USAGE_KEY, service.Session().GetUserId(ctx)), consts.USER_QUOTA_FIELD)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

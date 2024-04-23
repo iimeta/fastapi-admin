@@ -122,7 +122,8 @@ type User struct {
 	Avatar     string   `json:"avatar,omitempty"`      // 头像
 	Email      string   `json:"email,omitempty"`       // 邮箱
 	Phone      string   `json:"phone,omitempty"`       // 手机号
-	Quota      int      `json:"quota"`                 // 额度
+	Quota      int      `json:"quota"`                 // 剩余额度
+	UsedQuota  int      `json:"used_quota"`            // 已用额度
 	Models     []string `json:"models,omitempty"`      // 模型权限
 	ModelNames []string `json:"model_names,omitempty"` // 模型名称
 	Account    string   `json:"account,omitempty"`     // 账号

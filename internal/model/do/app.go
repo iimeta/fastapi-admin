@@ -13,7 +13,8 @@ type App struct {
 	Type         int      `bson:"type,omitempty"`       // 应用类型
 	Models       []string `bson:"models"`               // 模型权限
 	IsLimitQuota bool     `bson:"is_limit_quota"`       // 是否限制额度
-	Quota        int      `bson:"quota"`                // 额度
+	Quota        int      `bson:"quota"`                // 剩余额度
+	UsedQuota    int      `bson:"used_quota,omitempty"` // 已用额度
 	RPM          int      `bson:"rpm,omitempty"`        // 每分钟请求数
 	RPD          int      `bson:"rpd,omitempty"`        // 每天的请求数
 	IpWhitelist  []string `bson:"ip_whitelist"`         // IP白名单

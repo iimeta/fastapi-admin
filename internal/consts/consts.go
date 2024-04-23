@@ -42,11 +42,11 @@ const (
 const (
 	API_USAGE_KEY = "api:%d:usage"
 
-	USER_TOTAL_TOKENS_FIELD = "user.total_tokens"
+	USER_QUOTA_FIELD = "user.quota"
 
-	APP_TOTAL_TOKENS_FIELD   = "app.%d.total_tokens"
+	APP_QUOTA_FIELD          = "app.%d.quota"
 	APP_IS_LIMIT_QUOTA_FIELD = "app.%d.is_limit_quota"
 
-	KEY_TOTAL_TOKENS_FIELD   = "key.%d.%s.total_tokens"
+	KEY_QUOTA_FIELD          = "key.%d.%s.quota"
 	KEY_IS_LIMIT_QUOTA_FIELD = "key.%d.%s.is_limit_quota"
 )
