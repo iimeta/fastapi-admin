@@ -2,7 +2,6 @@ package dashboard
 
 import (
 	"context"
-	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -10,9 +9,9 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
-	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"math"
 )
 
 type sDashboard struct{}
@@ -43,8 +42,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	}
 
 	if service.Session().IsUserRole(ctx) {
-		models := service.Session().GetUser(ctx).Models
-		if len(models) > 0 {
+		if models := service.Session().GetUser(ctx).Models; len(models) > 0 {
 			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
 				logger.Error(ctx, err)
 				return nil, err
@@ -197,14 +195,17 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 		return &model.Expense{}, nil
 	}
 
-	quota, err := redis.HGetInt(ctx, fmt.Sprintf(consts.API_USAGE_KEY, service.Session().GetUserId(ctx)), consts.USER_QUOTA_FIELD)
+	user, err := service.User().GetUserByUserId(ctx, service.Session().GetUserId(ctx))
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	return &model.Expense{
-		Quota: quota,
+		Quota:        user.Quota,
+		QuotaUSD:     round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
+		UsedQuota:    user.UsedQuota,
+		UsedQuotaUSD: round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
 	}, nil
 }
 
@@ -377,4 +378,9 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 	}
 
 	return models, items, nil
+}
+
+func round(f float64, n int) float64 {
+	n10 := math.Pow10(n)
+	return math.Trunc((f+0.5/n10)*n10) / n10
 }

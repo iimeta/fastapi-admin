@@ -23,7 +23,7 @@ type (
 		// 用户更改头像
 		ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error
 		// 根据userId获取用户信息
-		GetUserById(ctx context.Context, userId int) (*model.User, error)
+		GetUserByUserId(ctx context.Context, userId int) (*model.User, error)
 	}
 )
 

@@ -65,7 +65,10 @@ type CallData struct {
 
 // 费用
 type Expense struct {
-	Quota int `json:"quota"` // 额度
+	Quota        int     `json:"quota"`          // 剩余额度
+	QuotaUSD     float64 `json:"quota_usd"`      // 剩余额度美元单位
+	UsedQuota    int     `json:"used_quota"`     // 已用额度
+	UsedQuotaUSD float64 `json:"used_quota_usd"` // 已用额度美元单位
 }
 
 // 数据TOP

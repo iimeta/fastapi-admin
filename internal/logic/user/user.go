@@ -213,7 +213,7 @@ func (s *sUser) ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error 
 }
 
 // 根据userId获取用户信息
-func (s *sUser) GetUserById(ctx context.Context, userId int) (*model.User, error) {
+func (s *sUser) GetUserByUserId(ctx context.Context, userId int) (*model.User, error) {
 
 	user, err := dao.User.FindUserByUserId(ctx, userId)
 	if err != nil {
