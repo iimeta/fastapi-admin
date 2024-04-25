@@ -11,5 +11,19 @@ func Round(f float64, n int) float64 {
 }
 
 func PriceConv(ratio float64) float64 {
+
+	if ratio == 0.0 {
+		return ratio
+	}
+
 	return Round(1000/(consts.QUOTA_USD_UNIT/ratio), 4)
+}
+
+func QuotaConv(quota int) float64 {
+
+	if quota == 0 {
+		return 0.0
+	}
+
+	return Round(float64(quota)/consts.QUOTA_USD_UNIT, 4)
 }

@@ -114,6 +114,7 @@ type Model struct {
 	CompletionRatio    float64        `json:"completion_ratio,omitempty"`  // 补全倍率(回答倍率)
 	CompletionPrice    float64        `json:"completion_price,omitempty"`  // 补全价格(回答价格)
 	FixedQuota         int            `json:"fixed_quota"`                 // 固定额度
+	FixedPrice         float64        `json:"fixed_price"`                 // 固定价格
 	DataFormat         int            `json:"data_format,omitempty"`       // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool           `json:"is_public"`                   // 是否公开
 	IsEnableModelAgent bool           `json:"is_enable_model_agent"`       // 是否启用模型代理

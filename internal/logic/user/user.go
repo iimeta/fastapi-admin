@@ -228,6 +228,11 @@ func (s *sUser) GetUserByUserId(ctx context.Context, userId int) (*model.User, e
 		Avatar:    user.Avatar,
 		Email:     user.Email,
 		Phone:     user.Phone,
+		Quota:     user.Quota,
+		UsedQuota: user.UsedQuota,
+		Models:    user.Models,
+		Remark:    user.Remark,
+		Status:    user.Status,
 		CreatedAt: util.FormatDatetime(user.CreatedAt),
 		UpdatedAt: util.FormatDatetime(user.UpdatedAt),
 	}, nil
