@@ -110,7 +110,9 @@ type Model struct {
 	Prompt             string         `json:"prompt,omitempty"`            // 预设提示词
 	BillingMethod      int            `json:"billing_method,omitempty"`    // 计费方式[1:倍率, 2:固定额度]
 	PromptRatio        float64        `json:"prompt_ratio,omitempty"`      // 提示倍率(提问倍率)
+	PromptPrice        float64        `json:"prompt_price,omitempty"`      // 提示价格(提问价格)
 	CompletionRatio    float64        `json:"completion_ratio,omitempty"`  // 补全倍率(回答倍率)
+	CompletionPrice    float64        `json:"completion_price,omitempty"`  // 补全价格(回答价格)
 	FixedQuota         int            `json:"fixed_quota"`                 // 固定额度
 	DataFormat         int            `json:"data_format,omitempty"`       // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool           `json:"is_public"`                   // 是否公开

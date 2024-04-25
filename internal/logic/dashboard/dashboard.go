@@ -11,7 +11,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"math"
 )
 
 type sDashboard struct{}
@@ -203,9 +202,9 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
 	return &model.Expense{
 		Quota:        user.Quota,
-		QuotaUSD:     round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
+		QuotaUSD:     util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
 		UsedQuota:    user.UsedQuota,
-		UsedQuotaUSD: round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
+		UsedQuotaUSD: util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
 	}, nil
 }
 
@@ -378,9 +377,4 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 	}
 
 	return models, items, nil
-}
-
-func round(f float64, n int) float64 {
-	n10 := math.Pow10(n)
-	return math.Trunc((f+0.5/n10)*n10) / n10
 }
