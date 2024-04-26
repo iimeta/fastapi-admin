@@ -49,7 +49,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		ConnTime:      result.ConnTime,
 		Duration:      result.Duration,
 		TotalTime:     result.TotalTime,
-		ReqTime:       util.FormatDatetime(result.ReqTime),
+		ReqTime:       util.FormatDateTime(result.ReqTime),
 		ClientIp:      result.ClientIp,
 		Status:        result.Status,
 		Creator:       result.Creator,
@@ -85,8 +85,8 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.LocalIp = result.LocalIp
 		chat.InternalTime = result.InternalTime
 		chat.ErrMsg = result.ErrMsg
-		chat.CreatedAt = util.FormatDatetime(result.CreatedAt)
-		chat.UpdatedAt = util.FormatDatetime(result.UpdatedAt)
+		chat.CreatedAt = util.FormatDateTime(result.CreatedAt)
+		chat.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 
 		if result.ModelAgent != nil {
 			chat.ModelAgent = &model.ModelAgent{
@@ -102,10 +102,12 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		if chat.IsForward && result.ForwardConfig != nil {
 
 			chat.ForwardConfig = &model.ForwardConfig{
-				ForwardRule:  result.ForwardConfig.ForwardRule,
-				TargetModel:  result.ForwardConfig.TargetModel,
-				Keywords:     result.ForwardConfig.Keywords,
-				TargetModels: result.ForwardConfig.TargetModels,
+				ForwardRule:   result.ForwardConfig.ForwardRule,
+				MatchRule:     result.ForwardConfig.MatchRule,
+				TargetModel:   result.ForwardConfig.TargetModel,
+				DecisionModel: result.ForwardConfig.DecisionModel,
+				Keywords:      result.ForwardConfig.Keywords,
+				TargetModels:  result.ForwardConfig.TargetModels,
 			}
 
 			chat.RealModelId = result.RealModelId
@@ -187,7 +189,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			ConnTime:      result.ConnTime,
 			Duration:      result.Duration,
 			TotalTime:     result.TotalTime,
-			ReqTime:       util.FormatDatetime(result.ReqTime)[5:],
+			ReqTime:       util.FormatDateTimeMonth(result.ReqTime),
 			Status:        result.Status,
 			Creator:       result.Creator,
 		}

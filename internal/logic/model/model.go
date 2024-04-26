@@ -60,10 +60,12 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 
 	if params.ForwardConfig != nil {
 		m.ForwardConfig = &do.ForwardConfig{
-			ForwardRule:  params.ForwardConfig.ForwardRule,
-			TargetModel:  params.ForwardConfig.TargetModel,
-			Keywords:     params.ForwardConfig.Keywords,
-			TargetModels: params.ForwardConfig.TargetModels,
+			ForwardRule:   params.ForwardConfig.ForwardRule,
+			MatchRule:     params.ForwardConfig.MatchRule,
+			TargetModel:   params.ForwardConfig.TargetModel,
+			DecisionModel: params.ForwardConfig.DecisionModel,
+			Keywords:      params.ForwardConfig.Keywords,
+			TargetModels:  params.ForwardConfig.TargetModels,
 		}
 	}
 
@@ -206,10 +208,12 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 
 	if params.ForwardConfig != nil {
 		m.ForwardConfig = &do.ForwardConfig{
-			ForwardRule:  params.ForwardConfig.ForwardRule,
-			TargetModel:  params.ForwardConfig.TargetModel,
-			Keywords:     params.ForwardConfig.Keywords,
-			TargetModels: params.ForwardConfig.TargetModels,
+			ForwardRule:   params.ForwardConfig.ForwardRule,
+			MatchRule:     params.ForwardConfig.MatchRule,
+			TargetModel:   params.ForwardConfig.TargetModel,
+			DecisionModel: params.ForwardConfig.DecisionModel,
+			Keywords:      params.ForwardConfig.Keywords,
+			TargetModels:  params.ForwardConfig.TargetModels,
 		}
 	}
 
@@ -421,17 +425,19 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		IsForward:          m.IsForward,
 		Remark:             m.Remark,
 		Status:             m.Status,
-		CreatedAt:          util.FormatDatetime(m.CreatedAt),
-		UpdatedAt:          util.FormatDatetime(m.UpdatedAt),
+		CreatedAt:          util.FormatDateTime(m.CreatedAt),
+		UpdatedAt:          util.FormatDateTime(m.UpdatedAt),
 	}
 
 	if m.ForwardConfig != nil {
 
 		detail.ForwardConfig = &model.ForwardConfig{
-			ForwardRule:  m.ForwardConfig.ForwardRule,
-			TargetModel:  m.ForwardConfig.TargetModel,
-			Keywords:     m.ForwardConfig.Keywords,
-			TargetModels: m.ForwardConfig.TargetModels,
+			ForwardRule:   m.ForwardConfig.ForwardRule,
+			MatchRule:     m.ForwardConfig.MatchRule,
+			TargetModel:   m.ForwardConfig.TargetModel,
+			DecisionModel: m.ForwardConfig.DecisionModel,
+			Keywords:      m.ForwardConfig.Keywords,
+			TargetModels:  m.ForwardConfig.TargetModels,
 		}
 
 		if detail.ForwardConfig.TargetModel != "" {
@@ -441,6 +447,15 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 				return nil, err
 			}
 			detail.ForwardConfig.TargetModelName = modelNames[0]
+		}
+
+		if detail.ForwardConfig.DecisionModel != "" {
+			modelNames, err := s.ModelNames(ctx, []string{detail.ForwardConfig.DecisionModel})
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			detail.ForwardConfig.DecisionModelName = modelNames[0]
 		}
 
 		if detail.ForwardConfig.TargetModels != nil && len(detail.ForwardConfig.TargetModels) > 0 {
@@ -522,8 +537,8 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			DataFormat:      result.DataFormat,
 			IsPublic:        result.IsPublic,
 			Status:          result.Status,
-			CreatedAt:       util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:       util.FormatDatetime(result.UpdatedAt),
+			CreatedAt:       util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:       util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

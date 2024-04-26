@@ -177,8 +177,8 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		IpBlacklist:  app.IpBlacklist,
 		Remark:       app.Remark,
 		Status:       app.Status,
-		CreatedAt:    util.FormatDatetime(app.CreatedAt),
-		UpdatedAt:    util.FormatDatetime(app.UpdatedAt),
+		CreatedAt:    util.FormatDateTime(app.CreatedAt),
+		UpdatedAt:    util.FormatDateTime(app.UpdatedAt),
 	}, nil
 }
 
@@ -247,8 +247,8 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			Quota:        result.Quota,
 			UsedQuota:    result.UsedQuota,
 			Status:       result.Status,
-			CreatedAt:    util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:    util.FormatDatetime(result.UpdatedAt),
+			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:    util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

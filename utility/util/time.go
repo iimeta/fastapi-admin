@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	DATE_TIME_FORMAT   = "2006-01-02 15:04:05"
-	DATE_MINUTE_FORMAT = "2006-01-02 15:04"
-	DATE_FORMAT        = "2006-01-02"
+	DATE_TIME_FORMAT       = "2006-01-02 15:04:05"
+	DATE_TIME_MONTH_FORMAT = "01-02 15:04:05"
+	DATE_MINUTE_FORMAT     = "2006-01-02 15:04"
+	DATE_FORMAT            = "2006-01-02"
 )
 
 type DateTime struct {
@@ -26,7 +27,11 @@ func init() {
 	Location, _ = time.LoadLocation("Asia/Shanghai")
 }
 
-func FormatDatetime(timestamp int64) string {
+func FormatDateTimeMonth(timestamp int64) string {
+	return gtime.NewFromTimeStamp(timestamp).Format(DATE_TIME_MONTH_FORMAT)
+}
+
+func FormatDateTime(timestamp int64) string {
 	return gtime.NewFromTimeStamp(timestamp).String()
 }
 

@@ -180,8 +180,8 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		ModelNames: modelNames,
 		Remark:     user.Remark,
 		Status:     user.Status,
-		CreatedAt:  util.FormatDatetime(user.CreatedAt),
-		UpdatedAt:  util.FormatDatetime(user.UpdatedAt),
+		CreatedAt:  util.FormatDateTime(user.CreatedAt),
+		UpdatedAt:  util.FormatDateTime(user.UpdatedAt),
 	}, nil
 }
 
@@ -230,8 +230,8 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			UsedQuota: result.UsedQuota,
 			Models:    result.Models,
 			Status:    result.Status,
-			CreatedAt: util.FormatDatetime(result.CreatedAt),
-			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
+			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt: util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 
@@ -268,8 +268,8 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 			UsedQuota: result.UsedQuota,
 			Models:    result.Models,
 			Status:    result.Status,
-			CreatedAt: util.FormatDatetime(result.CreatedAt),
-			UpdatedAt: util.FormatDatetime(result.UpdatedAt),
+			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt: util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

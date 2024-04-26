@@ -50,7 +50,7 @@ func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoR
 				Phone:     admin.Phone,
 				Account:   admin.Account,
 				Role:      consts.ADMIN_CHANNEL,
-				CreatedAt: util.FormatDatetime(admin.CreatedAt),
+				CreatedAt: util.FormatDateTime(admin.CreatedAt),
 			},
 		}
 	}

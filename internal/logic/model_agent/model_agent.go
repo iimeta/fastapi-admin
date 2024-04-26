@@ -402,8 +402,8 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		Status:     modelAgent.Status,
 		Creator:    modelAgent.Creator,
 		Updater:    modelAgent.Updater,
-		CreatedAt:  util.FormatDatetime(modelAgent.CreatedAt),
-		UpdatedAt:  util.FormatDatetime(modelAgent.UpdatedAt),
+		CreatedAt:  util.FormatDateTime(modelAgent.CreatedAt),
+		UpdatedAt:  util.FormatDateTime(modelAgent.UpdatedAt),
 	}, nil
 }
 
@@ -462,8 +462,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Models:     modelMap[result.Id],
 			ModelNames: modelNameMap[result.Id],
 			Status:     result.Status,
-			CreatedAt:  util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:  util.FormatDatetime(result.UpdatedAt),
+			CreatedAt:  util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:  util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

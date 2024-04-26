@@ -238,8 +238,8 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		Status:          key.Status,
 		Creator:         key.Creator,
 		Updater:         key.Updater,
-		CreatedAt:       util.FormatDatetime(key.CreatedAt),
-		UpdatedAt:       util.FormatDatetime(key.UpdatedAt),
+		CreatedAt:       util.FormatDateTime(key.CreatedAt),
+		UpdatedAt:       util.FormatDateTime(key.UpdatedAt),
 	}, nil
 }
 
@@ -323,8 +323,8 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Quota:        result.Quota,
 			UsedQuota:    result.UsedQuota,
 			Status:       result.Status,
-			CreatedAt:    util.FormatDatetime(result.CreatedAt),
-			UpdatedAt:    util.FormatDatetime(result.UpdatedAt),
+			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:    util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

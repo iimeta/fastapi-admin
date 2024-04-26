@@ -211,8 +211,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			UsedQuota: user.UsedQuota,
 			Models:    user.Models,
 			Account:   accountInfo.Account,
-			CreatedAt: util.FormatDatetime(user.CreatedAt),
-			UpdatedAt: util.FormatDatetime(user.UpdatedAt),
+			CreatedAt: util.FormatDateTime(user.CreatedAt),
+			UpdatedAt: util.FormatDateTime(user.UpdatedAt),
 		}, true); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
