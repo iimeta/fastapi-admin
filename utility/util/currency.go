@@ -16,7 +16,7 @@ func PriceConv(ratio float64) float64 {
 		return ratio
 	}
 
-	return Round(1000/(consts.QUOTA_USD_UNIT/ratio), 4)
+	return Round(1000/(consts.QUOTA_USD_UNIT/ratio), 6)
 }
 
 func QuotaConv(quota int) float64 {
@@ -25,5 +25,5 @@ func QuotaConv(quota int) float64 {
 		return 0.0
 	}
 
-	return Round(float64(quota)/consts.QUOTA_USD_UNIT, 4)
+	return Round(float64(quota)/consts.QUOTA_USD_UNIT, 6)
 }
