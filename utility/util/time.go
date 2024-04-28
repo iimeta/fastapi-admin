@@ -28,7 +28,7 @@ func init() {
 }
 
 func FormatDateTimeMonth(timestamp int64) string {
-	return gtime.NewFromTimeStamp(timestamp).Format(DATE_TIME_MONTH_FORMAT)
+	return gtime.NewFromTimeStamp(timestamp).Layout(DATE_TIME_MONTH_FORMAT)
 }
 
 func FormatDateTime(timestamp int64) string {
