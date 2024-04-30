@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
@@ -600,6 +601,32 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	}
 
 	return items, nil
+}
+
+// 模型批量操作
+func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_STATUS:
+		for _, id := range params.Ids {
+			if err := s.ChangeStatus(ctx, model.ModelChangeStatusReq{
+				Id:     id,
+				Status: gconv.Int(params.Value),
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_DELETE:
+		for _, id := range params.Ids {
+			if err := s.Delete(ctx, id); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // 公开的模型Ids

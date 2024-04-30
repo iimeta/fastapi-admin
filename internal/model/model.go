@@ -99,6 +99,13 @@ type ModelListRes struct {
 	Items []*Model `json:"items"`
 }
 
+// 模型批量操作接口请求参数
+type ModelBatchOperateReq struct {
+	Action string   `json:"action"` // 动作
+	Ids    []string `json:"ids"`    // 主键Ids
+	Value  any      `json:"value"`  // 值
+}
+
 type Model struct {
 	Id                 string         `json:"id,omitempty"`                // ID
 	Corp               string         `json:"corp,omitempty"`              // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]

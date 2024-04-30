@@ -27,6 +27,8 @@ type (
 		Page(ctx context.Context, params model.ModelPageReq) (*model.ModelPageRes, error)
 		// 模型列表
 		List(ctx context.Context, params model.ModelListReq) ([]*model.Model, error)
+		// 模型批量操作
+		BatchOperate(ctx context.Context, params model.ModelBatchOperateReq) (err error)
 		// 公开的模型Ids
 		PublicModels(ctx context.Context) ([]string, error)
 		// 根据模型Ids查询模型名称
