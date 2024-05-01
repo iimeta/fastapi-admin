@@ -72,6 +72,13 @@ type KeyListRes struct {
 	Items []*Key `json:"items"`
 }
 
+// 密钥批量操作接口请求参数
+type KeyBatchOperateReq struct {
+	Action string   `json:"action"` // 动作
+	Ids    []string `json:"ids"`    // 主键Ids
+	Value  any      `json:"value"`  // 值
+}
+
 type Key struct {
 	Id              string   `json:"id,omitempty"`                // ID
 	AppId           int      `json:"app_id,omitempty"`            // 应用ID

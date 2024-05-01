@@ -84,3 +84,14 @@ type ListRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.ModelAgentListRes
 }
+
+// 模型代理批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" tags:"model_agent" method:"post" summary:"模型代理批量操作接口"`
+	model.ModelAgentBatchOperateReq
+}
+
+// 模型代理批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

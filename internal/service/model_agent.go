@@ -17,7 +17,7 @@ type (
 		Create(ctx context.Context, params model.ModelAgentCreateReq) error
 		// 更新模型代理
 		Update(ctx context.Context, params model.ModelAgentUpdateReq) error
-		// 更新模型代理
+		// 更改模型代理状态
 		ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) error
 		// 删除模型代理
 		Delete(ctx context.Context, id string) error
@@ -27,6 +27,8 @@ type (
 		Page(ctx context.Context, params model.ModelAgentPageReq) (*model.ModelAgentPageRes, error)
 		// 模型代理列表
 		List(ctx context.Context, params model.ModelAgentListReq) ([]*model.ModelAgent, error)
+		// 模型代理批量操作
+		BatchOperate(ctx context.Context, params model.ModelAgentBatchOperateReq) error
 		// 模型代理名称是否存在
 		IsNameExist(ctx context.Context, name string, id ...string) bool
 	}

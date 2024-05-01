@@ -70,6 +70,13 @@ type ModelAgentListRes struct {
 	Items []*ModelAgent `json:"items"`
 }
 
+// 模型代理批量操作接口请求参数
+type ModelAgentBatchOperateReq struct {
+	Action string   `json:"action"` // 动作
+	Ids    []string `json:"ids"`    // 主键Ids
+	Value  any      `json:"value"`  // 值
+}
+
 type ModelAgent struct {
 	Id         string   `json:"id,omitempty"`          // ID
 	Name       string   `json:"name,omitempty"`        // 模型代理名称

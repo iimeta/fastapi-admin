@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -371,6 +372,32 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 	}
 
 	return items, nil
+}
+
+// 密钥批量操作
+func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_STATUS:
+		for _, id := range params.Ids {
+			if err := s.ChangeStatus(ctx, model.KeyChangeStatusReq{
+				Id:     id,
+				Status: gconv.Int(params.Value),
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_DELETE:
+		for _, id := range params.Ids {
+			if err := s.Delete(ctx, id); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // 根据Keys查询密钥详情列表

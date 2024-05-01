@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
@@ -519,6 +520,32 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 	}
 
 	return items, nil
+}
+
+// 模型代理批量操作
+func (s *sModelAgent) BatchOperate(ctx context.Context, params model.ModelAgentBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_STATUS:
+		for _, id := range params.Ids {
+			if err := s.ChangeStatus(ctx, model.ModelAgentChangeStatusReq{
+				Id:     id,
+				Status: gconv.Int(params.Value),
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_DELETE:
+		for _, id := range params.Ids {
+			if err := s.Delete(ctx, id); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // 模型代理名称是否存在

@@ -84,3 +84,14 @@ type ListRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.KeyListRes
 }
+
+// 密钥批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" tags:"key" method:"post" summary:"密钥批量操作接口"`
+	model.KeyBatchOperateReq
+}
+
+// 密钥批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
