@@ -18,7 +18,6 @@ const (
 	ACTION_DELETE  = "delete"
 	ACTION_STATUS  = "status"
 	ACTION_MODELS  = "models"
-	ACTION_PUBLIC  = "public"
 	ACTION_AGENT   = "agent"
 	ACTION_FORWARD = "forward"
 )

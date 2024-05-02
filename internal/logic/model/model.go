@@ -607,6 +607,139 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperateReq) error {
 
 	switch params.Action {
+	case consts.ACTION_AGENT:
+
+		results, err := dao.Model.Find(ctx, bson.M{
+			"_id": bson.M{
+				"$in": params.Ids,
+			},
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		for _, result := range results {
+
+			m := model.ModelUpdateReq{
+				Id:              result.Id,
+				Corp:            result.Corp,
+				Name:            result.Name,
+				Model:           result.Model,
+				Type:            result.Type,
+				BaseUrl:         result.BaseUrl,
+				Path:            result.Path,
+				Prompt:          result.Prompt,
+				BillingMethod:   result.BillingMethod,
+				PromptRatio:     result.PromptRatio,
+				CompletionRatio: result.CompletionRatio,
+				FixedQuota:      result.FixedQuota,
+				DataFormat:      result.DataFormat,
+				IsPublic:        result.IsPublic,
+				ModelAgents:     result.ModelAgents,
+				IsForward:       result.IsForward,
+				Remark:          result.Remark,
+				Status:          result.Status,
+			}
+
+			if result.ForwardConfig != nil {
+				m.ForwardConfig = &model.ForwardConfig{
+					ForwardRule:   result.ForwardConfig.ForwardRule,
+					MatchRule:     result.ForwardConfig.MatchRule,
+					TargetModel:   result.ForwardConfig.TargetModel,
+					DecisionModel: result.ForwardConfig.DecisionModel,
+					Keywords:      result.ForwardConfig.Keywords,
+					TargetModels:  result.ForwardConfig.TargetModels,
+				}
+			}
+
+			if params.Value == "all" {
+				m.IsEnableModelAgent = true
+				m.ModelAgents = params.ModelAgents
+			} else {
+				m.IsEnableModelAgent = gconv.Bool(params.Value)
+				if m.IsEnableModelAgent && len(m.ModelAgents) == 0 {
+					continue
+				}
+			}
+
+			if err = s.Update(ctx, m); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+
+	case consts.ACTION_FORWARD:
+
+		results, err := dao.Model.Find(ctx, bson.M{
+			"_id": bson.M{
+				"$in": params.Ids,
+			},
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		for _, result := range results {
+
+			m := model.ModelUpdateReq{
+				Id:                 result.Id,
+				Corp:               result.Corp,
+				Name:               result.Name,
+				Model:              result.Model,
+				Type:               result.Type,
+				BaseUrl:            result.BaseUrl,
+				Path:               result.Path,
+				Prompt:             result.Prompt,
+				BillingMethod:      result.BillingMethod,
+				PromptRatio:        result.PromptRatio,
+				CompletionRatio:    result.CompletionRatio,
+				FixedQuota:         result.FixedQuota,
+				DataFormat:         result.DataFormat,
+				IsPublic:           result.IsPublic,
+				IsEnableModelAgent: result.IsEnableModelAgent,
+				ModelAgents:        result.ModelAgents,
+				Remark:             result.Remark,
+				Status:             result.Status,
+			}
+
+			if result.ForwardConfig != nil {
+				m.ForwardConfig = &model.ForwardConfig{
+					ForwardRule:   result.ForwardConfig.ForwardRule,
+					MatchRule:     result.ForwardConfig.MatchRule,
+					TargetModel:   result.ForwardConfig.TargetModel,
+					DecisionModel: result.ForwardConfig.DecisionModel,
+					Keywords:      result.ForwardConfig.Keywords,
+					TargetModels:  result.ForwardConfig.TargetModels,
+				}
+			}
+
+			if params.Value == "all" {
+
+				if m.ForwardConfig == nil {
+					m.ForwardConfig = new(model.ForwardConfig)
+				}
+
+				m.IsForward = true
+				m.ForwardConfig.ForwardRule = 1
+				m.ForwardConfig.TargetModel = params.TargetModel
+
+			} else {
+				m.IsForward = gconv.Bool(params.Value)
+				if m.IsForward && (m.ForwardConfig == nil ||
+					(m.ForwardConfig.ForwardRule == 1 && m.ForwardConfig.TargetModel == "") ||
+					(m.ForwardConfig.ForwardRule == 2 && len(m.ForwardConfig.TargetModels) == 0)) {
+					continue
+				}
+			}
+
+			if err = s.Update(ctx, m); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+
 	case consts.ACTION_STATUS:
 		for _, id := range params.Ids {
 			if err := s.ChangeStatus(ctx, model.ModelChangeStatusReq{

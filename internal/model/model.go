@@ -101,9 +101,11 @@ type ModelListRes struct {
 
 // 模型批量操作接口请求参数
 type ModelBatchOperateReq struct {
-	Action string   `json:"action"` // 动作
-	Ids    []string `json:"ids"`    // 主键Ids
-	Value  any      `json:"value"`  // 值
+	Action      string   `json:"action"`                 // 动作
+	Ids         []string `json:"ids"`                    // 主键Ids
+	Value       any      `json:"value"`                  // 值
+	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
+	TargetModel string   `json:"target_model,omitempty"` // 目标模型
 }
 
 type Model struct {
