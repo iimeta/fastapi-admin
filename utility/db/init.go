@@ -72,4 +72,10 @@ func init() {
 	}); err != nil {
 		panic(err)
 	}
+
+	if _, err = client.Database(DefaultDatabase).Collection("chat").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"trace_id": 1},
+	}); err != nil {
+		panic(err)
+	}
 }

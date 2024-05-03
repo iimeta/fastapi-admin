@@ -200,11 +200,15 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 	}
 
 	if params.Name != "" {
-		filter["name"] = params.Name
+		filter["name"] = bson.M{
+			"$regex": params.Name,
+		}
 	}
 
 	if params.Email != "" {
-		filter["email"] = params.Email
+		filter["email"] = bson.M{
+			"$regex": params.Email,
+		}
 	}
 
 	if params.Status != 0 {

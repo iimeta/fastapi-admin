@@ -193,11 +193,15 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 	filter := bson.M{}
 
 	if params.AppId != 0 {
-		filter["app_id"] = params.AppId
+		filter["app_id"] = bson.M{
+			"$regex": params.AppId,
+		}
 	}
 
 	if params.Name != "" {
-		filter["name"] = params.Name
+		filter["name"] = bson.M{
+			"$regex": params.Name,
+		}
 	}
 
 	if len(params.Models) > 0 {

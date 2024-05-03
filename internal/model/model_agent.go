@@ -39,6 +39,7 @@ type ModelAgentDetailRes struct {
 // 模型代理分页列表接口请求参数
 type ModelAgentPageReq struct {
 	Paging
+	Id        string   `json:"id,omitempty"`         // ID
 	Name      string   `json:"name,omitempty"`       // 模型代理名称
 	BaseUrl   string   `json:"base_url,omitempty"`   // 模型代理地址
 	Path      string   `json:"path,omitempty"`       // 模型代理地址路径

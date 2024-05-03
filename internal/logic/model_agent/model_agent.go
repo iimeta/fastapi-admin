@@ -418,12 +418,40 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 	filter := bson.M{}
 
+	if params.Id != "" {
+		filter["_id"] = params.Id
+	}
+
 	if params.Name != "" {
-		filter["name"] = params.Name
+		filter["name"] = bson.M{
+			"$regex": params.Name,
+		}
 	}
 
 	if params.BaseUrl != "" {
-		filter["base_url"] = params.BaseUrl
+		filter["base_url"] = bson.M{
+			"$regex": params.BaseUrl,
+		}
+	}
+
+	if len(params.Models) > 0 {
+
+		modelList, err := dao.Model.Find(ctx, bson.M{"_id": bson.M{"$in": params.Models}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		set := gset.NewStrSet()
+		for _, model := range modelList {
+			set.Add(model.ModelAgents...)
+		}
+
+		if set.Size() > 0 {
+			filter["_id"] = bson.M{
+				"$in": set.Slice(),
+			}
+		}
 	}
 
 	if params.Status != 0 {

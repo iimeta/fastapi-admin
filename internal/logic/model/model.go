@@ -499,11 +499,15 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 	}
 
 	if params.Name != "" {
-		filter["name"] = params.Name
+		filter["name"] = bson.M{
+			"$regex": params.Name,
+		}
 	}
 
 	if params.Model != "" {
-		filter["model"] = params.Model
+		filter["model"] = bson.M{
+			"$regex": params.Model,
+		}
 	}
 
 	if params.Type != 0 {

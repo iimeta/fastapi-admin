@@ -130,6 +130,10 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 
 	filter := bson.M{}
 
+	if params.TraceId != "" {
+		filter["trace_id"] = params.TraceId
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
 	} else if params.UserId != 0 {
