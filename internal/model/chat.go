@@ -40,10 +40,11 @@ type Chat struct {
 	ModelAgent         *ModelAgent    `json:"model_agent,omitempty"`           // 模型代理信息
 	IsForward          bool           `json:"is_forward,omitempty"`            // 是否启用模型转发
 	ForwardConfig      *ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
+	IsSmartMatch       bool           `json:"is_smart_match,omitempty"`        // 是否智能匹配
 	RealModelId        string         `json:"real_model_id,omitempty"`         // 真实模型ID
 	RealModelName      string         `json:"real_model_name,omitempty"`       // 真实模型名称
 	RealModel          string         `json:"real_model,omitempty"`            // 真实模型
-	Stream             bool           `json:"stream"`                          // 是否流式
+	Stream             bool           `json:"stream,omitempty"`                // 流式
 	Messages           []Message      `json:"messages,omitempty"`              // 完整提示(提问)
 	Prompt             string         `json:"prompt,omitempty"`                // 提示(提问)
 	Completion         string         `json:"completion,omitempty"`            // 补全(回答)

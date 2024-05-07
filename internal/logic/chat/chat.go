@@ -116,6 +116,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 				TargetModels:  result.ForwardConfig.TargetModels,
 			}
 
+			chat.IsSmartMatch = result.IsSmartMatch
 			chat.RealModelId = result.RealModelId
 			chat.RealModelName = result.RealModelName
 			chat.RealModel = result.RealModel
@@ -141,6 +142,10 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
+		filter["$or"] = bson.A{
+			bson.M{"is_smart_match": bson.M{"$exists": false}},
+			bson.M{"is_smart_match": bson.M{"$ne": true}},
+		}
 	} else if params.UserId != 0 {
 		filter["user_id"] = params.UserId
 	}
@@ -218,6 +223,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			chat.PromptTokens = result.PromptTokens
 			chat.CompletionTokens = result.CompletionTokens
 			chat.InternalTime = result.InternalTime
+			chat.IsSmartMatch = result.IsSmartMatch
 		}
 
 		items = append(items, chat)
