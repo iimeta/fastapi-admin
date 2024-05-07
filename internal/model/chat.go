@@ -44,7 +44,7 @@ type Chat struct {
 	RealModelId        string         `json:"real_model_id,omitempty"`         // 真实模型ID
 	RealModelName      string         `json:"real_model_name,omitempty"`       // 真实模型名称
 	RealModel          string         `json:"real_model,omitempty"`            // 真实模型
-	Stream             bool           `json:"stream,omitempty"`                // 流式
+	Stream             bool           `json:"stream"`                          // 流式
 	Messages           []Message      `json:"messages,omitempty"`              // 完整提示(提问)
 	Prompt             string         `json:"prompt,omitempty"`                // 提示(提问)
 	Completion         string         `json:"completion,omitempty"`            // 补全(回答)
