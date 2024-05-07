@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -30,6 +31,10 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
 	}
 
 	chat := &model.Chat{
