@@ -32,6 +32,8 @@ func init() {
 		} else {
 			if err = gjson.Unmarshal(gjson.MustEncode(data), &Cfg); err != nil {
 				logger.Errorf(ctx, "热加载 解析配置文件 %s 错误: %v", path, err)
+			} else {
+				logger.Infof(ctx, "热加载 配置文件 %s 成功 当前配置信息: %s", path, gjson.MustEncodeString(Cfg))
 			}
 		}
 	})
