@@ -87,6 +87,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
 		chat.ModelAgentId = result.ModelAgentId
 		chat.IsForward = result.IsForward
+		chat.IsSmartMatch = result.IsSmartMatch
 		chat.RemoteIp = result.RemoteIp
 		chat.LocalIp = result.LocalIp
 		chat.InternalTime = result.InternalTime
@@ -116,7 +117,6 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 				TargetModels:  result.ForwardConfig.TargetModels,
 			}
 
-			chat.IsSmartMatch = result.IsSmartMatch
 			chat.RealModelId = result.RealModelId
 			chat.RealModelName = result.RealModelName
 			chat.RealModel = result.RealModel
