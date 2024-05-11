@@ -2,7 +2,7 @@ package model
 
 // 新建密钥接口请求参数
 type KeyCreateReq struct {
-	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
 	Key          string   `json:"key,omitempty"`            // 密钥
 	Models       []string `json:"models,omitempty"`         // 模型
 	ModelAgents  []string `json:"model_agents,omitempty"`   // 模型代理
@@ -14,7 +14,7 @@ type KeyCreateReq struct {
 // 更新密钥接口请求参数
 type KeyUpdateReq struct {
 	Id           string   `json:"id,omitempty"`                  // ID
-	Corp         string   `json:"corp,omitempty"`                // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Corp         string   `json:"corp,omitempty"`                // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
 	Key          string   `json:"key,omitempty"`                 // 密钥
 	Models       []string `json:"models,omitempty" d:"[]"`       // 模型
 	ModelAgents  []string `json:"model_agents,omitempty" d:"[]"` // 模型代理
@@ -39,7 +39,7 @@ type KeyPageReq struct {
 	Paging
 	Type        int      `json:"type,omitempty"`         // 密钥类型[1:应用, 2:模型]
 	AppId       int      `json:"app_id,omitempty"`       // 应用ID
-	Corp        string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Corp        string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
 	Key         string   `json:"key,omitempty"`          // 密钥
 	Models      []string `json:"models,omitempty"`       // 模型
 	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
@@ -58,7 +58,7 @@ type KeyPageRes struct {
 type KeyListReq struct {
 	Type        int      `json:"type,omitempty"`         // 密钥类型[1:应用, 2:模型]
 	AppId       int      `json:"app_id,omitempty"`       // 应用ID
-	Corp        string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Corp        string   `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
 	Key         string   `json:"key,omitempty"`          // 密钥
 	Models      []string `json:"models,omitempty"`       // 模型
 	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
@@ -82,7 +82,7 @@ type KeyBatchOperateReq struct {
 type Key struct {
 	Id              string   `json:"id,omitempty"`                // ID
 	AppId           int      `json:"app_id,omitempty"`            // 应用ID
-	Corp            string   `json:"corp,omitempty"`              // 公司[OpenAI;Baidu;Xfyun;Aliyun;Midjourney]
+	Corp            string   `json:"corp,omitempty"`              // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
 	Key             string   `json:"key,omitempty"`               // 密钥
 	Type            int      `json:"type,omitempty"`              // 密钥类型[1:应用, 2:模型]
 	Models          []string `json:"models,omitempty"`            // 模型

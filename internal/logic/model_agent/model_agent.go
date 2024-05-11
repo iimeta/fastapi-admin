@@ -38,6 +38,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}
 
 	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
+		Corp:    params.Corp,
 		Name:    gstr.Trim(params.Name),
 		BaseUrl: params.BaseUrl,
 		Path:    params.Path,
@@ -64,12 +65,13 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 
 	if params.Key != "" {
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
-			Corp:        "OpenAI",
-			Key:         params.Key,
-			Models:      params.Models,
-			ModelAgents: []string{id},
-			Remark:      params.Remark,
-			Status:      params.Status,
+			Corp:         params.Corp,
+			Key:          params.Key,
+			Models:       params.Models,
+			ModelAgents:  []string{id},
+			IsAgentsOnly: params.IsAgentsOnly,
+			Remark:       params.Remark,
+			Status:       params.Status,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -124,6 +126,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}
 
 	if err = dao.ModelAgent.UpdateById(ctx, params.Id, &do.ModelAgent{
+		Corp:    params.Corp,
 		Name:    gstr.Trim(params.Name),
 		BaseUrl: params.BaseUrl,
 		Path:    params.Path,
@@ -179,12 +182,13 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 
 	if params.Key != "" {
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
-			Corp:        "OpenAI",
-			Key:         params.Key,
-			Models:      params.Models,
-			ModelAgents: []string{params.Id},
-			Remark:      params.Remark,
-			Status:      params.Status,
+			Corp:         params.Corp,
+			Key:          params.Key,
+			Models:       params.Models,
+			ModelAgents:  []string{params.Id},
+			IsAgentsOnly: params.IsAgentsOnly,
+			Remark:       params.Remark,
+			Status:       params.Status,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -392,6 +396,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 
 	return &model.ModelAgent{
 		Id:         modelAgent.Id,
+		Corp:       modelAgent.Corp,
 		Name:       modelAgent.Name,
 		BaseUrl:    modelAgent.BaseUrl,
 		Path:       modelAgent.Path,
@@ -418,8 +423,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 	filter := bson.M{}
 
-	if params.Id != "" {
-		filter["_id"] = params.Id
+	if params.Corp != "" {
+		filter["corp"] = params.Corp
 	}
 
 	if params.Name != "" {
@@ -484,6 +489,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 	for _, result := range results {
 		items = append(items, &model.ModelAgent{
 			Id:         result.Id,
+			Corp:       result.Corp,
 			Name:       result.Name,
 			BaseUrl:    result.BaseUrl,
 			Path:       result.Path,
@@ -537,6 +543,7 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 	for _, result := range results {
 		items = append(items, &model.ModelAgent{
 			Id:         result.Id,
+			Corp:       result.Corp,
 			Name:       result.Name,
 			BaseUrl:    result.BaseUrl,
 			Path:       result.Path,

@@ -138,6 +138,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
 				Id:      modelAgent.Id,
+				Corp:    modelAgent.Corp,
 				Name:    modelAgent.Name,
 				BaseUrl: modelAgent.BaseUrl,
 				Path:    modelAgent.Path,
@@ -171,6 +172,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
 				Id:      modelAgent.Id,
+				Corp:    modelAgent.Corp,
 				Name:    modelAgent.Name,
 				BaseUrl: modelAgent.BaseUrl,
 				Path:    modelAgent.Path,

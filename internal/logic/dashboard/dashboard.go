@@ -101,7 +101,12 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 
 	pipeline := []bson.M{
 		{
-			"$match": bson.M{},
+			"$match": bson.M{
+				"$or": bson.A{
+					bson.M{"is_smart_match": bson.M{"$exists": false}},
+					bson.M{"is_smart_match": bson.M{"$ne": true}},
+				},
+			},
 		},
 		{
 			"$group": bson.M{
@@ -137,6 +142,10 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 				"req_time": bson.M{
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
+				},
+				"$or": bson.A{
+					bson.M{"is_smart_match": bson.M{"$exists": false}},
+					bson.M{"is_smart_match": bson.M{"$ne": true}},
 				},
 			},
 		},
@@ -221,6 +230,10 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
 				},
+				"$or": bson.A{
+					bson.M{"is_smart_match": bson.M{"$exists": false}},
+					bson.M{"is_smart_match": bson.M{"$ne": true}},
+				},
 			},
 		},
 	}
@@ -266,7 +279,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 		})
 	}
 
-	pipeline = append(pipeline, bson.M{"$sort": bson.M{"tokens": -1, "count": -1}}, bson.M{"$limit": 10})
+	pipeline = append(pipeline, bson.M{"$sort": bson.M{"tokens": -1}}, bson.M{"$limit": 10})
 
 	if service.Session().IsUserRole(ctx) {
 		match := pipeline[0]["$match"].(bson.M)
@@ -336,6 +349,10 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 				"req_time": bson.M{
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
+				},
+				"$or": bson.A{
+					bson.M{"is_smart_match": bson.M{"$exists": false}},
+					bson.M{"is_smart_match": bson.M{"$ne": true}},
 				},
 			},
 		},

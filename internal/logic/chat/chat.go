@@ -97,6 +97,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
 		if result.ModelAgent != nil {
 			chat.ModelAgent = &model.ModelAgent{
+				Corp:    result.ModelAgent.Corp,
 				Name:    result.ModelAgent.Name,
 				BaseUrl: result.ModelAgent.BaseUrl,
 				Path:    result.ModelAgent.Path,

@@ -36,6 +36,7 @@ const (
 	CORP_XFYUN      = "Xfyun"
 	CORP_ALIYUN     = "Aliyun"
 	CORP_ZHIPUAI    = "ZhipuAI"
+	CORP_GOOGLE     = "Google"
 	CORP_MIDJOURNEY = "Midjourney"
 )
 
@@ -50,5 +51,5 @@ const (
 	KEY_QUOTA_FIELD          = "key.%d.%s.quota"
 	KEY_IS_LIMIT_QUOTA_FIELD = "key.%d.%s.is_limit_quota"
 
-	QUOTA_USD_UNIT = 500 * 1000.0 // $1 = 50万tokens
+	QUOTA_USD_UNIT = 500000.0 // $1 = 50万tokens
 )
