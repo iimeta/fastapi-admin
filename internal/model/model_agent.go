@@ -2,7 +2,7 @@ package model
 
 // 新建模型代理接口请求参数
 type ModelAgentCreateReq struct {
-	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
+	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;DeepSeek;Midjourney]
 	Name         string   `json:"name,omitempty"`           // 模型代理名称
 	BaseUrl      string   `json:"base_url,omitempty"`       // 模型代理地址
 	Path         string   `json:"path,omitempty"`           // 模型代理地址路径
@@ -17,7 +17,7 @@ type ModelAgentCreateReq struct {
 // 更新模型代理接口请求参数
 type ModelAgentUpdateReq struct {
 	Id           string   `json:"id" v:"required"`          // ID
-	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
+	Corp         string   `json:"corp,omitempty"`           // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;DeepSeek;Midjourney]
 	Name         string   `json:"name,omitempty"`           // 模型代理名称
 	BaseUrl      string   `json:"base_url,omitempty"`       // 模型代理地址
 	Path         string   `json:"path,omitempty"`           // 模型代理地址路径
@@ -43,7 +43,7 @@ type ModelAgentDetailRes struct {
 // 模型代理分页列表接口请求参数
 type ModelAgentPageReq struct {
 	Paging
-	Corp      string   `json:"corp,omitempty"`       // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
+	Corp      string   `json:"corp,omitempty"`       // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;DeepSeek;Midjourney]
 	Name      string   `json:"name,omitempty"`       // 模型代理名称
 	BaseUrl   string   `json:"base_url,omitempty"`   // 模型代理地址
 	Path      string   `json:"path,omitempty"`       // 模型代理地址路径
@@ -62,7 +62,7 @@ type ModelAgentPageRes struct {
 
 // 模型代理列表接口请求参数
 type ModelAgentListReq struct {
-	Corp    string `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
+	Corp    string `json:"corp,omitempty"`         // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;DeepSeek;Midjourney]
 	Name    string `json:"name,omitempty"`         // 模型代理名称
 	BaseUrl string `json:"base_url,omitempty"`     // 模型代理地址
 	Path    string `json:"path,omitempty"`         // 模型代理地址路径
@@ -85,7 +85,7 @@ type ModelAgentBatchOperateReq struct {
 
 type ModelAgent struct {
 	Id         string   `json:"id,omitempty"`          // ID
-	Corp       string   `json:"corp,omitempty"`        // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;Midjourney]
+	Corp       string   `json:"corp,omitempty"`        // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;DeepSeek;Midjourney]
 	Name       string   `json:"name,omitempty"`        // 模型代理名称
 	BaseUrl    string   `json:"base_url,omitempty"`    // 模型代理地址
 	Path       string   `json:"path,omitempty"`        // 模型代理地址路径
