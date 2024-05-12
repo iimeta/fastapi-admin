@@ -96,7 +96,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 					Key:          key.Key,
 					Models:       modelSet.Slice(),
 					ModelAgents:  modelAgentSet.Slice(),
-					IsAgentsOnly: key.IsAgentsOnly,
+					IsAgentsOnly: params.IsAgentsOnly,
 					Remark:       params.Remark,
 					Status:       params.Status,
 				}); err != nil {
