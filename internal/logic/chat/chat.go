@@ -92,6 +92,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.LocalIp = result.LocalIp
 		chat.InternalTime = result.InternalTime
 		chat.ErrMsg = result.ErrMsg
+		chat.IsRetry = result.IsRetry
 		chat.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		chat.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 
@@ -107,7 +108,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 			}
 		}
 
-		if chat.IsForward && result.ForwardConfig != nil {
+		if result.ForwardConfig != nil {
 
 			chat.ForwardConfig = &model.ForwardConfig{
 				ForwardRule:   result.ForwardConfig.ForwardRule,
@@ -121,6 +122,14 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 			chat.RealModelId = result.RealModelId
 			chat.RealModelName = result.RealModelName
 			chat.RealModel = result.RealModel
+		}
+
+		if result.Retry != nil {
+			chat.Retry = &model.Retry{
+				IsRetry:    result.Retry.IsRetry,
+				RetryCount: result.Retry.RetryCount,
+				ErrMsg:     result.Retry.ErrMsg,
+			}
 		}
 	}
 
@@ -143,10 +152,8 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
-		filter["$or"] = bson.A{
-			bson.M{"is_smart_match": bson.M{"$exists": false}},
-			bson.M{"is_smart_match": bson.M{"$ne": true}},
-		}
+		filter["is_smart_match"] = bson.M{"$exists": false}
+		filter["is_retry"] = bson.M{"$exists": false}
 	} else if params.UserId != 0 {
 		filter["user_id"] = params.UserId
 	}

@@ -66,7 +66,9 @@ type Chat struct {
 	RemoteIp           string         `json:"remote_ip,omitempty"`             // 远程IP
 	LocalIp            string         `json:"local_ip,omitempty"`              // 本地IP
 	ErrMsg             string         `json:"err_msg,omitempty"`               // 错误信息
-	Status             int            `json:"status,omitempty"`                // 状态[1:成功, -1:失败]
+	IsRetry            bool           `json:"is_retry,omitempty"`              // 是否重试
+	Retry              *Retry         `json:"retry,omitempty"`                 // 重试
+	Status             int            `json:"status,omitempty"`                // 状态[1:成功, -1:失败, 2:中止, 3:重试]
 	Creator            string         `json:"creator,omitempty"`               // 创建人
 	Updater            string         `json:"updater,omitempty"`               // 更新人
 	CreatedAt          string         `json:"created_at,omitempty"`            // 创建时间
@@ -76,4 +78,10 @@ type Chat struct {
 type Message struct {
 	Role    string `json:"role,omitempty"`    // 角色
 	Content string `json:"content,omitempty"` // 内容
+}
+
+type Retry struct {
+	IsRetry    bool   `json:"is_retry,omitempty"`    // 是否重试
+	RetryCount int    `json:"retry_count,omitempty"` // 重试次数
+	ErrMsg     string `json:"err_msg,omitempty"`     // 错误信息
 }

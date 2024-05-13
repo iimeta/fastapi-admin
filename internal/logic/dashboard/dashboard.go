@@ -102,10 +102,8 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"$or": bson.A{
-					bson.M{"is_smart_match": bson.M{"$exists": false}},
-					bson.M{"is_smart_match": bson.M{"$ne": true}},
-				},
+				"is_smart_match": bson.M{"$exists": false},
+				"is_retry":       bson.M{"$exists": false},
 			},
 		},
 		{
@@ -143,10 +141,8 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
 				},
-				"$or": bson.A{
-					bson.M{"is_smart_match": bson.M{"$exists": false}},
-					bson.M{"is_smart_match": bson.M{"$ne": true}},
-				},
+				"is_smart_match": bson.M{"$exists": false},
+				"is_retry":       bson.M{"$exists": false},
 			},
 		},
 		{
@@ -230,10 +226,8 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
 				},
-				"$or": bson.A{
-					bson.M{"is_smart_match": bson.M{"$exists": false}},
-					bson.M{"is_smart_match": bson.M{"$ne": true}},
-				},
+				"is_smart_match": bson.M{"$exists": false},
+				"is_retry":       bson.M{"$exists": false},
 			},
 		},
 	}
@@ -350,10 +344,8 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
 				},
-				"$or": bson.A{
-					bson.M{"is_smart_match": bson.M{"$exists": false}},
-					bson.M{"is_smart_match": bson.M{"$ne": true}},
-				},
+				"is_smart_match": bson.M{"$exists": false},
+				"is_retry":       bson.M{"$exists": false},
 			},
 		},
 		{
