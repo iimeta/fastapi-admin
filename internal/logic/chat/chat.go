@@ -75,6 +75,11 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		})
 	}
 
+	// todo
+	if chat.Status == -1 && service.Session().IsUserRole(ctx) {
+		chat.ErrMsg = "详细错误信息请联系管理员..."
+	}
+
 	if service.Session().IsAdminRole(ctx) {
 
 		chat.ModelId = result.ModelId
