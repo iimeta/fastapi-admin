@@ -33,7 +33,7 @@ type Chat struct {
 	ModelId            string         `json:"model_id,omitempty"`              // 模型ID
 	Name               string         `json:"name,omitempty"`                  // 模型名称
 	Model              string         `json:"model,omitempty"`                 // 模型
-	Type               int            `json:"type,omitempty"`                  // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文]
+	Type               int            `json:"type,omitempty"`                  // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
 	Key                string         `json:"key,omitempty"`                   // 密钥
 	IsEnableModelAgent bool           `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
 	ModelAgentId       string         `json:"model_agent_id,omitempty"`        // 模型代理ID
