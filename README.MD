@@ -16,6 +16,7 @@
 - 管理端
   - 仪表盘
   - 模型管理
+    - 模型转发功能, 支持智能匹配和正则匹配, 重要!重要!!重要!!!
   - 密钥管理
   - 代理管理
   - 用户管理
@@ -34,6 +35,11 @@
 
 - 管理端: https://demo.fastapi.ai/admin
 - 账号/密码: admin/admin123
+
+## 公益站点
+
+- API地址: https://api.free.fastapi.ai/
+- 注册后请联系作者领取1000万额度
 
 ## 项目截图
 ### 管理端
@@ -67,7 +73,7 @@ https://www.fastapi.ai/public/video/install.mp4
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240510" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240519" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
