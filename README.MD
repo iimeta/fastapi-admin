@@ -36,6 +36,17 @@
 - 管理端: https://demo.fastapi.ai/admin
 - 账号/密码: admin/admin123
 
+## 部署支持
+- 集群部署
+- 多地部署
+- 跨区部署
+
+## Docker部署
+### [传送门](https://github.com/iimeta/fastapi-admin/tree/docker)
+
+### [部署视频](https://www.fastapi.ai/public/video/install.mp4)
+https://www.fastapi.ai/public/video/install.mp4
+
 ## 公益站点
 
 - API地址: https://api.free.fastapi.ai
@@ -57,12 +68,6 @@
 ![appkey](https://github.com/iimeta/fastapi-admin/assets/138393700/662fe51d-9ed1-4672-b9db-f418b492b9a2)
 ![chat](https://github.com/iimeta/fastapi-admin/assets/138393700/5a92ab02-1319-436c-af2d-7d9ef0f49fe5)
 
-### 部署视频
-https://www.fastapi.ai/public/video/install.mp4
-
-## Docker部署
-### [传送门](https://github.com/iimeta/fastapi-admin/tree/docker)
-
 ## 开源地址
 | 仓库 | 前端                                  | 后端                                    | API                               |
 | ---- | ------------------------------------- | --------------------------------------- | ----------------------------------|
@@ -73,7 +78,7 @@ https://www.fastapi.ai/public/video/install.mp4
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240519" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240527" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
