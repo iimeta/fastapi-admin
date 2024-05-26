@@ -69,10 +69,10 @@ https://www.fastapi.ai/public/video/install.mp4
 ![chat](https://github.com/iimeta/fastapi-admin/assets/138393700/5a92ab02-1319-436c-af2d-7d9ef0f49fe5)
 
 ## 开源地址
-| 仓库 | 前端                                  | 后端                                    | API                               |
-| ---- | ------------------------------------- | --------------------------------------- | ----------------------------------|
-| 主库 | https://github.com/iimeta/fastapi-web | https://github.com/iimeta/fastapi-admin | https://github.com/iimeta/fastapi |
-| 码云 | https://gitee.com/iimeta/fastapi-web  | https://gitee.com/iimeta/fastapi-admin  | https://gitee.com/iimeta/fastapi  |
+| 仓库 | API                                          | Web                                                  | Admin                                                    | SDK                                                  |
+| ---- |----------------------------------------------|------------------------------------------------------|----------------------------------------------------------|------------------------------------------------------|
+| 主库 | [fastapi](https://github.com/iimeta/fastapi) | [fastapi-web](https://github.com/iimeta/fastapi-web) | [fastapi-admin](https://github.com/iimeta/fastapi-admin) | [fastapi-sdk](https://github.com/iimeta/fastapi-sdk) |
+| 码云 | [fastapi](https://gitee.com/iimeta/fastapi)  | [fastapi-web](https://gitee.com/iimeta/fastapi-web)  | [fastapi-admin](https://gitee.com/iimeta/fastapi-admin)  | [fastapi-sdk](https://gitee.com/iimeta/fastapi-sdk)  |
 
 ## 作者
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
