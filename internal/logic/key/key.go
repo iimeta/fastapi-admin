@@ -265,7 +265,9 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	}
 
 	if params.Key != "" {
-		filter["key"] = params.Key
+		filter["key"] = bson.M{
+			"$regex": params.Key,
+		}
 	}
 
 	if len(params.Models) > 0 {

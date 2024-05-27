@@ -13,7 +13,7 @@ type CreateReq struct {
 
 // 新建用户接口响应参数
 type CreateRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 }
 
 // 更新用户接口请求参数
@@ -24,7 +24,7 @@ type UpdateReq struct {
 
 // 更新用户接口响应参数
 type UpdateRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 }
 
 // 更改用户状态接口请求参数
@@ -46,7 +46,7 @@ type DeleteReq struct {
 
 // 删除用户接口响应参数
 type DeleteRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 }
 
 // 用户详情接口请求参数
@@ -57,7 +57,7 @@ type DetailReq struct {
 
 // 用户详情接口响应参数
 type DetailRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 	*model.UserDetailRes
 }
 
@@ -69,7 +69,7 @@ type PageReq struct {
 
 // 用户分页列表接口响应参数
 type PageRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 	*model.UserPageRes
 }
 
@@ -81,7 +81,7 @@ type ListReq struct {
 
 // 用户列表接口响应参数
 type ListRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 	*model.UserListRes
 }
 
@@ -93,7 +93,7 @@ type GrantQuotaReq struct {
 
 // 授予用户额度接口响应参数
 type GrantQuotaRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 }
 
 // 用户模型权限接口请求参数
@@ -104,5 +104,5 @@ type ModelsReq struct {
 
 // 用户模型权限接口响应参数
 type ModelsRes struct {
-	g.Meta `mime:"userlication/json" example:"json"`
+	g.Meta `mime:"application/json" example:"json"`
 }

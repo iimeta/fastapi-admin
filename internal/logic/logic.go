@@ -10,6 +10,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/auth"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/chat"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/common"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/corp"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/dashboard"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/key"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model"

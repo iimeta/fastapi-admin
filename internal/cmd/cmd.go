@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/chat"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
+	"github.com/iimeta/fastapi-admin/internal/controller/corp"
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
@@ -66,6 +67,10 @@ var (
 			s.AddStaticPath("/user/detail", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/center", "./resource/fastapi-web/")
 			s.AddStaticPath("/chat/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/corp/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/corp/create", "./resource/fastapi-web/")
+			s.AddStaticPath("/corp/update", "./resource/fastapi-web/")
+			s.AddStaticPath("/corp/detail", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
 
@@ -144,6 +149,13 @@ var (
 					g.Middleware(middleware)
 					g.Bind(
 						chat.NewV1(),
+					)
+				})
+
+				v1.Group("/corp", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						corp.NewV1(),
 					)
 				})
 			})

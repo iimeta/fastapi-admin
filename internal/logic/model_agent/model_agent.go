@@ -586,7 +586,7 @@ func (s *sModelAgent) BatchOperate(ctx context.Context, params model.ModelAgentB
 // 模型代理名称是否存在
 func (s *sModelAgent) IsNameExist(ctx context.Context, name string, id ...string) bool {
 
-	model, err := dao.ModelAgent.FindOne(ctx, bson.M{"name": gstr.Trim(name)})
+	modelAgent, err := dao.ModelAgent.FindOne(ctx, bson.M{"name": gstr.Trim(name)})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return false
@@ -595,8 +595,8 @@ func (s *sModelAgent) IsNameExist(ctx context.Context, name string, id ...string
 		return true
 	}
 
-	if model != nil {
-		if len(id) > 0 && model.Id == id[0] {
+	if modelAgent != nil {
+		if len(id) > 0 && modelAgent.Id == id[0] {
 			return false
 		}
 		return true
