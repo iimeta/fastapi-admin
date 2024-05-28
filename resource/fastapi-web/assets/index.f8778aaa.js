@@ -1,0 +1,1 @@
+import{d as o,C as r,B as a}from"./arco.88eb8c02.js";import{f as s,h as n}from"./vue.f52bac7b.js";import"./chart.3301baad.js";const d=o({__name:"index",setup(p){const e=s(),t=n().params.path;return e.replace({path:t}),(u,m)=>(a(),r("div"))}});export{d as default};

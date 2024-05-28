@@ -201,14 +201,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 
 	corpName := key.Corp
 	if key.Corp != "" {
-
-		corp, err := dao.Corp.FindById(ctx, key.Corp)
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		if corp != nil {
+		if corp, err := dao.Corp.FindById(ctx, key.Corp); err == nil && corp != nil {
 			corpName = corp.Name
 		}
 	}

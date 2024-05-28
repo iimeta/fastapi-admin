@@ -30,14 +30,10 @@ func New() service.ICorp {
 func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
 
 	if params.Sort == 0 {
-
-		corp, err := dao.Corp.FindOne(ctx, bson.M{}, "-sort")
-		if err != nil {
-			logger.Error(ctx, err)
-		}
-
-		if corp != nil {
+		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, "-sort"); err == nil && corp != nil {
 			params.Sort = corp.Sort + 1
+		} else {
+			params.Sort = 1
 		}
 	}
 
@@ -71,6 +67,14 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
 
 // 更新公司
 func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
+
+	if params.Sort == 0 {
+		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, "-sort"); err == nil && corp != nil {
+			params.Sort = corp.Sort + 1
+		} else {
+			params.Sort = 1
+		}
+	}
 
 	oldData, err := dao.Corp.FindById(ctx, params.Id)
 	if err != nil {
@@ -217,6 +221,7 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 			Id:        result.Id,
 			Name:      result.Name,
 			Code:      result.Code,
+			Sort:      result.Sort,
 			Remark:    result.Remark,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),

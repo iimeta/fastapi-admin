@@ -37,14 +37,8 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	corp, err := dao.Corp.FindById(ctx, result.Corp)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
 	corpName := result.Corp
-	if corp != nil {
+	if corp, err := dao.Corp.FindById(ctx, result.Corp); err == nil && corp != nil {
 		corpName = corp.Name
 	}
 
@@ -114,14 +108,8 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
 		if result.ModelAgent != nil {
 
-			corp, err := dao.Corp.FindById(ctx, result.ModelAgent.Corp)
-			if err != nil {
-				logger.Error(ctx, err)
-				return nil, err
-			}
-
 			corpName := result.ModelAgent.Corp
-			if corp != nil {
+			if corp, err := dao.Corp.FindById(ctx, result.ModelAgent.Corp); err == nil && corp != nil {
 				corpName = corp.Name
 			}
 

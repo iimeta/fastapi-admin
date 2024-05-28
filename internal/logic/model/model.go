@@ -404,14 +404,8 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		}
 	}
 
-	corp, err := dao.Corp.FindById(ctx, m.Corp)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
 	corpName := m.Corp
-	if corp != nil {
+	if corp, err := dao.Corp.FindById(ctx, m.Corp); err == nil && corp != nil {
 		corpName = corp.Name
 	}
 

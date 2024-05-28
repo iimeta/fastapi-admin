@@ -369,14 +369,8 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		return nil, err
 	}
 
-	corp, err := dao.Corp.FindById(ctx, modelAgent.Corp)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
 	corpName := modelAgent.Corp
-	if corp != nil {
+	if corp, err := dao.Corp.FindById(ctx, modelAgent.Corp); err == nil && corp != nil {
 		corpName = corp.Name
 	}
 
