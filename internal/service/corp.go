@@ -29,10 +29,6 @@ type (
 		List(ctx context.Context, params model.CorpListReq) ([]*model.Corp, error)
 		// 公司批量操作
 		BatchOperate(ctx context.Context, params model.CorpBatchOperateReq) error
-		// 公司名称是否存在
-		IsNameExist(ctx context.Context, name string, id ...string) bool
-		// 公司代码是否存在
-		IsCodeExist(ctx context.Context, code string, id ...string) bool
 	}
 )
 

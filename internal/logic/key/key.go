@@ -64,6 +64,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 					Remark:       params.Remark,
 					Status:       params.Status,
 				})
+
 				if err != nil {
 					logger.Error(ctx, err)
 				}
@@ -198,6 +199,20 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		return nil, err
 	}
 
+	corpName := key.Corp
+	if key.Corp != "" {
+
+		corp, err := dao.Corp.FindById(ctx, key.Corp)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if corp != nil {
+			corpName = corp.Name
+		}
+	}
+
 	modelNames, err := service.Model().ModelNames(ctx, key.Models)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -222,7 +237,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 	return &model.Key{
 		Id:              key.Id,
 		AppId:           key.AppId,
-		Corp:            key.Corp,
+		Corp:            corpName,
 		Key:             key.Key,
 		Type:            key.Type,
 		Models:          key.Models,
@@ -292,6 +307,16 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		return nil, err
 	}
 
+	corps, err := dao.Corp.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
+		return t.Id
+	})
+
 	models, err := service.Model().List(ctx, model.ModelListReq{})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -305,6 +330,11 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 
+		corpName := result.Corp
+		if corpMap[result.Corp] != nil {
+			corpName = corpMap[result.Corp].Name
+		}
+
 		modelNames := make([]string, 0)
 		for _, id := range result.Models {
 			if modelMap[id] != nil {
@@ -315,7 +345,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		items = append(items, &model.Key{
 			Id:           result.Id,
 			AppId:        result.AppId,
-			Corp:         result.Corp,
+			Corp:         corpName,
 			Key:          result.Key,
 			Type:         result.Type,
 			Models:       result.Models,

@@ -404,9 +404,20 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		}
 	}
 
+	corp, err := dao.Corp.FindById(ctx, m.Corp)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	corpName := m.Corp
+	if corp != nil {
+		corpName = corp.Name
+	}
+
 	detail := &model.Model{
 		Id:                 m.Id,
-		Corp:               m.Corp,
+		Corp:               corpName,
 		Name:               m.Name,
 		Model:              m.Model,
 		Type:               m.Type,
@@ -526,11 +537,27 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		return nil, err
 	}
 
+	corps, err := dao.Corp.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
+		return t.Id
+	})
+
 	items := make([]*model.Model, 0)
 	for _, result := range results {
+
+		corpName := result.Corp
+		if corpMap[result.Corp] != nil {
+			corpName = corpMap[result.Corp].Name
+		}
+
 		items = append(items, &model.Model{
 			Id:              result.Id,
-			Corp:            result.Corp,
+			Corp:            corpName,
 			Name:            result.Name,
 			Model:           result.Model,
 			Type:            result.Type,

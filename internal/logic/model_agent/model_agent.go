@@ -369,6 +369,17 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		return nil, err
 	}
 
+	corp, err := dao.Corp.FindById(ctx, modelAgent.Corp)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	corpName := modelAgent.Corp
+	if corp != nil {
+		corpName = corp.Name
+	}
+
 	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -396,7 +407,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 
 	return &model.ModelAgent{
 		Id:         modelAgent.Id,
-		Corp:       modelAgent.Corp,
+		Corp:       corpName,
 		Name:       modelAgent.Name,
 		BaseUrl:    modelAgent.BaseUrl,
 		Path:       modelAgent.Path,
@@ -469,6 +480,16 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		return nil, err
 	}
 
+	corps, err := dao.Corp.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
+		return t.Id
+	})
+
 	modelList, err := service.Model().List(ctx, model.ModelListReq{})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -487,9 +508,15 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 	items := make([]*model.ModelAgent, 0)
 	for _, result := range results {
+
+		corpName := result.Corp
+		if corpMap[result.Corp] != nil {
+			corpName = corpMap[result.Corp].Name
+		}
+
 		items = append(items, &model.ModelAgent{
 			Id:         result.Id,
-			Corp:       result.Corp,
+			Corp:       corpName,
 			Name:       result.Name,
 			BaseUrl:    result.BaseUrl,
 			Path:       result.Path,

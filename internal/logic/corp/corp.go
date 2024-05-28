@@ -6,15 +6,14 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
-	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type sCorp struct{}
@@ -30,22 +29,41 @@ func New() service.ICorp {
 // 新建公司
 func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
 
-	if s.IsNameExist(ctx, params.Name) {
-		return errors.Newf("名称 \"%s\" 已存在", params.Name)
+	if params.Sort == 0 {
+
+		corp, err := dao.Corp.FindOne(ctx, bson.M{}, "-sort")
+		if err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if corp != nil {
+			params.Sort = corp.Sort + 1
+		}
 	}
 
-	if s.IsCodeExist(ctx, params.Code) {
-		return errors.Newf("代码 \"%s\" 已存在", params.Code)
-	}
-
-	if _, err := dao.Corp.Insert(ctx, &do.Corp{
+	id, err := dao.Corp.Insert(ctx, &do.Corp{
 		Name:   gstr.Trim(params.Name),
 		Code:   gstr.Trim(params.Code),
+		Sort:   params.Sort,
 		Remark: params.Remark,
 		Status: params.Status,
-	}); err != nil {
+	})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	corp, err := dao.Corp.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+		Action:  consts.ACTION_CREATE,
+		NewData: corp,
+	}); err != nil {
+		logger.Error(ctx, err)
 	}
 
 	return nil
@@ -54,19 +72,28 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
 // 更新公司
 func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
 
-	if s.IsNameExist(ctx, params.Name, params.Id) {
-		return errors.Newf("名称 \"%s\" 已存在", params.Name)
+	oldData, err := dao.Corp.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
-	if s.IsCodeExist(ctx, params.Code, params.Id) {
-		return errors.Newf("代码 \"%s\" 已存在", params.Code)
-	}
-
-	if err := dao.Corp.UpdateById(ctx, params.Id, &do.Corp{
+	corp, err := dao.Corp.FindOneAndUpdateById(ctx, params.Id, &do.Corp{
 		Name:   gstr.Trim(params.Name),
-		Code:   params.Code,
+		Code:   gstr.Trim(params.Code),
+		Sort:   params.Sort,
 		Remark: params.Remark,
 		Status: params.Status,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: corp,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -78,8 +105,17 @@ func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
 // 更改公司状态
 func (s *sCorp) ChangeStatus(ctx context.Context, params model.CorpChangeStatusReq) error {
 
-	if err := dao.Corp.UpdateById(ctx, params.Id, bson.M{
+	corp, err := dao.Corp.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: corp,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -91,7 +127,16 @@ func (s *sCorp) ChangeStatus(ctx context.Context, params model.CorpChangeStatusR
 // 删除公司
 func (s *sCorp) Delete(ctx context.Context, id string) error {
 
-	if _, err := dao.Corp.DeleteById(ctx, id); err != nil {
+	corp, err := dao.Corp.FindOneAndDeleteById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+		Action:  consts.ACTION_DELETE,
+		OldData: corp,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -112,6 +157,7 @@ func (s *sCorp) Detail(ctx context.Context, id string) (*model.Corp, error) {
 		Id:        corp.Id,
 		Name:      corp.Name,
 		Code:      corp.Code,
+		Sort:      corp.Sort,
 		Remark:    corp.Remark,
 		Status:    corp.Status,
 		Creator:   corp.Creator,
@@ -140,6 +186,18 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 	if params.Code != "" {
 		filter["code"] = bson.M{
 			"$regex": params.Code,
+		}
+	}
+
+	if params.Sort != 0 {
+		filter["sort"] = bson.M{
+			"$gte": params.Sort,
+		}
+	}
+
+	if params.Remark != "" {
+		filter["remark"] = bson.M{
+			"$regex": params.Remark,
 		}
 	}
 
@@ -195,6 +253,7 @@ func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Co
 			Id:     result.Id,
 			Name:   result.Name,
 			Code:   result.Code,
+			Sort:   result.Sort,
 			Status: result.Status,
 		})
 	}
@@ -226,48 +285,4 @@ func (s *sCorp) BatchOperate(ctx context.Context, params model.CorpBatchOperateR
 	}
 
 	return nil
-}
-
-// 公司名称是否存在
-func (s *sCorp) IsNameExist(ctx context.Context, name string, id ...string) bool {
-
-	corp, err := dao.Corp.FindOne(ctx, bson.M{"name": gstr.Trim(name)})
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return false
-		}
-		logger.Error(ctx, err)
-		return true
-	}
-
-	if corp != nil {
-		if len(id) > 0 && corp.Id == id[0] {
-			return false
-		}
-		return true
-	}
-
-	return false
-}
-
-// 公司代码是否存在
-func (s *sCorp) IsCodeExist(ctx context.Context, code string, id ...string) bool {
-
-	corp, err := dao.Corp.FindOne(ctx, bson.M{"code": gstr.Trim(code)})
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return false
-		}
-		logger.Error(ctx, err)
-		return true
-	}
-
-	if corp != nil {
-		if len(id) > 0 && corp.Id == id[0] {
-			return false
-		}
-		return true
-	}
-
-	return false
 }

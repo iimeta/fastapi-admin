@@ -29,7 +29,7 @@ type Chat struct {
 	TraceId            string         `json:"trace_id,omitempty"`              // 日志ID
 	UserId             int            `json:"user_id,omitempty"`               // 用户ID
 	AppId              int            `json:"app_id,omitempty"`                // 应用ID
-	Corp               string         `json:"corp,omitempty"`                  // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;DeepSeek;Midjourney]
+	Corp               string         `json:"corp,omitempty"`                  // 公司
 	ModelId            string         `json:"model_id,omitempty"`              // 模型ID
 	Name               string         `json:"name,omitempty"`                  // 模型名称
 	Model              string         `json:"model,omitempty"`                 // 模型

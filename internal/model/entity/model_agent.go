@@ -5,7 +5,7 @@ import "github.com/gogf/gf/v2/util/gmeta"
 type ModelAgent struct {
 	gmeta.Meta `role:"admin" bson:"-"`
 	Id         string `bson:"_id,omitempty"`        // ID
-	Corp       string `bson:"corp,omitempty"`       // 公司[OpenAI;Baidu;Xfyun;Aliyun;ZhipuAI;Google;DeepSeek;Midjourney]
+	Corp       string `bson:"corp,omitempty"`       // 公司
 	Name       string `bson:"name,omitempty"`       // 模型代理名称
 	BaseUrl    string `bson:"base_url,omitempty"`   // 模型代理地址
 	Path       string `bson:"path,omitempty"`       // 模型代理地址路径

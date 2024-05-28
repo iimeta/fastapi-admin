@@ -37,12 +37,23 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
+	corp, err := dao.Corp.FindById(ctx, result.Corp)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	corpName := result.Corp
+	if corp != nil {
+		corpName = corp.Name
+	}
+
 	chat := &model.Chat{
 		Id:            result.Id,
 		TraceId:       result.TraceId,
 		UserId:        result.UserId,
 		AppId:         result.AppId,
-		Corp:          result.Corp,
+		Corp:          corpName,
 		Model:         result.Model,
 		Type:          result.Type,
 		Stream:        result.Stream,
@@ -102,8 +113,20 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 
 		if result.ModelAgent != nil {
+
+			corp, err := dao.Corp.FindById(ctx, result.ModelAgent.Corp)
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+
+			corpName := result.ModelAgent.Corp
+			if corp != nil {
+				corpName = corp.Name
+			}
+
 			chat.ModelAgent = &model.ModelAgent{
-				Corp:    result.ModelAgent.Corp,
+				Corp:    corpName,
 				Name:    result.ModelAgent.Name,
 				BaseUrl: result.ModelAgent.BaseUrl,
 				Path:    result.ModelAgent.Path,

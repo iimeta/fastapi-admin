@@ -7,6 +7,7 @@ type Corp struct {
 	Id         string `bson:"_id,omitempty"`        // ID
 	Name       string `bson:"name,omitempty"`       // 名称
 	Code       string `bson:"code,omitempty"`       // 代码
+	Sort       int    `bson:"sort,omitempty"`       // 排序
 	Remark     string `bson:"remark,omitempty"`     // 备注
 	Status     int    `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator    string `bson:"creator,omitempty"`    // 创建人
