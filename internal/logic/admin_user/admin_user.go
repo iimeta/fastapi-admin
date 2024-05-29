@@ -81,16 +81,48 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return err
 	}
 
+	newData, err := dao.User.FindById(ctx, uid)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_CREATE,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 
 // 更新用户
 func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) error {
 
-	if err := dao.User.UpdateById(ctx, params.Id, &do.User{
+	oldData, err := dao.User.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, &do.User{
 		Name:   params.Name,
+		Models: params.Models,
 		Quota:  params.Quota,
+		Remark: params.Remark,
 		Status: params.Status,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err

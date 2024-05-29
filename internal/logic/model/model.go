@@ -76,6 +76,20 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		return err
 	}
 
+	newData, err := dao.Model.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+		Action:  consts.ACTION_CREATE,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	if params.IsPublic {
 
 		userList, err := dao.User.Find(ctx, bson.M{})

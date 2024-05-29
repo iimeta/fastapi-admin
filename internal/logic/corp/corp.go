@@ -242,11 +242,9 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 // 公司列表
 func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Corp, error) {
 
-	filter := bson.M{
-		"status": 1,
-	}
+	filter := bson.M{}
 
-	results, err := dao.Corp.Find(ctx, filter, "-updated_at")
+	results, err := dao.Corp.Find(ctx, filter, "sort", "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -255,11 +253,8 @@ func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Co
 	items := make([]*model.Corp, 0)
 	for _, result := range results {
 		items = append(items, &model.Corp{
-			Id:     result.Id,
-			Name:   result.Name,
-			Code:   result.Code,
-			Sort:   result.Sort,
-			Status: result.Status,
+			Id:   result.Id,
+			Name: result.Name,
 		})
 	}
 
