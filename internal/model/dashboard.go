@@ -69,6 +69,7 @@ type Expense struct {
 	QuotaUSD     float64 `json:"quota_usd"`      // 剩余额度美元单位
 	UsedQuota    int     `json:"used_quota"`     // 已用额度
 	UsedQuotaUSD float64 `json:"used_quota_usd"` // 已用额度美元单位
+	ExpiresAt    string  `json:"expires_at"`     // 过期时间
 }
 
 // 数据TOP

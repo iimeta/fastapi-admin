@@ -230,7 +230,8 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 	return &model.Key{
 		Id:              key.Id,
 		AppId:           key.AppId,
-		Corp:            corpName,
+		Corp:            key.Corp,
+		CorpName:        corpName,
 		Key:             key.Key,
 		Type:            key.Type,
 		Models:          key.Models,
@@ -338,7 +339,8 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		items = append(items, &model.Key{
 			Id:           result.Id,
 			AppId:        result.AppId,
-			Corp:         corpName,
+			Corp:         result.Corp,
+			CorpName:     corpName,
 			Key:          result.Key,
 			Type:         result.Type,
 			Models:       result.Models,

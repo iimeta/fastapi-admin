@@ -425,7 +425,8 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 
 	detail := &model.Model{
 		Id:                 m.Id,
-		Corp:               corpName,
+		Corp:               m.Corp,
+		CorpName:           corpName,
 		Name:               m.Name,
 		Model:              m.Model,
 		Type:               m.Type,
@@ -565,7 +566,8 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 		items = append(items, &model.Model{
 			Id:              result.Id,
-			Corp:            corpName,
+			Corp:            result.Corp,
+			CorpName:        corpName,
 			Name:            result.Name,
 			Model:           result.Model,
 			Type:            result.Type,

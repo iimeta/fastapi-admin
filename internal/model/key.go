@@ -82,7 +82,8 @@ type KeyBatchOperateReq struct {
 type Key struct {
 	Id              string   `json:"id,omitempty"`                // ID
 	AppId           int      `json:"app_id,omitempty"`            // 应用ID
-	Corp            string   `json:"corp,omitempty"`              // 公司
+	Corp            string   `json:"corp,omitempty"`              // 公司ID
+	CorpName        string   `json:"corp_name,omitempty"`         // 公司名称
 	Key             string   `json:"key,omitempty"`               // 密钥
 	Type            int      `json:"type,omitempty"`              // 密钥类型[1:应用, 2:模型]
 	Models          []string `json:"models,omitempty"`            // 模型

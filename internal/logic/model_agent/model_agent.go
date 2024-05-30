@@ -401,7 +401,8 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 
 	return &model.ModelAgent{
 		Id:         modelAgent.Id,
-		Corp:       corpName,
+		Corp:       modelAgent.Corp,
+		CorpName:   corpName,
 		Name:       modelAgent.Name,
 		BaseUrl:    modelAgent.BaseUrl,
 		Path:       modelAgent.Path,
@@ -510,7 +511,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 		items = append(items, &model.ModelAgent{
 			Id:         result.Id,
-			Corp:       corpName,
+			Corp:       result.Corp,
+			CorpName:   corpName,
 			Name:       result.Name,
 			BaseUrl:    result.BaseUrl,
 			Path:       result.Path,

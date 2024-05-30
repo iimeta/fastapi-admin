@@ -85,7 +85,8 @@ type ModelAgentBatchOperateReq struct {
 
 type ModelAgent struct {
 	Id         string   `json:"id,omitempty"`          // ID
-	Corp       string   `json:"corp,omitempty"`        // 公司
+	Corp       string   `json:"corp,omitempty"`        // 公司ID
+	CorpName   string   `json:"corp_name,omitempty"`   // 公司名称
 	Name       string   `json:"name,omitempty"`        // 模型代理名称
 	BaseUrl    string   `json:"base_url,omitempty"`    // 模型代理地址
 	Path       string   `json:"path,omitempty"`        // 模型代理地址路径

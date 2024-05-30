@@ -47,7 +47,8 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		TraceId:       result.TraceId,
 		UserId:        result.UserId,
 		AppId:         result.AppId,
-		Corp:          corpName,
+		Corp:          result.Corp,
+		CorpName:      corpName,
 		Model:         result.Model,
 		Type:          result.Type,
 		Stream:        result.Stream,
@@ -114,13 +115,14 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 			}
 
 			chat.ModelAgent = &model.ModelAgent{
-				Corp:    corpName,
-				Name:    result.ModelAgent.Name,
-				BaseUrl: result.ModelAgent.BaseUrl,
-				Path:    result.ModelAgent.Path,
-				Weight:  result.ModelAgent.Weight,
-				Remark:  result.ModelAgent.Remark,
-				Status:  result.ModelAgent.Status,
+				Corp:     result.ModelAgent.Corp,
+				CorpName: corpName,
+				Name:     result.ModelAgent.Name,
+				BaseUrl:  result.ModelAgent.BaseUrl,
+				Path:     result.ModelAgent.Path,
+				Weight:   result.ModelAgent.Weight,
+				Remark:   result.ModelAgent.Remark,
+				Status:   result.ModelAgent.Status,
 			}
 		}
 
