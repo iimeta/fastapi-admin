@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
@@ -34,17 +35,18 @@ func New() service.IApp {
 func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 
 	if _, err := dao.App.Insert(ctx, &do.App{
-		AppId:        core.IncrAppId(ctx),
-		Name:         params.Name,
-		Type:         params.Type,
-		Models:       params.Models,
-		IsLimitQuota: params.IsLimitQuota,
-		Quota:        params.Quota,
-		IpWhitelist:  gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
-		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
-		Remark:       params.Remark,
-		Status:       params.Status,
-		UserId:       service.Session().GetUserId(ctx),
+		AppId:          core.IncrAppId(ctx),
+		Name:           params.Name,
+		Type:           params.Type,
+		Models:         params.Models,
+		IsLimitQuota:   params.IsLimitQuota,
+		Quota:          params.Quota,
+		QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		IpWhitelist:    gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+		IpBlacklist:    gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
+		Remark:         params.Remark,
+		Status:         params.Status,
+		UserId:         service.Session().GetUserId(ctx),
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -63,15 +65,16 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 	}
 
 	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, &do.App{
-		Name:         params.Name,
-		Type:         params.Type,
-		Models:       params.Models,
-		IsLimitQuota: params.IsLimitQuota,
-		Quota:        params.Quota,
-		IpWhitelist:  gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
-		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
-		Remark:       params.Remark,
-		Status:       params.Status,
+		Name:           params.Name,
+		Type:           params.Type,
+		Models:         params.Models,
+		IsLimitQuota:   params.IsLimitQuota,
+		Quota:          params.Quota,
+		QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		IpWhitelist:    gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+		IpBlacklist:    gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
+		Remark:         params.Remark,
+		Status:         params.Status,
 	})
 
 	if err != nil {
@@ -164,21 +167,22 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 	}
 
 	return &model.App{
-		Id:           app.Id,
-		AppId:        app.AppId,
-		Name:         app.Name,
-		Type:         app.Type,
-		Models:       app.Models,
-		ModelNames:   modelNames,
-		IsLimitQuota: app.IsLimitQuota,
-		Quota:        app.Quota,
-		UsedQuota:    app.UsedQuota,
-		IpWhitelist:  app.IpWhitelist,
-		IpBlacklist:  app.IpBlacklist,
-		Remark:       app.Remark,
-		Status:       app.Status,
-		CreatedAt:    util.FormatDateTime(app.CreatedAt),
-		UpdatedAt:    util.FormatDateTime(app.UpdatedAt),
+		Id:             app.Id,
+		AppId:          app.AppId,
+		Name:           app.Name,
+		Type:           app.Type,
+		Models:         app.Models,
+		ModelNames:     modelNames,
+		IsLimitQuota:   app.IsLimitQuota,
+		Quota:          app.Quota,
+		UsedQuota:      app.UsedQuota,
+		QuotaExpiresAt: util.FormatDateTime(app.QuotaExpiresAt),
+		IpWhitelist:    app.IpWhitelist,
+		IpBlacklist:    app.IpBlacklist,
+		Remark:         app.Remark,
+		Status:         app.Status,
+		CreatedAt:      util.FormatDateTime(app.CreatedAt),
+		UpdatedAt:      util.FormatDateTime(app.UpdatedAt),
 	}, nil
 }
 
@@ -241,18 +245,19 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 		}
 
 		items = append(items, &model.App{
-			Id:           result.Id,
-			AppId:        result.AppId,
-			Name:         result.Name,
-			Type:         result.Type,
-			Models:       result.Models,
-			ModelNames:   modelNames,
-			IsLimitQuota: result.IsLimitQuota,
-			Quota:        result.Quota,
-			UsedQuota:    result.UsedQuota,
-			Status:       result.Status,
-			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:    util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:             result.Id,
+			AppId:          result.AppId,
+			Name:           result.Name,
+			Type:           result.Type,
+			Models:         result.Models,
+			ModelNames:     modelNames,
+			IsLimitQuota:   result.IsLimitQuota,
+			Quota:          result.Quota,
+			UsedQuota:      result.UsedQuota,
+			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
+			Status:         result.Status,
+			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 
@@ -303,23 +308,25 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 // 应用密钥配置
 func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err error) {
 
-	key := &do.Key{
-		UserId:       service.Session().GetUserId(ctx),
-		AppId:        params.AppId,
-		Key:          params.Key,
-		IsLimitQuota: params.IsLimitQuota,
-		Quota:        params.Quota,
-		Type:         1,
-		Models:       params.Models,
-		IpWhitelist:  gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
-		IpBlacklist:  gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
-		Remark:       params.Remark,
-		Status:       params.Status,
-	}
-
-	var keyInfo *entity.Key
-	var oldData *entity.Key
-	action := consts.ACTION_CREATE
+	var (
+		keyInfo *entity.Key
+		oldData *entity.Key
+		action  = consts.ACTION_CREATE
+		key     = &do.Key{
+			UserId:         service.Session().GetUserId(ctx),
+			AppId:          params.AppId,
+			Key:            params.Key,
+			IsLimitQuota:   params.IsLimitQuota,
+			Quota:          params.Quota,
+			QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+			Type:           1,
+			Models:         params.Models,
+			IpWhitelist:    gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+			IpBlacklist:    gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
+			Remark:         params.Remark,
+			Status:         params.Status,
+		}
+	)
 
 	if params.Id != "" {
 
@@ -345,19 +352,20 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 		}
 
 		keyInfo = &entity.Key{
-			Id:           id,
-			UserId:       key.UserId,
-			AppId:        key.AppId,
-			Key:          key.Key,
-			IsLimitQuota: key.IsLimitQuota,
-			Quota:        key.Quota,
-			UsedQuota:    key.UsedQuota,
-			Type:         key.Type,
-			Models:       key.Models,
-			IpWhitelist:  key.IpWhitelist,
-			IpBlacklist:  key.IpBlacklist,
-			Remark:       key.Remark,
-			Status:       key.Status,
+			Id:             id,
+			UserId:         key.UserId,
+			AppId:          key.AppId,
+			Key:            key.Key,
+			IsLimitQuota:   key.IsLimitQuota,
+			Quota:          key.Quota,
+			UsedQuota:      key.UsedQuota,
+			QuotaExpiresAt: key.QuotaExpiresAt,
+			Type:           key.Type,
+			Models:         key.Models,
+			IpWhitelist:    key.IpWhitelist,
+			IpBlacklist:    key.IpBlacklist,
+			Remark:         key.Remark,
+			Status:         key.Status,
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/crypto/gmd5"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -210,4 +211,12 @@ func (s *sCommon) name(channel, account string) string {
 
 func (s *sCommon) failName(channel, account string) string {
 	return fmt.Sprintf("code:fail:%s:%s", channel, gmd5.MustEncryptString(account))
+}
+
+// 额度过期时间转换
+func ConvQuotaExpiresAt(quotaExpiresAt string) int64 {
+	if quotaExpiresAt == "" {
+		return 0
+	}
+	return gtime.NewFromStrLayout(quotaExpiresAt, time.DateTime).TimestampMilli() + 999
 }

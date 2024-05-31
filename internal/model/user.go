@@ -32,26 +32,28 @@ type UserUpdateInfoReq struct {
 
 // 新建用户接口请求参数
 type UserCreateReq struct {
-	Name     string `json:"name,omitempty" v:"required"`                               // 姓名
-	Account  string `json:"account,omitempty" v:"required"`                            // 账号
-	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
-	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
-	Quota    int    `json:"quota,omitempty"`                                           // 额度
-	Remark   string `json:"remark,omitempty"`                                          // 备注
+	Name           string `json:"name,omitempty" v:"required"`                               // 姓名
+	Account        string `json:"account,omitempty" v:"required"`                            // 账号
+	Password       string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
+	Terminal       string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
+	Quota          int    `json:"quota,omitempty"`                                           // 额度
+	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`                                // 额度过期时间
+	Remark         string `json:"remark,omitempty"`                                          // 备注
 }
 
 // 更新用户接口请求参数
 type UserUpdateReq struct {
-	Id           string   `json:"id,omitempty"`             // ID
-	Name         string   `json:"name,omitempty"`           // 姓名
-	Type         int      `json:"type,omitempty"`           // 用户类型
-	Models       []string `json:"models,omitempty" d:"[]"`  // 模型权限
-	IsLimitQuota bool     `json:"is_limit_quota,omitempty"` // 是否限制额度
-	Quota        int      `json:"quota,omitempty"`          // 额度
-	IpWhitelist  string   `json:"ip_whitelist,omitempty"`   // IP白名单
-	IpBlacklist  string   `json:"ip_blacklist,omitempty"`   // IP黑名单
-	Remark       string   `json:"remark,omitempty"`         // 备注
-	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+	Id             string   `json:"id,omitempty"`               // ID
+	Name           string   `json:"name,omitempty"`             // 姓名
+	Type           int      `json:"type,omitempty"`             // 用户类型
+	Models         []string `json:"models,omitempty" d:"[]"`    // 模型权限
+	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
+	Quota          int      `json:"quota,omitempty"`            // 额度
+	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+	IpWhitelist    string   `json:"ip_whitelist,omitempty"`     // IP白名单
+	IpBlacklist    string   `json:"ip_blacklist,omitempty"`     // IP黑名单
+	Remark         string   `json:"remark,omitempty"`           // 备注
+	Status         int      `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改用户状态接口请求参数
@@ -68,15 +70,16 @@ type UserDetailRes struct {
 // 用户分页列表接口请求参数
 type UserPageReq struct {
 	Paging
-	UserId    int    `json:"user_id,omitempty"`    // 用户ID
-	Name      string `json:"name,omitempty"`       // 姓名
-	Phone     string `json:"phone,omitempty"`      // 手机号
-	Email     string `json:"email,omitempty"`      // 邮箱
-	Key       string `json:"key,omitempty"`        // 密钥
-	Quota     int    `json:"quota,omitempty"`      // 额度
-	Remark    string `json:"remark,omitempty"`     // 备注
-	Status    int    `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt string `json:"created_at,omitempty"` // 创建时间
+	UserId         int    `json:"user_id,omitempty"`          // 用户ID
+	Name           string `json:"name,omitempty"`             // 姓名
+	Phone          string `json:"phone,omitempty"`            // 手机号
+	Email          string `json:"email,omitempty"`            // 邮箱
+	Key            string `json:"key,omitempty"`              // 密钥
+	Quota          int    `json:"quota,omitempty"`            // 额度
+	QuotaExpiresAt string `json:"quota_expires_at,omitempty"` // 额度过期时间
+	Remark         string `json:"remark,omitempty"`           // 备注
+	Status         int    `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt      string `json:"created_at,omitempty"`       // 创建时间
 }
 
 // 用户分页列表接口响应参数
@@ -116,19 +119,20 @@ type UserModelsReq struct {
 }
 
 type User struct {
-	Id         string   `json:"id,omitempty"`          // ID
-	UserId     int      `json:"user_id,omitempty"`     // 用户ID
-	Name       string   `json:"name,omitempty"`        // 姓名
-	Avatar     string   `json:"avatar,omitempty"`      // 头像
-	Email      string   `json:"email,omitempty"`       // 邮箱
-	Phone      string   `json:"phone,omitempty"`       // 手机号
-	Quota      int      `json:"quota"`                 // 剩余额度
-	UsedQuota  int      `json:"used_quota"`            // 已用额度
-	Models     []string `json:"models,omitempty"`      // 模型权限
-	ModelNames []string `json:"model_names,omitempty"` // 模型名称
-	Account    string   `json:"account,omitempty"`     // 账号
-	Remark     string   `json:"remark,omitempty"`      // 备注
-	Status     int      `json:"status,omitempty"`      // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt  string   `json:"created_at,omitempty"`  // 创建时间
-	UpdatedAt  string   `json:"updated_at,omitempty"`  // 更新时间
+	Id             string   `json:"id,omitempty"`               // ID
+	UserId         int      `json:"user_id,omitempty"`          // 用户ID
+	Name           string   `json:"name,omitempty"`             // 姓名
+	Avatar         string   `json:"avatar,omitempty"`           // 头像
+	Email          string   `json:"email,omitempty"`            // 邮箱
+	Phone          string   `json:"phone,omitempty"`            // 手机号
+	Quota          int      `json:"quota"`                      // 剩余额度
+	UsedQuota      int      `json:"used_quota"`                 // 已用额度
+	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+	Models         []string `json:"models,omitempty"`           // 模型权限
+	ModelNames     []string `json:"model_names,omitempty"`      // 模型名称
+	Account        string   `json:"account,omitempty"`          // 账号
+	Remark         string   `json:"remark,omitempty"`           // 备注
+	Status         int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt      string   `json:"created_at,omitempty"`       // 创建时间
+	UpdatedAt      string   `json:"updated_at,omitempty"`       // 更新时间
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -42,20 +43,22 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return err
 	}
 
-	salt := grand.Letters(8)
-	id := util.GenerateId()
-
-	user := &do.User{
-		Id:      id,
-		UserId:  core.IncrUserId(ctx),
-		Name:    params.Name,
-		Email:   params.Account,
-		Quota:   params.Quota,
-		Models:  models,
-		Remark:  params.Remark,
-		Status:  1,
-		Creator: id,
-	}
+	var (
+		salt = grand.Letters(8)
+		id   = util.GenerateId()
+		user = &do.User{
+			Id:             id,
+			UserId:         core.IncrUserId(ctx),
+			Name:           params.Name,
+			Email:          params.Account,
+			Quota:          params.Quota,
+			QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+			Models:         models,
+			Remark:         params.Remark,
+			Status:         1,
+			Creator:        id,
+		}
+	)
 
 	uid, err := dao.User.Insert(ctx, user)
 	if err != nil {
@@ -108,11 +111,12 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, &do.User{
-		Name:   params.Name,
-		Models: params.Models,
-		Quota:  params.Quota,
-		Remark: params.Remark,
-		Status: params.Status,
+		Name:           params.Name,
+		Models:         params.Models,
+		Quota:          params.Quota,
+		QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		Remark:         params.Remark,
+		Status:         params.Status,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -201,19 +205,20 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 	}
 
 	return &model.User{
-		Id:         user.Id,
-		UserId:     user.UserId,
-		Name:       user.Name,
-		Phone:      user.Phone,
-		Email:      user.Email,
-		Quota:      user.Quota,
-		UsedQuota:  user.UsedQuota,
-		Models:     user.Models,
-		ModelNames: modelNames,
-		Remark:     user.Remark,
-		Status:     user.Status,
-		CreatedAt:  util.FormatDateTime(user.CreatedAt),
-		UpdatedAt:  util.FormatDateTime(user.UpdatedAt),
+		Id:             user.Id,
+		UserId:         user.UserId,
+		Name:           user.Name,
+		Phone:          user.Phone,
+		Email:          user.Email,
+		Quota:          user.Quota,
+		UsedQuota:      user.UsedQuota,
+		QuotaExpiresAt: util.FormatDateTime(user.QuotaExpiresAt),
+		Models:         user.Models,
+		ModelNames:     modelNames,
+		Remark:         user.Remark,
+		Status:         user.Status,
+		CreatedAt:      util.FormatDateTime(user.CreatedAt),
+		UpdatedAt:      util.FormatDateTime(user.UpdatedAt),
 	}, nil
 }
 
@@ -257,17 +262,18 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 	for _, result := range results {
 
 		items = append(items, &model.User{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			Name:      result.Name,
-			Email:     result.Email,
-			Phone:     result.Phone,
-			Quota:     result.Quota,
-			UsedQuota: result.UsedQuota,
-			Models:    result.Models,
-			Status:    result.Status,
-			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt: util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:             result.Id,
+			UserId:         result.UserId,
+			Name:           result.Name,
+			Email:          result.Email,
+			Phone:          result.Phone,
+			Quota:          result.Quota,
+			UsedQuota:      result.UsedQuota,
+			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
+			Models:         result.Models,
+			Status:         result.Status,
+			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

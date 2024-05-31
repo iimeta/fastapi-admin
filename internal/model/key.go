@@ -94,6 +94,7 @@ type Key struct {
 	IsLimitQuota    bool     `json:"is_limit_quota"`              // 是否限制额度
 	Quota           int      `json:"quota,omitempty"`             // 剩余额度
 	UsedQuota       int      `json:"used_quota,omitempty"`        // 已用额度
+	QuotaExpiresAt  string   `json:"quota_expires_at,omitempty"`  // 额度过期时间
 	IpWhitelist     []string `json:"ip_whitelist,omitempty"`      // IP白名单
 	IpBlacklist     []string `json:"ip_blacklist,omitempty"`      // IP黑名单
 	Remark          string   `json:"remark,omitempty"`            // 备注
