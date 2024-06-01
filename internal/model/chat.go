@@ -15,7 +15,7 @@ type ChatPageReq struct {
 	Models    []string `json:"models,omitempty"`     // 模型
 	TotalTime int64    `json:"total_time,omitempty"` // 总时间
 	Status    int      `json:"status,omitempty"`     // 状态[1:成功, -1:失败]
-	ReqTimes  []string `json:"req_times,omitempty"`  // 请求时间
+	ReqTime   []string `json:"req_time,omitempty"`   // 请求时间
 }
 
 // 聊天分页列表接口响应参数

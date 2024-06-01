@@ -38,6 +38,17 @@ type ChangeStatusRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 更改公司公开状态接口请求参数
+type ChangePublicReq struct {
+	g.Meta `path:"/change/public" tags:"corp" method:"post" summary:"更改公司公开状态接口"`
+	model.CorpChangePublicReq
+}
+
+// 更改公司公开状态接口响应参数
+type ChangePublicRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 删除公司接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" tags:"corp" method:"post" summary:"删除公司接口"`

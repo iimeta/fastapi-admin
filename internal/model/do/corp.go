@@ -10,7 +10,8 @@ type Corp struct {
 	gmeta.Meta `collection:"corp" bson:"-"`
 	Name       string `bson:"name,omitempty"`       // 名称
 	Code       string `bson:"code,omitempty"`       // 代码
-	Sort       int    `bson:"sort"`                 // 排序
+	Sort       int    `bson:"sort,omitempty"`       // 排序
+	IsPublic   bool   `bson:"is_public"`            // 是否公开
 	Remark     string `bson:"remark"`               // 备注
 	Status     int    `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator    string `bson:"creator,omitempty"`    // 创建人

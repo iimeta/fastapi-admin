@@ -206,10 +206,11 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 	}
 
 	return &model.Expense{
-		Quota:        user.Quota,
-		QuotaUSD:     util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
-		UsedQuota:    user.UsedQuota,
-		UsedQuotaUSD: util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
+		Quota:          user.Quota,
+		QuotaUSD:       util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
+		UsedQuota:      user.UsedQuota,
+		UsedQuotaUSD:   util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
+		QuotaExpiresAt: user.QuotaExpiresAt,
 	}, nil
 }
 

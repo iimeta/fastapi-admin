@@ -38,11 +38,12 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
 	}
 
 	id, err := dao.Corp.Insert(ctx, &do.Corp{
-		Name:   gstr.Trim(params.Name),
-		Code:   gstr.Trim(params.Code),
-		Sort:   params.Sort,
-		Remark: params.Remark,
-		Status: params.Status,
+		Name:     gstr.Trim(params.Name),
+		Code:     gstr.Trim(params.Code),
+		Sort:     params.Sort,
+		IsPublic: params.IsPublic,
+		Remark:   params.Remark,
+		Status:   params.Status,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -83,11 +84,12 @@ func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
 	}
 
 	corp, err := dao.Corp.FindOneAndUpdateById(ctx, params.Id, &do.Corp{
-		Name:   gstr.Trim(params.Name),
-		Code:   gstr.Trim(params.Code),
-		Sort:   params.Sort,
-		Remark: params.Remark,
-		Status: params.Status,
+		Name:     gstr.Trim(params.Name),
+		Code:     gstr.Trim(params.Code),
+		Sort:     params.Sort,
+		IsPublic: params.IsPublic,
+		Remark:   params.Remark,
+		Status:   params.Status,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -98,6 +100,19 @@ func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
 		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
 		NewData: corp,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更改公司公开状态
+func (s *sCorp) ChangePublic(ctx context.Context, params model.CorpChangePublicReq) error {
+
+	if err := dao.Corp.UpdateById(ctx, params.Id, bson.M{
+		"is_public": params.IsPublic,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -162,6 +177,7 @@ func (s *sCorp) Detail(ctx context.Context, id string) (*model.Corp, error) {
 		Name:      corp.Name,
 		Code:      corp.Code,
 		Sort:      corp.Sort,
+		IsPublic:  corp.IsPublic,
 		Remark:    corp.Remark,
 		Status:    corp.Status,
 		Creator:   corp.Creator,
@@ -193,10 +209,8 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 		}
 	}
 
-	if params.Sort != 0 {
-		filter["sort"] = bson.M{
-			"$gte": params.Sort,
-		}
+	if params.IsPublic != "" {
+		filter["is_public"] = gconv.Bool(params.IsPublic)
 	}
 
 	if params.Remark != "" {
@@ -222,6 +236,7 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 			Name:      result.Name,
 			Code:      result.Code,
 			Sort:      result.Sort,
+			IsPublic:  result.IsPublic,
 			Remark:    result.Remark,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
@@ -242,7 +257,13 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 // 公司列表
 func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Corp, error) {
 
-	filter := bson.M{}
+	filter := bson.M{
+		"status": 1,
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		filter["is_public"] = true
+	}
 
 	results, err := dao.Corp.Find(ctx, filter, "sort", "status", "-updated_at")
 	if err != nil {

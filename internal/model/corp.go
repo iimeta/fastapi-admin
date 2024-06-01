@@ -2,27 +2,35 @@ package model
 
 // 新建公司接口请求参数
 type CorpCreateReq struct {
-	Name   string `json:"name,omitempty"`         // 名称
-	Code   string `json:"code,omitempty"`         // 代码
-	Sort   int    `json:"sort,omitempty"`         // 排序
-	Remark string `json:"remark,omitempty"`       // 备注
-	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Name     string `json:"name,omitempty"`         // 名称
+	Code     string `json:"code,omitempty"`         // 代码
+	Sort     int    `json:"sort,omitempty"`         // 排序
+	IsPublic bool   `json:"is_public,omitempty"`    // 是否公开
+	Remark   string `json:"remark,omitempty"`       // 备注
+	Status   int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新公司接口请求参数
 type CorpUpdateReq struct {
-	Id     string `json:"id" v:"required"`        // ID
-	Name   string `json:"name,omitempty"`         // 名称
-	Code   string `json:"code,omitempty"`         // 代码
-	Sort   int    `json:"sort,omitempty"`         // 排序
-	Remark string `json:"remark,omitempty"`       // 备注
-	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Id       string `json:"id" v:"required"`        // ID
+	Name     string `json:"name,omitempty"`         // 名称
+	Code     string `json:"code,omitempty"`         // 代码
+	Sort     int    `json:"sort,omitempty"`         // 排序
+	IsPublic bool   `json:"is_public,omitempty"`    // 是否公开
+	Remark   string `json:"remark,omitempty"`       // 备注
+	Status   int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改公司状态接口请求参数
 type CorpChangeStatusReq struct {
 	Id     string `json:"id" v:"required"`        // ID
 	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+}
+
+// 更改公司公开状态接口请求参数
+type CorpChangePublicReq struct {
+	Id       string `json:"id" v:"required"`     // ID
+	IsPublic bool   `json:"is_public,omitempty"` // 是否公开
 }
 
 // 公司详情接口响应参数
@@ -36,6 +44,7 @@ type CorpPageReq struct {
 	Name      string   `json:"name,omitempty"`       // 名称
 	Code      string   `json:"code,omitempty"`       // 代码
 	Sort      int      `json:"sort,omitempty"`       // 排序
+	IsPublic  string   `json:"is_public,omitempty"`  // 是否公开
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
@@ -49,11 +58,12 @@ type CorpPageRes struct {
 
 // 公司列表接口请求参数
 type CorpListReq struct {
-	Name   string `json:"name,omitempty"`         // 名称
-	Code   string `json:"code,omitempty"`         // 代码
-	Sort   int    `json:"sort,omitempty"`         // 排序
-	Remark string `json:"remark,omitempty"`       // 备注
-	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Name     string `json:"name,omitempty"`         // 名称
+	Code     string `json:"code,omitempty"`         // 代码
+	Sort     int    `json:"sort,omitempty"`         // 排序
+	IsPublic bool   `json:"is_public,omitempty"`    // 是否公开
+	Remark   string `json:"remark,omitempty"`       // 备注
+	Status   int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 公司列表接口响应参数
@@ -73,6 +83,7 @@ type Corp struct {
 	Name      string `json:"name,omitempty"`       // 名称
 	Code      string `json:"code,omitempty"`       // 代码
 	Sort      int    `json:"sort,omitempty"`       // 排序
+	IsPublic  bool   `json:"is_public,omitempty"`  // 是否公开
 	Remark    string `json:"remark,omitempty"`     // 备注
 	Status    int    `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator   string `json:"creator,omitempty"`    // 创建人

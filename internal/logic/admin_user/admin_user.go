@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
@@ -18,6 +19,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"time"
 )
 
 type sAdminUser struct{}
@@ -110,13 +112,55 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		return err
 	}
 
-	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, &do.User{
-		Name:           params.Name,
-		Models:         params.Models,
-		Quota:          params.Quota,
-		QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
-		Remark:         params.Remark,
-		Status:         params.Status,
+	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"name":             params.Name,
+		"quota_expires_at": common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"remark":           params.Remark,
+		"status":           params.Status,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	account, err := dao.User.FindAccountByUserId(ctx, newData.UserId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if account.Account != params.Account {
+		if err = dao.Account.UpdateById(ctx, account.Id, bson.M{
+			"account": params.Account,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更改用户额度过期时间
+func (s *sAdminUser) ChangeQuotaExpire(ctx context.Context, params model.UserChangeQuotaExpireReq) error {
+
+	oldData, err := dao.User.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"quota_expires_at": common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -198,6 +242,12 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		return nil, err
 	}
 
+	account, err := dao.User.FindAccountByUserId(ctx, user.UserId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
 	modelNames, err := service.Model().ModelNames(ctx, user.Models)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -207,6 +257,7 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 	return &model.User{
 		Id:             user.Id,
 		UserId:         user.UserId,
+		Account:        account.Account,
 		Name:           user.Name,
 		Phone:          user.Phone,
 		Email:          user.Email,
@@ -248,8 +299,26 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		}
 	}
 
+	if len(params.QuotaExpiresAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateTime).TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateTime).TimestampMilli() + 999
+		filter["quota_expires_at"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
+	}
+
 	if params.Status != 0 {
 		filter["status"] = params.Status
+	}
+
+	if len(params.CreatedAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.CreatedAt[0], time.DateTime).TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.CreatedAt[1], time.DateTime).TimestampMilli() + 999
+		filter["created_at"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
 	}
 
 	results, err := dao.User.FindByPage(ctx, paging, filter, "status", "-user_id", "-updated_at")

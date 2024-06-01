@@ -17,6 +17,8 @@ type (
 		Create(ctx context.Context, params model.UserCreateReq) error
 		// 更新用户
 		Update(ctx context.Context, params model.UserUpdateReq) error
+		// 更改用户额度过期时间
+		ChangeQuotaExpire(ctx context.Context, params model.UserChangeQuotaExpireReq) error
 		// 更改用户状态
 		ChangeStatus(ctx context.Context, params model.UserChangeStatusReq) error
 		// 删除用户
@@ -29,7 +31,7 @@ type (
 		List(ctx context.Context, params model.UserListReq) ([]*model.User, error)
 		// 授予用户额度
 		GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error
-		// 授予用户额度
+		// 用户模型权限
 		Models(ctx context.Context, params model.UserModelsReq) error
 	}
 )

@@ -19,6 +19,8 @@ type (
 		Update(ctx context.Context, params model.CorpUpdateReq) error
 		// 更改公司状态
 		ChangeStatus(ctx context.Context, params model.CorpChangeStatusReq) error
+		// 更改公司公开状态
+		ChangePublic(ctx context.Context, params model.CorpChangePublicReq) error
 		// 删除公司
 		Delete(ctx context.Context, id string) error
 		// 公司详情

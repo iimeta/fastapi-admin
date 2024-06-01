@@ -27,6 +27,17 @@ type UpdateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 更改用户额度过期时间接口请求参数
+type ChangeQuotaExpireReq struct {
+	g.Meta `path:"/change/quota/expire" tags:"admin_user" method:"post" summary:"更改用户额度过期时间接口"`
+	model.UserChangeQuotaExpireReq
+}
+
+// 更改用户额度过期时间接口响应参数
+type ChangeQuotaExpireRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 更改用户状态接口请求参数
 type ChangeStatusReq struct {
 	g.Meta `path:"/change/status" tags:"admin_user" method:"post" summary:"更改用户状态接口"`
