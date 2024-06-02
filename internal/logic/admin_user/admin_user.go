@@ -300,8 +300,8 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 	}
 
 	if len(params.QuotaExpiresAt) > 0 {
-		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateTime).TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateTime).TimestampMilli() + 999
+		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
 		filter["quota_expires_at"] = bson.M{
 			"$gte": gte,
 			"$lte": lte,
@@ -312,10 +312,10 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		filter["status"] = params.Status
 	}
 
-	if len(params.CreatedAt) > 0 {
-		gte := gtime.NewFromStrFormat(params.CreatedAt[0], time.DateTime).TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.CreatedAt[1], time.DateTime).TimestampMilli() + 999
-		filter["created_at"] = bson.M{
+	if len(params.UpdatedAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.UpdatedAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.UpdatedAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		filter["updated_at"] = bson.M{
 			"$gte": gte,
 			"$lte": lte,
 		}
@@ -400,6 +400,7 @@ func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuota
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
+		"quota_expires_at": common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
 	})
 	if err != nil {
 		logger.Error(ctx, err)
