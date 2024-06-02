@@ -54,7 +54,8 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		IsPublic:           params.IsPublic,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		ModelAgents:        params.ModelAgents,
-		IsForward:          params.IsForward,
+		IsEnableForward:    params.IsEnableForward,
+		IsEnableFallback:   params.IsEnableFallback,
 		Remark:             params.Remark,
 		Status:             params.Status,
 	}
@@ -67,6 +68,12 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 			DecisionModel: params.ForwardConfig.DecisionModel,
 			Keywords:      params.ForwardConfig.Keywords,
 			TargetModels:  params.ForwardConfig.TargetModels,
+		}
+	}
+
+	if params.FallbackConfig != nil {
+		m.FallbackConfig = &do.FallbackConfig{
+			FallbackModel: params.FallbackConfig.FallbackModel,
 		}
 	}
 
@@ -218,7 +225,8 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		IsPublic:           params.IsPublic,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		ModelAgents:        params.ModelAgents,
-		IsForward:          params.IsForward,
+		IsEnableForward:    params.IsEnableForward,
+		IsEnableFallback:   params.IsEnableFallback,
 		Remark:             params.Remark,
 		Status:             params.Status,
 	}
@@ -231,6 +239,12 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			DecisionModel: params.ForwardConfig.DecisionModel,
 			Keywords:      params.ForwardConfig.Keywords,
 			TargetModels:  params.ForwardConfig.TargetModels,
+		}
+	}
+
+	if params.FallbackConfig != nil {
+		m.FallbackConfig = &do.FallbackConfig{
+			FallbackModel: params.FallbackConfig.FallbackModel,
 		}
 	}
 
@@ -445,7 +459,8 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		IsEnableModelAgent: m.IsEnableModelAgent,
 		ModelAgents:        m.ModelAgents,
 		ModelAgentNames:    modelAgentNames,
-		IsForward:          m.IsForward,
+		IsEnableForward:    m.IsEnableForward,
+		IsEnableFallback:   m.IsEnableFallback,
 		Remark:             m.Remark,
 		Status:             m.Status,
 		CreatedAt:          util.FormatDateTime(m.CreatedAt),
@@ -488,6 +503,22 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 				return nil, err
 			}
 			detail.ForwardConfig.TargetModelNames = modelNames
+		}
+	}
+
+	if m.FallbackConfig != nil {
+
+		detail.FallbackConfig = &model.FallbackConfig{
+			FallbackModel: m.FallbackConfig.FallbackModel,
+		}
+
+		if detail.FallbackConfig.FallbackModel != "" {
+			modelNames, err := s.ModelNames(ctx, []string{detail.FallbackConfig.FallbackModel})
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			detail.FallbackConfig.FallbackModelName = modelNames[0]
 		}
 	}
 
@@ -665,24 +696,25 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 		for _, result := range results {
 
 			m := model.ModelUpdateReq{
-				Id:              result.Id,
-				Corp:            result.Corp,
-				Name:            result.Name,
-				Model:           result.Model,
-				Type:            result.Type,
-				BaseUrl:         result.BaseUrl,
-				Path:            result.Path,
-				Prompt:          result.Prompt,
-				BillingMethod:   result.BillingMethod,
-				PromptRatio:     result.PromptRatio,
-				CompletionRatio: result.CompletionRatio,
-				FixedQuota:      result.FixedQuota,
-				DataFormat:      result.DataFormat,
-				IsPublic:        result.IsPublic,
-				ModelAgents:     result.ModelAgents,
-				IsForward:       result.IsForward,
-				Remark:          result.Remark,
-				Status:          result.Status,
+				Id:               result.Id,
+				Corp:             result.Corp,
+				Name:             result.Name,
+				Model:            result.Model,
+				Type:             result.Type,
+				BaseUrl:          result.BaseUrl,
+				Path:             result.Path,
+				Prompt:           result.Prompt,
+				BillingMethod:    result.BillingMethod,
+				PromptRatio:      result.PromptRatio,
+				CompletionRatio:  result.CompletionRatio,
+				FixedQuota:       result.FixedQuota,
+				DataFormat:       result.DataFormat,
+				IsPublic:         result.IsPublic,
+				ModelAgents:      result.ModelAgents,
+				IsEnableForward:  result.IsEnableForward,
+				IsEnableFallback: result.IsEnableFallback,
+				Remark:           result.Remark,
+				Status:           result.Status,
 			}
 
 			if result.ForwardConfig != nil {
@@ -693,6 +725,12 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 					DecisionModel: result.ForwardConfig.DecisionModel,
 					Keywords:      result.ForwardConfig.Keywords,
 					TargetModels:  result.ForwardConfig.TargetModels,
+				}
+			}
+
+			if result.FallbackConfig != nil {
+				m.FallbackConfig = &model.FallbackConfig{
+					FallbackModel: result.FallbackConfig.FallbackModel,
 				}
 			}
 
@@ -742,6 +780,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				DataFormat:         result.DataFormat,
 				IsPublic:           result.IsPublic,
 				IsEnableModelAgent: result.IsEnableModelAgent,
+				IsEnableFallback:   result.IsEnableFallback,
 				ModelAgents:        result.ModelAgents,
 				Remark:             result.Remark,
 				Status:             result.Status,
@@ -758,19 +797,25 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				}
 			}
 
+			if result.FallbackConfig != nil {
+				m.FallbackConfig = &model.FallbackConfig{
+					FallbackModel: result.FallbackConfig.FallbackModel,
+				}
+			}
+
 			if params.Value == "all" {
 
 				if m.ForwardConfig == nil {
 					m.ForwardConfig = new(model.ForwardConfig)
 				}
 
-				m.IsForward = true
+				m.IsEnableForward = true
 				m.ForwardConfig.ForwardRule = 1
 				m.ForwardConfig.TargetModel = params.TargetModel
 
 			} else {
-				m.IsForward = gconv.Bool(params.Value)
-				if m.IsForward && (m.ForwardConfig == nil ||
+				m.IsEnableForward = gconv.Bool(params.Value)
+				if m.IsEnableForward && (m.ForwardConfig == nil ||
 					(m.ForwardConfig.ForwardRule == 1 && m.ForwardConfig.TargetModel == "") ||
 					(m.ForwardConfig.ForwardRule == 2 && len(m.ForwardConfig.TargetModels) == 0)) {
 					continue

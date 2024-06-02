@@ -97,7 +97,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.CompletionTokens = result.CompletionTokens
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
 		chat.ModelAgentId = result.ModelAgentId
-		chat.IsForward = result.IsForward
+		chat.IsEnableForward = result.IsEnableForward
 		chat.IsSmartMatch = result.IsSmartMatch
 		chat.RemoteIp = result.RemoteIp
 		chat.LocalIp = result.LocalIp
