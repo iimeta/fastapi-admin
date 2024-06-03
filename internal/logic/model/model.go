@@ -780,8 +780,8 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				DataFormat:         result.DataFormat,
 				IsPublic:           result.IsPublic,
 				IsEnableModelAgent: result.IsEnableModelAgent,
-				IsEnableFallback:   result.IsEnableFallback,
 				ModelAgents:        result.ModelAgents,
+				IsEnableFallback:   result.IsEnableFallback,
 				Remark:             result.Remark,
 				Status:             result.Status,
 			}
@@ -818,6 +818,81 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				if m.IsEnableForward && (m.ForwardConfig == nil ||
 					(m.ForwardConfig.ForwardRule == 1 && m.ForwardConfig.TargetModel == "") ||
 					(m.ForwardConfig.ForwardRule == 2 && len(m.ForwardConfig.TargetModels) == 0)) {
+					continue
+				}
+			}
+
+			if err = s.Update(ctx, m); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+
+	case consts.ACTION_FALLBACK:
+
+		results, err := dao.Model.Find(ctx, bson.M{
+			"_id": bson.M{
+				"$in": params.Ids,
+			},
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		for _, result := range results {
+
+			m := model.ModelUpdateReq{
+				Id:                 result.Id,
+				Corp:               result.Corp,
+				Name:               result.Name,
+				Model:              result.Model,
+				Type:               result.Type,
+				BaseUrl:            result.BaseUrl,
+				Path:               result.Path,
+				Prompt:             result.Prompt,
+				BillingMethod:      result.BillingMethod,
+				PromptRatio:        result.PromptRatio,
+				CompletionRatio:    result.CompletionRatio,
+				FixedQuota:         result.FixedQuota,
+				DataFormat:         result.DataFormat,
+				IsPublic:           result.IsPublic,
+				IsEnableModelAgent: result.IsEnableModelAgent,
+				ModelAgents:        result.ModelAgents,
+				IsEnableForward:    result.IsEnableForward,
+				Remark:             result.Remark,
+				Status:             result.Status,
+			}
+
+			if result.ForwardConfig != nil {
+				m.ForwardConfig = &model.ForwardConfig{
+					ForwardRule:   result.ForwardConfig.ForwardRule,
+					MatchRule:     result.ForwardConfig.MatchRule,
+					TargetModel:   result.ForwardConfig.TargetModel,
+					DecisionModel: result.ForwardConfig.DecisionModel,
+					Keywords:      result.ForwardConfig.Keywords,
+					TargetModels:  result.ForwardConfig.TargetModels,
+				}
+			}
+
+			if result.FallbackConfig != nil {
+				m.FallbackConfig = &model.FallbackConfig{
+					FallbackModel: result.FallbackConfig.FallbackModel,
+				}
+			}
+
+			if params.Value == "all" {
+
+				if m.FallbackConfig == nil {
+					m.FallbackConfig = new(model.FallbackConfig)
+				}
+
+				m.IsEnableFallback = true
+				m.FallbackConfig.FallbackModel = params.FallbackModel
+
+			} else {
+				m.IsEnableFallback = gconv.Bool(params.Value)
+				if m.IsEnableFallback && (m.FallbackConfig == nil || m.FallbackConfig.FallbackModel == "") {
 					continue
 				}
 			}
