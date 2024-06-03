@@ -99,6 +99,9 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.ModelAgentId = result.ModelAgentId
 		chat.IsEnableForward = result.IsEnableForward
 		chat.IsSmartMatch = result.IsSmartMatch
+		chat.RealModelId = result.RealModelId
+		chat.RealModelName = result.RealModelName
+		chat.RealModel = result.RealModel
 		chat.RemoteIp = result.RemoteIp
 		chat.LocalIp = result.LocalIp
 		chat.InternalTime = result.InternalTime
@@ -127,7 +130,6 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		}
 
 		if result.ForwardConfig != nil {
-
 			chat.ForwardConfig = &model.ForwardConfig{
 				ForwardRule:   result.ForwardConfig.ForwardRule,
 				MatchRule:     result.ForwardConfig.MatchRule,
@@ -136,10 +138,12 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 				Keywords:      result.ForwardConfig.Keywords,
 				TargetModels:  result.ForwardConfig.TargetModels,
 			}
+		}
 
-			chat.RealModelId = result.RealModelId
-			chat.RealModelName = result.RealModelName
-			chat.RealModel = result.RealModel
+		if result.FallbackConfig != nil {
+			chat.FallbackConfig = &model.FallbackConfig{
+				FallbackModel: result.FallbackConfig.FallbackModel,
+			}
 		}
 
 		if result.Retry != nil {
