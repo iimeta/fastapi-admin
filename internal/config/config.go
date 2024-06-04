@@ -41,11 +41,16 @@ func init() {
 
 // 配置信息
 type Config struct {
+	Core               Core   `json:"core"`
 	AdminServerAddress string `json:"admin_server_address"`
-	App                *App   `json:"app"`
-	Http               *Http  `json:"http"`
-	Email              *Email `json:"email"`
+	App                App    `json:"app"`
+	Http               Http   `json:"http"`
+	Email              Email  `json:"email"`
 	Debug              bool   `json:"debug"`
+}
+
+type Core struct {
+	ChannelPrefix string `json:"channel_prefix"`
 }
 
 type App struct {

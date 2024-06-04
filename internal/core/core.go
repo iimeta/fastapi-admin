@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	USER_ID_AUTO_INCREMENT_CFG = "CORE.USER_ID_AUTO_INCREMENT"
+	USER_ID_AUTO_INCREMENT_CFG = "core.user_id_auto_increment"
 	USER_ID_AUTO_INCREMENT_KEY = "CORE:USER_ID_AUTO_INCREMENT"
-	APP_ID_AUTO_INCREMENT_CFG  = "CORE.APP_ID_AUTO_INCREMENT"
+	APP_ID_AUTO_INCREMENT_CFG  = "core.app_id_auto_increment"
 	APP_ID_AUTO_INCREMENT_KEY  = "CORE:APP_ID_AUTO_INCREMENT"
 )
 
@@ -68,23 +68,19 @@ func IncrAppId(ctx context.Context) int {
 // 获取最大用户ID
 func getMaxUserId(ctx context.Context) int {
 
-	user, err := dao.User.FindOne(ctx, bson.M{}, "-user_id")
-	if err != nil {
-		logger.Error(ctx, err)
-		return 0
+	if user, _ := dao.User.FindOne(ctx, bson.M{}, "-user_id"); user != nil {
+		return user.UserId
 	}
 
-	return user.UserId
+	return 0
 }
 
 // 获取最大应用ID
 func getMaxAppId(ctx context.Context) int {
 
-	app, err := dao.App.FindOne(ctx, bson.M{}, "-app_id")
-	if err != nil {
-		logger.Error(ctx, err)
-		return 0
+	if app, _ := dao.App.FindOne(ctx, bson.M{}, "-app_id"); app != nil {
+		return app.AppId
 	}
 
-	return app.AppId
+	return 0
 }
