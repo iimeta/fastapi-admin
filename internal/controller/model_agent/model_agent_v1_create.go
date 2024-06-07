@@ -9,7 +9,7 @@ import (
 
 func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateReq) (res *v1.CreateRes, err error) {
 
-	err = service.ModelAgent().Create(ctx, req.ModelAgentCreateReq)
+	_, err = service.ModelAgent().Create(ctx, req.ModelAgentCreateReq)
 
 	return
 }

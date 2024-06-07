@@ -31,10 +31,10 @@ func New() service.IModelAgent {
 }
 
 // 新建模型代理
-func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateReq) error {
+func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateReq) (string, error) {
 
 	if s.IsNameExist(ctx, params.Name) {
-		return errors.Newf("模型代理名称 \"%s\" 已存在", params.Name)
+		return "", errors.Newf("模型代理名称 \"%s\" 已存在", params.Name)
 	}
 
 	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
@@ -49,7 +49,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	if len(params.Models) > 0 {
@@ -59,7 +59,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 			},
 		}); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 	}
 
@@ -74,14 +74,14 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 			Status:       params.Status,
 		}); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 	}
 
 	modelAgent, err := s.Detail(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
@@ -89,7 +89,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		NewData: modelAgent,
 	}); err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	for _, id := range modelAgent.Models {
@@ -97,7 +97,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		newData, err := dao.Model.FindById(ctx, id)
 		if err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 
 		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
@@ -105,11 +105,11 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 			NewData: newData,
 		}); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 	}
 
-	return nil
+	return id, nil
 }
 
 // 更新模型代理

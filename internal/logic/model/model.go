@@ -936,10 +936,10 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 	}
 
 	if len(result.Data) > 0 && result.Data[0].FastAPI == nil {
-		return errors.New("接口数据格式不支持, 请联系作者...")
+		return errors.New("模型接口数据格式不支持, 请联系作者...")
 	}
 
-	corps, err := service.Corp().List(ctx, model.CorpListReq{})
+	corps, err := dao.Corp.Find(ctx, bson.M{})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -950,13 +950,56 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 		corpMap[corp.Code] = corp.Id
 	}
 
+	modelAgentId := ""
+	if params.IsConfigModelAgent {
+
+		if modelAgent, err := dao.ModelAgent.FindOne(ctx, bson.M{"name": "FastAPI"}); err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+
+				if corpMap["FastAPI"] == "" {
+					if corpMap["FastAPI"], err = service.Corp().Create(ctx, model.CorpCreateReq{
+						Name:     "FastAPI",
+						Code:     "FastAPI",
+						IsPublic: true,
+						Status:   1,
+					}); err != nil {
+						logger.Error(ctx, err)
+						return err
+					}
+				}
+
+				if modelAgentId, err = service.ModelAgent().Create(ctx, model.ModelAgentCreateReq{
+					Corp:         corpMap["FastAPI"],
+					Name:         "FastAPI",
+					BaseUrl:      gstr.Replace(params.Url, "/models", ""),
+					Key:          params.Key,
+					IsAgentsOnly: true,
+					Status:       1,
+				}); err != nil {
+					logger.Error(ctx, err)
+					return err
+				}
+
+			} else {
+				logger.Error(ctx, err)
+				return err
+			}
+		} else {
+			modelAgentId = modelAgent.Id
+		}
+	}
+
 	for _, data := range result.Data {
 
-		if corpMap[data.FastAPI.Code] == "" {
+		code := data.FastAPI.Code
+		if params.IsConfigModelAgent {
+			code += "2FastAPI"
+		}
 
-			if corpMap[data.FastAPI.Code], err = service.Corp().Create(ctx, model.CorpCreateReq{
+		if corpMap[code] == "" {
+			if corpMap[code], err = service.Corp().Create(ctx, model.CorpCreateReq{
 				Name:     data.FastAPI.Corp,
-				Code:     data.FastAPI.Code,
+				Code:     code,
 				IsPublic: true,
 				Status:   1,
 			}); err != nil {
@@ -965,8 +1008,8 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 			}
 		}
 
-		if err = s.Create(ctx, model.ModelCreateReq{
-			Corp:            corpMap[data.FastAPI.Code],
+		modelCreateReq := model.ModelCreateReq{
+			Corp:            corpMap[code],
 			Name:            data.Id,
 			Model:           data.Id,
 			Type:            data.FastAPI.Type,
@@ -979,7 +1022,14 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 			DataFormat:      1,
 			IsPublic:        true,
 			Status:          1,
-		}); err != nil {
+		}
+
+		if params.IsConfigModelAgent && modelAgentId != "" {
+			modelCreateReq.IsEnableModelAgent = true
+			modelCreateReq.ModelAgents = append(modelCreateReq.ModelAgents, modelAgentId)
+		}
+
+		if err = s.Create(ctx, modelCreateReq); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}

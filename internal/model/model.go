@@ -115,9 +115,9 @@ type ModelBatchOperateReq struct {
 
 // 模型初始化接口请求参数
 type ModelInitReq struct {
-	Url                string `json:"url"`                   // FastAPI接口地址
-	Key                string `json:"key"`                   // 密钥
-	IsConfigModelAgent bool   `json:"is_config_model_agent"` // 配置模型代理
+	Url                string `json:"url"`                   // Fast API 模型接口
+	Key                string `json:"key"`                   // Fast API 应用密钥
+	IsConfigModelAgent bool   `json:"is_config_model_agent"` // 是否配置模型代理
 }
 
 // Models接口响应参数

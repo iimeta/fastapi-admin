@@ -14,7 +14,7 @@ import (
 type (
 	IModelAgent interface {
 		// 新建模型代理
-		Create(ctx context.Context, params model.ModelAgentCreateReq) error
+		Create(ctx context.Context, params model.ModelAgentCreateReq) (string, error)
 		// 更新模型代理
 		Update(ctx context.Context, params model.ModelAgentUpdateReq) error
 		// 更改模型代理状态
