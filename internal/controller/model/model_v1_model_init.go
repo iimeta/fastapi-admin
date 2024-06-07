@@ -1,21 +1,21 @@
-package corp
+package model
 
 import (
 	"context"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-admin/internal/service"
 
-	"github.com/iimeta/fastapi-admin/api/corp/v1"
+	"github.com/iimeta/fastapi-admin/api/model/v1"
 )
 
-func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateReq) (res *v1.CreateRes, err error) {
+func (c *ControllerV1) ModelInit(ctx context.Context, req *v1.ModelInitReq) (res *v1.ModelInitRes, err error) {
 
 	if service.Session().IsUserRole(ctx) {
 		g.RequestFromCtx(ctx).Response.WriteJson(g.Map{"code": 401, "message": "Unauthorized"})
 		return
 	}
 
-	_, err = service.Corp().Create(ctx, req.CorpCreateReq)
+	err = service.Model().Init(ctx, req.ModelInitReq)
 
 	return
 }

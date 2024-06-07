@@ -14,13 +14,13 @@ import (
 type (
 	ICorp interface {
 		// 新建公司
-		Create(ctx context.Context, params model.CorpCreateReq) error
+		Create(ctx context.Context, params model.CorpCreateReq) (string, error)
 		// 更新公司
 		Update(ctx context.Context, params model.CorpUpdateReq) error
-		// 更改公司状态
-		ChangeStatus(ctx context.Context, params model.CorpChangeStatusReq) error
 		// 更改公司公开状态
 		ChangePublic(ctx context.Context, params model.CorpChangePublicReq) error
+		// 更改公司状态
+		ChangeStatus(ctx context.Context, params model.CorpChangeStatusReq) error
 		// 删除公司
 		Delete(ctx context.Context, id string) error
 		// 公司详情

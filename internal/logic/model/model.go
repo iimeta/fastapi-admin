@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -919,6 +920,68 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				logger.Error(ctx, err)
 				return err
 			}
+		}
+	}
+
+	return nil
+}
+
+// 模型初始化
+func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
+
+	result := &model.ModelsRes{}
+	if err := util.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, nil, &result); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if len(result.Data) > 0 && result.Data[0].FastAPI == nil {
+		return errors.New("接口数据格式不支持, 请联系作者...")
+	}
+
+	corps, err := service.Corp().List(ctx, model.CorpListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	corpMap := make(map[string]string)
+	for _, corp := range corps {
+		corpMap[corp.Code] = corp.Id
+	}
+
+	for _, data := range result.Data {
+
+		if corpMap[data.FastAPI.Code] == "" {
+
+			if corpMap[data.FastAPI.Code], err = service.Corp().Create(ctx, model.CorpCreateReq{
+				Name:     data.FastAPI.Corp,
+				Code:     data.FastAPI.Code,
+				IsPublic: true,
+				Status:   1,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+
+		if err = s.Create(ctx, model.ModelCreateReq{
+			Corp:            corpMap[data.FastAPI.Code],
+			Name:            data.Id,
+			Model:           data.Id,
+			Type:            data.FastAPI.Type,
+			BaseUrl:         data.FastAPI.BaseUrl,
+			Path:            data.FastAPI.Path,
+			BillingMethod:   data.FastAPI.BillingMethod,
+			PromptRatio:     data.FastAPI.PromptRatio,
+			CompletionRatio: data.FastAPI.CompletionRatio,
+			FixedQuota:      data.FastAPI.FixedQuota,
+			DataFormat:      1,
+			IsPublic:        true,
+			Status:          1,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
 		}
 	}
 

@@ -24,8 +24,8 @@ func (p *Paging) GetPages() {
 		p.PageSize = 10
 	}
 
-	if p.PageSize > 100 {
-		p.PageSize = 100
+	if p.PageSize > 1000 {
+		p.PageSize = 1000
 	}
 
 	p.StartNums = p.PageSize * (p.Page - 1)

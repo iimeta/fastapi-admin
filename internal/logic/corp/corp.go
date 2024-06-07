@@ -27,7 +27,7 @@ func New() service.ICorp {
 }
 
 // 新建公司
-func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
+func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) (string, error) {
 
 	if params.Sort == 0 {
 		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, "-sort"); err == nil && corp != nil {
@@ -47,13 +47,13 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
 	})
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	corp, err := dao.Corp.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
@@ -63,7 +63,7 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) error {
 		logger.Error(ctx, err)
 	}
 
-	return nil
+	return id, nil
 }
 
 // 更新公司
@@ -276,6 +276,7 @@ func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Co
 		items = append(items, &model.Corp{
 			Id:   result.Id,
 			Name: result.Name,
+			Code: result.Code,
 		})
 	}
 
