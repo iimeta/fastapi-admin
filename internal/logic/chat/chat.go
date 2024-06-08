@@ -206,6 +206,10 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		filter["status"] = params.Status
 	}
 
+	if params.Status == -100 {
+		filter["status"] = bson.M{"$ne": 1}
+	}
+
 	if len(params.ReqTime) > 0 {
 		gte := gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli()
 		lte := gtime.NewFromStrLayout(params.ReqTime[1], time.DateTime).TimestampMilli() + 999

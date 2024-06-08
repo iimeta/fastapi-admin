@@ -178,6 +178,48 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 		}
 	}
 
+	abnormalPipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"req_time": bson.M{
+					"$gte": startTime.TimestampMilli(),
+					"$lte": endTime.TimestampMilli(),
+				},
+				"status": bson.M{"$ne": 1},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id":   "$req_date",
+				"count": bson.M{"$addToSet": "$trace_id"},
+			},
+		},
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		match := abnormalPipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+		match["is_smart_match"] = bson.M{"$exists": false}
+		match["is_retry"] = bson.M{"$exists": false}
+	}
+
+	abnormalResult := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, abnormalPipeline, &abnormalResult); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	for _, res := range abnormalResult {
+		if resultMap[gconv.String(res["_id"])] != nil {
+			resultMap[gconv.String(res["_id"])].Abnormal = len(gconv.SliceAny(res["count"]))
+		} else {
+			resultMap[gconv.String(res["_id"])] = &model.CallData{
+				Date:     gconv.String(res["_id"])[5:],
+				Abnormal: len(gconv.SliceAny(res["count"])),
+			}
+		}
+	}
+
 	items := make([]*model.CallData, 0)
 	days := util.Day(startTime.String(), endTime.String())
 
