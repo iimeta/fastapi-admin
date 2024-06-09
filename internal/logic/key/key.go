@@ -448,3 +448,32 @@ func (s *sKey) DetailListByKey(ctx context.Context, keys []string) ([]*entity.Ke
 
 	return results, nil
 }
+
+// 密钥模型权限
+func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
+
+	oldData, err := dao.Key.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"models": params.Models,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+		Action:  consts.ACTION_MODELS,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}

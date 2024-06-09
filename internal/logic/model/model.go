@@ -371,31 +371,79 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	if err = dao.User.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
-		"$pull": bson.M{
-			"models": id,
-		},
-	}); err != nil {
+	users, err := dao.User.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if err = dao.App.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
-		"$pull": bson.M{
-			"models": id,
-		},
-	}); err != nil {
+	for _, user := range users {
+
+		userModelsReq := model.UserModelsReq{
+			UserId: user.UserId,
+			Models: []string{},
+		}
+
+		for _, m := range user.Models {
+			if m != id {
+				userModelsReq.Models = append(userModelsReq.Models, m)
+			}
+		}
+
+		if err = service.AdminUser().Models(ctx, userModelsReq); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	apps, err := dao.App.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if err = dao.Key.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{id}}}, bson.M{
-		"$pull": bson.M{
-			"models": id,
-		},
-	}); err != nil {
+	for _, app := range apps {
+
+		appModelsReq := model.AppModelsReq{
+			AppId:  app.AppId,
+			Models: []string{},
+		}
+
+		for _, m := range app.Models {
+			if m != id {
+				appModelsReq.Models = append(appModelsReq.Models, m)
+			}
+		}
+
+		if err = service.App().Models(ctx, appModelsReq); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	keys, err := dao.Key.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	for _, key := range keys {
+
+		keyModelsReq := model.KeyModelsReq{
+			Id:     key.Id,
+			Models: []string{},
+		}
+
+		for _, m := range key.Models {
+			if m != id {
+				keyModelsReq.Models = append(keyModelsReq.Models, m)
+			}
+		}
+
+		if err = service.Key().Models(ctx, keyModelsReq); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
@@ -538,13 +586,18 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 	if service.Session().IsUserRole(ctx) {
 
-		models := service.Session().GetUser(ctx).Models
-		if len(models) == 0 {
+		user, err := service.User().GetUserByUserId(ctx, service.Session().GetUserId(ctx))
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if len(user.Models) == 0 {
 			return nil, nil
 		}
 
 		filter["_id"] = bson.M{
-			"$in": models,
+			"$in": user.Models,
 		}
 	}
 
@@ -935,7 +988,7 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 		return err
 	}
 
-	if len(result.Data) > 0 && result.Data[0].FastAPI == nil {
+	if result.Data == nil || (len(result.Data) > 0 && result.Data[0].FastAPI == nil) {
 		return errors.New("模型接口数据格式不支持, 请联系作者...")
 	}
 

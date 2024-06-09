@@ -106,6 +106,12 @@ type AppKeyConfigReq struct {
 	Status         int      `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 应用模型权限接口请求参数
+type AppModelsReq struct {
+	AppId  int      `json:"app_id,omitempty"`        // 应用ID
+	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
+}
+
 type App struct {
 	Id             string   `json:"id,omitempty"`               // ID
 	AppId          int      `json:"app_id,omitempty"`           // 应用ID

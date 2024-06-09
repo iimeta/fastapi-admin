@@ -31,6 +31,8 @@ type (
 		CreateKey(ctx context.Context, params model.AppCreateKeyReq) (string, error)
 		// 应用密钥配置
 		KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err error)
+		// 应用模型权限
+		Models(ctx context.Context, params model.AppModelsReq) error
 	}
 )
 

@@ -32,6 +32,8 @@ type (
 		BatchOperate(ctx context.Context, params model.KeyBatchOperateReq) error
 		// 根据Keys查询密钥详情列表
 		DetailListByKey(ctx context.Context, keys []string) ([]*entity.Key, error)
+		// 密钥模型权限
+		Models(ctx context.Context, params model.KeyModelsReq) error
 	}
 )
 

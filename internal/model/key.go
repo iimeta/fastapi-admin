@@ -79,6 +79,12 @@ type KeyBatchOperateReq struct {
 	Value  any      `json:"value"`  // 值
 }
 
+// 密钥模型权限接口请求参数
+type KeyModelsReq struct {
+	Id     string   `json:"id,omitempty"`            // ID
+	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
+}
+
 type Key struct {
 	Id              string   `json:"id,omitempty"`                // ID
 	AppId           int      `json:"app_id,omitempty"`            // 应用ID

@@ -396,3 +396,32 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 
 	return nil
 }
+
+// 应用模型权限
+func (s *sApp) Models(ctx context.Context, params model.AppModelsReq) error {
+
+	oldData, err := dao.App.FindOne(ctx, bson.M{"app_id": params.AppId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.App.FindOneAndUpdate(ctx, bson.M{"app_id": params.AppId}, bson.M{
+		"models": params.Models,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, model.PubMessage{
+		Action:  consts.ACTION_MODELS,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
