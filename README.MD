@@ -36,13 +36,12 @@ docker run --name fastapi-admin -d -p 8080:8080 \
 
 ## 自动Docker部署
 0. 需提前安装好Redis和MongoDB以及Docker服务
-1. 下载一键部署脚本: `wget https://github.com/iimeta/fastapi-admin/raw/docker/bin/install.sh`
-2. 执行安装: `chmod +777 install.sh && ./install.sh`
-3. 修改配置文件: `vi /data/fastapi-admin/manifest/config/config.yaml` 按 config.yaml 中配置项的注释, 修改对应参数
-4. 启动服务: `chmod +777 start.sh && ./start.sh`
-5. 用户端访问: http://ip:8080/login 如: http://127.0.0.1:8080/login
-6. 管理端访问: http://ip:8080/admin 如: http://127.0.0.1:8080/admin
-7. 默认管理员账号密码: 无默认账号和密码, 当首次登录时输入的账号和密码将自动创建为管理员的账号和密码
+1. 下载一键部署脚本: `wget -O install.sh https://github.com/iimeta/fastapi-admin/raw/docker/bin/install.sh && sh install.sh`
+2. 修改配置文件: `vi /data/fastapi-admin/manifest/config/config.yaml` 按 config.yaml 中配置项的注释, 修改对应参数
+3. 启动服务: `chmod +777 start.sh && ./start.sh`
+4. 用户端访问: http://ip:8080/login 如: http://127.0.0.1:8080/login
+5. 管理端访问: http://ip:8080/admin 如: http://127.0.0.1:8080/admin
+6. 默认管理员账号密码: 无默认账号和密码, 当首次登录时输入的账号和密码将自动创建为管理员的账号和密码
 
 ## 备用国内镜像地址
 ```shell
