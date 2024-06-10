@@ -10,15 +10,17 @@
 
 </div>
 
-`智元 Fast API` 是一站式API管理系统，将各类大模型API进行统一格式、统一规范、统一管理，使其在功能、性能和用户体验上达到极致。
+`智元 Fast API` 是一站式API管理系统，将各类LLM API进行统一格式、统一规范、统一管理，使其在功能、性能和用户体验上达到极致。
 
 ## 功能介绍
 - 管理端
   - 仪表盘
   - 模型管理
     - 模型转发功能, 支持智能匹配和正则匹配, 重点!重点!!重点!!!
+    - 后备模型功能, 当请求模型出现故障时, 将自动转移到后备模型上
   - 密钥管理
   - 代理管理
+  - 公司管理
   - 用户管理
   - 聊天管理
 - 用户端
@@ -78,7 +80,7 @@ https://files.fastapi.ai/public/video/install.mp4
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240603" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240610" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
