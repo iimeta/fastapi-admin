@@ -119,6 +119,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 				DecisionModel: result.ForwardConfig.DecisionModel,
 				Keywords:      result.ForwardConfig.Keywords,
 				TargetModels:  result.ForwardConfig.TargetModels,
+				ContentLength: result.ForwardConfig.ContentLength,
 			}
 		}
 

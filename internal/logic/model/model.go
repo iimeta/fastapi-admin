@@ -69,6 +69,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 			DecisionModel: params.ForwardConfig.DecisionModel,
 			Keywords:      params.ForwardConfig.Keywords,
 			TargetModels:  params.ForwardConfig.TargetModels,
+			ContentLength: params.ForwardConfig.ContentLength,
 		}
 	}
 
@@ -240,6 +241,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			DecisionModel: params.ForwardConfig.DecisionModel,
 			Keywords:      params.ForwardConfig.Keywords,
 			TargetModels:  params.ForwardConfig.TargetModels,
+			ContentLength: params.ForwardConfig.ContentLength,
 		}
 	}
 
@@ -525,6 +527,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 			DecisionModel: m.ForwardConfig.DecisionModel,
 			Keywords:      m.ForwardConfig.Keywords,
 			TargetModels:  m.ForwardConfig.TargetModels,
+			ContentLength: m.ForwardConfig.ContentLength,
 		}
 
 		if detail.ForwardConfig.TargetModel != "" {
@@ -779,6 +782,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 					DecisionModel: result.ForwardConfig.DecisionModel,
 					Keywords:      result.ForwardConfig.Keywords,
 					TargetModels:  result.ForwardConfig.TargetModels,
+					ContentLength: result.ForwardConfig.ContentLength,
 				}
 			}
 
@@ -848,6 +852,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 					DecisionModel: result.ForwardConfig.DecisionModel,
 					Keywords:      result.ForwardConfig.Keywords,
 					TargetModels:  result.ForwardConfig.TargetModels,
+					ContentLength: result.ForwardConfig.ContentLength,
 				}
 			}
 
@@ -926,6 +931,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 					DecisionModel: result.ForwardConfig.DecisionModel,
 					Keywords:      result.ForwardConfig.Keywords,
 					TargetModels:  result.ForwardConfig.TargetModels,
+					ContentLength: result.ForwardConfig.ContentLength,
 				}
 			}
 
