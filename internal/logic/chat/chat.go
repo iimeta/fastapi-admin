@@ -52,6 +52,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		Model:         result.Model,
 		Type:          result.Type,
 		Stream:        result.Stream,
+		Messages:      result.Messages,
 		Prompt:        result.Prompt,
 		Completion:    result.Completion,
 		BillingMethod: result.BillingMethod,
@@ -63,6 +64,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		TotalTime:     result.TotalTime,
 		ReqTime:       util.FormatDateTime(result.ReqTime),
 		ClientIp:      result.ClientIp,
+		Retry:         result.Retry,
 		Status:        result.Status,
 		Creator:       result.Creator,
 	}
@@ -72,13 +74,6 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.CompletionRatio = result.CompletionRatio
 		chat.PromptTokens = result.PromptTokens
 		chat.CompletionTokens = result.CompletionTokens
-	}
-
-	for _, message := range result.Messages {
-		chat.Messages = append(chat.Messages, model.Message{
-			Role:    message.Role,
-			Content: message.Content,
-		})
 	}
 
 	// todo
@@ -98,8 +93,10 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
 		chat.ModelAgentId = result.ModelAgentId
 		chat.IsEnableForward = result.IsEnableForward
+		chat.ForwardConfig = result.ForwardConfig
 		chat.IsSmartMatch = result.IsSmartMatch
 		chat.IsEnableFallback = result.IsEnableFallback
+		chat.FallbackConfig = result.FallbackConfig
 		chat.RealModelId = result.RealModelId
 		chat.RealModelName = result.RealModelName
 		chat.RealModel = result.RealModel
@@ -110,25 +107,6 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.IsRetry = result.IsRetry
 		chat.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		chat.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
-
-		if result.ForwardConfig != nil {
-			chat.ForwardConfig = &model.ForwardConfig{
-				ForwardRule:   result.ForwardConfig.ForwardRule,
-				MatchRule:     result.ForwardConfig.MatchRule,
-				TargetModel:   result.ForwardConfig.TargetModel,
-				DecisionModel: result.ForwardConfig.DecisionModel,
-				Keywords:      result.ForwardConfig.Keywords,
-				TargetModels:  result.ForwardConfig.TargetModels,
-				ContentLength: result.ForwardConfig.ContentLength,
-			}
-		}
-
-		if result.FallbackConfig != nil {
-			chat.FallbackConfig = &model.FallbackConfig{
-				FallbackModel:     result.FallbackConfig.FallbackModel,
-				FallbackModelName: result.FallbackConfig.FallbackModelName,
-			}
-		}
 
 		if result.ModelAgent != nil {
 
@@ -146,14 +124,6 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 				Weight:   result.ModelAgent.Weight,
 				Remark:   result.ModelAgent.Remark,
 				Status:   result.ModelAgent.Status,
-			}
-		}
-
-		if result.Retry != nil {
-			chat.Retry = &model.Retry{
-				IsRetry:    result.Retry.IsRetry,
-				RetryCount: result.Retry.RetryCount,
-				ErrMsg:     result.Retry.ErrMsg,
 			}
 		}
 	}

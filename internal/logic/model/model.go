@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -47,36 +48,18 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		BaseUrl:            params.BaseUrl,
 		Path:               params.Path,
 		Prompt:             params.Prompt,
-		BillingMethod:      params.BillingMethod,
-		PromptRatio:        params.PromptRatio,
-		CompletionRatio:    params.CompletionRatio,
-		FixedQuota:         params.FixedQuota,
+		TextQuota:          params.TextQuota,
+		ImageQuotas:        params.ImageQuotas,
 		DataFormat:         params.DataFormat,
 		IsPublic:           params.IsPublic,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		ModelAgents:        params.ModelAgents,
 		IsEnableForward:    params.IsEnableForward,
+		ForwardConfig:      params.ForwardConfig,
 		IsEnableFallback:   params.IsEnableFallback,
+		FallbackConfig:     params.FallbackConfig,
 		Remark:             params.Remark,
 		Status:             params.Status,
-	}
-
-	if params.ForwardConfig != nil {
-		m.ForwardConfig = &do.ForwardConfig{
-			ForwardRule:   params.ForwardConfig.ForwardRule,
-			MatchRule:     params.ForwardConfig.MatchRule,
-			TargetModel:   params.ForwardConfig.TargetModel,
-			DecisionModel: params.ForwardConfig.DecisionModel,
-			Keywords:      params.ForwardConfig.Keywords,
-			TargetModels:  params.ForwardConfig.TargetModels,
-			ContentLength: params.ForwardConfig.ContentLength,
-		}
-	}
-
-	if params.FallbackConfig != nil {
-		m.FallbackConfig = &do.FallbackConfig{
-			FallbackModel: params.FallbackConfig.FallbackModel,
-		}
 	}
 
 	id, err := dao.Model.Insert(ctx, m)
@@ -219,36 +202,18 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		BaseUrl:            params.BaseUrl,
 		Path:               params.Path,
 		Prompt:             params.Prompt,
-		BillingMethod:      params.BillingMethod,
-		PromptRatio:        params.PromptRatio,
-		CompletionRatio:    params.CompletionRatio,
-		FixedQuota:         params.FixedQuota,
+		TextQuota:          params.TextQuota,
+		ImageQuotas:        params.ImageQuotas,
 		DataFormat:         params.DataFormat,
 		IsPublic:           params.IsPublic,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		ModelAgents:        params.ModelAgents,
 		IsEnableForward:    params.IsEnableForward,
+		ForwardConfig:      params.ForwardConfig,
 		IsEnableFallback:   params.IsEnableFallback,
+		FallbackConfig:     params.FallbackConfig,
 		Remark:             params.Remark,
 		Status:             params.Status,
-	}
-
-	if params.ForwardConfig != nil {
-		m.ForwardConfig = &do.ForwardConfig{
-			ForwardRule:   params.ForwardConfig.ForwardRule,
-			MatchRule:     params.ForwardConfig.MatchRule,
-			TargetModel:   params.ForwardConfig.TargetModel,
-			DecisionModel: params.ForwardConfig.DecisionModel,
-			Keywords:      params.ForwardConfig.Keywords,
-			TargetModels:  params.ForwardConfig.TargetModels,
-			ContentLength: params.ForwardConfig.ContentLength,
-		}
-	}
-
-	if params.FallbackConfig != nil {
-		m.FallbackConfig = &do.FallbackConfig{
-			FallbackModel: params.FallbackConfig.FallbackModel,
-		}
 	}
 
 	newData, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, m)
@@ -498,37 +463,24 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		BaseUrl:            m.BaseUrl,
 		Path:               m.Path,
 		Prompt:             m.Prompt,
-		BillingMethod:      m.BillingMethod,
-		PromptRatio:        m.PromptRatio,
-		PromptPrice:        util.PriceConv(m.PromptRatio),
-		CompletionRatio:    m.CompletionRatio,
-		CompletionPrice:    util.PriceConv(m.CompletionRatio),
-		FixedQuota:         m.FixedQuota,
-		FixedPrice:         util.QuotaConv(m.FixedQuota),
+		TextQuota:          m.TextQuota,
+		ImageQuotas:        m.ImageQuotas,
 		DataFormat:         m.DataFormat,
 		IsPublic:           m.IsPublic,
 		IsEnableModelAgent: m.IsEnableModelAgent,
 		ModelAgents:        m.ModelAgents,
 		ModelAgentNames:    modelAgentNames,
 		IsEnableForward:    m.IsEnableForward,
+		ForwardConfig:      m.ForwardConfig,
 		IsEnableFallback:   m.IsEnableFallback,
+		FallbackConfig:     m.FallbackConfig,
 		Remark:             m.Remark,
 		Status:             m.Status,
 		CreatedAt:          util.FormatDateTime(m.CreatedAt),
 		UpdatedAt:          util.FormatDateTime(m.UpdatedAt),
 	}
 
-	if m.ForwardConfig != nil {
-
-		detail.ForwardConfig = &model.ForwardConfig{
-			ForwardRule:   m.ForwardConfig.ForwardRule,
-			MatchRule:     m.ForwardConfig.MatchRule,
-			TargetModel:   m.ForwardConfig.TargetModel,
-			DecisionModel: m.ForwardConfig.DecisionModel,
-			Keywords:      m.ForwardConfig.Keywords,
-			TargetModels:  m.ForwardConfig.TargetModels,
-			ContentLength: m.ForwardConfig.ContentLength,
-		}
+	if detail.ForwardConfig != nil {
 
 		if detail.ForwardConfig.TargetModel != "" {
 			modelNames, err := s.ModelNames(ctx, []string{detail.ForwardConfig.TargetModel})
@@ -558,11 +510,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		}
 	}
 
-	if m.FallbackConfig != nil {
-
-		detail.FallbackConfig = &model.FallbackConfig{
-			FallbackModel: m.FallbackConfig.FallbackModel,
-		}
+	if detail.FallbackConfig != nil {
 
 		if detail.FallbackConfig.FallbackModel != "" {
 			modelNames, err := s.ModelNames(ctx, []string{detail.FallbackConfig.FallbackModel})
@@ -653,24 +601,19 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		}
 
 		items = append(items, &model.Model{
-			Id:              result.Id,
-			Corp:            result.Corp,
-			CorpName:        corpName,
-			Name:            result.Name,
-			Model:           result.Model,
-			Type:            result.Type,
-			BillingMethod:   result.BillingMethod,
-			PromptRatio:     result.PromptRatio,
-			PromptPrice:     util.PriceConv(result.PromptRatio),
-			CompletionRatio: result.CompletionRatio,
-			CompletionPrice: util.PriceConv(result.CompletionRatio),
-			FixedQuota:      result.FixedQuota,
-			FixedPrice:      util.QuotaConv(result.FixedQuota),
-			DataFormat:      result.DataFormat,
-			IsPublic:        result.IsPublic,
-			Status:          result.Status,
-			CreatedAt:       util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:       util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:          result.Id,
+			Corp:        result.Corp,
+			CorpName:    corpName,
+			Name:        result.Name,
+			Model:       result.Model,
+			Type:        result.Type,
+			TextQuota:   result.TextQuota,
+			ImageQuotas: result.ImageQuotas,
+			DataFormat:  result.DataFormat,
+			IsPublic:    result.IsPublic,
+			Status:      result.Status,
+			CreatedAt:   util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:   util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 
@@ -711,17 +654,13 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	for _, result := range results {
 
 		model := &model.Model{
-			Id:              result.Id,
-			Corp:            result.Corp,
-			Name:            result.Name,
-			Model:           result.Model,
-			Type:            result.Type,
-			BillingMethod:   result.BillingMethod,
-			PromptRatio:     result.PromptRatio,
-			CompletionRatio: result.CompletionRatio,
-			FixedQuota:      result.FixedQuota,
-			DataFormat:      result.DataFormat,
-			Status:          result.Status,
+			Id:         result.Id,
+			Corp:       result.Corp,
+			Name:       result.Name,
+			Model:      result.Model,
+			Type:       result.Type,
+			DataFormat: result.DataFormat,
+			Status:     result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
@@ -761,35 +700,17 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				BaseUrl:          result.BaseUrl,
 				Path:             result.Path,
 				Prompt:           result.Prompt,
-				BillingMethod:    result.BillingMethod,
-				PromptRatio:      result.PromptRatio,
-				CompletionRatio:  result.CompletionRatio,
-				FixedQuota:       result.FixedQuota,
+				TextQuota:        result.TextQuota,
+				ImageQuotas:      result.ImageQuotas,
 				DataFormat:       result.DataFormat,
 				IsPublic:         result.IsPublic,
 				ModelAgents:      result.ModelAgents,
 				IsEnableForward:  result.IsEnableForward,
+				ForwardConfig:    result.ForwardConfig,
 				IsEnableFallback: result.IsEnableFallback,
+				FallbackConfig:   result.FallbackConfig,
 				Remark:           result.Remark,
 				Status:           result.Status,
-			}
-
-			if result.ForwardConfig != nil {
-				m.ForwardConfig = &model.ForwardConfig{
-					ForwardRule:   result.ForwardConfig.ForwardRule,
-					MatchRule:     result.ForwardConfig.MatchRule,
-					TargetModel:   result.ForwardConfig.TargetModel,
-					DecisionModel: result.ForwardConfig.DecisionModel,
-					Keywords:      result.ForwardConfig.Keywords,
-					TargetModels:  result.ForwardConfig.TargetModels,
-					ContentLength: result.ForwardConfig.ContentLength,
-				}
-			}
-
-			if result.FallbackConfig != nil {
-				m.FallbackConfig = &model.FallbackConfig{
-					FallbackModel: result.FallbackConfig.FallbackModel,
-				}
 			}
 
 			if params.Value == "all" {
@@ -831,41 +752,23 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				BaseUrl:            result.BaseUrl,
 				Path:               result.Path,
 				Prompt:             result.Prompt,
-				BillingMethod:      result.BillingMethod,
-				PromptRatio:        result.PromptRatio,
-				CompletionRatio:    result.CompletionRatio,
-				FixedQuota:         result.FixedQuota,
+				TextQuota:          result.TextQuota,
+				ImageQuotas:        result.ImageQuotas,
 				DataFormat:         result.DataFormat,
 				IsPublic:           result.IsPublic,
 				IsEnableModelAgent: result.IsEnableModelAgent,
 				ModelAgents:        result.ModelAgents,
+				ForwardConfig:      result.ForwardConfig,
 				IsEnableFallback:   result.IsEnableFallback,
+				FallbackConfig:     result.FallbackConfig,
 				Remark:             result.Remark,
 				Status:             result.Status,
-			}
-
-			if result.ForwardConfig != nil {
-				m.ForwardConfig = &model.ForwardConfig{
-					ForwardRule:   result.ForwardConfig.ForwardRule,
-					MatchRule:     result.ForwardConfig.MatchRule,
-					TargetModel:   result.ForwardConfig.TargetModel,
-					DecisionModel: result.ForwardConfig.DecisionModel,
-					Keywords:      result.ForwardConfig.Keywords,
-					TargetModels:  result.ForwardConfig.TargetModels,
-					ContentLength: result.ForwardConfig.ContentLength,
-				}
-			}
-
-			if result.FallbackConfig != nil {
-				m.FallbackConfig = &model.FallbackConfig{
-					FallbackModel: result.FallbackConfig.FallbackModel,
-				}
 			}
 
 			if params.Value == "all" {
 
 				if m.ForwardConfig == nil {
-					m.ForwardConfig = new(model.ForwardConfig)
+					m.ForwardConfig = new(common.ForwardConfig)
 				}
 
 				m.IsEnableForward = true
@@ -910,41 +813,23 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				BaseUrl:            result.BaseUrl,
 				Path:               result.Path,
 				Prompt:             result.Prompt,
-				BillingMethod:      result.BillingMethod,
-				PromptRatio:        result.PromptRatio,
-				CompletionRatio:    result.CompletionRatio,
-				FixedQuota:         result.FixedQuota,
+				TextQuota:          result.TextQuota,
+				ImageQuotas:        result.ImageQuotas,
 				DataFormat:         result.DataFormat,
 				IsPublic:           result.IsPublic,
 				IsEnableModelAgent: result.IsEnableModelAgent,
 				ModelAgents:        result.ModelAgents,
 				IsEnableForward:    result.IsEnableForward,
+				ForwardConfig:      result.ForwardConfig,
+				FallbackConfig:     result.FallbackConfig,
 				Remark:             result.Remark,
 				Status:             result.Status,
-			}
-
-			if result.ForwardConfig != nil {
-				m.ForwardConfig = &model.ForwardConfig{
-					ForwardRule:   result.ForwardConfig.ForwardRule,
-					MatchRule:     result.ForwardConfig.MatchRule,
-					TargetModel:   result.ForwardConfig.TargetModel,
-					DecisionModel: result.ForwardConfig.DecisionModel,
-					Keywords:      result.ForwardConfig.Keywords,
-					TargetModels:  result.ForwardConfig.TargetModels,
-					ContentLength: result.ForwardConfig.ContentLength,
-				}
-			}
-
-			if result.FallbackConfig != nil {
-				m.FallbackConfig = &model.FallbackConfig{
-					FallbackModel: result.FallbackConfig.FallbackModel,
-				}
 			}
 
 			if params.Value == "all" {
 
 				if m.FallbackConfig == nil {
-					m.FallbackConfig = new(model.FallbackConfig)
+					m.FallbackConfig = new(common.FallbackConfig)
 				}
 
 				m.IsEnableFallback = true
@@ -1068,19 +953,17 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 		}
 
 		modelCreateReq := model.ModelCreateReq{
-			Corp:            corpMap[code],
-			Name:            data.Id,
-			Model:           data.Id,
-			Type:            data.FastAPI.Type,
-			BaseUrl:         data.FastAPI.BaseUrl,
-			Path:            data.FastAPI.Path,
-			BillingMethod:   data.FastAPI.BillingMethod,
-			PromptRatio:     data.FastAPI.PromptRatio,
-			CompletionRatio: data.FastAPI.CompletionRatio,
-			FixedQuota:      data.FastAPI.FixedQuota,
-			DataFormat:      1,
-			IsPublic:        true,
-			Status:          1,
+			Corp:        corpMap[code],
+			Name:        data.Id,
+			Model:       data.Id,
+			Type:        data.FastAPI.Type,
+			BaseUrl:     data.FastAPI.BaseUrl,
+			Path:        data.FastAPI.Path,
+			TextQuota:   data.FastAPI.TextQuota,
+			ImageQuotas: data.FastAPI.ImageQuotas,
+			DataFormat:  1,
+			IsPublic:    true,
+			Status:      1,
 		}
 
 		if params.IsConfigModelAgent && modelAgentId != "" {
