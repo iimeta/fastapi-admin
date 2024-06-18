@@ -59,7 +59,6 @@ type Chat struct {
 	PromptTokens       int                    `json:"prompt_tokens,omitempty"`         // 提示令牌数(提问令牌数)
 	CompletionTokens   int                    `json:"completion_tokens,omitempty"`     // 补全令牌数(回答令牌数)
 	TotalTokens        int                    `json:"total_tokens,omitempty"`          // 总令牌数
-	TotalPrice         float64                `json:"total_price,omitempty"`           // 消费总价
 	FixedQuota         int                    `json:"fixed_quota,omitempty"`           // 固定额度
 	ConnTime           int64                  `json:"conn_time,omitempty"`             // 连接时间
 	Duration           int64                  `json:"duration,omitempty"`              // 持续时间
