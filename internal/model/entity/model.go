@@ -17,6 +17,7 @@ type Model struct {
 	Prompt             string                 `bson:"prompt,omitempty"`                // 预设提示词
 	TextQuota          common.TextQuota       `bson:"text_quota,omitempty"`            // 文本额度
 	ImageQuotas        []common.ImageQuota    `bson:"image_quotas,omitempty"`          // 图像额度
+	MultimodalQuota    common.MultimodalQuota `bson:"multimodal_quota,omitempty"`      // 多模态额度
 	DataFormat         int                    `bson:"data_format,omitempty"`           // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool                   `bson:"is_public,omitempty"`             // 是否公开
 	IsEnableModelAgent bool                   `bson:"is_enable_model_agent,omitempty"` // 是否启用模型代理

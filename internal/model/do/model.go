@@ -20,6 +20,7 @@ type Model struct {
 	Prompt             string                 `bson:"prompt"`                    // 预设提示词
 	TextQuota          common.TextQuota       `bson:"text_quota"`                // 文本额度
 	ImageQuotas        []common.ImageQuota    `bson:"image_quotas"`              // 图像额度
+	MultimodalQuota    common.MultimodalQuota `bson:"multimodal_quota"`          // 多模态额度
 	DataFormat         int                    `bson:"data_format,omitempty"`     // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool                   `bson:"is_public"`                 // 是否公开
 	IsEnableModelAgent bool                   `bson:"is_enable_model_agent"`     // 是否启用模型代理

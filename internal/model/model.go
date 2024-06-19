@@ -13,6 +13,7 @@ type ModelCreateReq struct {
 	Prompt             string                 `json:"prompt,omitempty"`                // 预设提示词
 	TextQuota          common.TextQuota       `json:"text_quota,omitempty"`            // 文本额度
 	ImageQuotas        []common.ImageQuota    `json:"image_quotas,omitempty"`          // 图像额度
+	MultimodalQuota    common.MultimodalQuota `json:"multimodal_quota,omitempty"`      // 多模态额度
 	DataFormat         int                    `json:"data_format,omitempty"`           // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool                   `json:"is_public,omitempty"`             // 是否公开
 	IsEnableModelAgent bool                   `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
@@ -37,6 +38,7 @@ type ModelUpdateReq struct {
 	Prompt             string                 `json:"prompt,omitempty"`                // 预设提示词
 	TextQuota          common.TextQuota       `json:"text_quota,omitempty"`            // 文本额度
 	ImageQuotas        []common.ImageQuota    `json:"image_quotas,omitempty"`          // 图像额度
+	MultimodalQuota    common.MultimodalQuota `json:"multimodal_quota,omitempty"`      // 多模态额度
 	DataFormat         int                    `json:"data_format,omitempty"`           // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool                   `json:"is_public,omitempty"`             // 是否公开
 	IsEnableModelAgent bool                   `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
@@ -133,14 +135,15 @@ type ModelsData struct {
 }
 
 type FastAPI struct {
-	Corp        string              `json:"corp,omitempty"`         // 公司名称
-	Code        string              `json:"code,omitempty"`         // 公司代码
-	Model       string              `json:"model,omitempty"`        // 模型
-	Type        int                 `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
-	BaseUrl     string              `json:"base_url,omitempty"`     // 模型地址
-	Path        string              `json:"path,omitempty"`         // 模型路径
-	TextQuota   common.TextQuota    `json:"text_quota,omitempty"`   // 文本额度
-	ImageQuotas []common.ImageQuota `json:"image_quotas,omitempty"` // 图像额度
+	Corp            string                 `json:"corp,omitempty"`             // 公司名称
+	Code            string                 `json:"code,omitempty"`             // 公司代码
+	Model           string                 `json:"model,omitempty"`            // 模型
+	Type            int                    `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
+	BaseUrl         string                 `json:"base_url,omitempty"`         // 模型地址
+	Path            string                 `json:"path,omitempty"`             // 模型路径
+	TextQuota       common.TextQuota       `json:"text_quota,omitempty"`       // 文本额度
+	ImageQuotas     []common.ImageQuota    `json:"image_quotas,omitempty"`     // 图像额度
+	MultimodalQuota common.MultimodalQuota `json:"multimodal_quota,omitempty"` // 多模态额度
 }
 
 type Model struct {
@@ -155,6 +158,7 @@ type Model struct {
 	Prompt             string                 `json:"prompt,omitempty"`             // 预设提示词
 	TextQuota          common.TextQuota       `json:"text_quota,omitempty"`         // 文本额度
 	ImageQuotas        []common.ImageQuota    `json:"image_quotas,omitempty"`       // 图像额度
+	MultimodalQuota    common.MultimodalQuota `json:"multimodal_quota,omitempty"`   // 多模态额度
 	DataFormat         int                    `json:"data_format,omitempty"`        // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic           bool                   `json:"is_public"`                    // 是否公开
 	IsEnableModelAgent bool                   `json:"is_enable_model_agent"`        // 是否启用模型代理
