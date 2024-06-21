@@ -6,10 +6,10 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.1
 	github.com/gogf/gf/v2 v2.7.1
-	github.com/gorilla/websocket v1.5.1
+	github.com/gorilla/websocket v1.5.3
 	github.com/redis/go-redis/v9 v9.5.3
 	github.com/tjfoc/gmsm v1.4.1
-	go.mongodb.org/mongo-driver v1.15.0
+	go.mongodb.org/mongo-driver v1.15.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
