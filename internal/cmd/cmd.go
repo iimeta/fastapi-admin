@@ -12,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
 	"github.com/iimeta/fastapi-admin/internal/controller/corp"
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
+	"github.com/iimeta/fastapi-admin/internal/controller/health"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
@@ -75,9 +76,17 @@ var (
 			s.AddStaticPath("/public", "./resource/public")
 
 			s.Group("/", func(g *ghttp.RouterGroup) {
+
 				g.Middleware(ghttp.MiddlewareHandlerResponse)
-				g.Middleware(middleware)
-				g.Bind()
+
+				g.Bind(
+					func(r *ghttp.Request) {
+						r.Response.WriteStatus(http.StatusOK, "Hello Fast API Admin")
+						r.Exit()
+						return
+					},
+					health.NewV1(),
+				)
 			})
 
 			s.Group("/api/v1", func(v1 *ghttp.RouterGroup) {
