@@ -1,5 +1,12 @@
 package common
 
+type PresetConfig struct {
+	IsSupportSystemRole bool   `bson:"is_support_system_role" json:"is_support_system_role,omitempty"` // 是否支持System角色
+	SystemRolePrompt    string `bson:"system_role_prompt"     json:"system_role_prompt,omitempty"`     // System角色提示词
+	MinTokens           int    `bson:"min_tokens"             json:"min_tokens,omitempty"`             // 最小上下文值
+	MaxTokens           int    `bson:"max_tokens"             json:"max_tokens,omitempty"`             // 最大上下文值
+}
+
 type TextQuota struct {
 	BillingMethod   int     `bson:"billing_method,omitempty"   json:"billing_method,omitempty"`         // 计费方式[1:倍率, 2:固定额度]
 	PromptRatio     float64 `bson:"prompt_ratio,omitempty"     json:"prompt_ratio,omitempty"     d:"1"` // 提示倍率(提问倍率)
