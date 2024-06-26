@@ -43,36 +43,32 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 	}
 
 	chat := &model.Chat{
-		Id:            result.Id,
-		TraceId:       result.TraceId,
-		UserId:        result.UserId,
-		AppId:         result.AppId,
-		Corp:          result.Corp,
-		CorpName:      corpName,
-		Model:         result.Model,
-		Type:          result.Type,
-		Stream:        result.Stream,
-		Messages:      result.Messages,
-		Prompt:        result.Prompt,
-		Completion:    result.Completion,
-		BillingMethod: result.BillingMethod,
-		TotalTokens:   result.TotalTokens,
-		FixedQuota:    result.FixedQuota,
-		ConnTime:      result.ConnTime,
-		Duration:      result.Duration,
-		TotalTime:     result.TotalTime,
-		ReqTime:       util.FormatDateTime(result.ReqTime),
-		ClientIp:      result.ClientIp,
-		Retry:         result.Retry,
-		Status:        result.Status,
-		Creator:       result.Creator,
-	}
-
-	if result.BillingMethod == 1 {
-		chat.PromptRatio = result.PromptRatio
-		chat.CompletionRatio = result.CompletionRatio
-		chat.PromptTokens = result.PromptTokens
-		chat.CompletionTokens = result.CompletionTokens
+		Id:               result.Id,
+		TraceId:          result.TraceId,
+		UserId:           result.UserId,
+		AppId:            result.AppId,
+		Corp:             result.Corp,
+		CorpName:         corpName,
+		Model:            result.Model,
+		Type:             result.Type,
+		Stream:           result.Stream,
+		Messages:         result.Messages,
+		Prompt:           result.Prompt,
+		Completion:       result.Completion,
+		TextQuota:        result.TextQuota,
+		ImageQuotas:      result.ImageQuotas,
+		MultimodalQuota:  result.MultimodalQuota,
+		PromptTokens:     result.PromptTokens,
+		CompletionTokens: result.CompletionTokens,
+		TotalTokens:      result.TotalTokens,
+		ConnTime:         result.ConnTime,
+		Duration:         result.Duration,
+		TotalTime:        result.TotalTime,
+		ReqTime:          util.FormatDateTime(result.ReqTime),
+		ClientIp:         result.ClientIp,
+		Retry:            result.Retry,
+		Status:           result.Status,
+		Creator:          result.Creator,
 	}
 
 	// todo
@@ -85,10 +81,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		chat.ModelId = result.ModelId
 		chat.Name = result.Name
 		chat.Key = result.Key
-		chat.PromptRatio = result.PromptRatio
-		chat.CompletionRatio = result.CompletionRatio
-		chat.PromptTokens = result.PromptTokens
-		chat.CompletionTokens = result.CompletionTokens
+		chat.IsEnablePresetConfig = result.IsEnablePresetConfig
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
 		chat.ModelAgentId = result.ModelAgentId
 		chat.IsEnableForward = result.IsEnableForward
@@ -199,34 +192,27 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	for _, result := range results {
 
 		chat := &model.Chat{
-			Id:            result.Id,
-			UserId:        result.UserId,
-			AppId:         result.AppId,
-			Corp:          result.Corp,
-			Model:         result.Model,
-			Stream:        result.Stream,
-			BillingMethod: result.BillingMethod,
-			TotalTokens:   result.TotalTokens,
-			ConnTime:      result.ConnTime,
-			Duration:      result.Duration,
-			TotalTime:     result.TotalTime,
-			ReqTime:       util.FormatDateTimeMonth(result.ReqTime),
-			Status:        result.Status,
-			Creator:       result.Creator,
-		}
-
-		if result.BillingMethod == 1 {
-			chat.PromptRatio = result.PromptRatio
-			chat.CompletionRatio = result.CompletionRatio
-			chat.PromptTokens = result.PromptTokens
-			chat.CompletionTokens = result.CompletionTokens
+			Id:               result.Id,
+			UserId:           result.UserId,
+			AppId:            result.AppId,
+			Corp:             result.Corp,
+			Model:            result.Model,
+			Stream:           result.Stream,
+			TextQuota:        result.TextQuota,
+			ImageQuotas:      result.ImageQuotas,
+			MultimodalQuota:  result.MultimodalQuota,
+			PromptTokens:     result.PromptTokens,
+			CompletionTokens: result.CompletionTokens,
+			TotalTokens:      result.TotalTokens,
+			ConnTime:         result.ConnTime,
+			Duration:         result.Duration,
+			TotalTime:        result.TotalTime,
+			ReqTime:          util.FormatDateTimeMonth(result.ReqTime),
+			Status:           result.Status,
+			Creator:          result.Creator,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
-			chat.PromptRatio = result.PromptRatio
-			chat.CompletionRatio = result.CompletionRatio
-			chat.PromptTokens = result.PromptTokens
-			chat.CompletionTokens = result.CompletionTokens
 			chat.InternalTime = result.InternalTime
 			chat.IsSmartMatch = result.IsSmartMatch
 		}
