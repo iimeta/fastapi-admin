@@ -9,7 +9,11 @@ import (
 
 func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateReq) (res *v1.CreateRes, err error) {
 
-	err = service.App().Create(ctx, req.AppCreateReq)
+	key, err := service.App().Create(ctx, req.AppCreateReq)
+
+	res = &v1.CreateRes{
+		Key: key,
+	}
 
 	return
 }

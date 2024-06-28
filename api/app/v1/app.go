@@ -14,6 +14,7 @@ type CreateReq struct {
 // 新建应用接口响应参数
 type CreateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
+	Key    string `json:"key,omitempty"` // 密钥
 }
 
 // 更新应用接口请求参数

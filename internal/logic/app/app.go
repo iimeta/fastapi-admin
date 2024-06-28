@@ -32,10 +32,12 @@ func New() service.IApp {
 }
 
 // 新建应用
-func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
+func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, error) {
+
+	appId := core.IncrAppId(ctx)
 
 	if _, err := dao.App.Insert(ctx, &do.App{
-		AppId:          core.IncrAppId(ctx),
+		AppId:          appId,
 		Name:           params.Name,
 		Type:           params.Type,
 		Models:         params.Models,
@@ -49,10 +51,26 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) error {
 		UserId:         service.Session().GetUserId(ctx),
 	}); err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
-	return nil
+	if params.IsCreateKey {
+
+		key, err := s.CreateKey(ctx, model.AppCreateKeyReq{AppId: appId})
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		if err = s.KeyConfig(ctx, model.AppKeyConfigReq{AppId: appId, Key: key, Status: 1}); err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		return key, nil
+	}
+
+	return "", nil
 }
 
 // 更新应用

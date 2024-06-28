@@ -14,7 +14,7 @@ import (
 type (
 	IApp interface {
 		// 新建应用
-		Create(ctx context.Context, params model.AppCreateReq) error
+		Create(ctx context.Context, params model.AppCreateReq) (string, error)
 		// 更新应用
 		Update(ctx context.Context, params model.AppUpdateReq) error
 		// 更改应用状态
