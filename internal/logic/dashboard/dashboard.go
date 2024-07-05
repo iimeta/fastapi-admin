@@ -102,8 +102,8 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_smart_match": bson.M{"$exists": false},
-				"is_retry":       bson.M{"$exists": false},
+				"is_smart_match": bson.M{"$ne": true},
+				"is_retry":       bson.M{"$ne": true},
 			},
 		},
 		{
@@ -141,8 +141,8 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
 				},
-				"is_smart_match": bson.M{"$exists": false},
-				"is_retry":       bson.M{"$exists": false},
+				"is_smart_match": bson.M{"$ne": true},
+				"is_retry":       bson.M{"$ne": true},
 			},
 		},
 		{
@@ -199,8 +199,8 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 	if service.Session().IsUserRole(ctx) {
 		match := abnormalPipeline[0]["$match"].(bson.M)
 		match["user_id"] = service.Session().GetUserId(ctx)
-		match["is_smart_match"] = bson.M{"$exists": false}
-		match["is_retry"] = bson.M{"$exists": false}
+		match["is_smart_match"] = bson.M{"$ne": true}
+		match["is_retry"] = bson.M{"$ne": true}
 	}
 
 	abnormalResult := make([]map[string]interface{}, 0)
@@ -269,8 +269,8 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
 				},
-				"is_smart_match": bson.M{"$exists": false},
-				"is_retry":       bson.M{"$exists": false},
+				"is_smart_match": bson.M{"$ne": true},
+				"is_retry":       bson.M{"$ne": true},
 			},
 		},
 	}
@@ -387,8 +387,8 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 					"$gte": startTime.TimestampMilli(),
 					"$lte": endTime.TimestampMilli(),
 				},
-				"is_smart_match": bson.M{"$exists": false},
-				"is_retry":       bson.M{"$exists": false},
+				"is_smart_match": bson.M{"$ne": true},
+				"is_retry":       bson.M{"$ne": true},
 			},
 		},
 		{
