@@ -455,14 +455,17 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 	}
 
 	corpName := m.Corp
+	corpCode := m.Corp
 	if corp, err := dao.Corp.FindById(ctx, m.Corp); err == nil && corp != nil {
 		corpName = corp.Name
+		corpCode = corp.Code
 	}
 
 	detail := &model.Model{
 		Id:                   m.Id,
 		Corp:                 m.Corp,
 		CorpName:             corpName,
+		CorpCode:             corpCode,
 		Name:                 m.Name,
 		Model:                m.Model,
 		Type:                 m.Type,
