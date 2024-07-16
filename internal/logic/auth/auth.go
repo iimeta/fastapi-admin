@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -24,6 +25,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"strings"
+	"time"
 )
 
 type sAuth struct{}
@@ -64,11 +66,16 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	user := &do.User{
 		Id:      id,
 		UserId:  core.IncrUserId(ctx),
-		Email:   params.Account,
 		Name:    params.Account,
+		Email:   params.Account,
 		Models:  models,
 		Status:  1,
 		Creator: id,
+	}
+
+	if config.Cfg.App.Register.GrantQuota != 0 {
+		user.Quota = config.Cfg.App.Register.GrantQuota
+		user.QuotaExpiresAt = gtime.Now().Add(config.Cfg.App.Register.QuotaExpiresAt * time.Minute).TimestampMilli()
 	}
 
 	uid, err := dao.User.Insert(ctx, user)
@@ -91,6 +98,13 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	}
 
 	_ = service.Common().DelCode(ctx, consts.CHANNEL_REGISTER, params.Account)
+
+	if user.Quota != 0 {
+		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(user.Quota)); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
 
 	return nil
 }
@@ -150,6 +164,20 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
+
+					if len(config.Cfg.App.Register.SupportEmailSuffix) > 0 {
+
+						isSupport := false
+						for _, emailSuffix := range config.Cfg.App.Register.SupportEmailSuffix {
+							if isSupport = gstr.HasSuffix(params.Account, emailSuffix); isSupport {
+								break
+							}
+						}
+
+						if !isSupport {
+							return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", config.Cfg.App.Register.SupportEmailSuffix))
+						}
+					}
 
 					if err = s.Register(ctx, model.RegisterReq{
 						Account:  params.Account,

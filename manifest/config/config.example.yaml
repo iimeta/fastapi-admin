@@ -54,12 +54,13 @@ logger:
 
 # 项目配置信息
 app:
-  env: dev  # dev, prod
-  debug: true
-  juhe_key: xxx  # 使用登录助手需配置, 前往 https://www.juhe.cn 申请key
-  juhe_url:  # 可选, 默认 https://apis.juhe.cn/ip/ipNew
-  admin_email:
-    - xxx@xxx.com
+  env: prod  # dev, prod
+#  register:  # 注册相关配置
+#    support_email_suffix:  # 支持的邮箱后缀, 空为不限制
+#      - "@qq.com"
+#      - "@163.com"
+#    grant_quota: 10000000    # 授予额度, 500000 = $1
+#    quota_expires_at: 43200  # 授予额度过期时间, grant_quota不为空时生效, 单位: 分钟
 
 # http配置
 http:

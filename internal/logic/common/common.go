@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -113,6 +114,21 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 
 	// 需要判断账号是否存在
 	case consts.CHANNEL_REGISTER, consts.CHANNEL_CHANGE_EMAIL:
+
+		if len(config.Cfg.App.Register.SupportEmailSuffix) > 0 {
+
+			isSupport := false
+			for _, emailSuffix := range config.Cfg.App.Register.SupportEmailSuffix {
+				if isSupport = gstr.HasSuffix(params.Email, emailSuffix); isSupport {
+					break
+				}
+			}
+
+			if !isSupport {
+				return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", config.Cfg.App.Register.SupportEmailSuffix))
+			}
+		}
+
 		if dao.User.IsAccountExist(ctx, params.Email) {
 			return nil, errors.New("邮箱已被他人使用")
 		}

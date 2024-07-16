@@ -55,10 +55,17 @@ type Core struct {
 
 type App struct {
 	Env        string   `json:"env"`
-	Debug      bool     `json:"debug"`
+	Register   Register `json:"register"`
 	JuheKey    string   `json:"juhe_key"`
 	JuheUrl    string   `json:"juhe_url"`
 	AdminEmail []string `json:"admin_email"`
+	Debug      bool     `json:"debug"`
+}
+
+type Register struct {
+	SupportEmailSuffix []string      `json:"support_email_suffix"`
+	GrantQuota         int           `json:"grant_quota"`
+	QuotaExpiresAt     time.Duration `json:"quota_expires_at"`
 }
 
 type Http struct {
