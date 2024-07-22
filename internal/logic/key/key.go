@@ -342,7 +342,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			AppId:          result.AppId,
 			Corp:           result.Corp,
 			CorpName:       corpName,
-			Key:            result.Key,
+			Key:            util.Desensitize(result.Key),
 			Type:           result.Type,
 			Models:         result.Models,
 			ModelNames:     modelNames,

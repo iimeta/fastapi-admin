@@ -9,7 +9,14 @@ import (
 
 func (c *ControllerV1) KeyConfig(ctx context.Context, req *v1.KeyConfigReq) (res *v1.KeyConfigRes, err error) {
 
-	err = service.App().KeyConfig(ctx, req.AppKeyConfigReq)
+	key, err := service.App().KeyConfig(ctx, req.AppKeyConfigReq)
+	if err != nil {
+		return nil, err
+	}
+
+	res = &v1.KeyConfigRes{
+		Key: key,
+	}
 
 	return
 }

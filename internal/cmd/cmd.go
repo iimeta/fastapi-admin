@@ -13,7 +13,9 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/corp"
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
 	"github.com/iimeta/fastapi-admin/internal/controller/health"
+	"github.com/iimeta/fastapi-admin/internal/controller/image"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
+	"github.com/iimeta/fastapi-admin/internal/controller/midjourney"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
@@ -67,11 +69,11 @@ var (
 			s.AddStaticPath("/user/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/detail", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/center", "./resource/fastapi-web/")
-			s.AddStaticPath("/chat/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/corp/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/corp/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/corp/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/corp/detail", "./resource/fastapi-web/")
+			s.AddStaticPath("/chat/list", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
 
@@ -154,17 +156,31 @@ var (
 					)
 				})
 
-				v1.Group("/chat", func(g *ghttp.RouterGroup) {
+				v1.Group("/corp", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						corp.NewV1(),
+					)
+				})
+
+				v1.Group("/log/chat", func(g *ghttp.RouterGroup) {
 					g.Middleware(middleware)
 					g.Bind(
 						chat.NewV1(),
 					)
 				})
 
-				v1.Group("/corp", func(g *ghttp.RouterGroup) {
+				v1.Group("/log/image", func(g *ghttp.RouterGroup) {
 					g.Middleware(middleware)
 					g.Bind(
-						corp.NewV1(),
+						image.NewV1(),
+					)
+				})
+
+				v1.Group("/log/mj", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						midjourney.NewV1(),
 					)
 				})
 			})
@@ -192,7 +208,7 @@ var (
 )
 
 func beforeServeHook(r *ghttp.Request) {
-	logger.Debugf(r.GetCtx(), "beforeServeHook [isFile: %t] URI: %s", r.IsFileRequest(), r.RequestURI)
+	logger.Debugf(r.GetCtx(), "beforeServeHook ClientIp: %s, RemoteIp: %s, IsFile: %t, URI: %s", r.GetClientIp(), r.GetRemoteIp(), r.IsFileRequest(), r.RequestURI)
 	r.Response.CORSDefault()
 }
 

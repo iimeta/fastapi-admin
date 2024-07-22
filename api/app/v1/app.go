@@ -107,4 +107,5 @@ type KeyConfigReq struct {
 // 应用密钥配置接口响应参数
 type KeyConfigRes struct {
 	g.Meta `mime:"application/json" example:"json"`
+	Key    string `json:"key,omitempty"` // 密钥
 }

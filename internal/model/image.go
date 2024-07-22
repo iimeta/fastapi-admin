@@ -57,6 +57,7 @@ type Image struct {
 	Quality              string                 `json:"quality,omitempty"`                 // 图像质量[hd]
 	Style                string                 `json:"style,omitempty"`                   // 图像样式[vivid, natural]
 	ResponseFormat       string                 `json:"response_format,omitempty"`         // 图像格式[url, b64_json]
+	Images               []string               `json:"images,omitempty"`                  // 生成图像url
 	ImageData            []common.ImageData     `json:"image_data,omitempty"`              // 生成图像数据
 	ImageQuotas          []common.ImageQuota    `json:"image_quotas,omitempty"`            // 图像额度
 	MultimodalQuota      common.MultimodalQuota `json:"multimodal_quota,omitempty"`        // 多模态额度

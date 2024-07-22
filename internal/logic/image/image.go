@@ -62,7 +62,15 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 		ClientIp:        result.ClientIp,
 		Retry:           result.Retry,
 		Status:          result.Status,
-		Creator:         result.Creator,
+		Creator:         util.Desensitize(result.Creator),
+	}
+
+	for _, imageData := range result.ImageData {
+		if imageData.URL != "" {
+			image.Images = append(image.Images, imageData.URL)
+		} else {
+			image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
+		}
 	}
 
 	// todo
@@ -74,7 +82,7 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 
 		image.ModelId = result.ModelId
 		image.Name = result.Name
-		image.Key = result.Key
+		image.Key = util.Desensitize(result.Key)
 		image.IsEnablePresetConfig = result.IsEnablePresetConfig
 		image.IsEnableModelAgent = result.IsEnableModelAgent
 		image.ModelAgentId = result.ModelAgentId
@@ -191,6 +199,7 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 			AppId:           result.AppId,
 			Corp:            result.Corp,
 			Model:           result.Model,
+			Prompt:          result.Prompt,
 			ImageQuotas:     result.ImageQuotas,
 			MultimodalQuota: result.MultimodalQuota,
 			TotalTokens:     result.TotalTokens,
@@ -200,6 +209,14 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 			ReqTime:         util.FormatDateTimeMonth(result.ReqTime),
 			Status:          result.Status,
 			Creator:         result.Creator,
+		}
+
+		for _, imageData := range result.ImageData {
+			if imageData.URL != "" {
+				image.Images = append(image.Images, imageData.URL)
+			} else {
+				image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
+			}
 		}
 
 		if service.Session().IsAdminRole(ctx) {

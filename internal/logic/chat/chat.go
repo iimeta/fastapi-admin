@@ -68,7 +68,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		ClientIp:         result.ClientIp,
 		Retry:            result.Retry,
 		Status:           result.Status,
-		Creator:          result.Creator,
+		Creator:          util.Desensitize(result.Creator),
 	}
 
 	// todo
@@ -80,7 +80,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
 		chat.ModelId = result.ModelId
 		chat.Name = result.Name
-		chat.Key = result.Key
+		chat.Key = util.Desensitize(result.Key)
 		chat.IsEnablePresetConfig = result.IsEnablePresetConfig
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
 		chat.ModelAgentId = result.ModelAgentId

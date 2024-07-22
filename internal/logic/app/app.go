@@ -62,7 +62,7 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 			return "", err
 		}
 
-		if err = s.KeyConfig(ctx, model.AppKeyConfigReq{AppId: appId, Key: key, Status: 1}); err != nil {
+		if _, err = s.KeyConfig(ctx, model.AppKeyConfigReq{AppId: appId, Key: key, Status: 1}); err != nil {
 			logger.Error(ctx, err)
 			return "", err
 		}
@@ -324,7 +324,7 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 }
 
 // 应用密钥配置
-func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err error) {
+func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k string, err error) {
 
 	var (
 		keyInfo *entity.Key
@@ -351,14 +351,14 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 		action = consts.ACTION_UPDATE
 		if oldData, err = dao.Key.FindById(ctx, params.Id); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 
 		key.AppId = 0
 		key.Key = ""
 		if keyInfo, err = dao.Key.FindOneAndUpdateById(ctx, params.Id, key); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return k, err
 		}
 
 	} else {
@@ -366,7 +366,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 		id, err := dao.Key.Insert(ctx, key)
 		if err != nil {
 			logger.Error(ctx, err)
-			return err
+			return k, err
 		}
 
 		keyInfo = &entity.Key{
@@ -390,7 +390,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 	app, err := dao.App.FindByAppId(ctx, keyInfo.AppId)
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return k, err
 	}
 
 	fields := g.Map{
@@ -400,7 +400,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 
 	if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields); err != nil {
 		logger.Error(ctx, err)
-		return err
+		return k, err
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP_KEY, model.PubMessage{
@@ -409,10 +409,10 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (err
 		NewData: keyInfo,
 	}); err != nil {
 		logger.Error(ctx, err)
-		return err
+		return k, err
 	}
 
-	return nil
+	return keyInfo.Key, err
 }
 
 // 应用模型权限
