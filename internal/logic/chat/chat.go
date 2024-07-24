@@ -24,7 +24,7 @@ func New() service.IChat {
 	return &sChat{}
 }
 
-// 聊天详情
+// 聊天日志详情
 func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
 	result, err := dao.Chat.FindById(ctx, id)
@@ -123,7 +123,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 	return chat, nil
 }
 
-// 聊天分页列表
+// 聊天日志分页列表
 func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.ChatPageRes, error) {
 
 	paging := &db.Paging{

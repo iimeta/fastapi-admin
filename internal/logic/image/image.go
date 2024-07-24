@@ -24,7 +24,7 @@ func New() service.IImage {
 	return &sImage{}
 }
 
-// 聊天详情
+// 绘图日志详情
 func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 
 	result, err := dao.Image.FindById(ctx, id)
@@ -52,6 +52,7 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 		Model:           result.Model,
 		Type:            result.Type,
 		Prompt:          result.Prompt,
+		ImageData:       result.ImageData,
 		ImageQuotas:     result.ImageQuotas,
 		MultimodalQuota: result.MultimodalQuota,
 		TotalTokens:     result.TotalTokens,
@@ -66,11 +67,11 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 	}
 
 	for _, imageData := range result.ImageData {
-		if imageData.URL != "" {
-			image.Images = append(image.Images, imageData.URL)
-		} else {
-			image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
-		}
+		//if imageData.URL != "" {
+		image.Images = append(image.Images, imageData.URL)
+		//} else { // 太大了, 不查
+		//	image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
+		//}
 	}
 
 	// todo
@@ -125,7 +126,7 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 	return image, nil
 }
 
-// 聊天分页列表
+// 绘图日志分页列表
 func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.ImagePageRes, error) {
 
 	paging := &db.Paging{
@@ -141,7 +142,6 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
-		filter["is_smart_match"] = bson.M{"$exists": false}
 		filter["is_retry"] = bson.M{"$exists": false}
 	} else if params.UserId != 0 {
 		filter["user_id"] = params.UserId
@@ -212,11 +212,11 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 		}
 
 		for _, imageData := range result.ImageData {
-			if imageData.URL != "" {
-				image.Images = append(image.Images, imageData.URL)
-			} else {
-				image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
-			}
+			//if imageData.URL != "" {
+			image.Images = append(image.Images, imageData.URL)
+			//} else { // 太大了, 不查
+			//	image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
+			//}
 		}
 
 		if service.Session().IsAdminRole(ctx) {

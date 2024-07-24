@@ -1,10 +1,12 @@
 package entity
 
 import (
+	"github.com/gogf/gf/v2/util/gmeta"
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
 type Midjourney struct {
+	gmeta.Meta           `role:"*" bson:"-"`
 	Id                   string                   `bson:"_id,omitempty"`                     // ID
 	TraceId              string                   `bson:"trace_id,omitempty"`                // 日志ID
 	UserId               int                      `bson:"user_id,omitempty"`                 // 用户ID
