@@ -73,7 +73,8 @@ var (
 			s.AddStaticPath("/corp/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/corp/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/corp/detail", "./resource/fastapi-web/")
-			s.AddStaticPath("/chat/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/chat", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
 
