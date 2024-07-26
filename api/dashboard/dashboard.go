@@ -16,4 +16,5 @@ type IDashboardV1 interface {
 	Expense(ctx context.Context, req *v1.ExpenseReq) (res *v1.ExpenseRes, err error)
 	DataTop(ctx context.Context, req *v1.DataTopReq) (res *v1.DataTopRes, err error)
 	ModelPercent(ctx context.Context, req *v1.ModelPercentReq) (res *v1.ModelPercentRes, err error)
+	PerMinute(ctx context.Context, req *v1.PerMinuteReq) (res *v1.PerMinuteRes, err error)
 }

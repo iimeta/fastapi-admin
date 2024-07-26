@@ -121,8 +121,8 @@ type App struct {
 	Models         []string `json:"models,omitempty"`           // 模型权限
 	ModelNames     []string `json:"model_names,omitempty"`      // 模型名称
 	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
-	Quota          int      `json:"quota,omitempty"`            // 剩余额度
-	UsedQuota      int      `json:"used_quota,omitempty"`       // 已用额度
+	Quota          int      `json:"quota"`                      // 剩余额度
+	UsedQuota      int      `json:"used_quota"`                 // 已用额度
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
 	IpWhitelist    []string `json:"ip_whitelist,omitempty"`     // IP白名单
 	IpBlacklist    []string `json:"ip_blacklist,omitempty"`     // IP黑名单

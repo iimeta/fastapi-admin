@@ -108,7 +108,8 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 		},
 		{
 			"$group": bson.M{
-				"_id": "$trace_id",
+				"_id":  nil,
+				"call": bson.M{"$sum": 1},
 			},
 		},
 	}
@@ -123,7 +124,10 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 		logger.Error(ctx, err)
 		return nil, err
 	}
-	dashboard.Call = len(result)
+
+	if len(result) > 0 {
+		dashboard.Call = gconv.Int(result[0]["call"])
+	}
 
 	return dashboard, nil
 }
@@ -148,7 +152,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 		{
 			"$group": bson.M{
 				"_id":    "$req_date",
-				"count":  bson.M{"$addToSet": "$trace_id"},
+				"count":  bson.M{"$sum": 1},
 				"tokens": bson.M{"$sum": "$total_tokens"},
 				"user":   bson.M{"$addToSet": "$user_id"},
 				"app":    bson.M{"$addToSet": "$app_id"},
@@ -171,7 +175,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 	for _, res := range result {
 		resultMap[gconv.String(res["_id"])] = &model.CallData{
 			Date:   gconv.String(res["_id"])[5:],
-			Call:   len(gconv.SliceAny(res["count"])),
+			Call:   gconv.Int(res["count"]),
 			Tokens: gconv.Int(res["tokens"]),
 			User:   len(gconv.SliceAny(res["user"])),
 			App:    len(gconv.SliceAny(res["app"])),
@@ -191,7 +195,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 		{
 			"$group": bson.M{
 				"_id":   "$req_date",
-				"count": bson.M{"$addToSet": "$trace_id"},
+				"count": bson.M{"$sum": 1},
 			},
 		},
 	}
@@ -211,7 +215,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 
 	for _, res := range abnormalResult {
 		if resultMap[gconv.String(res["_id"])] != nil {
-			resultMap[gconv.String(res["_id"])].Abnormal = len(gconv.SliceAny(res["count"]))
+			resultMap[gconv.String(res["_id"])].Abnormal = gconv.Int(res["count"])
 		} else {
 			resultMap[gconv.String(res["_id"])] = &model.CallData{
 				Date:     gconv.String(res["_id"])[5:],
@@ -429,4 +433,48 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 	}
 
 	return models, items, nil
+}
+
+// 每分钟数据
+func (s *sDashboard) PerMinute(ctx context.Context) (int, int, error) {
+
+	startTime := gtime.Now().TimestampMilli() - 60000
+	endTime := gtime.Now().TimestampMilli()
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"req_time": bson.M{
+					"$gte": startTime,
+					"$lte": endTime,
+				},
+				"is_smart_match": bson.M{"$ne": true},
+				"is_retry":       bson.M{"$ne": true},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": nil,
+				"rpm": bson.M{"$sum": 1},
+				"tpm": bson.M{"$sum": "$total_tokens"},
+			},
+		},
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+	}
+
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+		logger.Error(ctx, err)
+		return 0, 0, err
+	}
+
+	if len(result) > 0 {
+		return gconv.Int(result[0]["rpm"]), gconv.Int(result[0]["tpm"]), nil
+	}
+
+	return 0, 0, nil
 }

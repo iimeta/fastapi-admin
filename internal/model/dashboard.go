@@ -42,6 +42,12 @@ type DashboardModelPercentRes struct {
 	Items  []*ModelPercent `json:"items"`
 }
 
+// 每分钟数据接口响应参数
+type DashboardPerMinuteRes struct {
+	RPM int `json:"rpm"` // 每分钟请求数
+	TPM int `json:"tpm"` // 每分钟令牌数
+}
+
 // 基础数据
 type Dashboard struct {
 	App       int64 `json:"app"`        // 应用数
