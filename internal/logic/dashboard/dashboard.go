@@ -454,9 +454,10 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 		},
 		{
 			"$group": bson.M{
-				"_id": nil,
-				"rpm": bson.M{"$sum": 1},
-				"tpm": bson.M{"$sum": "$total_tokens"},
+				"_id":               nil,
+				"rpm":               bson.M{"$sum": 1},
+				"prompt_tokens":     bson.M{"$sum": "$prompt_tokens"},
+				"completion_tokens": bson.M{"$sum": "$completion_tokens"},
 			},
 		},
 	}
@@ -490,7 +491,7 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	}
 
 	if len(result) > 0 {
-		return gconv.Int(result[0]["rpm"]), gconv.Int(result[0]["tpm"]), nil
+		return gconv.Int(result[0]["rpm"]), gconv.Int(result[0]["prompt_tokens"]) + gconv.Int(result[0]["completion_tokens"]), nil
 	}
 
 	return 0, 0, nil
