@@ -340,6 +340,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			UsedQuota:      result.UsedQuota,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
 			Models:         result.Models,
+			Remark:         result.Remark,
 			Status:         result.Status,
 			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),

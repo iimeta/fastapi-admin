@@ -436,7 +436,7 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 }
 
 // 每分钟数据
-func (s *sDashboard) PerMinute(ctx context.Context) (int, int, error) {
+func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMinuteReq) (int, int, error) {
 
 	startTime := gtime.Now().TimestampMilli() - 60000
 	endTime := gtime.Now().TimestampMilli()
@@ -461,9 +461,26 @@ func (s *sDashboard) PerMinute(ctx context.Context) (int, int, error) {
 		},
 	}
 
+	match := pipeline[0]["$match"].(bson.M)
+
 	if service.Session().IsUserRole(ctx) {
-		match := pipeline[0]["$match"].(bson.M)
 		match["user_id"] = service.Session().GetUserId(ctx)
+	} else if params.UserId != 0 {
+		match["user_id"] = params.UserId
+	}
+
+	if params.AppId != 0 {
+		match["app_id"] = params.AppId
+	}
+
+	if params.Key != "" {
+		match["creator"] = params.Key
+	}
+
+	if len(params.Models) > 0 {
+		match["model_id"] = bson.M{
+			"$in": params.Models,
+		}
 	}
 
 	result := make([]map[string]interface{}, 0)

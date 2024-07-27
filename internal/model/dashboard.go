@@ -42,6 +42,18 @@ type DashboardModelPercentRes struct {
 	Items  []*ModelPercent `json:"items"`
 }
 
+// 每分钟数据接口请求参数
+type DashboardPerMinuteReq struct {
+	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
+	UserId    int      `json:"user_id,omitempty"`    // 用户ID
+	AppId     int      `json:"app_id,omitempty"`     // 应用ID
+	Key       string   `json:"key,omitempty"`        // 密钥
+	Models    []string `json:"models,omitempty"`     // 模型
+	TotalTime int64    `json:"total_time,omitempty"` // 总时间
+	Status    int      `json:"status,omitempty"`     // 状态[1:成功, -1:失败]
+	ReqTime   []string `json:"req_time,omitempty"`   // 请求时间
+}
+
 // 每分钟数据接口响应参数
 type DashboardPerMinuteRes struct {
 	RPM int `json:"rpm"` // 每分钟请求数
