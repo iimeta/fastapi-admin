@@ -12,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
 	"github.com/iimeta/fastapi-admin/internal/controller/corp"
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
+	"github.com/iimeta/fastapi-admin/internal/controller/finance"
 	"github.com/iimeta/fastapi-admin/internal/controller/health"
 	"github.com/iimeta/fastapi-admin/internal/controller/image"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
@@ -161,6 +162,13 @@ var (
 					g.Middleware(middleware)
 					g.Bind(
 						corp.NewV1(),
+					)
+				})
+
+				v1.Group("/finance", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						finance.NewV1(),
 					)
 				})
 

@@ -1,4 +1,4 @@
-package key
+package midjourney
 
 import (
 	"context"

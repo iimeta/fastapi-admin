@@ -1,4 +1,4 @@
-package user
+package admin_user
 
 import (
 	"context"
@@ -409,6 +409,16 @@ func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuota
 	}
 
 	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	// 交易记录
+	if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
+		UserId: params.UserId,
+		Quota:  params.Quota,
+		Status: 1,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

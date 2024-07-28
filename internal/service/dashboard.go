@@ -25,6 +25,8 @@ type (
 		ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error)
 		// 每分钟数据
 		PerMinute(ctx context.Context, params model.DashboardPerMinuteReq) (int, int, error)
+		// 每秒钟数据
+		PerSecond(ctx context.Context, params model.DashboardPerSecondReq) (int, int, error)
 	}
 )
 

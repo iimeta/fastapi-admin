@@ -12,6 +12,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/common"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/corp"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/dashboard"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/finance"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/image"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/key"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/midjourney"

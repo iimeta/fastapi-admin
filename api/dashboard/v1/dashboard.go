@@ -63,6 +63,18 @@ type ModelPercentRes struct {
 	*model.DashboardModelPercentRes
 }
 
+// 每秒钟数据接口请求参数
+type PerSecondReq struct {
+	g.Meta `path:"/per/second" tags:"dashboard" method:"post" summary:"每秒钟数据接口"`
+	model.DashboardPerSecondReq
+}
+
+// 每秒钟数据接口响应参数
+type PerSecondRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.DashboardPerSecondRes
+}
+
 // 每分钟数据接口请求参数
 type PerMinuteReq struct {
 	g.Meta `path:"/per/minute" tags:"dashboard" method:"post" summary:"每分钟数据接口"`

@@ -2,7 +2,7 @@ package util
 
 import "strings"
 
-// 函数实现字符串脱敏
+// 脱敏
 func Desensitize(input string, keep ...int) string {
 
 	keepStart := 10

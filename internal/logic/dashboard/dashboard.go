@@ -11,6 +11,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"math"
 )
 
 type sDashboard struct{}
@@ -357,7 +358,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 	case "app_key":
 		for _, res := range result {
 			items = append(items, &model.DataTop{
-				AppKey: gconv.String(res["_id"]),
+				AppKey: util.Desensitize(gconv.String(res["_id"])),
 				AppId:  gconv.Int(res["app_id"]),
 				Call:   gconv.Int(res["count"]),
 				Tokens: gconv.Int(res["tokens"]),
@@ -433,6 +434,68 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 	}
 
 	return models, items, nil
+}
+
+// 每秒钟数据
+func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSecondReq) (int, int, error) {
+
+	startTime := gtime.Now().TimestampMilli() - 5000
+	endTime := gtime.Now().TimestampMilli()
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"req_time": bson.M{
+					"$gte": startTime,
+					"$lte": endTime,
+				},
+				"is_smart_match": bson.M{"$ne": true},
+				"is_retry":       bson.M{"$ne": true},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id":               nil,
+				"rps":               bson.M{"$sum": 1},
+				"prompt_tokens":     bson.M{"$sum": "$prompt_tokens"},
+				"completion_tokens": bson.M{"$sum": "$completion_tokens"},
+			},
+		},
+	}
+
+	match := pipeline[0]["$match"].(bson.M)
+
+	if service.Session().IsUserRole(ctx) {
+		match["user_id"] = service.Session().GetUserId(ctx)
+	} else if params.UserId != 0 {
+		match["user_id"] = params.UserId
+	}
+
+	if params.AppId != 0 {
+		match["app_id"] = params.AppId
+	}
+
+	if params.Key != "" {
+		match["creator"] = params.Key
+	}
+
+	if len(params.Models) > 0 {
+		match["model_id"] = bson.M{
+			"$in": params.Models,
+		}
+	}
+
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+		logger.Error(ctx, err)
+		return 0, 0, err
+	}
+
+	if len(result) > 0 {
+		return int(math.Ceil(gconv.Float64(result[0]["rps"]) / 5)), (gconv.Int(result[0]["prompt_tokens"]) + gconv.Int(result[0]["completion_tokens"])) / 5, nil
+	}
+
+	return 0, 0, nil
 }
 
 // 每分钟数据
