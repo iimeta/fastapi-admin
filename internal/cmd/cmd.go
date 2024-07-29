@@ -19,6 +19,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/midjourney"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
+	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -170,6 +171,13 @@ var (
 					g.Middleware(middleware)
 					g.Bind(
 						finance.NewV1(),
+					)
+				})
+
+				v1.Group("/statistics", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						statistics.NewV1(),
 					)
 				})
 

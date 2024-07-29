@@ -41,12 +41,13 @@ func init() {
 
 // 配置信息
 type Config struct {
-	Core               Core   `json:"core"`
-	AdminServerAddress string `json:"admin_server_address"`
-	App                App    `json:"app"`
-	Http               Http   `json:"http"`
-	Email              Email  `json:"email"`
-	Debug              bool   `json:"debug"`
+	Core               Core       `json:"core"`
+	AdminServerAddress string     `json:"admin_server_address"`
+	App                App        `json:"app"`
+	Http               Http       `json:"http"`
+	Email              Email      `json:"email"`
+	Statistics         Statistics `json:"statistics"`
+	Debug              bool       `json:"debug"`
 }
 
 type Core struct {
@@ -80,6 +81,12 @@ type Email struct {
 	UserName string `json:"username"` // 登录账号
 	Password string `json:"password"` // 登录密码
 	FromName string `json:"fromname"` // 发送人名称
+}
+
+// 统计
+type Statistics struct {
+	Cron string `json:"cron"`
+	Days int    `json:"days"`
 }
 
 func Get(ctx context.Context, pattern string, def ...interface{}) (*gvar.Var, error) {

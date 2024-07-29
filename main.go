@@ -10,6 +10,8 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 
 	"github.com/iimeta/fastapi-admin/internal/cmd"
+
+	_ "github.com/iimeta/fastapi-admin/internal/task"
 )
 
 func main() {

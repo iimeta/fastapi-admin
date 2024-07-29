@@ -19,6 +19,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model_agent"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/session"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/statistics"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_admin"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/user"
 )

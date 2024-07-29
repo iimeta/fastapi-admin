@@ -12,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"math"
+	"sort"
 )
 
 type sDashboard struct{}
@@ -220,7 +221,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 		} else {
 			resultMap[gconv.String(res["_id"])] = &model.CallData{
 				Date:     gconv.String(res["_id"])[5:],
-				Abnormal: len(gconv.SliceAny(res["count"])),
+				Abnormal: gconv.Int(res["count"]),
 			}
 		}
 	}
@@ -235,6 +236,91 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 		}
 		items = append(items, callData)
 	}
+
+	return items, nil
+}
+
+// 调用数据(新)
+func (s *sDashboard) CallDataNew(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error) {
+
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 2)).StartOfDay()
+	endTime := gtime.Now().EndOfDay(true)
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"stat_time": bson.M{
+					"$gte": startTime.TimestampMilli(),
+					"$lte": endTime.TimestampMilli(),
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id":      "$stat_date",
+				"count":    bson.M{"$sum": "$total"},
+				"tokens":   bson.M{"$sum": "$tokens"},
+				"abnormal": bson.M{"$sum": "$abnormal"},
+				"user":     bson.M{"$addToSet": "$user_id"},
+			},
+		},
+	}
+
+	if service.Session().IsUserRole(ctx) {
+
+		match := pipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+
+		group := pipeline[1]["$group"].(bson.M)
+		group["app"] = bson.M{"$addToSet": "$app_id"}
+		delete(group, "user")
+	}
+
+	result := make([]map[string]interface{}, 0)
+
+	if service.Session().IsUserRole(ctx) {
+		if err := dao.StatisticsApp.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	} else {
+		if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	resultMap := make(map[string]*model.CallData)
+	for _, res := range result {
+		resultMap[gconv.String(res["_id"])] = &model.CallData{
+			Date:     gconv.String(res["_id"])[5:],
+			Call:     gconv.Int(res["count"]),
+			Tokens:   gconv.Int(res["tokens"]),
+			Abnormal: gconv.Int(res["abnormal"]),
+			User:     len(gconv.SliceAny(res["user"])),
+			App:      len(gconv.SliceAny(res["app"])),
+		}
+	}
+
+	items := make([]*model.CallData, 0)
+	days := util.Day(startTime.String(), endTime.String())
+
+	for _, day := range days {
+		callData := resultMap[day.StartDate]
+		if callData == nil {
+			callData = &model.CallData{Date: day.StartDate[5:]}
+		}
+		items = append(items, callData)
+	}
+
+	// 今天的数据
+	callData, err := s.CallData(ctx, model.DashboardCallDataReq{Days: 1})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items = append(items, callData...)
 
 	return items, nil
 }
@@ -374,6 +460,197 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 				Tokens: gconv.Int(res["tokens"]),
 			})
 		}
+	}
+
+	return items, nil
+}
+
+// 数据TOP(新)
+func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataTopReq) ([]*model.DataTop, error) {
+
+	if params.Days == 1 {
+		return s.DataTop(ctx, params)
+	}
+
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 2)).StartOfDay()
+	endTime := gtime.Now().EndOfDay(true)
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"stat_time": bson.M{
+					"$gte": startTime.TimestampMilli(),
+					"$lte": endTime.TimestampMilli(),
+				},
+			},
+		},
+	}
+
+	switch params.DataType {
+	case "user":
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":    "$user_id",
+				"count":  bson.M{"$sum": "$total"},
+				"tokens": bson.M{"$sum": "$tokens"},
+			},
+		})
+	case "app":
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":     "$app_id",
+				"user_id": bson.M{"$first": "$user_id"},
+				"count":   bson.M{"$sum": "$total"},
+				"tokens":  bson.M{"$sum": "$tokens"},
+			},
+		})
+	case "app_key":
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":    "$app_key",
+				"app_id": bson.M{"$first": "$app_id"},
+				"count":  bson.M{"$sum": "$total"},
+				"tokens": bson.M{"$sum": "$tokens"},
+			},
+		})
+	case "model":
+		return s.DataTop(ctx, params)
+	}
+
+	pipeline = append(pipeline, bson.M{"$sort": bson.M{"tokens": -1}}, bson.M{"$limit": 10})
+
+	if service.Session().IsUserRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+	}
+
+	result := make([]map[string]interface{}, 0)
+	switch params.DataType {
+	case "user":
+		if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	case "app":
+		if err := dao.StatisticsApp.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	case "app_key":
+		if err := dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	items := make([]*model.DataTop, 0)
+	switch params.DataType {
+	case "user":
+
+		for _, res := range result {
+			items = append(items, &model.DataTop{
+				UserId: gconv.Int(res["_id"]),
+				Call:   gconv.Int(res["count"]),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+
+		itemMap := make(map[int]*model.DataTop)
+		for _, item := range items {
+			itemMap[item.UserId] = item
+		}
+
+		// 今天的数据
+		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, item := range dataTop {
+			if itemMap[item.UserId] == nil {
+				items = append(items, item)
+			} else {
+				itemMap[item.UserId].Call += item.Call
+				itemMap[item.UserId].Tokens += item.Tokens
+			}
+		}
+
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Tokens > items[j].Tokens
+		})
+
+	case "app":
+
+		for _, res := range result {
+			items = append(items, &model.DataTop{
+				AppId:  gconv.Int(res["_id"]),
+				UserId: gconv.Int(res["user_id"]),
+				Call:   gconv.Int(res["count"]),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+
+		itemMap := make(map[int]*model.DataTop)
+		for _, item := range items {
+			itemMap[item.AppId] = item
+		}
+
+		// 今天的数据
+		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, item := range dataTop {
+			if itemMap[item.AppId] == nil {
+				items = append(items, item)
+			} else {
+				itemMap[item.AppId].Call += item.Call
+				itemMap[item.AppId].Tokens += item.Tokens
+			}
+		}
+
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Tokens > items[j].Tokens
+		})
+
+	case "app_key":
+
+		for _, res := range result {
+			items = append(items, &model.DataTop{
+				AppKey: util.Desensitize(gconv.String(res["_id"])),
+				AppId:  gconv.Int(res["app_id"]),
+				Call:   gconv.Int(res["count"]),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+
+		itemMap := make(map[string]*model.DataTop)
+		for _, item := range items {
+			itemMap[item.AppKey] = item
+		}
+
+		// 今天的数据
+		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, item := range dataTop {
+			if itemMap[item.AppKey] == nil {
+				items = append(items, item)
+			} else {
+				itemMap[item.AppKey].Call += item.Call
+				itemMap[item.AppKey].Tokens += item.Tokens
+			}
+		}
+
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Tokens > items[j].Tokens
+		})
 	}
 
 	return items, nil

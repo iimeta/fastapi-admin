@@ -74,3 +74,8 @@ email:
   username: xxx@xxx.com
   password: xxx
   fromname: "智元 Fast API"
+
+# 统计配置
+statistics:
+  cron: "0 10 0 * * ?"
+  days: 1

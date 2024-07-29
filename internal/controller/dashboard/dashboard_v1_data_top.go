@@ -10,7 +10,7 @@ import (
 
 func (c *ControllerV1) DataTop(ctx context.Context, req *v1.DataTopReq) (res *v1.DataTopRes, err error) {
 
-	items, err := service.Dashboard().DataTop(ctx, req.DashboardDataTopReq)
+	items, err := service.Dashboard().DataTopNew(ctx, req.DashboardDataTopReq)
 	if err != nil {
 		return nil, err
 	}

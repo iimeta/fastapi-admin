@@ -17,16 +17,20 @@ type (
 		BaseData(ctx context.Context) (dashboard *model.Dashboard, err error)
 		// 调用数据
 		CallData(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error)
+		// 调用数据(新)
+		CallDataNew(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error)
 		// 费用
 		Expense(ctx context.Context) (*model.Expense, error)
 		// 数据TOP
 		DataTop(ctx context.Context, params model.DashboardDataTopReq) ([]*model.DataTop, error)
+		// 数据TOP(新)
+		DataTopNew(ctx context.Context, params model.DashboardDataTopReq) ([]*model.DataTop, error)
 		// 模型占比
 		ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error)
-		// 每分钟数据
-		PerMinute(ctx context.Context, params model.DashboardPerMinuteReq) (int, int, error)
 		// 每秒钟数据
 		PerSecond(ctx context.Context, params model.DashboardPerSecondReq) (int, int, error)
+		// 每分钟数据
+		PerMinute(ctx context.Context, params model.DashboardPerMinuteReq) (int, int, error)
 	}
 )
 
