@@ -103,7 +103,38 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 
 	pipeline := []bson.M{
 		{
+			"$match": bson.M{},
+		},
+		{
+			"$group": bson.M{
+				"_id":  nil,
+				"call": bson.M{"$sum": "$total"},
+			},
+		},
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+	}
+
+	result := make([]map[string]interface{}, 0)
+	if err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	if len(result) > 0 {
+		dashboard.Call = gconv.Int(result[0]["call"])
+	}
+
+	todayPipeline := []bson.M{
+		{
 			"$match": bson.M{
+				"req_time": bson.M{
+					"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+					"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+				},
 				"is_smart_match": bson.M{"$ne": true},
 				"is_retry":       bson.M{"$ne": true},
 			},
@@ -117,18 +148,18 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	}
 
 	if service.Session().IsUserRole(ctx) {
-		match := pipeline[0]["$match"].(bson.M)
+		match := todayPipeline[0]["$match"].(bson.M)
 		match["user_id"] = service.Session().GetUserId(ctx)
 	}
 
-	result := make([]map[string]interface{}, 0)
-	if err = dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+	todayResult := make([]map[string]interface{}, 0)
+	if err = dao.Chat.Aggregate(ctx, todayPipeline, &todayResult); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	if len(result) > 0 {
-		dashboard.Call = gconv.Int(result[0]["call"])
+	if len(todayResult) > 0 {
+		dashboard.Call += gconv.Int(todayResult[0]["call"])
 	}
 
 	return dashboard, nil
@@ -243,8 +274,8 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 // 调用数据(新)
 func (s *sDashboard) CallDataNew(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error) {
 
-	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 2)).StartOfDay()
-	endTime := gtime.Now().EndOfDay(true)
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
+	endTime := gtime.Now().AddDate(0, 0, -1).EndOfDay(true) // 只查询到昨天
 
 	pipeline := []bson.M{
 		{
@@ -472,8 +503,8 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 		return s.DataTop(ctx, params)
 	}
 
-	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 2)).StartOfDay()
-	endTime := gtime.Now().EndOfDay(true)
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
+	endTime := gtime.Now().AddDate(0, 0, -1).EndOfDay(true) // 只查询到昨天
 
 	pipeline := []bson.M{
 		{
@@ -708,6 +739,92 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 			Name:  gconv.String(res["_id"]),
 			Value: gconv.Int(res["count"]),
 		})
+	}
+
+	return models, items, nil
+}
+
+// 模型占比(新)
+func (s *sDashboard) ModelPercentNew(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error) {
+
+	if params.Days == 1 {
+		return s.ModelPercent(ctx, params)
+	}
+
+	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
+	endTime := gtime.Now().AddDate(0, 0, -1).EndOfDay(true) // 只查询到昨天
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"stat_time": bson.M{
+					"$gte": startTime.TimestampMilli(),
+					"$lte": endTime.TimestampMilli(),
+				},
+			},
+		},
+		{
+			"$unwind": "$models",
+		},
+		{
+			"$group": bson.M{
+				"_id":   "$models.model",
+				"count": bson.M{"$sum": "$models.total"},
+			},
+		},
+		{
+			"$sort": bson.M{
+				"count": -1,
+			},
+		},
+		{
+			"$limit": 10,
+		},
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["user_id"] = service.Session().GetUserId(ctx)
+	}
+
+	result := make([]map[string]interface{}, 0)
+	if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+		logger.Error(ctx, err)
+		return nil, nil, err
+	}
+
+	models := make([]string, 0)
+	items := make([]*model.ModelPercent, 0)
+	for _, res := range result {
+		models = append(models, gconv.String(res["_id"]))
+		items = append(items, &model.ModelPercent{
+			Name:  gconv.String(res["_id"]),
+			Value: gconv.Int(res["count"]),
+		})
+	}
+
+	// 今天的数据
+	todayModels, todayItems, err := s.ModelPercent(ctx, model.DashboardModelPercentReq{Days: 1})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, nil, err
+	}
+
+	for i, todayItem := range todayItems {
+
+		isExist := false
+		for _, item := range items {
+			if item.Name == todayItem.Name {
+				item.Value += todayItem.Value
+				isExist = true
+				break
+			}
+		}
+
+		if !isExist {
+			items = append(items, todayItem)
+			models = append(models, todayModels[i])
+		}
 	}
 
 	return models, items, nil

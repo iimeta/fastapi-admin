@@ -68,3 +68,8 @@ type ImageData struct {
 	B64JSON       string `bson:"b64_json,omitempty"`
 	RevisedPrompt string `bson:"revised_prompt,omitempty"`
 }
+
+type ModelStat struct {
+	Model string `bson:"model,omitempty"` // 模型
+	Total int    `bson:"total,omitempty"` // 总数
+}

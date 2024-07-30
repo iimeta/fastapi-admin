@@ -27,6 +27,8 @@ type (
 		DataTopNew(ctx context.Context, params model.DashboardDataTopReq) ([]*model.DataTop, error)
 		// 模型占比
 		ModelPercent(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error)
+		// 模型占比(新)
+		ModelPercentNew(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error)
 		// 每秒钟数据
 		PerSecond(ctx context.Context, params model.DashboardPerSecondReq) (int, int, error)
 		// 每分钟数据
