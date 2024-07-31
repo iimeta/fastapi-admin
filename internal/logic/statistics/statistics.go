@@ -30,85 +30,14 @@ func New() service.IStatistics {
 // 用户数据
 func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataReq) (*model.StatisticsDataRes, error) {
 
+	logger.Debugf(ctx, "sStatistics DataUser userId: %d statStartTime: %d statEndTime: %d start", params.UserId, params.StatStartTime, params.StatEndTime)
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "sStatistics DataUser userId: %d statStartTime: %d statEndTime: %d end time: %d", params.UserId, params.StatStartTime, params.StatEndTime, gtime.TimestampMilli()-now)
+	}()
+
 	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"user_id": params.UserId,
-				"req_time": bson.M{
-					"$gte": params.StatStartTime,
-					"$lte": params.StatEndTime,
-				},
-				"is_smart_match": bson.M{"$ne": true},
-				"is_retry":       bson.M{"$ne": true},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":    "$req_date",
-				"count":  bson.M{"$sum": 1},
-				"tokens": bson.M{"$sum": "$total_tokens"},
-			},
-		},
-	}
-
-	result := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	resultMap := make(map[string]*do.StatisticsUser)
-	for _, res := range result {
-		resultMap[gconv.String(res["_id"])] = &do.StatisticsUser{
-			UserId:   params.UserId,
-			StatDate: gconv.String(res["_id"]),
-			StatTime: gtime.NewFromStrFormat(gconv.String(res["_id"]), time.DateOnly).TimestampMilli(),
-			Total:    gconv.Int(res["count"]),
-			Tokens:   gconv.Int(res["tokens"]),
-		}
-	}
-
-	abnormalPipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"user_id": params.UserId,
-				"req_time": bson.M{
-					"$gte": params.StatStartTime,
-					"$lte": params.StatEndTime,
-				},
-				"is_smart_match": bson.M{"$ne": true},
-				"is_retry":       bson.M{"$ne": true},
-				"status":         bson.M{"$ne": 1},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":   "$req_date",
-				"count": bson.M{"$sum": 1},
-			},
-		},
-	}
-
-	abnormalResult := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, abnormalPipeline, &abnormalResult); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	for _, res := range abnormalResult {
-		if resultMap[gconv.String(res["_id"])] != nil {
-			resultMap[gconv.String(res["_id"])].Abnormal = gconv.Int(res["count"])
-		} else {
-			resultMap[gconv.String(res["_id"])] = &do.StatisticsUser{
-				UserId:   params.UserId,
-				StatDate: gconv.String(res["_id"]),
-				StatTime: gtime.NewFromStrFormat(gconv.String(res["_id"]), time.DateOnly).TimestampMilli(),
-				Abnormal: gconv.Int(res["count"]),
-			}
-		}
-	}
-
-	modelsPipeline := []bson.M{
 		{
 			"$match": bson.M{
 				"user_id": params.UserId,
@@ -129,34 +58,82 @@ func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataR
 		},
 	}
 
-	modelsResult := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, modelsPipeline, &modelsResult); err != nil {
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	for _, res := range modelsResult {
+	resultMap := make(map[string]*do.StatisticsUser)
+	resultModelMap := make(map[string]map[string]*common.ModelStat) // [日期][模型]模型数据
+
+	for _, res := range result {
 
 		_id := res["_id"].(map[string]interface{})
+		reqDate := gconv.String(_id["req_date"])
+		model := gconv.String(_id["model"])
+		count := gconv.Int(res["count"])
+		tokens := gconv.Int(res["tokens"])
 
-		if resultMap[gconv.String(_id["req_date"])] != nil {
-			resultMap[gconv.String(_id["req_date"])].Models = append(resultMap[gconv.String(_id["req_date"])].Models, common.ModelStat{
-				Model:  gconv.String(_id["model"]),
-				Total:  gconv.Int(res["count"]),
-				Tokens: gconv.Int(res["tokens"]),
-			})
-		} else {
-			resultMap[gconv.String(_id["req_date"])] = &do.StatisticsUser{
-				UserId:   params.UserId,
-				StatDate: gconv.String(_id["req_date"]),
-				StatTime: gtime.NewFromStrFormat(gconv.String(_id["req_date"]), time.DateOnly).TimestampMilli(),
-				Models: []common.ModelStat{{
-					Model:  gconv.String(_id["model"]),
-					Total:  gconv.Int(res["count"]),
-					Tokens: gconv.Int(res["tokens"]),
-				}},
+		statisticsUser := resultMap[reqDate]
+
+		if statisticsUser != nil {
+
+			statisticsUser.Total += count
+			statisticsUser.Tokens += tokens
+
+			modelStat := &common.ModelStat{
+				Model:  model,
+				Total:  count,
+				Tokens: tokens,
 			}
+
+			resultMap[reqDate].Models = append(resultMap[reqDate].Models, modelStat)
+			resultModelMap[reqDate][model] = modelStat
+
+		} else {
+
+			modelStat := &common.ModelStat{
+				Model:  model,
+				Total:  count,
+				Tokens: tokens,
+			}
+
+			resultMap[reqDate] = &do.StatisticsUser{
+				UserId:   params.UserId,
+				StatDate: reqDate,
+				StatTime: gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
+				Total:    count,
+				Tokens:   tokens,
+				Models:   []*common.ModelStat{modelStat},
+			}
+
+			resultModelMap[reqDate] = make(map[string]*common.ModelStat)
+			resultModelMap[reqDate][model] = modelStat
 		}
+	}
+
+	match := pipeline[0]["$match"].(bson.M)
+	match["status"] = bson.M{"$ne": 1} // 异常状态数据
+
+	abnormalResult := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &abnormalResult); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	for _, res := range abnormalResult {
+
+		_id := res["_id"].(map[string]interface{})
+		reqDate := gconv.String(_id["req_date"])
+		model := gconv.String(_id["model"])
+		count := gconv.Int(res["count"])
+		tokens := gconv.Int(res["tokens"])
+
+		resultMap[reqDate].Abnormal += count
+		resultMap[reqDate].AbnormalTokens += tokens
+		resultModelMap[reqDate][model].Abnormal += count
+		resultModelMap[reqDate][model].AbnormalTokens += tokens
 	}
 
 	for _, statisticsUser := range resultMap {
@@ -171,87 +148,14 @@ func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataR
 // 应用数据
 func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataReq) (*model.StatisticsDataRes, error) {
 
+	logger.Debugf(ctx, "sStatistics DataApp userId: %d appId: %d statStartTime: %d statEndTime: %d start", params.UserId, params.AppId, params.StatStartTime, params.StatEndTime)
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "sStatistics DataApp userId: %d appId: %d statStartTime: %d statEndTime: %d end time: %d", params.UserId, params.AppId, params.StatStartTime, params.StatEndTime, gtime.TimestampMilli()-now)
+	}()
+
 	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"app_id": params.AppId,
-				"req_time": bson.M{
-					"$gte": params.StatStartTime,
-					"$lte": params.StatEndTime,
-				},
-				"is_smart_match": bson.M{"$ne": true},
-				"is_retry":       bson.M{"$ne": true},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":    "$req_date",
-				"count":  bson.M{"$sum": 1},
-				"tokens": bson.M{"$sum": "$total_tokens"},
-			},
-		},
-	}
-
-	result := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	resultMap := make(map[string]*do.StatisticsApp)
-	for _, res := range result {
-		resultMap[gconv.String(res["_id"])] = &do.StatisticsApp{
-			UserId:   params.UserId,
-			AppId:    params.AppId,
-			StatDate: gconv.String(res["_id"]),
-			StatTime: gtime.NewFromStrFormat(gconv.String(res["_id"]), time.DateOnly).TimestampMilli(),
-			Total:    gconv.Int(res["count"]),
-			Tokens:   gconv.Int(res["tokens"]),
-		}
-	}
-
-	abnormalPipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"app_id": params.AppId,
-				"req_time": bson.M{
-					"$gte": params.StatStartTime,
-					"$lte": params.StatEndTime,
-				},
-				"is_smart_match": bson.M{"$ne": true},
-				"is_retry":       bson.M{"$ne": true},
-				"status":         bson.M{"$ne": 1},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":   "$req_date",
-				"count": bson.M{"$sum": 1},
-			},
-		},
-	}
-
-	abnormalResult := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, abnormalPipeline, &abnormalResult); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	for _, res := range abnormalResult {
-		if resultMap[gconv.String(res["_id"])] != nil {
-			resultMap[gconv.String(res["_id"])].Abnormal = gconv.Int(res["count"])
-		} else {
-			resultMap[gconv.String(res["_id"])] = &do.StatisticsApp{
-				UserId:   params.UserId,
-				AppId:    params.AppId,
-				StatDate: gconv.String(res["_id"]),
-				StatTime: gtime.NewFromStrFormat(gconv.String(res["_id"]), time.DateOnly).TimestampMilli(),
-				Abnormal: gconv.Int(res["count"]),
-			}
-		}
-	}
-
-	modelsPipeline := []bson.M{
 		{
 			"$match": bson.M{
 				"app_id": params.AppId,
@@ -272,35 +176,83 @@ func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataRe
 		},
 	}
 
-	modelsResult := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, modelsPipeline, &modelsResult); err != nil {
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	for _, res := range modelsResult {
+	resultMap := make(map[string]*do.StatisticsApp)
+	resultModelMap := make(map[string]map[string]*common.ModelStat) // [日期][模型]模型数据
+
+	for _, res := range result {
 
 		_id := res["_id"].(map[string]interface{})
+		reqDate := gconv.String(_id["req_date"])
+		model := gconv.String(_id["model"])
+		count := gconv.Int(res["count"])
+		tokens := gconv.Int(res["tokens"])
 
-		if resultMap[gconv.String(_id["req_date"])] != nil {
-			resultMap[gconv.String(_id["req_date"])].Models = append(resultMap[gconv.String(_id["req_date"])].Models, common.ModelStat{
-				Model:  gconv.String(_id["model"]),
-				Total:  gconv.Int(res["count"]),
-				Tokens: gconv.Int(res["tokens"]),
-			})
+		statisticsApp := resultMap[reqDate]
+
+		if statisticsApp != nil {
+
+			statisticsApp.Total += count
+			statisticsApp.Tokens += tokens
+
+			modelStat := &common.ModelStat{
+				Model:  model,
+				Total:  count,
+				Tokens: tokens,
+			}
+
+			resultMap[reqDate].Models = append(resultMap[reqDate].Models, modelStat)
+			resultModelMap[reqDate][model] = modelStat
+
 		} else {
-			resultMap[gconv.String(_id["req_date"])] = &do.StatisticsApp{
+
+			modelStat := &common.ModelStat{
+				Model:  model,
+				Total:  count,
+				Tokens: tokens,
+			}
+
+			resultMap[reqDate] = &do.StatisticsApp{
 				UserId:   params.UserId,
 				AppId:    params.AppId,
-				StatDate: gconv.String(_id["req_date"]),
-				StatTime: gtime.NewFromStrFormat(gconv.String(_id["req_date"]), time.DateOnly).TimestampMilli(),
-				Models: []common.ModelStat{{
-					Model:  gconv.String(_id["model"]),
-					Total:  gconv.Int(res["count"]),
-					Tokens: gconv.Int(res["tokens"]),
-				}},
+				StatDate: reqDate,
+				StatTime: gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
+				Total:    count,
+				Tokens:   tokens,
+				Models:   []*common.ModelStat{modelStat},
 			}
+
+			resultModelMap[reqDate] = make(map[string]*common.ModelStat)
+			resultModelMap[reqDate][model] = modelStat
 		}
+	}
+
+	match := pipeline[0]["$match"].(bson.M)
+	match["status"] = bson.M{"$ne": 1} // 异常状态数据
+
+	abnormalResult := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &abnormalResult); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	for _, res := range abnormalResult {
+
+		_id := res["_id"].(map[string]interface{})
+		reqDate := gconv.String(_id["req_date"])
+		model := gconv.String(_id["model"])
+		count := gconv.Int(res["count"])
+		tokens := gconv.Int(res["tokens"])
+
+		resultMap[reqDate].Abnormal += count
+		resultMap[reqDate].AbnormalTokens += tokens
+		resultModelMap[reqDate][model].Abnormal += count
+		resultModelMap[reqDate][model].AbnormalTokens += tokens
 	}
 
 	for _, statisticsApp := range resultMap {
@@ -315,89 +267,14 @@ func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataRe
 // 应用密钥数据
 func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDataReq) (*model.StatisticsDataRes, error) {
 
+	logger.Debugf(ctx, "sStatistics DataAppKey userId: %d appId: %d appKey: %s statStartTime: %d statEndTime: %d start", params.UserId, params.AppId, params.AppKey, params.StatStartTime, params.StatEndTime)
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "sStatistics DataAppKey userId: %d appId: %d appKey: %s statStartTime: %d statEndTime: %d end time: %d", params.UserId, params.AppId, params.AppKey, params.StatStartTime, params.StatEndTime, gtime.TimestampMilli()-now)
+	}()
+
 	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"creator": params.AppKey,
-				"req_time": bson.M{
-					"$gte": params.StatStartTime,
-					"$lte": params.StatEndTime,
-				},
-				"is_smart_match": bson.M{"$ne": true},
-				"is_retry":       bson.M{"$ne": true},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":    "$req_date",
-				"count":  bson.M{"$sum": 1},
-				"tokens": bson.M{"$sum": "$total_tokens"},
-			},
-		},
-	}
-
-	result := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	resultMap := make(map[string]*do.StatisticsAppKey)
-	for _, res := range result {
-		resultMap[gconv.String(res["_id"])] = &do.StatisticsAppKey{
-			UserId:   params.UserId,
-			AppId:    params.AppId,
-			AppKey:   params.AppKey,
-			StatDate: gconv.String(res["_id"]),
-			StatTime: gtime.NewFromStrFormat(gconv.String(res["_id"]), time.DateOnly).TimestampMilli(),
-			Total:    gconv.Int(res["count"]),
-			Tokens:   gconv.Int(res["tokens"]),
-		}
-	}
-
-	abnormalPipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"creator": params.AppKey,
-				"req_time": bson.M{
-					"$gte": params.StatStartTime,
-					"$lte": params.StatEndTime,
-				},
-				"is_smart_match": bson.M{"$ne": true},
-				"is_retry":       bson.M{"$ne": true},
-				"status":         bson.M{"$ne": 1},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":   "$req_date",
-				"count": bson.M{"$sum": 1},
-			},
-		},
-	}
-
-	abnormalResult := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, abnormalPipeline, &abnormalResult); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	for _, res := range abnormalResult {
-		if resultMap[gconv.String(res["_id"])] != nil {
-			resultMap[gconv.String(res["_id"])].Abnormal = gconv.Int(res["count"])
-		} else {
-			resultMap[gconv.String(res["_id"])] = &do.StatisticsAppKey{
-				UserId:   params.UserId,
-				AppId:    params.AppId,
-				AppKey:   params.AppKey,
-				StatDate: gconv.String(res["_id"]),
-				StatTime: gtime.NewFromStrFormat(gconv.String(res["_id"]), time.DateOnly).TimestampMilli(),
-				Abnormal: gconv.Int(res["count"]),
-			}
-		}
-	}
-
-	modelsPipeline := []bson.M{
 		{
 			"$match": bson.M{
 				"creator": params.AppKey,
@@ -418,36 +295,84 @@ func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDat
 		},
 	}
 
-	modelsResult := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, modelsPipeline, &modelsResult); err != nil {
+	result := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	for _, res := range modelsResult {
+	resultMap := make(map[string]*do.StatisticsAppKey)
+	resultModelMap := make(map[string]map[string]*common.ModelStat) // [日期][模型]模型数据
+
+	for _, res := range result {
 
 		_id := res["_id"].(map[string]interface{})
+		reqDate := gconv.String(_id["req_date"])
+		model := gconv.String(_id["model"])
+		count := gconv.Int(res["count"])
+		tokens := gconv.Int(res["tokens"])
 
-		if resultMap[gconv.String(_id["req_date"])] != nil {
-			resultMap[gconv.String(_id["req_date"])].Models = append(resultMap[gconv.String(_id["req_date"])].Models, common.ModelStat{
-				Model:  gconv.String(_id["model"]),
-				Total:  gconv.Int(res["count"]),
-				Tokens: gconv.Int(res["tokens"]),
-			})
+		statisticsAppKey := resultMap[reqDate]
+
+		if statisticsAppKey != nil {
+
+			statisticsAppKey.Total += count
+			statisticsAppKey.Tokens += tokens
+
+			modelStat := &common.ModelStat{
+				Model:  model,
+				Total:  count,
+				Tokens: tokens,
+			}
+
+			resultMap[reqDate].Models = append(resultMap[reqDate].Models, modelStat)
+			resultModelMap[reqDate][model] = modelStat
+
 		} else {
-			resultMap[gconv.String(_id["req_date"])] = &do.StatisticsAppKey{
+
+			modelStat := &common.ModelStat{
+				Model:  model,
+				Total:  count,
+				Tokens: tokens,
+			}
+
+			resultMap[reqDate] = &do.StatisticsAppKey{
 				UserId:   params.UserId,
 				AppId:    params.AppId,
 				AppKey:   params.AppKey,
-				StatDate: gconv.String(_id["req_date"]),
-				StatTime: gtime.NewFromStrFormat(gconv.String(_id["req_date"]), time.DateOnly).TimestampMilli(),
-				Models: []common.ModelStat{{
-					Model:  gconv.String(_id["model"]),
-					Total:  gconv.Int(res["count"]),
-					Tokens: gconv.Int(res["tokens"]),
-				}},
+				StatDate: reqDate,
+				StatTime: gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
+				Total:    count,
+				Tokens:   tokens,
+				Models:   []*common.ModelStat{modelStat},
 			}
+
+			resultModelMap[reqDate] = make(map[string]*common.ModelStat)
+			resultModelMap[reqDate][model] = modelStat
 		}
+	}
+
+	match := pipeline[0]["$match"].(bson.M)
+	match["status"] = bson.M{"$ne": 1} // 异常状态数据
+
+	abnormalResult := make([]map[string]interface{}, 0)
+	if err := dao.Chat.Aggregate(ctx, pipeline, &abnormalResult); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	for _, res := range abnormalResult {
+
+		_id := res["_id"].(map[string]interface{})
+		reqDate := gconv.String(_id["req_date"])
+		model := gconv.String(_id["model"])
+		count := gconv.Int(res["count"])
+		tokens := gconv.Int(res["tokens"])
+
+		resultMap[reqDate].Abnormal += count
+		resultMap[reqDate].AbnormalTokens += tokens
+		resultModelMap[reqDate][model].Abnormal += count
+		resultModelMap[reqDate][model].AbnormalTokens += tokens
 	}
 
 	for _, statisticsAppKey := range resultMap {
