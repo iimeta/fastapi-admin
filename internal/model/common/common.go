@@ -70,6 +70,7 @@ type ImageData struct {
 }
 
 type ModelStat struct {
-	Model string `bson:"model,omitempty"` // 模型
-	Total int    `bson:"total,omitempty"` // 总数
+	Model  string `bson:"model,omitempty"`  // 模型
+	Total  int    `bson:"total,omitempty"`  // 总数
+	Tokens int    `bson:"tokens,omitempty"` // 令牌数
 }

@@ -122,8 +122,9 @@ func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataR
 		},
 		{
 			"$group": bson.M{
-				"_id":   bson.M{"req_date": "$req_date", "model": "$model"},
-				"count": bson.M{"$sum": 1},
+				"_id":    bson.M{"req_date": "$req_date", "model": "$model"},
+				"count":  bson.M{"$sum": 1},
+				"tokens": bson.M{"$sum": "$total_tokens"},
 			},
 		},
 	}
@@ -140,8 +141,9 @@ func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataR
 
 		if resultMap[gconv.String(_id["req_date"])] != nil {
 			resultMap[gconv.String(_id["req_date"])].Models = append(resultMap[gconv.String(_id["req_date"])].Models, common.ModelStat{
-				Model: gconv.String(_id["model"]),
-				Total: gconv.Int(res["count"]),
+				Model:  gconv.String(_id["model"]),
+				Total:  gconv.Int(res["count"]),
+				Tokens: gconv.Int(res["tokens"]),
 			})
 		} else {
 			resultMap[gconv.String(_id["req_date"])] = &do.StatisticsUser{
@@ -149,8 +151,9 @@ func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataR
 				StatDate: gconv.String(_id["req_date"]),
 				StatTime: gtime.NewFromStrFormat(gconv.String(_id["req_date"]), time.DateOnly).TimestampMilli(),
 				Models: []common.ModelStat{{
-					Model: gconv.String(_id["model"]),
-					Total: gconv.Int(res["count"]),
+					Model:  gconv.String(_id["model"]),
+					Total:  gconv.Int(res["count"]),
+					Tokens: gconv.Int(res["tokens"]),
 				}},
 			}
 		}
@@ -262,8 +265,9 @@ func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataRe
 		},
 		{
 			"$group": bson.M{
-				"_id":   bson.M{"req_date": "$req_date", "model": "$model"},
-				"count": bson.M{"$sum": 1},
+				"_id":    bson.M{"req_date": "$req_date", "model": "$model"},
+				"count":  bson.M{"$sum": 1},
+				"tokens": bson.M{"$sum": "$total_tokens"},
 			},
 		},
 	}
@@ -280,8 +284,9 @@ func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataRe
 
 		if resultMap[gconv.String(_id["req_date"])] != nil {
 			resultMap[gconv.String(_id["req_date"])].Models = append(resultMap[gconv.String(_id["req_date"])].Models, common.ModelStat{
-				Model: gconv.String(_id["model"]),
-				Total: gconv.Int(res["count"]),
+				Model:  gconv.String(_id["model"]),
+				Total:  gconv.Int(res["count"]),
+				Tokens: gconv.Int(res["tokens"]),
 			})
 		} else {
 			resultMap[gconv.String(_id["req_date"])] = &do.StatisticsApp{
@@ -290,8 +295,9 @@ func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataRe
 				StatDate: gconv.String(_id["req_date"]),
 				StatTime: gtime.NewFromStrFormat(gconv.String(_id["req_date"]), time.DateOnly).TimestampMilli(),
 				Models: []common.ModelStat{{
-					Model: gconv.String(_id["model"]),
-					Total: gconv.Int(res["count"]),
+					Model:  gconv.String(_id["model"]),
+					Total:  gconv.Int(res["count"]),
+					Tokens: gconv.Int(res["tokens"]),
 				}},
 			}
 		}
@@ -405,8 +411,9 @@ func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDat
 		},
 		{
 			"$group": bson.M{
-				"_id":   bson.M{"req_date": "$req_date", "model": "$model"},
-				"count": bson.M{"$sum": 1},
+				"_id":    bson.M{"req_date": "$req_date", "model": "$model"},
+				"count":  bson.M{"$sum": 1},
+				"tokens": bson.M{"$sum": "$total_tokens"},
 			},
 		},
 	}
@@ -423,8 +430,9 @@ func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDat
 
 		if resultMap[gconv.String(_id["req_date"])] != nil {
 			resultMap[gconv.String(_id["req_date"])].Models = append(resultMap[gconv.String(_id["req_date"])].Models, common.ModelStat{
-				Model: gconv.String(_id["model"]),
-				Total: gconv.Int(res["count"]),
+				Model:  gconv.String(_id["model"]),
+				Total:  gconv.Int(res["count"]),
+				Tokens: gconv.Int(res["tokens"]),
 			})
 		} else {
 			resultMap[gconv.String(_id["req_date"])] = &do.StatisticsAppKey{
@@ -434,8 +442,9 @@ func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDat
 				StatDate: gconv.String(_id["req_date"]),
 				StatTime: gtime.NewFromStrFormat(gconv.String(_id["req_date"]), time.DateOnly).TimestampMilli(),
 				Models: []common.ModelStat{{
-					Model: gconv.String(_id["model"]),
-					Total: gconv.Int(res["count"]),
+					Model:  gconv.String(_id["model"]),
+					Total:  gconv.Int(res["count"]),
+					Tokens: gconv.Int(res["tokens"]),
 				}},
 			}
 		}
@@ -555,5 +564,4 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 	}, nil); err != nil {
 		logger.Error(ctx, err)
 	}
-
 }

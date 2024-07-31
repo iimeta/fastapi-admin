@@ -545,7 +545,14 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 			},
 		})
 	case "model":
-		return s.DataTop(ctx, params)
+		pipeline = append(pipeline, bson.M{"$unwind": "$models"})
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":    "$models.model",
+				"count":  bson.M{"$sum": "$models.total"},
+				"tokens": bson.M{"$sum": "$models.tokens"},
+			},
+		})
 	}
 
 	pipeline = append(pipeline, bson.M{"$sort": bson.M{"tokens": -1}}, bson.M{"$limit": 10})
@@ -569,6 +576,11 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 		}
 	case "app_key":
 		if err := dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	case "model":
+		if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -682,6 +694,45 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 		sort.Slice(items, func(i, j int) bool {
 			return items[i].Tokens > items[j].Tokens
 		})
+
+	case "model":
+
+		for _, res := range result {
+			items = append(items, &model.DataTop{
+				Model:  gconv.String(res["_id"]),
+				Call:   gconv.Int(res["count"]),
+				Tokens: gconv.Int(res["tokens"]),
+			})
+		}
+
+		itemMap := make(map[string]*model.DataTop)
+		for _, item := range items {
+			itemMap[item.Model] = item
+		}
+
+		// 今天的数据
+		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, item := range dataTop {
+			if itemMap[item.Model] == nil {
+				items = append(items, item)
+			} else {
+				itemMap[item.Model].Call += item.Call
+				itemMap[item.Model].Tokens += item.Tokens
+			}
+		}
+
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Tokens > items[j].Tokens
+		})
+	}
+
+	if len(items) > 10 {
+		items = items[:10]
 	}
 
 	return items, nil
@@ -793,10 +844,8 @@ func (s *sDashboard) ModelPercentNew(ctx context.Context, params model.Dashboard
 		return nil, nil, err
 	}
 
-	models := make([]string, 0)
 	items := make([]*model.ModelPercent, 0)
 	for _, res := range result {
-		models = append(models, gconv.String(res["_id"]))
 		items = append(items, &model.ModelPercent{
 			Name:  gconv.String(res["_id"]),
 			Value: gconv.Int(res["count"]),
@@ -804,13 +853,13 @@ func (s *sDashboard) ModelPercentNew(ctx context.Context, params model.Dashboard
 	}
 
 	// 今天的数据
-	todayModels, todayItems, err := s.ModelPercent(ctx, model.DashboardModelPercentReq{Days: 1})
+	_, todayItems, err := s.ModelPercent(ctx, model.DashboardModelPercentReq{Days: 1})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, nil, err
 	}
 
-	for i, todayItem := range todayItems {
+	for _, todayItem := range todayItems {
 
 		isExist := false
 		for _, item := range items {
@@ -823,8 +872,21 @@ func (s *sDashboard) ModelPercentNew(ctx context.Context, params model.Dashboard
 
 		if !isExist {
 			items = append(items, todayItem)
-			models = append(models, todayModels[i])
 		}
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Value > items[j].Value
+	})
+
+	models := make([]string, 0)
+	for _, item := range items {
+		models = append(models, item.Name)
+	}
+
+	if len(items) > 10 {
+		items = items[:10]
+		models = models[:10]
 	}
 
 	return models, items, nil
