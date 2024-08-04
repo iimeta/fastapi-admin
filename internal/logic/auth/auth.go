@@ -100,6 +100,17 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	_ = service.Common().DelCode(ctx, consts.CHANNEL_REGISTER, params.Account)
 
 	if user.Quota != 0 {
+
+		// 交易记录
+		if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
+			UserId: user.UserId,
+			Quota:  user.Quota,
+			Status: 1,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
 		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(user.Quota)); err != nil {
 			logger.Error(ctx, err)
 			return err

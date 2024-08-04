@@ -81,9 +81,22 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return err
 	}
 
-	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
-		logger.Error(ctx, err)
-		return err
+	if params.Quota != 0 {
+
+		// 交易记录
+		if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
+			UserId: user.UserId,
+			Quota:  user.Quota,
+			Status: 1,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	newData, err := dao.User.FindById(ctx, uid)
