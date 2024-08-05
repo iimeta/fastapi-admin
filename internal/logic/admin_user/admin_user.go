@@ -151,6 +151,13 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		}
 	}
 
+	if params.Password != "" {
+		if err = dao.User.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
 		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,

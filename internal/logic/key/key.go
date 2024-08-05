@@ -50,6 +50,10 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 
 		for _, k := range keys {
 
+			if len(gstr.Trim(k)) == 0 {
+				continue
+			}
+
 			key := keyMap[k]
 
 			if key == nil {
@@ -352,6 +356,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Quota:          result.Quota,
 			UsedQuota:      result.UsedQuota,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
+			Remark:         result.Remark,
 			Status:         result.Status,
 			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
@@ -396,6 +401,7 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 			Corp:   result.Corp,
 			Key:    result.Key,
 			Type:   result.Type,
+			Remark: result.Remark,
 			Status: result.Status,
 		})
 	}

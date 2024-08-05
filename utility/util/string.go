@@ -5,6 +5,10 @@ import "strings"
 // 脱敏
 func Desensitize(input string, keep ...int) string {
 
+	if len(input) == 0 {
+		return input
+	}
+
 	keepStart := 10
 	keepEnd := 5
 
