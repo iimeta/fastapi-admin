@@ -20,6 +20,15 @@ type User struct {
 	UsedQuota      int      `bson:"used_quota,omitempty"` // 已用额度
 	QuotaExpiresAt int64    `bson:"quota_expires_at"`     // 额度过期时间
 	Models         []string `bson:"models"`               // 模型权限
+	RPS            int      `bson:"rps"`                  // 每秒钟请求数
+	RPM            int      `bson:"rpm"`                  // 每分钟请求数
+	RPD            int      `bson:"rpd"`                  // 每天的请求数
+	TPS            int      `bson:"tps"`                  // 每秒钟令牌数
+	TPM            int      `bson:"tpm"`                  // 每分钟令牌数
+	TPD            int      `bson:"tpd"`                  // 每天的令牌数
+	IPS            int      `bson:"ips"`                  // 每秒钟图像数
+	IPM            int      `bson:"ipm"`                  // 每分钟图像数
+	IPD            int      `bson:"ipd"`                  // 每天的图像数
 	Remark         string   `bson:"remark,omitempty"`     // 备注
 	Status         int      `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	Creator        string   `bson:"creator,omitempty"`    // 创建人
