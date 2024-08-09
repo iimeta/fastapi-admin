@@ -13,6 +13,8 @@ import (
 
 type (
 	IFinance interface {
+		// 明细分页列表
+		BillPage(ctx context.Context, params model.FinanceBillPageReq) (*model.FinanceBillPageRes, error)
 		// 交易记录分页列表
 		DealRecordPage(ctx context.Context, params model.FinanceDealRecordPageReq) (*model.FinanceDealRecordPageRes, error)
 	}

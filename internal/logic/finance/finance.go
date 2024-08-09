@@ -23,6 +23,57 @@ func New() service.IFinance {
 	return &sFinance{}
 }
 
+// 明细分页列表
+func (s *sFinance) BillPage(ctx context.Context, params model.FinanceBillPageReq) (*model.FinanceBillPageRes, error) {
+
+	paging := &db.Paging{
+		Page:     params.Page,
+		PageSize: params.PageSize,
+	}
+
+	filter := bson.M{}
+
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else if params.UserId != 0 {
+		filter["user_id"] = params.UserId
+	}
+
+	if len(params.StatDate) > 0 {
+		filter["stat_date"] = bson.M{
+			"$gte": params.StatDate[0],
+			"$lte": params.StatDate[1],
+		}
+	}
+
+	results, err := dao.StatisticsUser.FindByPage(ctx, paging, filter, "-stat_date")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.Bill, 0)
+	for _, result := range results {
+		items = append(items, &model.Bill{
+			Id:       result.Id,
+			UserId:   result.UserId,
+			Total:    result.Total,
+			Tokens:   result.Tokens,
+			Models:   len(result.Models),
+			StatDate: result.StatDate,
+		})
+	}
+
+	return &model.FinanceBillPageRes{
+		Items: items,
+		Paging: &model.Paging{
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
+		},
+	}, nil
+}
+
 // 交易记录分页列表
 func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealRecordPageReq) (*model.FinanceDealRecordPageRes, error) {
 
