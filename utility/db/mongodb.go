@@ -10,6 +10,7 @@ type MongoDB struct {
 	Database      string
 	Collection    string
 	Filter        map[string]interface{}
+	Hint          interface{}
 	CountPipeline []bson.M // AggregateByPage
 	Pipeline      []bson.M // Aggregate/AggregateByPage
 }
@@ -92,6 +93,10 @@ func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result interfa
 		}
 
 		findOptions = append(findOptions, &options.FindOptions{Sort: sort})
+	}
+
+	if m.Hint != nil && m.Hint != "" {
+		findOptions = append(findOptions, &options.FindOptions{Hint: m.Hint})
 	}
 
 	cursor, err := collection.Find(ctx, m.Filter, findOptions...)

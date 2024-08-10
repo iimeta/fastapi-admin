@@ -146,7 +146,7 @@ func findByIds(ctx context.Context, database, collection string, ids, result int
 	return m.Find(ctx, result)
 }
 
-func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter map[string]interface{}, sortFields ...string) ([]*T, error) {
+func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter map[string]interface{}, index string, sortFields ...string) ([]*T, error) {
 
 	var result []*T
 
@@ -158,19 +158,20 @@ func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter m
 		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
-	if err := findByPage(ctx, m.Database, m.Collection, paging, filter, &result, sortFields...); err != nil {
+	if err := findByPage(ctx, m.Database, m.Collection, index, paging, filter, &result, sortFields...); err != nil {
 		return nil, err
 	}
 
 	return result, nil
 }
 
-func findByPage(ctx context.Context, database, collection string, paging *db.Paging, filter map[string]interface{}, result interface{}, sortFields ...string) error {
+func findByPage(ctx context.Context, database, collection, index string, paging *db.Paging, filter map[string]interface{}, result interface{}, sortFields ...string) error {
 
 	m := &db.MongoDB{
 		Database:   database,
 		Collection: collection,
 		Filter:     filter,
+		Hint:       index,
 	}
 
 	return m.FindByPage(ctx, paging, result, sortFields...)

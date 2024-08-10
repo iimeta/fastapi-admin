@@ -80,13 +80,7 @@ func init() {
 	}
 
 	if _, err = client.Database(DefaultDatabase).Collection("chat").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{"req_time": -1},
-	}); err != nil {
-		panic(err)
-	}
-
-	if _, err = client.Database(DefaultDatabase).Collection("chat").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{bson.E{Key: "req_time", Value: -1}, bson.E{Key: "status", Value: 1}, bson.E{Key: "created_at", Value: -1}},
+		Keys: bson.D{bson.E{Key: "req_time", Value: -1}, bson.E{Key: "model_id", Value: 1}, bson.E{Key: "user_id", Value: 1}, bson.E{Key: "status", Value: 1}, bson.E{Key: "created_at", Value: -1}},
 	}); err != nil {
 		panic(err)
 	}

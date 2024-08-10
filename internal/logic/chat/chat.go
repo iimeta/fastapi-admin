@@ -133,8 +133,23 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 
 	filter := bson.M{}
 
+	if len(params.ReqTime) > 0 {
+		gte := gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.ReqTime[1], time.DateTime).TimestampMilli() + 999
+		filter["req_time"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
+	}
+
 	if params.TraceId != "" {
 		filter["trace_id"] = params.TraceId
+	}
+
+	if len(params.Models) > 0 {
+		filter["model_id"] = bson.M{
+			"$in": params.Models,
+		}
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -145,26 +160,6 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		filter["user_id"] = params.UserId
 	}
 
-	if params.AppId != 0 {
-		filter["app_id"] = params.AppId
-	}
-
-	if params.Key != "" {
-		filter["creator"] = params.Key
-	}
-
-	if len(params.Models) > 0 {
-		filter["model_id"] = bson.M{
-			"$in": params.Models,
-		}
-	}
-
-	if params.TotalTime != 0 {
-		filter["total_time"] = bson.M{
-			"$gte": params.TotalTime,
-		}
-	}
-
 	if params.Status != 0 {
 		filter["status"] = params.Status
 	}
@@ -173,16 +168,21 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		filter["status"] = bson.M{"$ne": 1}
 	}
 
-	if len(params.ReqTime) > 0 {
-		gte := gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.ReqTime[1], time.DateTime).TimestampMilli() + 999
-		filter["req_time"] = bson.M{
-			"$gte": gte,
-			"$lte": lte,
+	if params.AppId != 0 {
+		filter["app_id"] = params.AppId
+	}
+
+	if params.Key != "" {
+		filter["creator"] = params.Key
+	}
+
+	if params.TotalTime != 0 {
+		filter["total_time"] = bson.M{
+			"$gte": params.TotalTime,
 		}
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, paging, filter, "-req_time", "status", "-created_at")
+	results, err := dao.Chat.FindByPage(ctx, paging, filter, "req_time_-1_model_id_1_user_id_1_status_1_created_at_-1", "-req_time", "status", "-created_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

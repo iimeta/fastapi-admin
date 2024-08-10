@@ -300,7 +300,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		filter["status"] = params.Status
 	}
 
-	results, err := dao.Key.FindByPage(ctx, paging, filter, "status", "-updated_at")
+	results, err := dao.Key.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

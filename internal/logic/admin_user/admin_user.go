@@ -367,7 +367,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		}
 	}
 
-	results, err := dao.User.FindByPage(ctx, paging, filter, "status", "-user_id", "-updated_at")
+	results, err := dao.User.FindByPage(ctx, paging, filter, "", "status", "-user_id", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

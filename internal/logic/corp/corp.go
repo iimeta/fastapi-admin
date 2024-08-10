@@ -223,7 +223,7 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 		filter["status"] = params.Status
 	}
 
-	results, err := dao.Corp.FindByPage(ctx, paging, filter, "status", "-updated_at")
+	results, err := dao.Corp.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
