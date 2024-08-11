@@ -11,7 +11,9 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
+	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"time"
@@ -88,7 +90,7 @@ func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataR
 				Tokens: tokens,
 			}
 
-			resultMap[reqDate].Models = append(resultMap[reqDate].Models, modelStat)
+			resultMap[reqDate].ModelStats = append(resultMap[reqDate].ModelStats, modelStat)
 			resultModelMap[reqDate][model] = modelStat
 
 		} else {
@@ -100,12 +102,12 @@ func (s *sStatistics) DataUser(ctx context.Context, params model.StatisticsDataR
 			}
 
 			resultMap[reqDate] = &do.StatisticsUser{
-				UserId:   params.UserId,
-				StatDate: reqDate,
-				StatTime: gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
-				Total:    count,
-				Tokens:   tokens,
-				Models:   []*common.ModelStat{modelStat},
+				UserId:     params.UserId,
+				StatDate:   reqDate,
+				StatTime:   gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
+				Total:      count,
+				Tokens:     tokens,
+				ModelStats: []*common.ModelStat{modelStat},
 			}
 
 			resultModelMap[reqDate] = make(map[string]*common.ModelStat)
@@ -488,5 +490,125 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 
 	}, nil); err != nil {
 		logger.Error(ctx, err)
+	}
+}
+
+// 统计聊天数据
+func (s *sStatistics) StatisticsChat(ctx context.Context, paging *db.Paging) {
+
+	if paging == nil {
+		paging = &db.Paging{
+			Page:     1,
+			PageSize: 100,
+		}
+	}
+
+	filter := bson.M{
+		"created_at": bson.M{
+			"$gte": 0,
+		},
+		"is_smart_match": bson.M{"$ne": true},
+		"is_retry":       bson.M{"$ne": true},
+	}
+
+	results, err := dao.Chat.FindByPage(ctx, paging, filter, "", "created_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	userMap := make(map[string]map[int]*entity.StatisticsUser)                // map[req_date][user_id]entity.StatisticsUser
+	userModelStatMap := make(map[string]map[int]map[string]*common.ModelStat) // map[req_date][user_id][model_id]common.ModelStat
+	//appMap := make(map[string]map[int]*entity.StatisticsApp)          // map[req_date][app_id]entity.StatisticsApp
+	//appKeyMap := make(map[string]map[string]*entity.StatisticsAppKey) // map[req_date][app_key]entity.StatisticsAppKey
+
+	for _, result := range results {
+
+		reqDate := userMap[result.ReqDate]
+		if reqDate == nil {
+			userMap[result.ReqDate] = make(map[int]*entity.StatisticsUser)
+			userModelStatMap[result.ReqDate] = make(map[int]map[string]*common.ModelStat)
+		}
+
+		user := reqDate[result.UserId]
+		if user == nil {
+
+			if user, err = dao.StatisticsUser.FindOne(ctx, bson.M{"stat_date": result.ReqDate, "user_id": result.UserId}); err != nil {
+				user = &entity.StatisticsUser{
+					UserId:   result.UserId,
+					StatDate: result.ReqDate,
+					StatTime: gtime.NewFromStrFormat(result.ReqDate, time.DateOnly).TimestampMilli(),
+				}
+			}
+
+			userMap[result.ReqDate][result.UserId] = user
+
+			if userModelStatMap[result.ReqDate][result.UserId] == nil {
+				userModelStatMap[result.ReqDate][result.UserId] = make(map[string]*common.ModelStat)
+			}
+
+			for _, modelStat := range user.ModelStats {
+				userModelStatMap[result.ReqDate][result.UserId][modelStat.ModelId] = modelStat
+			}
+		}
+
+		modelStat := userModelStatMap[result.ReqDate][result.UserId][result.ModelId]
+		if modelStat == nil {
+			modelStat = &common.ModelStat{
+				ModelId: result.ModelId,
+				Model:   result.Model,
+			}
+			userModelStatMap[result.ReqDate][result.UserId][result.ModelId] = modelStat
+		}
+
+		user.Total += 1
+		user.Tokens += result.TotalTokens
+		modelStat.Total += 1
+		modelStat.Tokens += result.TotalTokens
+
+		if result.Status != 1 {
+			user.Abnormal += 1
+			user.AbnormalTokens += result.TotalTokens
+			modelStat.Abnormal += 1
+			modelStat.AbnormalTokens += result.TotalTokens
+		}
+	}
+
+	for reqDate, data := range userMap {
+		for userId, user := range data {
+
+			modelStats := make([]*common.ModelStat, 0)
+			for _, modelStat := range userModelStatMap[reqDate][userId] {
+				modelStats = append(modelStats, modelStat)
+			}
+
+			statisticsUser := &do.StatisticsUser{
+				UserId:         user.UserId,
+				StatDate:       user.StatDate,
+				StatTime:       user.StatTime,
+				Total:          user.Total,
+				Tokens:         user.Tokens,
+				Abnormal:       user.Abnormal,
+				AbnormalTokens: user.AbnormalTokens,
+				ModelStats:     modelStats,
+				Creator:        user.Creator,
+				CreatedAt:      user.CreatedAt,
+			}
+
+			if user.Id != "" {
+				if err = dao.StatisticsUser.UpdateById(ctx, user.Id, statisticsUser); err != nil {
+					logger.Error(ctx, err)
+				}
+			} else {
+				if _, err = dao.StatisticsUser.Insert(ctx, statisticsUser); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+	}
+
+	if paging.Page < paging.PageCount {
+		paging.Page += 1
+		s.StatisticsChat(ctx, paging)
 	}
 }

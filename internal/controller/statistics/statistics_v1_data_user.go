@@ -9,10 +9,12 @@ import (
 
 func (c *ControllerV1) DataUser(ctx context.Context, req *v1.DataUserReq) (res *v1.DataUserRes, err error) {
 
-	_, err = service.Statistics().DataUser(ctx, req.StatisticsDataReq)
-	if err != nil {
-		return nil, err
-	}
+	//_, err = service.Statistics().DataUser(ctx, req.StatisticsDataReq)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	service.Statistics().StatisticsChat(ctx, nil)
 
 	return
 }

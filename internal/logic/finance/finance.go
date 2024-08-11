@@ -59,7 +59,7 @@ func (s *sFinance) BillPage(ctx context.Context, params model.FinanceBillPageReq
 			UserId:   result.UserId,
 			Total:    result.Total,
 			Tokens:   result.Tokens,
-			Models:   len(result.Models),
+			Models:   len(result.ModelStats),
 			StatDate: result.StatDate,
 		})
 	}
