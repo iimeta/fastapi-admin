@@ -132,6 +132,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	}
 
 	filter := bson.M{}
+	index := ""
 
 	if len(params.ReqTime) > 0 {
 		gte := gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli()
@@ -150,6 +151,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		filter["model_id"] = bson.M{
 			"$in": params.Models,
 		}
+		index = "req_time_-1_model_id_1_user_id_1_status_1_created_at_-1"
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -158,6 +160,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		filter["is_retry"] = bson.M{"$exists": false}
 	} else if params.UserId != 0 {
 		filter["user_id"] = params.UserId
+		index = "req_time_-1_model_id_1_user_id_1_status_1_created_at_-1"
 	}
 
 	if params.Status != 0 {
@@ -182,7 +185,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		}
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, paging, filter, "req_time_-1_model_id_1_user_id_1_status_1_created_at_-1", "-req_time", "status", "-created_at")
+	results, err := dao.Chat.FindByPage(ctx, paging, filter, index, "-req_time", "status", "-created_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
