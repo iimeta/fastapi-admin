@@ -208,7 +208,7 @@ func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataRe
 				Tokens: tokens,
 			}
 
-			resultMap[reqDate].Models = append(resultMap[reqDate].Models, modelStat)
+			resultMap[reqDate].ModelStats = append(resultMap[reqDate].ModelStats, modelStat)
 			resultModelMap[reqDate][model] = modelStat
 
 		} else {
@@ -220,13 +220,13 @@ func (s *sStatistics) DataApp(ctx context.Context, params model.StatisticsDataRe
 			}
 
 			resultMap[reqDate] = &do.StatisticsApp{
-				UserId:   params.UserId,
-				AppId:    params.AppId,
-				StatDate: reqDate,
-				StatTime: gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
-				Total:    count,
-				Tokens:   tokens,
-				Models:   []*common.ModelStat{modelStat},
+				UserId:     params.UserId,
+				AppId:      params.AppId,
+				StatDate:   reqDate,
+				StatTime:   gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
+				Total:      count,
+				Tokens:     tokens,
+				ModelStats: []*common.ModelStat{modelStat},
 			}
 
 			resultModelMap[reqDate] = make(map[string]*common.ModelStat)
@@ -327,7 +327,7 @@ func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDat
 				Tokens: tokens,
 			}
 
-			resultMap[reqDate].Models = append(resultMap[reqDate].Models, modelStat)
+			resultMap[reqDate].ModelStats = append(resultMap[reqDate].ModelStats, modelStat)
 			resultModelMap[reqDate][model] = modelStat
 
 		} else {
@@ -339,14 +339,14 @@ func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDat
 			}
 
 			resultMap[reqDate] = &do.StatisticsAppKey{
-				UserId:   params.UserId,
-				AppId:    params.AppId,
-				AppKey:   params.AppKey,
-				StatDate: reqDate,
-				StatTime: gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
-				Total:    count,
-				Tokens:   tokens,
-				Models:   []*common.ModelStat{modelStat},
+				UserId:     params.UserId,
+				AppId:      params.AppId,
+				AppKey:     params.AppKey,
+				StatDate:   reqDate,
+				StatTime:   gtime.NewFromStrFormat(reqDate, time.DateOnly).TimestampMilli(),
+				Total:      count,
+				Tokens:     tokens,
+				ModelStats: []*common.ModelStat{modelStat},
 			}
 
 			resultModelMap[reqDate] = make(map[string]*common.ModelStat)
@@ -517,20 +517,22 @@ func (s *sStatistics) StatisticsChat(ctx context.Context, paging *db.Paging) {
 		return
 	}
 
-	userMap := make(map[string]map[int]*entity.StatisticsUser)                // map[req_date][user_id]entity.StatisticsUser
-	userModelStatMap := make(map[string]map[int]map[string]*common.ModelStat) // map[req_date][user_id][model_id]common.ModelStat
-	//appMap := make(map[string]map[int]*entity.StatisticsApp)          // map[req_date][app_id]entity.StatisticsApp
-	//appKeyMap := make(map[string]map[string]*entity.StatisticsAppKey) // map[req_date][app_key]entity.StatisticsAppKey
+	userMap := make(map[string]map[int]*entity.StatisticsUser)                     // map[req_date][user_id]entity.StatisticsUser
+	userModelStatMap := make(map[string]map[int]map[string]*common.ModelStat)      // map[req_date][user_id][model_id]common.ModelStat
+	appMap := make(map[string]map[int]*entity.StatisticsApp)                       // map[req_date][app_id]entity.StatisticsApp
+	appModelStatMap := make(map[string]map[int]map[string]*common.ModelStat)       // map[req_date][app_id][model_id]common.ModelStat
+	appKeyMap := make(map[string]map[string]*entity.StatisticsAppKey)              // map[req_date][app_key]entity.StatisticsAppKey
+	appKeyModelStatMap := make(map[string]map[string]map[string]*common.ModelStat) // map[req_date][app_key][model_id]common.ModelStat
 
 	for _, result := range results {
 
-		reqDate := userMap[result.ReqDate]
-		if reqDate == nil {
+		if userMap[result.ReqDate] == nil {
 			userMap[result.ReqDate] = make(map[int]*entity.StatisticsUser)
 			userModelStatMap[result.ReqDate] = make(map[int]map[string]*common.ModelStat)
+
 		}
 
-		user := reqDate[result.UserId]
+		user := userMap[result.ReqDate][result.UserId]
 		if user == nil {
 
 			if user, err = dao.StatisticsUser.FindOne(ctx, bson.M{"stat_date": result.ReqDate, "user_id": result.UserId}); err != nil {
@@ -550,27 +552,127 @@ func (s *sStatistics) StatisticsChat(ctx context.Context, paging *db.Paging) {
 			for _, modelStat := range user.ModelStats {
 				userModelStatMap[result.ReqDate][result.UserId][modelStat.ModelId] = modelStat
 			}
+
 		}
 
-		modelStat := userModelStatMap[result.ReqDate][result.UserId][result.ModelId]
-		if modelStat == nil {
-			modelStat = &common.ModelStat{
+		userModelStat := userModelStatMap[result.ReqDate][result.UserId][result.ModelId]
+		if userModelStat == nil {
+			userModelStat = &common.ModelStat{
 				ModelId: result.ModelId,
 				Model:   result.Model,
 			}
-			userModelStatMap[result.ReqDate][result.UserId][result.ModelId] = modelStat
+			userModelStatMap[result.ReqDate][result.UserId][result.ModelId] = userModelStat
 		}
 
 		user.Total += 1
 		user.Tokens += result.TotalTokens
-		modelStat.Total += 1
-		modelStat.Tokens += result.TotalTokens
+		userModelStat.Total += 1
+		userModelStat.Tokens += result.TotalTokens
 
 		if result.Status != 1 {
 			user.Abnormal += 1
 			user.AbnormalTokens += result.TotalTokens
-			modelStat.Abnormal += 1
-			modelStat.AbnormalTokens += result.TotalTokens
+			userModelStat.Abnormal += 1
+			userModelStat.AbnormalTokens += result.TotalTokens
+		}
+
+		if appMap[result.ReqDate] == nil {
+			appMap[result.ReqDate] = make(map[int]*entity.StatisticsApp)
+			appModelStatMap[result.ReqDate] = make(map[int]map[string]*common.ModelStat)
+		}
+
+		app := appMap[result.ReqDate][result.AppId]
+		if app == nil {
+
+			if app, err = dao.StatisticsApp.FindOne(ctx, bson.M{"stat_date": result.ReqDate, "app_id": result.AppId}); err != nil {
+				app = &entity.StatisticsApp{
+					UserId:   result.UserId,
+					AppId:    result.AppId,
+					StatDate: result.ReqDate,
+					StatTime: gtime.NewFromStrFormat(result.ReqDate, time.DateOnly).TimestampMilli(),
+				}
+			}
+
+			appMap[result.ReqDate][result.AppId] = app
+
+			if appModelStatMap[result.ReqDate][result.AppId] == nil {
+				appModelStatMap[result.ReqDate][result.AppId] = make(map[string]*common.ModelStat)
+			}
+
+			for _, modelStat := range app.ModelStats {
+				appModelStatMap[result.ReqDate][result.AppId][modelStat.ModelId] = modelStat
+			}
+		}
+
+		appModelStat := appModelStatMap[result.ReqDate][result.AppId][result.ModelId]
+		if appModelStat == nil {
+			appModelStat = &common.ModelStat{
+				ModelId: result.ModelId,
+				Model:   result.Model,
+			}
+			appModelStatMap[result.ReqDate][result.AppId][result.ModelId] = appModelStat
+		}
+
+		app.Total += 1
+		app.Tokens += result.TotalTokens
+		appModelStat.Total += 1
+		appModelStat.Tokens += result.TotalTokens
+
+		if result.Status != 1 {
+			app.Abnormal += 1
+			app.AbnormalTokens += result.TotalTokens
+			appModelStat.Abnormal += 1
+			appModelStat.AbnormalTokens += result.TotalTokens
+		}
+
+		if appKeyMap[result.ReqDate] == nil {
+			appKeyMap[result.ReqDate] = make(map[string]*entity.StatisticsAppKey)
+			appKeyModelStatMap[result.ReqDate] = make(map[string]map[string]*common.ModelStat)
+		}
+
+		appKey := appKeyMap[result.ReqDate][result.Creator]
+		if appKey == nil {
+
+			if appKey, err = dao.StatisticsAppKey.FindOne(ctx, bson.M{"stat_date": result.ReqDate, "app_key": result.Creator}); err != nil {
+				appKey = &entity.StatisticsAppKey{
+					UserId:   result.UserId,
+					AppId:    result.AppId,
+					AppKey:   result.Creator,
+					StatDate: result.ReqDate,
+					StatTime: gtime.NewFromStrFormat(result.ReqDate, time.DateOnly).TimestampMilli(),
+				}
+			}
+
+			appKeyMap[result.ReqDate][result.Creator] = appKey
+
+			if appKeyModelStatMap[result.ReqDate][result.Creator] == nil {
+				appKeyModelStatMap[result.ReqDate][result.Creator] = make(map[string]*common.ModelStat)
+			}
+
+			for _, modelStat := range appKey.ModelStats {
+				appKeyModelStatMap[result.ReqDate][result.Creator][modelStat.ModelId] = modelStat
+			}
+		}
+
+		appKeyModelStat := appKeyModelStatMap[result.ReqDate][result.Creator][result.ModelId]
+		if appKeyModelStat == nil {
+			appKeyModelStat = &common.ModelStat{
+				ModelId: result.ModelId,
+				Model:   result.Model,
+			}
+			appKeyModelStatMap[result.ReqDate][result.Creator][result.ModelId] = appKeyModelStat
+		}
+
+		appKey.Total += 1
+		appKey.Tokens += result.TotalTokens
+		appKeyModelStat.Total += 1
+		appKeyModelStat.Tokens += result.TotalTokens
+
+		if result.Status != 1 {
+			appKey.Abnormal += 1
+			appKey.AbnormalTokens += result.TotalTokens
+			appKeyModelStat.Abnormal += 1
+			appKeyModelStat.AbnormalTokens += result.TotalTokens
 		}
 	}
 
@@ -601,6 +703,75 @@ func (s *sStatistics) StatisticsChat(ctx context.Context, paging *db.Paging) {
 				}
 			} else {
 				if _, err = dao.StatisticsUser.Insert(ctx, statisticsUser); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+	}
+
+	for reqDate, data := range appMap {
+		for appId, app := range data {
+
+			modelStats := make([]*common.ModelStat, 0)
+			for _, modelStat := range appModelStatMap[reqDate][appId] {
+				modelStats = append(modelStats, modelStat)
+			}
+
+			statisticsApp := &do.StatisticsApp{
+				UserId:         app.UserId,
+				AppId:          app.AppId,
+				StatDate:       app.StatDate,
+				StatTime:       app.StatTime,
+				Total:          app.Total,
+				Tokens:         app.Tokens,
+				Abnormal:       app.Abnormal,
+				AbnormalTokens: app.AbnormalTokens,
+				ModelStats:     modelStats,
+				Creator:        app.Creator,
+				CreatedAt:      app.CreatedAt,
+			}
+
+			if app.Id != "" {
+				if err = dao.StatisticsApp.UpdateById(ctx, app.Id, statisticsApp); err != nil {
+					logger.Error(ctx, err)
+				}
+			} else {
+				if _, err = dao.StatisticsApp.Insert(ctx, statisticsApp); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+	}
+
+	for reqDate, data := range appKeyMap {
+		for app_key, appKey := range data {
+
+			modelStats := make([]*common.ModelStat, 0)
+			for _, modelStat := range appKeyModelStatMap[reqDate][app_key] {
+				modelStats = append(modelStats, modelStat)
+			}
+
+			statisticsAppKey := &do.StatisticsAppKey{
+				UserId:         appKey.UserId,
+				AppId:          appKey.AppId,
+				AppKey:         appKey.AppKey,
+				StatDate:       appKey.StatDate,
+				StatTime:       appKey.StatTime,
+				Total:          appKey.Total,
+				Tokens:         appKey.Tokens,
+				Abnormal:       appKey.Abnormal,
+				AbnormalTokens: appKey.AbnormalTokens,
+				ModelStats:     modelStats,
+				Creator:        appKey.Creator,
+				CreatedAt:      appKey.CreatedAt,
+			}
+
+			if appKey.Id != "" {
+				if err = dao.StatisticsAppKey.UpdateById(ctx, appKey.Id, statisticsAppKey); err != nil {
+					logger.Error(ctx, err)
+				}
+			} else {
+				if _, err = dao.StatisticsAppKey.Insert(ctx, statisticsAppKey); err != nil {
 					logger.Error(ctx, err)
 				}
 			}
