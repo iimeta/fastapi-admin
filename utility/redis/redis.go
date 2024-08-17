@@ -125,6 +125,14 @@ func GetInt(ctx context.Context, key string) (int, error) {
 	return reply.Int(), nil
 }
 
+func GetInt64(ctx context.Context, key string) (int64, error) {
+	reply, err := slave.Get(ctx, key)
+	if err != nil {
+		return 0, err
+	}
+	return reply.Int64(), nil
+}
+
 func GetStr(ctx context.Context, key string) (string, error) {
 	reply, err := slave.Get(ctx, key)
 	if err != nil {

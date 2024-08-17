@@ -2,11 +2,12 @@ package statistics
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/os/grpool"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/config"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/common"
@@ -15,14 +16,18 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 	"go.mongodb.org/mongo-driver/bson"
 	"time"
 )
 
 type sStatistics struct{}
 
+var statisticsRedsync *redsync.Redsync
+
 func init() {
 	service.RegisterStatistics(New())
+	statisticsRedsync = redsync.New(goredis.NewPool(redis.UniversalClient))
 }
 
 func New() service.IStatistics {
@@ -392,126 +397,159 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 	logger.Info(ctx, "sStatistics StatisticsTask start")
 
 	now := gtime.TimestampMilli()
+
+	mutex := statisticsRedsync.NewMutex(consts.STATISTICS_LOCK_KEY, redsync.WithExpiry(time.Minute*config.Cfg.Statistics.LockMinutes))
+	if err := mutex.LockContext(ctx); err != nil {
+		logger.Info(ctx, err)
+		logger.Debugf(ctx, "sStatistics StatisticsTask end time: %d", gtime.TimestampMilli()-now)
+		return
+	}
+	logger.Debug(ctx, "sStatistics StatisticsTask lock")
+
 	defer func() {
-		logger.Infof(ctx, "sStatistics StatisticsTask end time: %d", gtime.TimestampMilli()-now)
+		if ok, err := mutex.UnlockContext(ctx); !ok || err != nil {
+			logger.Error(ctx, err)
+		} else {
+			logger.Debug(ctx, "sStatistics StatisticsTask unlock")
+		}
+		logger.Debugf(ctx, "sStatistics StatisticsTask end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	startDate := gtime.Now().AddDate(0, 0, -config.Cfg.Statistics.Days)
-	statStartTime := startDate.StartOfDay().TimestampMilli()
-	statEndTime := startDate.EndOfDay(true).TimestampMilli()
+	// 统计聊天数据
+	s.StatisticsChat(ctx)
 
-	if config.Cfg.Statistics.Days == 0 {
-		statStartTime = 0
-		statEndTime = gtime.Now().AddDate(0, 0, -config.Cfg.Statistics.Days).EndOfDay(true).TimestampMilli()
-	}
-
-	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-
-		logger.Info(ctx, "sStatistics StatisticsTask User start")
-
-		now := gtime.TimestampMilli()
-		defer func() {
-			logger.Infof(ctx, "sStatistics StatisticsTask User end time: %d", gtime.TimestampMilli()-now)
-		}()
-
-		users, err := dao.User.Find(ctx, bson.M{})
-		if err != nil {
-			logger.Error(ctx, err)
-		}
-
-		for _, user := range users {
-			if _, err = s.DataUser(ctx, model.StatisticsDataReq{
-				UserId:        user.UserId,
-				StatStartTime: statStartTime,
-				StatEndTime:   statEndTime,
-			}); err != nil {
-				logger.Error(ctx, err)
-			}
-		}
-
-	}, nil); err != nil {
+	if _, err := redis.Set(ctx, consts.STATISTICS_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
 
-	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-
-		logger.Info(ctx, "sStatistics StatisticsTask App start")
-
-		now := gtime.TimestampMilli()
-		defer func() {
-			logger.Infof(ctx, "sStatistics StatisticsTask App end time: %d", gtime.TimestampMilli()-now)
-		}()
-
-		apps, err := dao.App.Find(ctx, bson.M{})
-		if err != nil {
-			logger.Error(ctx, err)
-		}
-
-		for _, app := range apps {
-			if _, err = s.DataApp(ctx, model.StatisticsDataReq{
-				UserId:        app.UserId,
-				AppId:         app.AppId,
-				StatStartTime: statStartTime,
-				StatEndTime:   statEndTime,
-			}); err != nil {
-				logger.Error(ctx, err)
-			}
-		}
-
-	}, nil); err != nil {
-		logger.Error(ctx, err)
-	}
-
-	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-
-		logger.Info(ctx, "sStatistics StatisticsTask AppKey start")
-
-		now := gtime.TimestampMilli()
-		defer func() {
-			logger.Infof(ctx, "sStatistics StatisticsTask AppKey end time: %d", gtime.TimestampMilli()-now)
-		}()
-
-		keys, err := dao.Key.Find(ctx, bson.M{"type": 1})
-		if err != nil {
-			logger.Error(ctx, err)
-		}
-
-		for _, key := range keys {
-			if _, err = s.DataAppKey(ctx, model.StatisticsDataReq{
-				UserId:        key.UserId,
-				AppId:         key.AppId,
-				AppKey:        key.Key,
-				StatStartTime: statStartTime,
-				StatEndTime:   statEndTime,
-			}); err != nil {
-				logger.Error(ctx, err)
-			}
-		}
-
-	}, nil); err != nil {
-		logger.Error(ctx, err)
-	}
+	//startDate := gtime.Now().AddDate(0, 0, -config.Cfg.Statistics.Days)
+	//statStartTime := startDate.StartOfDay().TimestampMilli()
+	//statEndTime := startDate.EndOfDay(true).TimestampMilli()
+	//
+	//if config.Cfg.Statistics.Days == 0 {
+	//	statStartTime = 0
+	//	statEndTime = gtime.Now().AddDate(0, 0, -config.Cfg.Statistics.Days).EndOfDay(true).TimestampMilli()
+	//}
+	//
+	//if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+	//
+	//	logger.Info(ctx, "sStatistics StatisticsTask User start")
+	//
+	//	now := gtime.TimestampMilli()
+	//	defer func() {
+	//		logger.Infof(ctx, "sStatistics StatisticsTask User end time: %d", gtime.TimestampMilli()-now)
+	//	}()
+	//
+	//	users, err := dao.User.Find(ctx, bson.M{})
+	//	if err != nil {
+	//		logger.Error(ctx, err)
+	//	}
+	//
+	//	for _, user := range users {
+	//		if _, err = s.DataUser(ctx, model.StatisticsDataReq{
+	//			UserId:        user.UserId,
+	//			StatStartTime: statStartTime,
+	//			StatEndTime:   statEndTime,
+	//		}); err != nil {
+	//			logger.Error(ctx, err)
+	//		}
+	//	}
+	//
+	//}, nil); err != nil {
+	//	logger.Error(ctx, err)
+	//}
+	//
+	//if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+	//
+	//	logger.Info(ctx, "sStatistics StatisticsTask App start")
+	//
+	//	now := gtime.TimestampMilli()
+	//	defer func() {
+	//		logger.Infof(ctx, "sStatistics StatisticsTask App end time: %d", gtime.TimestampMilli()-now)
+	//	}()
+	//
+	//	apps, err := dao.App.Find(ctx, bson.M{})
+	//	if err != nil {
+	//		logger.Error(ctx, err)
+	//	}
+	//
+	//	for _, app := range apps {
+	//		if _, err = s.DataApp(ctx, model.StatisticsDataReq{
+	//			UserId:        app.UserId,
+	//			AppId:         app.AppId,
+	//			StatStartTime: statStartTime,
+	//			StatEndTime:   statEndTime,
+	//		}); err != nil {
+	//			logger.Error(ctx, err)
+	//		}
+	//	}
+	//
+	//}, nil); err != nil {
+	//	logger.Error(ctx, err)
+	//}
+	//
+	//if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+	//
+	//	logger.Info(ctx, "sStatistics StatisticsTask AppKey start")
+	//
+	//	now := gtime.TimestampMilli()
+	//	defer func() {
+	//		logger.Infof(ctx, "sStatistics StatisticsTask AppKey end time: %d", gtime.TimestampMilli()-now)
+	//	}()
+	//
+	//	keys, err := dao.Key.Find(ctx, bson.M{"type": 1})
+	//	if err != nil {
+	//		logger.Error(ctx, err)
+	//	}
+	//
+	//	for _, key := range keys {
+	//		if _, err = s.DataAppKey(ctx, model.StatisticsDataReq{
+	//			UserId:        key.UserId,
+	//			AppId:         key.AppId,
+	//			AppKey:        key.Key,
+	//			StatStartTime: statStartTime,
+	//			StatEndTime:   statEndTime,
+	//		}); err != nil {
+	//			logger.Error(ctx, err)
+	//		}
+	//	}
+	//
+	//}, nil); err != nil {
+	//	logger.Error(ctx, err)
+	//}
 }
 
 // 统计聊天数据
-func (s *sStatistics) StatisticsChat(ctx context.Context, paging *db.Paging) {
+func (s *sStatistics) StatisticsChat(ctx context.Context) {
 
-	if paging == nil {
-		paging = &db.Paging{
-			Page:     1,
-			PageSize: 100,
-		}
+	logger.Debugf(ctx, "sStatistics StatisticsChat start")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "sStatistics StatisticsChat end time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	lastTime, err := redis.GetInt64(ctx, consts.STATISTICS_CHAT_LAST_TIME_KEY)
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	lastId, err := redis.GetStr(ctx, consts.STATISTICS_CHAT_LAST_ID_KEY)
+	if err != nil {
+		logger.Error(ctx, err)
+		return
 	}
 
 	filter := bson.M{
 		"created_at": bson.M{
-			"$gte": 0,
+			"$gte": lastTime,
 		},
 		"is_smart_match": bson.M{"$ne": true},
 		"is_retry":       bson.M{"$ne": true},
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, paging, filter, "", "created_at")
+	results, err := dao.Chat.FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, "", "created_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return
@@ -526,10 +564,16 @@ func (s *sStatistics) StatisticsChat(ctx context.Context, paging *db.Paging) {
 
 	for _, result := range results {
 
+		if result.Id == lastId {
+			continue
+		}
+
+		lastTime = result.CreatedAt
+		lastId = result.Id
+
 		if userMap[result.ReqDate] == nil {
 			userMap[result.ReqDate] = make(map[int]*entity.StatisticsUser)
 			userModelStatMap[result.ReqDate] = make(map[int]map[string]*common.ModelStat)
-
 		}
 
 		user := userMap[result.ReqDate][result.UserId]
@@ -778,8 +822,17 @@ func (s *sStatistics) StatisticsChat(ctx context.Context, paging *db.Paging) {
 		}
 	}
 
-	if paging.Page < paging.PageCount {
-		paging.Page += 1
-		s.StatisticsChat(ctx, paging)
+	if _, err = redis.Set(ctx, consts.STATISTICS_CHAT_LAST_TIME_KEY, lastTime); err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	if _, err = redis.Set(ctx, consts.STATISTICS_CHAT_LAST_ID_KEY, lastId); err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	if int64(len(results)) == config.Cfg.Statistics.Limit {
+		s.StatisticsChat(ctx)
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/utility/db"
 )
 
 type (
@@ -23,7 +22,7 @@ type (
 		// 统计任务
 		StatisticsTask(ctx context.Context)
 		// 统计聊天数据
-		StatisticsChat(ctx context.Context, paging *db.Paging)
+		StatisticsChat(ctx context.Context)
 	}
 )
 

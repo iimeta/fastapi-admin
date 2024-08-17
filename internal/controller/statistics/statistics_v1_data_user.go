@@ -20,7 +20,7 @@ func (c *ControllerV1) DataUser(ctx context.Context, req *v1.DataUserReq) (res *
 	//	return nil, err
 	//}
 
-	service.Statistics().StatisticsChat(ctx, nil)
+	service.Statistics().StatisticsChat(ctx)
 
 	return
 }

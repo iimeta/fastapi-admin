@@ -27,3 +27,10 @@ const (
 	SESSION_ROLE    = "role"
 	SESSION_CREATOR = "creator"
 )
+
+const (
+	STATISTICS_LOCK_KEY           = "statistics:lock"
+	STATISTICS_END_TIME_KEY       = "statistics:end_time"
+	STATISTICS_CHAT_LAST_ID_KEY   = "statistics:chat:last_id"
+	STATISTICS_CHAT_LAST_TIME_KEY = "statistics:chat:last_time"
+)

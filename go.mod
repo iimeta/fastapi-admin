@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
+	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.2
 	github.com/gogf/gf/v2 v2.7.2
 	github.com/gorilla/websocket v1.5.3
@@ -25,6 +26,8 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/grokify/html-strip-tags-go v0.1.0 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
