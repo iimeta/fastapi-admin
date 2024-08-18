@@ -28,3 +28,25 @@ type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.ChatPageRes
 }
+
+// 聊天导出接口请求参数
+type ExportReq struct {
+	g.Meta `path:"/export" tags:"chat" method:"post" summary:"聊天导出接口"`
+	model.ChatExportReq
+}
+
+// 聊天导出接口响应参数
+type ExportRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
+// 聊天批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" tags:"chat" method:"post" summary:"聊天批量操作接口"`
+	model.ChatBatchOperateReq
+}
+
+// 聊天批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

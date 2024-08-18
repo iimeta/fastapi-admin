@@ -29,8 +29,10 @@ const (
 )
 
 const (
-	STATISTICS_LOCK_KEY           = "statistics:lock"
-	STATISTICS_END_TIME_KEY       = "statistics:end_time"
-	STATISTICS_CHAT_LAST_ID_KEY   = "statistics:chat:last_id"
-	STATISTICS_CHAT_LAST_TIME_KEY = "statistics:chat:last_time"
+	STATISTICS_LOCK_KEY            = "statistics:lock"
+	STATISTICS_END_TIME_KEY        = "statistics:end_time"
+	STATISTICS_CHAT_LAST_ID_KEY    = "statistics:chat:last_id"
+	STATISTICS_CHAT_LAST_TIME_KEY  = "statistics:chat:last_time"
+	STATISTICS_IMAGE_LAST_ID_KEY   = "statistics:image:last_id"
+	STATISTICS_IMAGE_LAST_TIME_KEY = "statistics:image:last_time"
 )

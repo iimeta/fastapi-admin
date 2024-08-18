@@ -77,5 +77,6 @@ email:
 
 # 统计配置
 statistics:
-  cron: "0 10 0 * * ?"
-  days: 1
+  cron: "0 0/5 * * * ?"
+  limit: 1000
+  lock_minutes: 10

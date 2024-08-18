@@ -326,6 +326,16 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		return t.Id
 	})
 
+	modelAgentResults, err := dao.ModelAgent.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelAgentMap := util.ToMap(modelAgentResults, func(t *entity.ModelAgent) string {
+		return t.Id
+	})
+
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 
@@ -341,25 +351,33 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			}
 		}
 
+		modelAgentNames := make([]string, 0)
+		for _, id := range result.ModelAgents {
+			if modelAgentMap[id] != nil {
+				modelAgentNames = append(modelAgentNames, modelAgentMap[id].Name)
+			}
+		}
+
 		items = append(items, &model.Key{
-			Id:             result.Id,
-			AppId:          result.AppId,
-			Corp:           result.Corp,
-			CorpName:       corpName,
-			Key:            util.Desensitize(result.Key),
-			Type:           result.Type,
-			Models:         result.Models,
-			ModelNames:     modelNames,
-			ModelAgents:    result.ModelAgents,
-			IsAgentsOnly:   result.IsAgentsOnly,
-			IsLimitQuota:   result.IsLimitQuota,
-			Quota:          result.Quota,
-			UsedQuota:      result.UsedQuota,
-			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
-			Remark:         result.Remark,
-			Status:         result.Status,
-			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:              result.Id,
+			AppId:           result.AppId,
+			Corp:            result.Corp,
+			CorpName:        corpName,
+			Key:             util.Desensitize(result.Key),
+			Type:            result.Type,
+			Models:          result.Models,
+			ModelNames:      modelNames,
+			ModelAgents:     result.ModelAgents,
+			ModelAgentNames: modelAgentNames,
+			IsAgentsOnly:    result.IsAgentsOnly,
+			IsLimitQuota:    result.IsLimitQuota,
+			Quota:           result.Quota,
+			UsedQuota:       result.UsedQuota,
+			QuotaExpiresAt:  util.FormatDateTime(result.QuotaExpiresAt),
+			Remark:          result.Remark,
+			Status:          result.Status,
+			CreatedAt:       util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:       util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

@@ -12,7 +12,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"math"
-	"sort"
 )
 
 type sDashboard struct{}
@@ -128,39 +127,39 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 		dashboard.Call = gconv.Int(result[0]["call"])
 	}
 
-	todayPipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"req_time": bson.M{
-					"$gte": gtime.Now().StartOfDay().TimestampMilli(),
-					"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
-				},
-				"is_smart_match": bson.M{"$ne": true},
-				"is_retry":       bson.M{"$ne": true},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":  nil,
-				"call": bson.M{"$sum": 1},
-			},
-		},
-	}
-
-	if service.Session().IsUserRole(ctx) {
-		match := todayPipeline[0]["$match"].(bson.M)
-		match["user_id"] = service.Session().GetUserId(ctx)
-	}
-
-	todayResult := make([]map[string]interface{}, 0)
-	if err = dao.Chat.Aggregate(ctx, todayPipeline, &todayResult); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	if len(todayResult) > 0 {
-		dashboard.Call += gconv.Int(todayResult[0]["call"])
-	}
+	//todayPipeline := []bson.M{
+	//	{
+	//		"$match": bson.M{
+	//			"req_time": bson.M{
+	//				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+	//				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+	//			},
+	//			"is_smart_match": bson.M{"$ne": true},
+	//			"is_retry":       bson.M{"$ne": true},
+	//		},
+	//	},
+	//	{
+	//		"$group": bson.M{
+	//			"_id":  nil,
+	//			"call": bson.M{"$sum": 1},
+	//		},
+	//	},
+	//}
+	//
+	//if service.Session().IsUserRole(ctx) {
+	//	match := todayPipeline[0]["$match"].(bson.M)
+	//	match["user_id"] = service.Session().GetUserId(ctx)
+	//}
+	//
+	//todayResult := make([]map[string]interface{}, 0)
+	//if err = dao.Chat.Aggregate(ctx, todayPipeline, &todayResult); err != nil {
+	//	logger.Error(ctx, err)
+	//	return nil, err
+	//}
+	//
+	//if len(todayResult) > 0 {
+	//	dashboard.Call += gconv.Int(todayResult[0]["call"])
+	//}
 
 	return dashboard, nil
 }
@@ -275,7 +274,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 func (s *sDashboard) CallDataNew(ctx context.Context, params model.DashboardCallDataReq) ([]*model.CallData, error) {
 
 	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
-	endTime := gtime.Now().AddDate(0, 0, -1).EndOfDay(true) // 只查询到昨天
+	endTime := gtime.Now().EndOfDay(true)
 
 	pipeline := []bson.M{
 		{
@@ -345,13 +344,13 @@ func (s *sDashboard) CallDataNew(ctx context.Context, params model.DashboardCall
 	}
 
 	// 今天的数据
-	callData, err := s.CallData(ctx, model.DashboardCallDataReq{Days: 1})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	items = append(items, callData...)
+	//callData, err := s.CallData(ctx, model.DashboardCallDataReq{Days: 1})
+	//if err != nil {
+	//	logger.Error(ctx, err)
+	//	return nil, err
+	//}
+	//
+	//items = append(items, callData...)
 
 	return items, nil
 }
@@ -499,12 +498,12 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 // 数据TOP(新)
 func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataTopReq) ([]*model.DataTop, error) {
 
-	if params.Days == 1 {
-		return s.DataTop(ctx, params)
-	}
+	//if params.Days == 1 {
+	//	return s.DataTop(ctx, params)
+	//}
 
 	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
-	endTime := gtime.Now().AddDate(0, 0, -1).EndOfDay(true) // 只查询到昨天
+	endTime := gtime.Now().EndOfDay(true)
 
 	pipeline := []bson.M{
 		{
@@ -598,30 +597,30 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 			})
 		}
 
-		itemMap := make(map[int]*model.DataTop)
-		for _, item := range items {
-			itemMap[item.UserId] = item
-		}
-
-		// 今天的数据
-		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		for _, item := range dataTop {
-			if itemMap[item.UserId] == nil {
-				items = append(items, item)
-			} else {
-				itemMap[item.UserId].Call += item.Call
-				itemMap[item.UserId].Tokens += item.Tokens
-			}
-		}
-
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Tokens > items[j].Tokens
-		})
+		//itemMap := make(map[int]*model.DataTop)
+		//for _, item := range items {
+		//	itemMap[item.UserId] = item
+		//}
+		//
+		//// 今天的数据
+		//dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		//if err != nil {
+		//	logger.Error(ctx, err)
+		//	return nil, err
+		//}
+		//
+		//for _, item := range dataTop {
+		//	if itemMap[item.UserId] == nil {
+		//		items = append(items, item)
+		//	} else {
+		//		itemMap[item.UserId].Call += item.Call
+		//		itemMap[item.UserId].Tokens += item.Tokens
+		//	}
+		//}
+		//
+		//sort.Slice(items, func(i, j int) bool {
+		//	return items[i].Tokens > items[j].Tokens
+		//})
 
 	case "app":
 
@@ -634,30 +633,30 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 			})
 		}
 
-		itemMap := make(map[int]*model.DataTop)
-		for _, item := range items {
-			itemMap[item.AppId] = item
-		}
-
-		// 今天的数据
-		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		for _, item := range dataTop {
-			if itemMap[item.AppId] == nil {
-				items = append(items, item)
-			} else {
-				itemMap[item.AppId].Call += item.Call
-				itemMap[item.AppId].Tokens += item.Tokens
-			}
-		}
-
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Tokens > items[j].Tokens
-		})
+		//itemMap := make(map[int]*model.DataTop)
+		//for _, item := range items {
+		//	itemMap[item.AppId] = item
+		//}
+		//
+		//// 今天的数据
+		//dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		//if err != nil {
+		//	logger.Error(ctx, err)
+		//	return nil, err
+		//}
+		//
+		//for _, item := range dataTop {
+		//	if itemMap[item.AppId] == nil {
+		//		items = append(items, item)
+		//	} else {
+		//		itemMap[item.AppId].Call += item.Call
+		//		itemMap[item.AppId].Tokens += item.Tokens
+		//	}
+		//}
+		//
+		//sort.Slice(items, func(i, j int) bool {
+		//	return items[i].Tokens > items[j].Tokens
+		//})
 
 	case "app_key":
 
@@ -670,30 +669,30 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 			})
 		}
 
-		itemMap := make(map[string]*model.DataTop)
-		for _, item := range items {
-			itemMap[item.AppKey] = item
-		}
-
-		// 今天的数据
-		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		for _, item := range dataTop {
-			if itemMap[item.AppKey] == nil {
-				items = append(items, item)
-			} else {
-				itemMap[item.AppKey].Call += item.Call
-				itemMap[item.AppKey].Tokens += item.Tokens
-			}
-		}
-
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Tokens > items[j].Tokens
-		})
+		//itemMap := make(map[string]*model.DataTop)
+		//for _, item := range items {
+		//	itemMap[item.AppKey] = item
+		//}
+		//
+		//// 今天的数据
+		//dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		//if err != nil {
+		//	logger.Error(ctx, err)
+		//	return nil, err
+		//}
+		//
+		//for _, item := range dataTop {
+		//	if itemMap[item.AppKey] == nil {
+		//		items = append(items, item)
+		//	} else {
+		//		itemMap[item.AppKey].Call += item.Call
+		//		itemMap[item.AppKey].Tokens += item.Tokens
+		//	}
+		//}
+		//
+		//sort.Slice(items, func(i, j int) bool {
+		//	return items[i].Tokens > items[j].Tokens
+		//})
 
 	case "model":
 
@@ -705,35 +704,35 @@ func (s *sDashboard) DataTopNew(ctx context.Context, params model.DashboardDataT
 			})
 		}
 
-		itemMap := make(map[string]*model.DataTop)
-		for _, item := range items {
-			itemMap[item.Model] = item
-		}
-
-		// 今天的数据
-		dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		for _, item := range dataTop {
-			if itemMap[item.Model] == nil {
-				items = append(items, item)
-			} else {
-				itemMap[item.Model].Call += item.Call
-				itemMap[item.Model].Tokens += item.Tokens
-			}
-		}
-
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Tokens > items[j].Tokens
-		})
+		//itemMap := make(map[string]*model.DataTop)
+		//for _, item := range items {
+		//	itemMap[item.Model] = item
+		//}
+		//
+		//// 今天的数据
+		//dataTop, err := s.DataTop(ctx, model.DashboardDataTopReq{Days: 1, DataType: params.DataType})
+		//if err != nil {
+		//	logger.Error(ctx, err)
+		//	return nil, err
+		//}
+		//
+		//for _, item := range dataTop {
+		//	if itemMap[item.Model] == nil {
+		//		items = append(items, item)
+		//	} else {
+		//		itemMap[item.Model].Call += item.Call
+		//		itemMap[item.Model].Tokens += item.Tokens
+		//	}
+		//}
+		//
+		//sort.Slice(items, func(i, j int) bool {
+		//	return items[i].Tokens > items[j].Tokens
+		//})
 	}
 
-	if len(items) > 10 {
-		items = items[:10]
-	}
+	//if len(items) > 10 {
+	//	items = items[:10]
+	//}
 
 	return items, nil
 }
@@ -798,12 +797,12 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 // 模型占比(新)
 func (s *sDashboard) ModelPercentNew(ctx context.Context, params model.DashboardModelPercentReq) ([]string, []*model.ModelPercent, error) {
 
-	if params.Days == 1 {
-		return s.ModelPercent(ctx, params)
-	}
+	//if params.Days == 1 {
+	//	return s.ModelPercent(ctx, params)
+	//}
 
 	startTime := gtime.Now().AddDate(0, 0, -(params.Days - 1)).StartOfDay()
-	endTime := gtime.Now().AddDate(0, 0, -1).EndOfDay(true) // 只查询到昨天
+	endTime := gtime.Now().EndOfDay(true)
 
 	pipeline := []bson.M{
 		{
@@ -815,12 +814,12 @@ func (s *sDashboard) ModelPercentNew(ctx context.Context, params model.Dashboard
 			},
 		},
 		{
-			"$unwind": "$models",
+			"$unwind": "$model_stats",
 		},
 		{
 			"$group": bson.M{
-				"_id":   "$models.model",
-				"count": bson.M{"$sum": "$models.total"},
+				"_id":   "$model_stats.model",
+				"count": bson.M{"$sum": "$model_stats.total"},
 			},
 		},
 		{
@@ -853,41 +852,41 @@ func (s *sDashboard) ModelPercentNew(ctx context.Context, params model.Dashboard
 	}
 
 	// 今天的数据
-	_, todayItems, err := s.ModelPercent(ctx, model.DashboardModelPercentReq{Days: 1})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, nil, err
-	}
-
-	for _, todayItem := range todayItems {
-
-		isExist := false
-		for _, item := range items {
-			if item.Name == todayItem.Name {
-				item.Value += todayItem.Value
-				isExist = true
-				break
-			}
-		}
-
-		if !isExist {
-			items = append(items, todayItem)
-		}
-	}
-
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].Value > items[j].Value
-	})
+	//_, todayItems, err := s.ModelPercent(ctx, model.DashboardModelPercentReq{Days: 1})
+	//if err != nil {
+	//	logger.Error(ctx, err)
+	//	return nil, nil, err
+	//}
+	//
+	//for _, todayItem := range todayItems {
+	//
+	//	isExist := false
+	//	for _, item := range items {
+	//		if item.Name == todayItem.Name {
+	//			item.Value += todayItem.Value
+	//			isExist = true
+	//			break
+	//		}
+	//	}
+	//
+	//	if !isExist {
+	//		items = append(items, todayItem)
+	//	}
+	//}
+	//
+	//sort.Slice(items, func(i, j int) bool {
+	//	return items[i].Value > items[j].Value
+	//})
 
 	models := make([]string, 0)
 	for _, item := range items {
 		models = append(models, item.Name)
 	}
 
-	if len(items) > 10 {
-		items = items[:10]
-		models = models[:10]
-	}
+	//if len(items) > 10 {
+	//	items = items[:10]
+	//	models = models[:10]
+	//}
 
 	return models, items, nil
 }

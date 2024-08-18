@@ -2,7 +2,9 @@ package finance
 
 import (
 	"context"
+	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -136,4 +138,57 @@ func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealR
 			Total:    paging.Total,
 		},
 	}, nil
+}
+
+// 账单明细导出
+func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExportReq) (string, error) {
+
+	filter := bson.M{}
+	if len(params.Ids) > 0 {
+		filter = bson.M{"_id": bson.M{"$in": params.Ids}}
+	} else {
+		filter = bson.M{
+			"stat_date": bson.M{
+				"$gte": params.StatDate[0],
+				"$lte": params.StatDate[1],
+			},
+		}
+	}
+
+	results, err := dao.StatisticsUser.Find(ctx, filter, "-stat_date", "-tokens")
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	var titleCols []string
+	titleCols = append(titleCols, "账单日期", "用户ID", "模型", "调用数", "花费($)")
+
+	colFieldMap := make(map[string]string)
+	colFieldMap["账单日期"] = "StatDate"
+	colFieldMap["用户ID"] = "UserId"
+	colFieldMap["模型"] = "Model"
+	colFieldMap["调用数"] = "Total"
+	colFieldMap["花费($)"] = "Tokens"
+
+	filePath := fmt.Sprintf("./resource/export/bill_%d.xlsx", gtime.TimestampMilli())
+
+	values := make([]interface{}, 0)
+	for _, result := range results {
+		for _, modelStat := range result.ModelStats {
+			values = append(values, &model.BillExport{
+				StatDate: result.StatDate,
+				UserId:   result.UserId,
+				Model:    modelStat.Model,
+				Total:    modelStat.Total,
+				Tokens:   gconv.String(util.QuotaConv(result.Tokens)),
+			})
+		}
+	}
+
+	if err = util.ExcelExport("账单明细", titleCols, colFieldMap, values, filePath); err != nil {
+		return "", err
+	}
+
+	return filePath, nil
 }

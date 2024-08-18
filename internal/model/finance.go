@@ -28,6 +28,12 @@ type FinanceDealRecordPageRes struct {
 	Paging *Paging       `json:"paging"`
 }
 
+// 账单明细导出接口请求参数
+type FinanceBillExportReq struct {
+	Ids      []string `json:"ids,omitempty"`       // 主键Ids
+	StatDate []string `json:"stat_date,omitempty"` // 统计日期
+}
+
 // 账单明细
 type Bill struct {
 	Id       string `json:"id"`        // ID
@@ -36,6 +42,15 @@ type Bill struct {
 	Tokens   int    `json:"tokens"`    // 令牌数
 	Models   int    `json:"models"`    // 模型数
 	StatDate string `json:"stat_date"` // 统计日期
+}
+
+// 账单明细导出
+type BillExport struct {
+	StatDate string `json:"stat_date"` // 统计日期
+	UserId   int    `json:"user_id"`   // 用户ID
+	Model    string `bson:"model"`     // 模型
+	Total    int    `bson:"total"`     // 总数
+	Tokens   any    `bson:"tokens"`    // 令牌数
 }
 
 // 交易记录

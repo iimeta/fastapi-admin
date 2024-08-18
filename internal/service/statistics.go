@@ -23,6 +23,8 @@ type (
 		StatisticsTask(ctx context.Context)
 		// 统计聊天数据
 		StatisticsChat(ctx context.Context)
+		// 统计聊天数据
+		StatisticsImage(ctx context.Context)
 	}
 )
 

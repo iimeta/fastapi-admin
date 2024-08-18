@@ -2,7 +2,10 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -231,4 +234,88 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			Total:    paging.Total,
 		},
 	}, nil
+}
+
+// 聊天导出
+func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string, error) {
+
+	filter := bson.M{}
+	if len(params.Ids) > 0 {
+		filter = bson.M{"_id": bson.M{"$in": params.Ids}}
+	} else {
+		filter = bson.M{
+			"req_time": bson.M{
+				"$gte": gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli(),
+				"$lte": gtime.NewFromStrLayout(params.ReqTime[1], time.DateTime).TimestampMilli() + 999,
+			},
+		}
+	}
+
+	results, err := dao.Chat.Find(ctx, filter, "-req_time", "status", "-created_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	var titleCols []string
+	titleCols = append(titleCols, "请求时间", "用户ID", "模型", "提问", "回答", "花费($)", "密钥")
+
+	colFieldMap := make(map[string]string)
+	colFieldMap["请求时间"] = "ReqTime"
+	colFieldMap["用户ID"] = "UserId"
+	colFieldMap["模型"] = "Model"
+	colFieldMap["提问"] = "PromptTokens"
+	colFieldMap["回答"] = "CompletionTokens"
+	colFieldMap["花费($)"] = "TotalTokens"
+	colFieldMap["密钥"] = "Key"
+
+	filePath := fmt.Sprintf("./resource/export/chat_%d.xlsx", gtime.TimestampMilli())
+
+	values := make([]interface{}, 0)
+	for _, result := range results {
+		values = append(values, &model.ChatExport{
+			ReqTime:          util.FormatDateTime(result.ReqTime),
+			UserId:           result.UserId,
+			Model:            result.Model,
+			PromptTokens:     result.PromptTokens,
+			CompletionTokens: result.CompletionTokens,
+			TotalTokens:      gconv.String(util.QuotaConv(result.TotalTokens)),
+			Key:              result.Key,
+		})
+	}
+
+	if err = util.ExcelExport("聊天日志", titleCols, colFieldMap, values, filePath); err != nil {
+		return "", err
+	}
+
+	return filePath, nil
+}
+
+// 聊天批量操作
+func (s *sChat) BatchOperate(ctx context.Context, params model.ChatBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_TIME:
+
+		reqTime := params.Value.([]interface{})
+		filter := bson.M{
+			"req_time": bson.M{
+				"$gte": gtime.NewFromStrFormat(gconv.String(reqTime[0]), time.DateTime).TimestampMilli(),
+				"$lte": gtime.NewFromStrLayout(gconv.String(reqTime[1]), time.DateTime).TimestampMilli() + 999,
+			},
+		}
+
+		if _, err := dao.Chat.DeleteMany(ctx, filter); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+	case consts.ACTION_DELETE:
+		if _, err := dao.Chat.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": params.Ids}}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	return nil
 }

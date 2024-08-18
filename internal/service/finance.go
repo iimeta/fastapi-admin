@@ -17,6 +17,8 @@ type (
 		BillPage(ctx context.Context, params model.FinanceBillPageReq) (*model.FinanceBillPageRes, error)
 		// 交易记录分页列表
 		DealRecordPage(ctx context.Context, params model.FinanceDealRecordPageReq) (*model.FinanceDealRecordPageRes, error)
+		// 账单明细导出
+		BillExport(ctx context.Context, params model.FinanceBillExportReq) (string, error)
 	}
 )
 

@@ -13,10 +13,14 @@ import (
 
 type (
 	IChat interface {
-		// 聊天详情
+		// 聊天日志详情
 		Detail(ctx context.Context, id string) (*model.Chat, error)
-		// 聊天分页列表
+		// 聊天日志分页列表
 		Page(ctx context.Context, params model.ChatPageReq) (*model.ChatPageRes, error)
+		// 聊天导出
+		Export(ctx context.Context, params model.ChatExportReq) (string, error)
+		// 聊天批量操作
+		BatchOperate(ctx context.Context, params model.ChatBatchOperateReq) error
 	}
 )
 

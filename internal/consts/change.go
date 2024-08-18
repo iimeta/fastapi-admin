@@ -21,4 +21,5 @@ const (
 	ACTION_AGENT    = "agent"
 	ACTION_FORWARD  = "forward"
 	ACTION_FALLBACK = "fallback"
+	ACTION_TIME     = "time"
 )

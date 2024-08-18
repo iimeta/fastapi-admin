@@ -28,3 +28,14 @@ type DealRecordPageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.FinanceDealRecordPageRes
 }
+
+// 账单明细导出接口请求参数
+type BillExportReq struct {
+	g.Meta `path:"/bill/export" tags:"finance" method:"post" summary:"账单明细导出接口"`
+	model.FinanceBillExportReq
+}
+
+// 账单明细导出接口响应参数
+type BillExportRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
