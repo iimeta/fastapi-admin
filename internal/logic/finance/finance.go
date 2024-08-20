@@ -155,21 +155,29 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 		}
 	}
 
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	}
+
 	results, err := dao.StatisticsUser.Find(ctx, filter, "-stat_date", "-tokens")
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
 	}
 
-	var titleCols []string
-	titleCols = append(titleCols, "账单日期", "用户ID", "模型", "调用数", "花费($)")
-
 	colFieldMap := make(map[string]string)
 	colFieldMap["账单日期"] = "StatDate"
-	colFieldMap["用户ID"] = "UserId"
 	colFieldMap["模型"] = "Model"
 	colFieldMap["调用数"] = "Total"
 	colFieldMap["花费($)"] = "Tokens"
+
+	var titleCols []string
+	if service.Session().IsUserRole(ctx) {
+		titleCols = append(titleCols, "账单日期", "模型", "调用数", "花费($)")
+	} else {
+		titleCols = append(titleCols, "账单日期", "用户ID", "模型", "调用数", "花费($)")
+		colFieldMap["用户ID"] = "UserId"
+	}
 
 	filePath := fmt.Sprintf("./resource/export/bill_%d.xlsx", gtime.TimestampMilli())
 

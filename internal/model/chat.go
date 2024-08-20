@@ -108,4 +108,5 @@ type ChatExport struct {
 	InternalTime     int64  `json:"internal_time,omitempty"`     // 内耗时间
 	ReqTime          string `json:"req_time,omitempty"`          // 请求时间
 	ReqDate          string `json:"req_date,omitempty"`          // 请求日期
+	Creator          string `bson:"creator,omitempty"`           // 创建人
 }

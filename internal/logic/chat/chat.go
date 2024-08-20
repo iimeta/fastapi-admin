@@ -251,23 +251,33 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 		}
 	}
 
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	}
+
 	results, err := dao.Chat.Find(ctx, filter, "-req_time", "status", "-created_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
 	}
 
-	var titleCols []string
-	titleCols = append(titleCols, "请求时间", "用户ID", "模型", "提问", "回答", "花费($)", "密钥")
-
 	colFieldMap := make(map[string]string)
 	colFieldMap["请求时间"] = "ReqTime"
-	colFieldMap["用户ID"] = "UserId"
 	colFieldMap["模型"] = "Model"
 	colFieldMap["提问"] = "PromptTokens"
 	colFieldMap["回答"] = "CompletionTokens"
 	colFieldMap["花费($)"] = "TotalTokens"
-	colFieldMap["密钥"] = "Key"
+	colFieldMap["密钥"] = "Creator"
+
+	var titleCols []string
+	if service.Session().IsUserRole(ctx) {
+		titleCols = append(titleCols, "请求时间", "应用ID", "密钥", "模型", "提问", "回答", "花费($)")
+		colFieldMap["应用ID"] = "AppId"
+	} else {
+		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "提问", "回答", "花费($)", "密钥")
+		colFieldMap["用户ID"] = "UserId"
+		colFieldMap["密钥"] = "Key"
+	}
 
 	filePath := fmt.Sprintf("./resource/export/chat_%d.xlsx", gtime.TimestampMilli())
 
@@ -276,11 +286,13 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 		values = append(values, &model.ChatExport{
 			ReqTime:          util.FormatDateTime(result.ReqTime),
 			UserId:           result.UserId,
+			AppId:            result.AppId,
 			Model:            result.Model,
 			PromptTokens:     result.PromptTokens,
 			CompletionTokens: result.CompletionTokens,
 			TotalTokens:      gconv.String(util.QuotaConv(result.TotalTokens)),
 			Key:              result.Key,
+			Creator:          result.Creator,
 		})
 	}
 

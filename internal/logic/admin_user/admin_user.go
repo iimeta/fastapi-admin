@@ -135,18 +135,19 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"name":   params.Name,
-		"rps":    params.RPS,
-		"rpm":    params.RPM,
-		"rpd":    params.RPD,
-		"tps":    params.TPS,
-		"tpm":    params.TPM,
-		"tpd":    params.TPD,
-		"ips":    params.IPS,
-		"ipm":    params.IPM,
-		"ipd":    params.IPD,
-		"remark": params.Remark,
-		"status": params.Status,
+		"name":             params.Name,
+		"quota_expires_at": common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"rps":              params.RPS,
+		"rpm":              params.RPM,
+		"rpd":              params.RPD,
+		"tps":              params.TPS,
+		"tpm":              params.TPM,
+		"tpd":              params.TPD,
+		"ips":              params.IPS,
+		"ipm":              params.IPM,
+		"ipd":              params.IPD,
+		"remark":           params.Remark,
+		"status":           params.Status,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
