@@ -15,10 +15,5 @@ func (c *ControllerV1) DataAppKey(ctx context.Context, req *v1.DataAppKeyReq) (r
 		return
 	}
 
-	_, err = service.Statistics().DataAppKey(ctx, req.StatisticsDataReq)
-	if err != nil {
-		return nil, err
-	}
-
 	return
 }

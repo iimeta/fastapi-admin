@@ -10,7 +10,7 @@ import (
 
 func (c *ControllerV1) CallData(ctx context.Context, req *v1.CallDataReq) (res *v1.CallDataRes, err error) {
 
-	items, err := service.Dashboard().CallDataNew(ctx, req.DashboardCallDataReq)
+	items, err := service.Dashboard().CallData(ctx, req.DashboardCallDataReq)
 	if err != nil {
 		return nil, err
 	}
