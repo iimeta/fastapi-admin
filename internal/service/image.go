@@ -13,9 +13,9 @@ import (
 
 type (
 	IImage interface {
-		// 聊天详情
+		// 绘图日志详情
 		Detail(ctx context.Context, id string) (*model.Image, error)
-		// 聊天分页列表
+		// 绘图日志分页列表
 		Page(ctx context.Context, params model.ImagePageReq) (*model.ImagePageRes, error)
 	}
 )

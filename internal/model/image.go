@@ -2,12 +2,12 @@ package model
 
 import "github.com/iimeta/fastapi-admin/internal/model/common"
 
-// 图像详情接口响应参数
+// 绘图详情接口响应参数
 type ImageDetailRes struct {
 	*Image
 }
 
-// 图像分页列表接口请求参数
+// 绘图分页列表接口请求参数
 type ImagePageReq struct {
 	Paging
 	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
@@ -20,7 +20,7 @@ type ImagePageReq struct {
 	ReqTime   []string `json:"req_time,omitempty"`   // 请求时间
 }
 
-// 图像分页列表接口响应参数
+// 绘图分页列表接口响应参数
 type ImagePageRes struct {
 	Items  []*Image `json:"items"`
 	Paging *Paging  `json:"paging"`
@@ -62,8 +62,6 @@ type Image struct {
 	ImageQuotas          []common.ImageQuota    `json:"image_quotas,omitempty"`            // 图像额度
 	MultimodalQuota      common.MultimodalQuota `json:"multimodal_quota,omitempty"`        // 多模态额度
 	TotalTokens          int                    `json:"total_tokens,omitempty"`            // 总令牌数
-	ConnTime             int64                  `json:"conn_time,omitempty"`               // 连接时间
-	Duration             int64                  `json:"duration,omitempty"`                // 持续时间
 	TotalTime            int64                  `json:"total_time,omitempty"`              // 总时间
 	InternalTime         int64                  `json:"internal_time,omitempty"`           // 内耗时间
 	ReqTime              string                 `json:"req_time,omitempty"`                // 请求时间

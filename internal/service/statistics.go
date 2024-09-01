@@ -17,6 +17,8 @@ type (
 		StatisticsChat(ctx context.Context)
 		// 统计绘图数据
 		StatisticsImage(ctx context.Context)
+		// 统计音频数据
+		StatisticsAudio(ctx context.Context)
 	}
 )
 

@@ -35,4 +35,6 @@ const (
 	STATISTICS_CHAT_LAST_TIME_KEY  = "statistics:chat:last_time"
 	STATISTICS_IMAGE_LAST_ID_KEY   = "statistics:image:last_id"
 	STATISTICS_IMAGE_LAST_TIME_KEY = "statistics:image:last_time"
+	STATISTICS_AUDIO_LAST_ID_KEY   = "statistics:audio:last_id"
+	STATISTICS_AUDIO_LAST_TIME_KEY = "statistics:audio:last_time"
 )

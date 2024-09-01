@@ -7,6 +7,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/controller/admin_user"
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
+	"github.com/iimeta/fastapi-admin/internal/controller/audio"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/chat"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
@@ -79,6 +80,7 @@ var (
 			s.AddStaticPath("/finance/deal_record", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/chat", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
 
@@ -193,6 +195,13 @@ var (
 					g.Middleware(middleware)
 					g.Bind(
 						image.NewV1(),
+					)
+				})
+
+				v1.Group("/log/audio", func(g *ghttp.RouterGroup) {
+					g.Middleware(middleware)
+					g.Bind(
+						audio.NewV1(),
 					)
 				})
 

@@ -7,7 +7,7 @@ import (
 
 // 聊天详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" tags:"chat" method:"get" summary:"聊天详情接口"`
+	g.Meta `path:"/detail" tags:"log/chat" method:"get" summary:"聊天详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -19,7 +19,7 @@ type DetailRes struct {
 
 // 聊天分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" tags:"chat" method:"post" summary:"聊天分页列表接口"`
+	g.Meta `path:"/page" tags:"log/chat" method:"post" summary:"聊天分页列表接口"`
 	model.ChatPageReq
 }
 
@@ -31,7 +31,7 @@ type PageRes struct {
 
 // 聊天导出接口请求参数
 type ExportReq struct {
-	g.Meta `path:"/export" tags:"chat" method:"post" summary:"聊天导出接口"`
+	g.Meta `path:"/export" tags:"log/chat" method:"post" summary:"聊天导出接口"`
 	model.ChatExportReq
 }
 
@@ -42,7 +42,7 @@ type ExportRes struct {
 
 // 聊天批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" tags:"chat" method:"post" summary:"聊天批量操作接口"`
+	g.Meta `path:"/batch/operate" tags:"log/chat" method:"post" summary:"聊天批量操作接口"`
 	model.ChatBatchOperateReq
 }
 
