@@ -76,9 +76,12 @@ func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result interfa
 
 	paging.GetPages()
 
+	allowDiskUse := true
 	findOptions := []*options.FindOptions{{
 		Skip:  &paging.StartNums,
 		Limit: &paging.PageSize,
+	}, {
+		AllowDiskUse: &allowDiskUse,
 	}}
 
 	if len(sortFields) > 0 {
