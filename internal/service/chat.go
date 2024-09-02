@@ -21,6 +21,8 @@ type (
 		Export(ctx context.Context, params model.ChatExportReq) (string, error)
 		// 聊天批量操作
 		BatchOperate(ctx context.Context, params model.ChatBatchOperateReq) error
+		// 聊天日志详情复制字段值
+		CopyField(ctx context.Context, params model.ChatCopyFieldReq) (string, error)
 	}
 )
 

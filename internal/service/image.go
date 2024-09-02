@@ -17,6 +17,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.Image, error)
 		// 绘图日志分页列表
 		Page(ctx context.Context, params model.ImagePageReq) (*model.ImagePageRes, error)
+		// 绘图日志详情复制字段值
+		CopyField(ctx context.Context, params model.ImageCopyFieldReq) (string, error)
 	}
 )
 

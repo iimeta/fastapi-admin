@@ -232,3 +232,26 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 		},
 	}, nil
 }
+
+// 绘图日志详情复制字段值
+func (s *sImage) CopyField(ctx context.Context, params model.ImageCopyFieldReq) (string, error) {
+
+	result, err := dao.Image.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
+		return "", errors.ERR_UNAUTHORIZED
+	}
+
+	switch params.Field {
+	case "key":
+		return result.Key, nil
+	case "creator":
+		return result.Creator, nil
+	}
+
+	return "", nil
+}

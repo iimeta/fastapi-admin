@@ -331,3 +331,26 @@ func (s *sChat) BatchOperate(ctx context.Context, params model.ChatBatchOperateR
 
 	return nil
 }
+
+// 聊天日志详情复制字段值
+func (s *sChat) CopyField(ctx context.Context, params model.ChatCopyFieldReq) (string, error) {
+
+	result, err := dao.Chat.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
+		return "", errors.ERR_UNAUTHORIZED
+	}
+
+	switch params.Field {
+	case "key":
+		return result.Key, nil
+	case "creator":
+		return result.Creator, nil
+	}
+
+	return "", nil
+}

@@ -20,10 +20,21 @@ type AudioPageReq struct {
 	ReqTime   []string `json:"req_time,omitempty"`   // 请求时间
 }
 
-// 绘图分页列表接口响应参数
+// 音频分页列表接口响应参数
 type AudioPageRes struct {
 	Items  []*Audio `json:"items"`
 	Paging *Paging  `json:"paging"`
+}
+
+// 音频日志详情复制字段值接口请求参数
+type AudioCopyFieldReq struct {
+	Id    string `json:"id"`
+	Field string `json:"field"`
+}
+
+// 音频日志详情复制字段值接口响应参数
+type AudioCopyFieldRes struct {
+	Value string `json:"value"`
 }
 
 type Audio struct {

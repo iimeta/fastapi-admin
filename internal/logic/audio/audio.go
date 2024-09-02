@@ -216,3 +216,26 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 		},
 	}, nil
 }
+
+// 音频日志详情复制字段值
+func (s *sAudio) CopyField(ctx context.Context, params model.AudioCopyFieldReq) (string, error) {
+
+	result, err := dao.Audio.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
+		return "", errors.ERR_UNAUTHORIZED
+	}
+
+	switch params.Field {
+	case "key":
+		return result.Key, nil
+	case "creator":
+		return result.Creator, nil
+	}
+
+	return "", nil
+}

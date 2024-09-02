@@ -26,6 +26,17 @@ type ImagePageRes struct {
 	Paging *Paging  `json:"paging"`
 }
 
+// 绘图日志详情复制字段值接口请求参数
+type ImageCopyFieldReq struct {
+	Id    string `json:"id"`
+	Field string `json:"field"`
+}
+
+// 绘图日志详情复制字段值接口响应参数
+type ImageCopyFieldRes struct {
+	Value string `json:"value"`
+}
+
 type Image struct {
 	Id                   string                 `json:"id,omitempty"`                      // ID
 	TraceId              string                 `json:"trace_id,omitempty"`                // 日志ID

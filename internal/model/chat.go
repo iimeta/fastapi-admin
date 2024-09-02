@@ -1,6 +1,8 @@
 package model
 
-import "github.com/iimeta/fastapi-admin/internal/model/common"
+import (
+	"github.com/iimeta/fastapi-admin/internal/model/common"
+)
 
 // 聊天详情接口响应参数
 type ChatDetailRes struct {
@@ -37,6 +39,17 @@ type ChatBatchOperateReq struct {
 	Action string   `json:"action"` // 动作
 	Ids    []string `json:"ids"`    // 主键Ids
 	Value  any      `json:"value"`  // 值
+}
+
+// 聊天日志详情复制字段值接口请求参数
+type ChatCopyFieldReq struct {
+	Id    string `json:"id"`
+	Field string `json:"field"`
+}
+
+// 聊天日志详情复制字段值接口响应参数
+type ChatCopyFieldRes struct {
+	Value string `json:"value"`
 }
 
 type Chat struct {

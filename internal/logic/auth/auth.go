@@ -18,6 +18,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
+	"github.com/iimeta/fastapi-admin/utility/cache"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
@@ -28,14 +29,18 @@ import (
 	"time"
 )
 
-type sAuth struct{}
+type sAuth struct {
+	tokenCache *cache.Cache // [token]User
+}
 
 func init() {
 	service.RegisterAuth(New())
 }
 
 func New() service.IAuth {
-	return &sAuth{}
+	return &sAuth{
+		tokenCache: cache.New(),
+	}
 }
 
 // 注册接口
@@ -360,6 +365,11 @@ func (s *sAuth) Logout(ctx context.Context) error {
 		return err
 	}
 
+	if _, err := s.tokenCache.Remove(ctx, key); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 
@@ -392,7 +402,16 @@ func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSessio
 	token = util.NewKey(consts.USER_TOKEN_PREFIX, 32, gconv.String(user.UserId))
 
 	if isSaveSession {
-		err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 3600*6)
+
+		if err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 3600*6); err != nil {
+			logger.Error(ctx, err)
+			return
+		}
+
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Second*3600*6); err != nil {
+			logger.Errorf(ctx, "GenUserToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
+			return
+		}
 	}
 
 	return token, err
@@ -400,6 +419,10 @@ func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSessio
 
 // 根据Token获取用户信息
 func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, error) {
+
+	if tokenCache := s.tokenCache.GetVal(ctx, fmt.Sprintf(consts.USER_SESSION, token)); tokenCache != nil {
+		return tokenCache.(*model.User), nil
+	}
 
 	reply, err := redis.Get(ctx, fmt.Sprintf(consts.USER_SESSION, token))
 	if err != nil {
@@ -417,6 +440,14 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 		return nil, err
 	}
 
+	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.USER_SESSION, token)); err != nil {
+		logger.Error(ctx, err)
+	} else {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Second*time.Duration(ttl)); err != nil {
+			logger.Errorf(ctx, "GetUserByToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
+		}
+	}
+
 	return user, nil
 }
 
@@ -426,7 +457,16 @@ func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSave
 	token = util.NewKey(consts.ADMIN_TOKEN_PREFIX, 32, admin.Id)
 
 	if isSaveSession {
-		err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), 3600*6)
+
+		if err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), 3600*6); err != nil {
+			logger.Error(ctx, err)
+			return
+		}
+
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Second*3600*6); err != nil {
+			logger.Errorf(ctx, "GenAdminToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
+			return
+		}
 	}
 
 	return token, err
@@ -434,6 +474,10 @@ func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSave
 
 // 根据Token获取管理员信息
 func (s *sAuth) GetAdminByToken(ctx context.Context, token string) (*model.SysAdmin, error) {
+
+	if tokenCache := s.tokenCache.GetVal(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token)); tokenCache != nil {
+		return tokenCache.(*model.SysAdmin), nil
+	}
 
 	reply, err := redis.Get(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token))
 	if err != nil {
@@ -449,6 +493,14 @@ func (s *sAuth) GetAdminByToken(ctx context.Context, token string) (*model.SysAd
 	if err = reply.Struct(&admin); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token)); err != nil {
+		logger.Error(ctx, err)
+	} else {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Second*time.Duration(ttl)); err != nil {
+			logger.Errorf(ctx, "GetAdminByToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
+		}
 	}
 
 	return admin, nil

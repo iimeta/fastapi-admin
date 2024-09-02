@@ -50,3 +50,15 @@ type BatchOperateReq struct {
 type BatchOperateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 聊天日志详情复制字段值接口请求参数
+type CopyFieldReq struct {
+	g.Meta `path:"/copy/field" tags:"log/chat" method:"post" summary:"聊天日志详情复制字段值详情接口"`
+	model.ChatCopyFieldReq
+}
+
+// 聊天日志详情复制字段值接口响应参数
+type CopyFieldRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ChatCopyFieldRes
+}

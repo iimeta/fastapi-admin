@@ -15,4 +15,5 @@ type IChatV1 interface {
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 	Export(ctx context.Context, req *v1.ExportReq) (res *v1.ExportRes, err error)
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
+	CopyField(ctx context.Context, req *v1.CopyFieldReq) (res *v1.CopyFieldRes, err error)
 }

@@ -13,10 +13,12 @@ import (
 
 type (
 	IAudio interface {
-		// 绘图日志详情
+		// 音频日志详情
 		Detail(ctx context.Context, id string) (*model.Audio, error)
-		// 绘图日志分页列表
+		// 音频日志分页列表
 		Page(ctx context.Context, params model.AudioPageReq) (*model.AudioPageRes, error)
+		// 音频日志详情复制字段值
+		CopyField(ctx context.Context, params model.AudioCopyFieldReq) (string, error)
 	}
 )
 

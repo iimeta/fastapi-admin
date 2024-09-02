@@ -28,3 +28,15 @@ type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.AudioPageRes
 }
+
+// 音频日志详情复制字段值接口请求参数
+type CopyFieldReq struct {
+	g.Meta `path:"/copy/field" tags:"log/audio" method:"post" summary:"音频日志详情复制字段值详情接口"`
+	model.AudioCopyFieldReq
+}
+
+// 音频日志详情复制字段值接口响应参数
+type CopyFieldRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.AudioCopyFieldRes
+}

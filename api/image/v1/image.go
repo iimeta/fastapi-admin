@@ -28,3 +28,15 @@ type PageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.ImagePageRes
 }
+
+// 绘图日志详情复制字段值接口请求参数
+type CopyFieldReq struct {
+	g.Meta `path:"/copy/field" tags:"log/image" method:"post" summary:"绘图日志详情复制字段值详情接口"`
+	model.ImageCopyFieldReq
+}
+
+// 绘图日志详情复制字段值接口响应参数
+type CopyFieldRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ImageCopyFieldRes
+}
