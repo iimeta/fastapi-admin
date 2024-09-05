@@ -127,13 +127,15 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 	}
 
 	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, &do.Key{
-		Corp:         params.Corp,
-		Key:          params.Key,
-		Models:       params.Models,
-		ModelAgents:  params.ModelAgents,
-		IsAgentsOnly: params.IsAgentsOnly,
-		Remark:       params.Remark,
-		Status:       params.Status,
+		Corp:               params.Corp,
+		Key:                params.Key,
+		Models:             params.Models,
+		ModelAgents:        params.ModelAgents,
+		IsAgentsOnly:       params.IsAgentsOnly,
+		Remark:             params.Remark,
+		Status:             params.Status,
+		IsAutoDisabled:     oldData.IsAutoDisabled,
+		AutoDisabledReason: oldData.AutoDisabledReason,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -156,7 +158,9 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error {
 
 	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"status": params.Status,
+		"status":               params.Status,
+		"is_auto_disabled":     false,
+		"auto_disabled_reason": "",
 	})
 	if err != nil {
 		logger.Error(ctx, err)

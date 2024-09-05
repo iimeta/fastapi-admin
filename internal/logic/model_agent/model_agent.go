@@ -126,13 +126,15 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}
 
 	if err = dao.ModelAgent.UpdateById(ctx, params.Id, &do.ModelAgent{
-		Corp:    params.Corp,
-		Name:    gstr.Trim(params.Name),
-		BaseUrl: params.BaseUrl,
-		Path:    params.Path,
-		Weight:  params.Weight,
-		Remark:  params.Remark,
-		Status:  params.Status,
+		Corp:               params.Corp,
+		Name:               gstr.Trim(params.Name),
+		BaseUrl:            params.BaseUrl,
+		Path:               params.Path,
+		Weight:             params.Weight,
+		Remark:             params.Remark,
+		Status:             params.Status,
+		IsAutoDisabled:     oldData.IsAutoDisabled,
+		AutoDisabledReason: oldData.AutoDisabledReason,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -277,7 +279,9 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) error {
 
 	if err := dao.ModelAgent.UpdateById(ctx, params.Id, bson.M{
-		"status": params.Status,
+		"status":               params.Status,
+		"is_auto_disabled":     false,
+		"auto_disabled_reason": "",
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
