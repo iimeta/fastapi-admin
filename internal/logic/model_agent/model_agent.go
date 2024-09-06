@@ -40,8 +40,8 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
 		Corp:    params.Corp,
 		Name:    gstr.Trim(params.Name),
-		BaseUrl: params.BaseUrl,
-		Path:    params.Path,
+		BaseUrl: gstr.Trim(params.BaseUrl),
+		Path:    gstr.Trim(params.Path),
 		Weight:  params.Weight,
 		Remark:  params.Remark,
 		Status:  params.Status,
@@ -72,7 +72,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 			IsAgentsOnly: params.IsAgentsOnly,
 			Remark:       params.Remark,
 			Status:       params.Status,
-		}); err != nil {
+		}, true); err != nil {
 			logger.Error(ctx, err)
 			return "", err
 		}
@@ -128,8 +128,8 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	if err = dao.ModelAgent.UpdateById(ctx, params.Id, &do.ModelAgent{
 		Corp:               params.Corp,
 		Name:               gstr.Trim(params.Name),
-		BaseUrl:            params.BaseUrl,
-		Path:               params.Path,
+		BaseUrl:            gstr.Trim(params.BaseUrl),
+		Path:               gstr.Trim(params.Path),
 		Weight:             params.Weight,
 		Remark:             params.Remark,
 		Status:             params.Status,
@@ -191,7 +191,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 			IsAgentsOnly: params.IsAgentsOnly,
 			Remark:       params.Remark,
 			Status:       params.Status,
-		}); err != nil {
+		}, true); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
@@ -404,22 +404,24 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 	}
 
 	return &model.ModelAgent{
-		Id:         modelAgent.Id,
-		Corp:       modelAgent.Corp,
-		CorpName:   corpName,
-		Name:       modelAgent.Name,
-		BaseUrl:    modelAgent.BaseUrl,
-		Path:       modelAgent.Path,
-		Weight:     modelAgent.Weight,
-		Models:     models,
-		ModelNames: modelNames,
-		Key:        gstr.Join(keys, "\n"),
-		Remark:     modelAgent.Remark,
-		Status:     modelAgent.Status,
-		Creator:    modelAgent.Creator,
-		Updater:    modelAgent.Updater,
-		CreatedAt:  util.FormatDateTime(modelAgent.CreatedAt),
-		UpdatedAt:  util.FormatDateTime(modelAgent.UpdatedAt),
+		Id:                 modelAgent.Id,
+		Corp:               modelAgent.Corp,
+		CorpName:           corpName,
+		Name:               modelAgent.Name,
+		BaseUrl:            modelAgent.BaseUrl,
+		Path:               modelAgent.Path,
+		Weight:             modelAgent.Weight,
+		Models:             models,
+		ModelNames:         modelNames,
+		Key:                gstr.Join(keys, "\n"),
+		Remark:             modelAgent.Remark,
+		Status:             modelAgent.Status,
+		IsAutoDisabled:     modelAgent.IsAutoDisabled,
+		AutoDisabledReason: modelAgent.AutoDisabledReason,
+		Creator:            modelAgent.Creator,
+		Updater:            modelAgent.Updater,
+		CreatedAt:          util.FormatDateTime(modelAgent.CreatedAt),
+		UpdatedAt:          util.FormatDateTime(modelAgent.UpdatedAt),
 	}, nil
 }
 
@@ -514,18 +516,20 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		}
 
 		items = append(items, &model.ModelAgent{
-			Id:         result.Id,
-			Corp:       result.Corp,
-			CorpName:   corpName,
-			Name:       result.Name,
-			BaseUrl:    result.BaseUrl,
-			Path:       result.Path,
-			Weight:     result.Weight,
-			Models:     modelMap[result.Id],
-			ModelNames: modelNameMap[result.Id],
-			Status:     result.Status,
-			CreatedAt:  util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:  util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:                 result.Id,
+			Corp:               result.Corp,
+			CorpName:           corpName,
+			Name:               result.Name,
+			BaseUrl:            result.BaseUrl,
+			Path:               result.Path,
+			Weight:             result.Weight,
+			Models:             modelMap[result.Id],
+			ModelNames:         modelNameMap[result.Id],
+			Status:             result.Status,
+			IsAutoDisabled:     result.IsAutoDisabled,
+			AutoDisabledReason: result.AutoDisabledReason,
+			CreatedAt:          util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:          util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

@@ -31,7 +31,7 @@ func New() service.IKey {
 }
 
 // 新建密钥
-func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
+func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAgent bool) error {
 
 	keys := gstr.Split(gstr.Trim(params.Key), "\n")
 
@@ -60,7 +60,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 
 				id, err := dao.Key.Insert(ctx, &do.Key{
 					Corp:         params.Corp,
-					Key:          k,
+					Key:          gstr.Trim(k),
 					Type:         2,
 					Models:       params.Models,
 					ModelAgents:  params.ModelAgents,
@@ -102,9 +102,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 					Models:       modelSet.Slice(),
 					ModelAgents:  modelAgentSet.Slice(),
 					IsAgentsOnly: params.IsAgentsOnly,
-					Remark:       params.Remark,
-					Status:       params.Status,
-				}); err != nil {
+				}, isModelAgent); err != nil {
 					logger.Error(ctx, err)
 				}
 			}
@@ -118,7 +116,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq) error {
 }
 
 // 更新密钥
-func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
+func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAgent bool) error {
 
 	oldData, err := dao.Key.FindById(ctx, params.Id)
 	if err != nil {
@@ -126,9 +124,14 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq) error {
 		return err
 	}
 
+	if isModelAgent {
+		params.Remark = oldData.Remark
+		params.Status = oldData.Status
+	}
+
 	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, &do.Key{
 		Corp:               params.Corp,
-		Key:                params.Key,
+		Key:                gstr.Trim(params.Key),
 		Models:             params.Models,
 		ModelAgents:        params.ModelAgents,
 		IsAgentsOnly:       params.IsAgentsOnly,
@@ -236,29 +239,31 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 	}
 
 	return &model.Key{
-		Id:              key.Id,
-		AppId:           key.AppId,
-		Corp:            key.Corp,
-		CorpName:        corpName,
-		Key:             key.Key,
-		Type:            key.Type,
-		Models:          key.Models,
-		ModelNames:      modelNames,
-		ModelAgents:     key.ModelAgents,
-		ModelAgentNames: modelAgentNames,
-		IsAgentsOnly:    key.IsAgentsOnly,
-		IsLimitQuota:    key.IsLimitQuota,
-		Quota:           key.Quota,
-		UsedQuota:       key.UsedQuota,
-		QuotaExpiresAt:  util.FormatDateTime(key.QuotaExpiresAt),
-		IpWhitelist:     key.IpWhitelist,
-		IpBlacklist:     key.IpBlacklist,
-		Remark:          key.Remark,
-		Status:          key.Status,
-		Creator:         key.Creator,
-		Updater:         key.Updater,
-		CreatedAt:       util.FormatDateTime(key.CreatedAt),
-		UpdatedAt:       util.FormatDateTime(key.UpdatedAt),
+		Id:                 key.Id,
+		AppId:              key.AppId,
+		Corp:               key.Corp,
+		CorpName:           corpName,
+		Key:                key.Key,
+		Type:               key.Type,
+		Models:             key.Models,
+		ModelNames:         modelNames,
+		ModelAgents:        key.ModelAgents,
+		ModelAgentNames:    modelAgentNames,
+		IsAgentsOnly:       key.IsAgentsOnly,
+		IsLimitQuota:       key.IsLimitQuota,
+		Quota:              key.Quota,
+		UsedQuota:          key.UsedQuota,
+		QuotaExpiresAt:     util.FormatDateTime(key.QuotaExpiresAt),
+		IpWhitelist:        key.IpWhitelist,
+		IpBlacklist:        key.IpBlacklist,
+		Remark:             key.Remark,
+		Status:             key.Status,
+		IsAutoDisabled:     key.IsAutoDisabled,
+		AutoDisabledReason: key.AutoDisabledReason,
+		Creator:            key.Creator,
+		Updater:            key.Updater,
+		CreatedAt:          util.FormatDateTime(key.CreatedAt),
+		UpdatedAt:          util.FormatDateTime(key.UpdatedAt),
 	}, nil
 }
 
@@ -363,25 +368,27 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		}
 
 		items = append(items, &model.Key{
-			Id:              result.Id,
-			AppId:           result.AppId,
-			Corp:            result.Corp,
-			CorpName:        corpName,
-			Key:             util.Desensitize(result.Key),
-			Type:            result.Type,
-			Models:          result.Models,
-			ModelNames:      modelNames,
-			ModelAgents:     result.ModelAgents,
-			ModelAgentNames: modelAgentNames,
-			IsAgentsOnly:    result.IsAgentsOnly,
-			IsLimitQuota:    result.IsLimitQuota,
-			Quota:           result.Quota,
-			UsedQuota:       result.UsedQuota,
-			QuotaExpiresAt:  util.FormatDateTime(result.QuotaExpiresAt),
-			Remark:          result.Remark,
-			Status:          result.Status,
-			CreatedAt:       util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:       util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:                 result.Id,
+			AppId:              result.AppId,
+			Corp:               result.Corp,
+			CorpName:           corpName,
+			Key:                util.Desensitize(result.Key),
+			Type:               result.Type,
+			Models:             result.Models,
+			ModelNames:         modelNames,
+			ModelAgents:        result.ModelAgents,
+			ModelAgentNames:    modelAgentNames,
+			IsAgentsOnly:       result.IsAgentsOnly,
+			IsLimitQuota:       result.IsLimitQuota,
+			Quota:              result.Quota,
+			UsedQuota:          result.UsedQuota,
+			QuotaExpiresAt:     util.FormatDateTime(result.QuotaExpiresAt),
+			Remark:             result.Remark,
+			Status:             result.Status,
+			IsAutoDisabled:     result.IsAutoDisabled,
+			AutoDisabledReason: result.AutoDisabledReason,
+			CreatedAt:          util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:          util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 

@@ -15,7 +15,7 @@ func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateReq) (res *v1.C
 		return
 	}
 
-	err = service.Key().Create(ctx, req.KeyCreateReq)
+	err = service.Key().Create(ctx, req.KeyCreateReq, false)
 
 	return
 }

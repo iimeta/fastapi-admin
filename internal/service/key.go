@@ -15,9 +15,9 @@ import (
 type (
 	IKey interface {
 		// 新建密钥
-		Create(ctx context.Context, params model.KeyCreateReq) error
+		Create(ctx context.Context, params model.KeyCreateReq, isModelAgent bool) error
 		// 更新密钥
-		Update(ctx context.Context, params model.KeyUpdateReq) error
+		Update(ctx context.Context, params model.KeyUpdateReq, isModelAgent bool) error
 		// 更改密钥状态
 		ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error
 		// 删除密钥
