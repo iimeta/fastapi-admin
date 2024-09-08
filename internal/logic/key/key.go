@@ -2,9 +2,11 @@ package key
 
 import (
 	"context"
+	"errors"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -18,6 +20,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"time"
 )
 
 type sKey struct{}
@@ -124,6 +127,10 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 		return err
 	}
 
+	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	if isModelAgent {
 		params.Remark = oldData.Remark
 		params.Status = oldData.Status
@@ -160,6 +167,19 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 // 更改密钥状态
 func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error {
 
+	if service.Session().IsUserRole(ctx) {
+
+		key, err := dao.Key.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if key.UserId != service.Session().GetUserId(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
 	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status":               params.Status,
 		"is_auto_disabled":     false,
@@ -170,7 +190,13 @@ func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+	channel := consts.CHANGE_CHANNEL_KEY
+
+	if key.Type == 1 {
+		channel = consts.CHANGE_CHANNEL_APP_KEY
+	}
+
+	if _, err = redis.Publish(ctx, channel, model.PubMessage{
 		Action:  consts.ACTION_STATUS,
 		NewData: key,
 	}); err != nil {
@@ -184,13 +210,32 @@ func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq
 // 删除密钥
 func (s *sKey) Delete(ctx context.Context, id string) error {
 
+	if service.Session().IsUserRole(ctx) {
+
+		key, err := dao.Key.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if key.UserId != service.Session().GetUserId(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
 	key, err := dao.Key.FindOneAndDeleteById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+	channel := consts.CHANGE_CHANNEL_KEY
+
+	if key.Type == 1 {
+		channel = consts.CHANGE_CHANNEL_APP_KEY
+	}
+
+	if _, err = redis.Publish(ctx, channel, model.PubMessage{
 		Action:  consts.ACTION_DELETE,
 		OldData: key,
 	}); err != nil {
@@ -208,6 +253,10 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	if service.Session().IsUserRole(ctx) && key.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.New("Unauthorized")
 	}
 
 	corpName := key.Corp
@@ -279,6 +328,12 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		"type": params.Type,
 	}
 
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else if params.UserId != 0 {
+		filter["user_id"] = params.UserId
+	}
+
 	if params.Corp != "" {
 		filter["corp"] = params.Corp
 	}
@@ -307,6 +362,22 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 
 	if params.Status != 0 {
 		filter["status"] = params.Status
+	}
+
+	if params.Quota != 0 {
+		filter["is_limit_quota"] = true
+		filter["quota"] = bson.M{
+			"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+		}
+	}
+
+	if len(params.QuotaExpiresAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		filter["quota_expires_at"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
 	}
 
 	results, err := dao.Key.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
@@ -369,6 +440,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 
 		items = append(items, &model.Key{
 			Id:                 result.Id,
+			UserId:             result.UserId,
 			AppId:              result.AppId,
 			Corp:               result.Corp,
 			CorpName:           corpName,
@@ -493,6 +565,10 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 		return err
 	}
 
+	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	newData, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"models": params.Models,
 	})
@@ -501,7 +577,13 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+	channel := consts.CHANGE_CHANNEL_KEY
+
+	if newData.Type == 1 {
+		channel = consts.CHANGE_CHANNEL_APP_KEY
+	}
+
+	if _, err = redis.Publish(ctx, channel, model.PubMessage{
 		Action:  consts.ACTION_MODELS,
 		OldData: oldData,
 		NewData: newData,

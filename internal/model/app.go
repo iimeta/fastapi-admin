@@ -2,8 +2,8 @@ package model
 
 // 新建应用接口请求参数
 type AppCreateReq struct {
+	UserId         int      `json:"user_id,omitempty"`          // 用户ID
 	Name           string   `json:"name,omitempty"`             // 应用名称
-	Type           int      `json:"type,omitempty"`             // 应用类型
 	Models         []string `json:"models,omitempty"`           // 模型权限
 	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
 	Quota          int      `json:"quota,omitempty"`            // 额度
@@ -19,7 +19,6 @@ type AppCreateReq struct {
 type AppUpdateReq struct {
 	Id             string   `json:"id,omitempty"`               // ID
 	Name           string   `json:"name,omitempty"`             // 应用名称
-	Type           int      `json:"type,omitempty"`             // 应用类型
 	Models         []string `json:"models,omitempty" d:"[]"`    // 模型权限
 	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
 	Quota          int      `json:"quota,omitempty"`            // 额度
@@ -44,17 +43,14 @@ type AppDetailRes struct {
 // 应用分页列表接口请求参数
 type AppPageReq struct {
 	Paging
+	UserId         int      `json:"user_id,omitempty"`          // 用户ID
 	AppId          int      `json:"app_id,omitempty"`           // 应用ID
 	Name           string   `json:"name,omitempty"`             // 应用名称
-	Type           int      `json:"type,omitempty"`             // 应用类型
+	AppKey         string   `json:"app_key,omitempty"`          // 应用密钥
 	Models         []string `json:"models,omitempty"`           // 模型权限
 	Quota          int      `json:"quota,omitempty"`            // 额度
-	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
-	IpWhitelist    []string `json:"ip_whitelist,omitempty"`     // IP白名单
-	IpBlacklist    []string `json:"ip_blacklist,omitempty"`     // IP黑名单
-	Remark         string   `json:"remark,omitempty"`           // 备注
+	QuotaExpiresAt []string `json:"quota_expires_at,omitempty"` // 额度过期时间
 	Status         int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt      []string `json:"created_at,omitempty"`       // 创建时间
 }
 
 // 应用分页列表接口响应参数
@@ -65,15 +61,14 @@ type AppPageRes struct {
 
 // 应用列表接口请求参数
 type AppListReq struct {
-	AppId       int      `json:"app_id,omitempty"`       // 应用ID
-	Name        string   `json:"name,omitempty"`         // 应用名称
-	Type        int      `json:"type,omitempty"`         // 应用类型
-	Models      []string `json:"models,omitempty"`       // 模型权限
-	Quota       int      `json:"quota,omitempty"`        // 额度
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	UserId         int      `json:"user_id,omitempty"`          // 用户ID
+	AppId          int      `json:"app_id,omitempty"`           // 应用ID
+	Name           string   `json:"name,omitempty"`             // 应用名称
+	AppKey         string   `json:"app_key,omitempty"`          // 应用密钥
+	Models         []string `json:"models,omitempty"`           // 模型权限
+	Quota          int      `json:"quota,omitempty"`            // 额度
+	QuotaExpiresAt []string `json:"quota_expires_at,omitempty"` // 额度过期时间
+	Status         int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 应用列表接口响应参数
@@ -83,7 +78,8 @@ type AppListRes struct {
 
 // 新建应用密钥接口请求参数
 type AppCreateKeyReq struct {
-	AppId int `json:"app_id,omitempty"` // 应用ID
+	UserId int `json:"user_id,omitempty"` // 用户ID
+	AppId  int `json:"app_id,omitempty"`  // 应用ID
 }
 
 // 新建应用密钥接口响应参数
@@ -95,6 +91,7 @@ type AppCreateKeyRes struct {
 // 应用密钥配置接口请求参数
 type AppKeyConfigReq struct {
 	Id             string   `json:"id,omitempty"`               // ID
+	UserId         int      `json:"user_id,omitempty"`          // 用户ID
 	AppId          int      `json:"app_id,omitempty"`           // 应用ID
 	Key            string   `json:"key,omitempty"`              // 密钥
 	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
@@ -117,7 +114,6 @@ type App struct {
 	Id             string   `json:"id,omitempty"`               // ID
 	AppId          int      `json:"app_id,omitempty"`           // 应用ID
 	Name           string   `json:"name,omitempty"`             // 应用名称
-	Type           int      `json:"type,omitempty"`             // 应用类型
 	Models         []string `json:"models,omitempty"`           // 模型权限
 	ModelNames     []string `json:"model_names,omitempty"`      // 模型名称
 	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
@@ -128,6 +124,7 @@ type App struct {
 	IpBlacklist    []string `json:"ip_blacklist,omitempty"`     // IP黑名单
 	Remark         string   `json:"remark,omitempty"`           // 备注
 	Status         int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
+	UserId         int      `json:"user_id,omitempty"`          // 用户ID
 	Creator        string   `json:"creator,omitempty"`          // 创建人
 	Updater        string   `json:"updater,omitempty"`          // 更新人
 	CreatedAt      string   `json:"created_at,omitempty"`       // 创建时间

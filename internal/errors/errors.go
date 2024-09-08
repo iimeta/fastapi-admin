@@ -10,6 +10,7 @@ var (
 	ERR_SERVER_ERROR    = gerror.NewCode(gcode.New(-1, "Server errors", nil))
 	ERR_UNAUTHORIZED    = gerror.NewCode(gcode.New(999, "Unauthorized", nil))
 	ERR_INVALID_ACCOUNT = gerror.NewCode(gcode.New(10001, "Invalid Phone", nil))
+	ERR_INVALID_API_KEY = gerror.NewCode(gcode.New(10002, "无效的应用密钥", nil))
 )
 
 func New(text string) error {

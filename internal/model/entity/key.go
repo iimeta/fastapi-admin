@@ -3,7 +3,7 @@ package entity
 import "github.com/gogf/gf/v2/util/gmeta"
 
 type Key struct {
-	gmeta.Meta         `role:"user,admin" bson:"-"`
+	gmeta.Meta         `role:"*" bson:"-"`
 	Id                 string   `bson:"_id,omitempty"`                  // ID
 	UserId             int      `bson:"user_id,omitempty"`              // 用户ID
 	AppId              int      `bson:"app_id,omitempty"`               // 应用ID

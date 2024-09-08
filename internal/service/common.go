@@ -22,6 +22,8 @@ type (
 		GetCode(ctx context.Context, channel, account string) (string, error)
 		DelCode(ctx context.Context, channel, account string) error
 		VerifyCode(ctx context.Context, channel, account, code string) (pass bool)
+		// 解析密钥
+		ParseSecretKey(ctx context.Context, secretKey string) (int, int, error)
 	}
 )
 

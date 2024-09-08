@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
@@ -19,6 +21,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"time"
 )
 
 type sApp struct{}
@@ -34,12 +37,22 @@ func New() service.IApp {
 // 新建应用
 func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, error) {
 
+	userId := service.Session().GetUserId(ctx)
 	appId := core.IncrAppId(ctx)
+
+	if params.UserId != 0 && service.Session().IsAdminRole(ctx) {
+
+		if _, err := service.User().GetUserByUserId(ctx, params.UserId); err != nil {
+			logger.Error(ctx, err)
+			return "", errors.New("用户ID不存在, 请重新输入")
+		}
+
+		userId = params.UserId
+	}
 
 	if _, err := dao.App.Insert(ctx, &do.App{
 		AppId:          appId,
 		Name:           params.Name,
-		Type:           params.Type,
 		Models:         params.Models,
 		IsLimitQuota:   params.IsLimitQuota,
 		Quota:          params.Quota,
@@ -48,7 +61,7 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 		IpBlacklist:    gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:         params.Remark,
 		Status:         params.Status,
-		UserId:         service.Session().GetUserId(ctx),
+		UserId:         userId,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return "", err
@@ -56,13 +69,13 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 
 	if params.IsCreateKey {
 
-		key, err := s.CreateKey(ctx, model.AppCreateKeyReq{AppId: appId})
+		key, err := s.CreateKey(ctx, model.AppCreateKeyReq{UserId: userId, AppId: appId})
 		if err != nil {
 			logger.Error(ctx, err)
 			return "", err
 		}
 
-		if _, err = s.KeyConfig(ctx, model.AppKeyConfigReq{AppId: appId, Key: key, Status: 1}); err != nil {
+		if _, err = s.KeyConfig(ctx, model.AppKeyConfigReq{UserId: userId, AppId: appId, Key: key, Status: 1}); err != nil {
 			logger.Error(ctx, err)
 			return "", err
 		}
@@ -82,9 +95,12 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		return err
 	}
 
+	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, &do.App{
 		Name:           params.Name,
-		Type:           params.Type,
 		Models:         params.Models,
 		IsLimitQuota:   params.IsLimitQuota,
 		Quota:          params.Quota,
@@ -125,6 +141,19 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 // 更改应用状态
 func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq) error {
 
+	if service.Session().IsUserRole(ctx) {
+
+		app, err := dao.App.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if app.UserId != service.Session().GetUserId(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
 	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
 	})
@@ -147,7 +176,26 @@ func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq
 // 删除应用
 func (s *sApp) Delete(ctx context.Context, id string) error {
 
+	if service.Session().IsUserRole(ctx) {
+
+		app, err := dao.App.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if app.UserId != service.Session().GetUserId(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
 	app, err := dao.App.FindOneAndDeleteById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	keys, err := dao.Key.Find(ctx, bson.M{"app_id": app.AppId})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -166,6 +214,16 @@ func (s *sApp) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	for _, key := range keys {
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP_KEY, model.PubMessage{
+			Action:  consts.ACTION_DELETE,
+			OldData: key,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -178,6 +236,10 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		return nil, err
 	}
 
+	if service.Session().IsUserRole(ctx) && app.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.New("Unauthorized")
+	}
+
 	modelNames, err := service.Model().ModelNames(ctx, app.Models)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -188,7 +250,6 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		Id:             app.Id,
 		AppId:          app.AppId,
 		Name:           app.Name,
-		Type:           app.Type,
 		Models:         app.Models,
 		ModelNames:     modelNames,
 		IsLimitQuota:   app.IsLimitQuota,
@@ -199,6 +260,7 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		IpBlacklist:    app.IpBlacklist,
 		Remark:         app.Remark,
 		Status:         app.Status,
+		UserId:         app.UserId,
 		CreatedAt:      util.FormatDateTime(app.CreatedAt),
 		UpdatedAt:      util.FormatDateTime(app.UpdatedAt),
 	}, nil
@@ -214,10 +276,26 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 
 	filter := bson.M{}
 
-	if params.AppId != 0 {
-		filter["app_id"] = bson.M{
-			"$regex": params.AppId,
+	if params.AppKey != "" {
+
+		userId, appId, err := service.Common().ParseSecretKey(ctx, params.AppKey)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
 		}
+
+		params.UserId = userId
+		params.AppId = appId
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else if params.UserId != 0 {
+		filter["user_id"] = params.UserId
+	}
+
+	if params.AppId != 0 {
+		filter["app_id"] = params.AppId
 	}
 
 	if params.Name != "" {
@@ -234,6 +312,15 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 
 	if params.Status != 0 {
 		filter["status"] = params.Status
+	}
+
+	if len(params.QuotaExpiresAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		filter["quota_expires_at"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
 	}
 
 	results, err := dao.App.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
@@ -266,7 +353,6 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			Id:             result.Id,
 			AppId:          result.AppId,
 			Name:           result.Name,
-			Type:           result.Type,
 			Models:         result.Models,
 			ModelNames:     modelNames,
 			IsLimitQuota:   result.IsLimitQuota,
@@ -274,6 +360,7 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			UsedQuota:      result.UsedQuota,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
 			Status:         result.Status,
+			UserId:         result.UserId,
 			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
 		})
@@ -294,6 +381,10 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 
 	filter := bson.M{}
 
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	}
+
 	results, err := dao.App.Find(ctx, filter, "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
@@ -306,7 +397,6 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 			Id:           result.Id,
 			AppId:        result.AppId,
 			Name:         result.Name,
-			Type:         result.Type,
 			IsLimitQuota: result.IsLimitQuota,
 			Quota:        result.Quota,
 			UsedQuota:    result.UsedQuota,
@@ -319,8 +409,15 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 
 // 新建应用密钥
 func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (string, error) {
+
+	userId := service.Session().GetUserId(ctx)
+
+	if params.UserId != 0 && service.Session().IsAdminRole(ctx) {
+		userId = params.UserId
+	}
+
 	// 警告: 固定前缀, 修改请慎重, 可能会引发不可预知问题!!!
-	return util.NewKey("sk-FastAPI", 51, gconv.String(service.Session().GetUserId(ctx)), gconv.String(params.AppId)), nil
+	return util.NewKey("sk-FastAPI", 51, gconv.String(userId), gconv.String(params.AppId)), nil
 }
 
 // 应用密钥配置
@@ -346,12 +443,20 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		}
 	)
 
+	if params.UserId != 0 && service.Session().IsAdminRole(ctx) {
+		key.UserId = params.UserId
+	}
+
 	if params.Id != "" {
 
 		action = consts.ACTION_UPDATE
 		if oldData, err = dao.Key.FindById(ctx, params.Id); err != nil {
 			logger.Error(ctx, err)
 			return "", err
+		}
+
+		if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
+			return "", errors.New("Unauthorized")
 		}
 
 		key.AppId = 0
@@ -422,6 +527,10 @@ func (s *sApp) Models(ctx context.Context, params model.AppModelsReq) error {
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
+		return errors.New("Unauthorized")
 	}
 
 	newData, err := dao.App.FindOneAndUpdate(ctx, bson.M{"app_id": params.AppId}, bson.M{

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -17,6 +19,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
+	"strings"
 	"time"
 )
 
@@ -235,4 +238,28 @@ func ConvQuotaExpiresAt(quotaExpiresAt string) int64 {
 		return 0
 	}
 	return gtime.NewFromStrLayout(quotaExpiresAt, time.DateTime).TimestampMilli() + 999
+}
+
+// 解析密钥
+func (s *sCommon) ParseSecretKey(ctx context.Context, secretKey string) (int, int, error) {
+
+	if !gstr.HasPrefix(secretKey, "sk-FastAPI") {
+		return 0, 0, errors.ERR_INVALID_API_KEY
+	}
+
+	secretKey = strings.TrimPrefix(secretKey, "sk-FastAPI")
+
+	userId, err := gregex.ReplaceString("[a-zA-Z-]*", "", secretKey[:len(secretKey)/2])
+	if err != nil {
+		logger.Error(ctx, err)
+		return 0, 0, err
+	}
+
+	appId, err := gregex.ReplaceString("[a-zA-Z-]*", "", secretKey[len(secretKey)/2:])
+	if err != nil {
+		logger.Error(ctx, err)
+		return 0, 0, err
+	}
+
+	return gconv.Int(userId), gconv.Int(appId), nil
 }
