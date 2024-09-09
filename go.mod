@@ -1,12 +1,12 @@
 module github.com/iimeta/fastapi-admin
 
-go 1.22
+go 1.23
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/go-redsync/redsync/v4 v4.13.0
-	github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.2
-	github.com/gogf/gf/v2 v2.7.2
+	github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.3
+	github.com/gogf/gf/v2 v2.7.3
 	github.com/gorilla/websocket v1.5.3
 	github.com/redis/go-redis/v9 v9.6.1
 	github.com/tjfoc/gmsm v1.4.1

@@ -41,10 +41,10 @@ github.com/go-redis/redis/v8 v8.11.5 h1:AcZZR7igkdvfVmQTPnu9WE37LRrO/YrBH5zWyjDC
 github.com/go-redis/redis/v8 v8.11.5/go.mod h1:gREzHqY1hg6oD9ngVRbLStwAWKhA0FEgq8Jd4h5lpwo=
 github.com/go-redsync/redsync/v4 v4.13.0 h1:49X6GJfnbLGaIpBBREM/zA4uIMDXKAh1NDkvQ1EkZKA=
 github.com/go-redsync/redsync/v4 v4.13.0/go.mod h1:HMW4Q224GZQz6x1Xc7040Yfgacukdzu7ifTDAKiyErQ=
-github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.2 h1:V1hdGnyjU9kT0I3DDDFDl6Ll8yC6aAIFJa/lMQwB8V4=
-github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.2/go.mod h1:XzkPv3G8TdKczqoB/ydR3bxvBRdQLQNCOCEgxso/c3o=
-github.com/gogf/gf/v2 v2.7.2 h1:uZDfyblasI12lZUtFd1mfxsIr8b14cd/F88DJUTCSDM=
-github.com/gogf/gf/v2 v2.7.2/go.mod h1:EBXneAg/wes86rfeh68XC0a2JBNQylmT7Sp6/8Axk88=
+github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.3 h1:DUnJFoxLgOMmUjbybZ6X7x9G3vS8eujq5hbnBMTSyLs=
+github.com/gogf/gf/contrib/nosql/redis/v2 v2.7.3/go.mod h1:3GNHVmnA/dnTsMFOWQw65AsFTJBHI9xpIUc4lwyPNig=
+github.com/gogf/gf/v2 v2.7.3 h1:0RTqeDYJOrD/FpiSsEopTs5SvYg+u6WPtS0TaXJcGoQ=
+github.com/gogf/gf/v2 v2.7.3/go.mod h1:EBXneAg/wes86rfeh68XC0a2JBNQylmT7Sp6/8Axk88=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
