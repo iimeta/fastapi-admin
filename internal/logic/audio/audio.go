@@ -112,6 +112,10 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 				Status:   result.ModelAgent.Status,
 			}
 		}
+
+		if audio.Type == 6 {
+			audio.Input = result.FilePath
+		}
 	}
 
 	return audio, nil
