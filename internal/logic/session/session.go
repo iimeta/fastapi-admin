@@ -89,7 +89,7 @@ func (s *sSession) GetUserId(ctx context.Context) int {
 
 	userId := ctx.Value(consts.SESSION_USER_ID)
 	if userId == nil {
-		logger.Error(ctx, "user_id is nil")
+		logger.Info(ctx, "user_id is nil")
 		return 0
 	}
 

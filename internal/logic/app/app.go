@@ -38,7 +38,6 @@ func New() service.IApp {
 func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, error) {
 
 	userId := service.Session().GetUserId(ctx)
-	appId := core.IncrAppId(ctx)
 
 	if params.UserId != 0 && service.Session().IsAdminRole(ctx) {
 
@@ -49,6 +48,8 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 
 		userId = params.UserId
 	}
+
+	appId := core.IncrAppId(ctx)
 
 	if _, err := dao.App.Insert(ctx, &do.App{
 		AppId:          appId,
@@ -412,7 +413,17 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 
 	userId := service.Session().GetUserId(ctx)
 
-	if params.UserId != 0 && service.Session().IsAdminRole(ctx) {
+	if service.Session().IsAdminRole(ctx) {
+
+		if params.UserId == 0 {
+			app, err := dao.App.FindByAppId(ctx, params.AppId)
+			if err != nil {
+				logger.Error(ctx, err)
+				return "", err
+			}
+			params.UserId = app.UserId
+		}
+
 		userId = params.UserId
 	}
 
@@ -443,8 +454,28 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		}
 	)
 
-	if params.UserId != 0 && service.Session().IsAdminRole(ctx) {
+	if service.Session().IsAdminRole(ctx) {
+
+		if params.UserId == 0 && params.Id == "" {
+			app, err := dao.App.FindByAppId(ctx, params.AppId)
+			if err != nil {
+				logger.Error(ctx, err)
+				return "", err
+			}
+			params.UserId = app.UserId
+		}
+
 		key.UserId = params.UserId
+	}
+
+	userId, appId, err := service.Common().ParseSecretKey(ctx, key.Key)
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	if userId != key.UserId || appId != key.AppId {
+		return "", errors.New("Unauthorized")
 	}
 
 	if params.Id != "" {

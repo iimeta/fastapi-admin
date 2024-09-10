@@ -455,6 +455,8 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Quota:              result.Quota,
 			UsedQuota:          result.UsedQuota,
 			QuotaExpiresAt:     util.FormatDateTime(result.QuotaExpiresAt),
+			IpWhitelist:        result.IpWhitelist,
+			IpBlacklist:        result.IpBlacklist,
 			Remark:             result.Remark,
 			Status:             result.Status,
 			IsAutoDisabled:     result.IsAutoDisabled,
