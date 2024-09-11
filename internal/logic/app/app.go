@@ -468,16 +468,6 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		key.UserId = params.UserId
 	}
 
-	userId, appId, err := service.Common().ParseSecretKey(ctx, key.Key)
-	if err != nil {
-		logger.Error(ctx, err)
-		return "", err
-	}
-
-	if userId != key.UserId || appId != key.AppId {
-		return "", errors.New("Unauthorized")
-	}
-
 	if params.Id != "" {
 
 		action = consts.ACTION_UPDATE
@@ -498,6 +488,16 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		}
 
 	} else {
+
+		userId, appId, err := service.Common().ParseSecretKey(ctx, key.Key)
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		if userId != key.UserId || appId != key.AppId {
+			return "", errors.New("Unauthorized")
+		}
 
 		id, err := dao.Key.Insert(ctx, key)
 		if err != nil {
