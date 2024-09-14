@@ -183,8 +183,6 @@ func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) 
 		return err
 	}
 
-	salt := grand.Letters(8)
-
 	id := util.GenerateId()
 
 	creator := service.Session().GetUid(ctx)
@@ -192,7 +190,9 @@ func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) 
 		creator = id
 	}
 
-	if _, err = dao.SysAdmin.Insert(ctx, &do.SysAdmin{
+	salt := grand.Letters(8)
+
+	sysAdmin := &do.SysAdmin{
 		Id:       id,
 		UserId:   int(count + 1),
 		Name:     params.Name,
@@ -205,7 +205,14 @@ func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) 
 		Remark:   params.Remark,
 		Status:   params.Status,
 		Creator:  creator,
-	}); err != nil {
+	}
+
+	if count == 0 {
+		sysAdmin.IsSuperAdmin = true
+		sysAdmin.IsSysAdmin = true
+	}
+
+	if _, err = dao.SysAdmin.Insert(ctx, sysAdmin); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
