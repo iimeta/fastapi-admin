@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -14,7 +13,7 @@ import (
 
 func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoRes, err error) {
 
-	if gstr.HasPrefix(service.Session().GetToken(ctx), consts.USER_TOKEN_PREFIX) {
+	if service.Session().IsUserRole(ctx) {
 
 		user := service.Session().GetUser(ctx)
 		if user == nil {

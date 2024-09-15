@@ -55,8 +55,10 @@ func (s *sSession) SaveAdmin(ctx context.Context, token string, admin *model.Sys
 
 	r.SetCtxVar(consts.SESSION_TOKEN, token)
 	r.SetCtxVar(consts.SESSION_UID, admin.Id)
+	r.SetCtxVar(consts.SESSION_USER_ID, admin.UserId)
 	r.SetCtxVar(consts.SESSION_ADMIN, admin)
 	r.SetCtxVar(consts.SESSION_ROLE, consts.SESSION_ADMIN)
+	r.SetCtxVar(consts.SESSION_CREATOR, admin.Id)
 
 	return nil
 }

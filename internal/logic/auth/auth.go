@@ -211,13 +211,14 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						return nil, err
 					}
 
-					if accountInfo.Status == 2 {
-						return nil, errors.New("账号已被禁用")
-					}
-
 				} else {
 					logger.Error(ctx, err)
 					return nil, err
+				}
+
+			} else {
+				if accountInfo.Status == 2 {
+					return nil, errors.New("账号已被禁用")
 				}
 			}
 
