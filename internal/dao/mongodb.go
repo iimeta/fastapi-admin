@@ -35,11 +35,20 @@ func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, so
 	var result []*T
 
 	role := gmeta.Get(result, "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	if err := find(ctx, m.Database, m.Collection, filter, &result, sortFields...); err != nil {
@@ -65,11 +74,20 @@ func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{},
 	var result *T
 
 	role := gmeta.Get(result, "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	if err := findOne(ctx, m.Database, m.Collection, filter, &result, sortFields...); err != nil {
@@ -105,8 +123,16 @@ func findById(ctx context.Context, database, collection string, id, result inter
 	filter := bson.M{"_id": id}
 
 	role := gmeta.Get(result, "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		filter["creator"] = service.Session().GetCreator(ctx)
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
+		}
 	}
 
 	m := &db.MongoDB{
@@ -133,8 +159,16 @@ func findByIds(ctx context.Context, database, collection string, ids, result int
 	filter := bson.M{"_id": bson.M{"$in": ids}}
 
 	role := gmeta.Get(result, "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		filter["creator"] = service.Session().GetCreator(ctx)
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
+		}
 	}
 
 	m := &db.MongoDB{
@@ -151,11 +185,20 @@ func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter m
 	var result []*T
 
 	role := gmeta.Get(result, "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	if err := findByPage(ctx, m.Database, m.Collection, index, paging, filter, &result, sortFields...); err != nil {
@@ -292,11 +335,20 @@ func (m *MongoDB[T]) UpdateById(ctx context.Context, id, update interface{}, isU
 func (m *MongoDB[T]) UpdateOne(ctx context.Context, filter map[string]interface{}, update interface{}, isUpsert ...bool) error {
 
 	role := gmeta.Get(new(T), "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	return updateOne(ctx, m.Database, m.Collection, filter, update, isUpsert...)
@@ -398,11 +450,20 @@ func updateOne(ctx context.Context, database, collection string, filter map[stri
 func (m *MongoDB[T]) UpdateMany(ctx context.Context, filter map[string]interface{}, update interface{}, isUpsert ...bool) error {
 
 	role := gmeta.Get(new(T), "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	return updateMany(ctx, m.Database, m.Collection, filter, update, isUpsert...)
@@ -510,11 +571,20 @@ func (m *MongoDB[T]) FindOneAndUpdate(ctx context.Context, filter map[string]int
 	var result *T
 
 	role := gmeta.Get(result, "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	if err := findOneAndUpdate(ctx, m.Database, m.Collection, filter, update, &result, isUpsert...); err != nil {
@@ -626,11 +696,20 @@ func (m *MongoDB[T]) DeleteById(ctx context.Context, id interface{}) (int64, err
 func (m *MongoDB[T]) DeleteOne(ctx context.Context, filter map[string]interface{}) (int64, error) {
 
 	role := gmeta.Get(new(T), "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return 0, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	return deleteOne(ctx, m.Database, m.Collection, filter)
@@ -650,11 +729,20 @@ func deleteOne(ctx context.Context, database, collection string, filter map[stri
 func (m *MongoDB[T]) DeleteMany(ctx context.Context, filter map[string]interface{}) (int64, error) {
 
 	role := gmeta.Get(new(T), "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return 0, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	return deleteMany(ctx, m.Database, m.Collection, filter)
@@ -680,11 +768,20 @@ func (m *MongoDB[T]) FindOneAndDelete(ctx context.Context, filter map[string]int
 	var result *T
 
 	role := gmeta.Get(result, "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	if err := findOneAndDelete(ctx, m.Database, m.Collection, filter, &result); err != nil {
@@ -708,11 +805,20 @@ func findOneAndDelete(ctx context.Context, database, collection string, filter m
 func (m *MongoDB[T]) CountDocuments(ctx context.Context, filter map[string]interface{}) (int64, error) {
 
 	role := gmeta.Get(new(T), "role").String()
-	if role != "*" && gstr.Contains(service.Session().GetRole(ctx), consts.SESSION_USER) {
-		if filter == nil {
-			filter = bson.M{}
+	if role != "*" {
+
+		if service.Session().IsUserRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_USER) {
+				return 0, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			filter["creator"] = service.Session().GetCreator(ctx)
 		}
-		filter["creator"] = service.Session().GetCreator(ctx)
 	}
 
 	return countDocuments(ctx, m.Database, m.Collection, filter)

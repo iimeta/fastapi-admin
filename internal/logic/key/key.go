@@ -406,15 +406,19 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		return t.Id
 	})
 
-	modelAgentResults, err := dao.ModelAgent.Find(ctx, bson.M{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
+	modelAgentMap := make(map[string]*entity.ModelAgent)
+	if service.Session().IsAdminRole(ctx) {
 
-	modelAgentMap := util.ToMap(modelAgentResults, func(t *entity.ModelAgent) string {
-		return t.Id
-	})
+		modelAgentResults, err := dao.ModelAgent.Find(ctx, bson.M{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		modelAgentMap = util.ToMap(modelAgentResults, func(t *entity.ModelAgent) string {
+			return t.Id
+		})
+	}
 
 	items := make([]*model.Key, 0)
 	for _, result := range results {
