@@ -28,7 +28,7 @@ func init() {
 		}
 	}
 
-	// 自增起始UserId
+	// 自增起始userId
 	_, _ = redis.SetNX(ctx, USER_ID_AUTO_INCREMENT_KEY, userId)
 
 	appId := config.GetInt(ctx, APP_ID_AUTO_INCREMENT_CFG, 10000)
@@ -38,7 +38,7 @@ func init() {
 		}
 	}
 
-	// 自增起始AppId
+	// 自增起始appId
 	_, _ = redis.SetNX(ctx, APP_ID_AUTO_INCREMENT_KEY, appId)
 
 }
