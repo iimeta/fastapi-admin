@@ -7,7 +7,7 @@ import (
 
 // 账单明细分页列表接口请求参数
 type BillPageReq struct {
-	g.Meta `path:"/bill" tags:"finance" method:"post" summary:"账单明细分页列表接口"`
+	g.Meta `path:"/bill" role:"user,admin" tags:"finance" method:"post" summary:"账单明细分页列表接口"`
 	model.FinanceBillPageReq
 }
 
@@ -19,7 +19,7 @@ type BillPageRes struct {
 
 // 交易记录分页列表接口请求参数
 type DealRecordPageReq struct {
-	g.Meta `path:"/deal/record" tags:"finance" method:"post" summary:"交易记录分页列表接口"`
+	g.Meta `path:"/deal/record" role:"user,admin" tags:"finance" method:"post" summary:"交易记录分页列表接口"`
 	model.FinanceDealRecordPageReq
 }
 
@@ -31,7 +31,7 @@ type DealRecordPageRes struct {
 
 // 账单明细导出接口请求参数
 type BillExportReq struct {
-	g.Meta `path:"/bill/export" tags:"finance" method:"post" summary:"账单明细导出接口"`
+	g.Meta `path:"/bill/export" role:"user,admin" tags:"finance" method:"post" summary:"账单明细导出接口"`
 	model.FinanceBillExportReq
 }
 

@@ -7,7 +7,7 @@ import (
 
 // 新建公司接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" tags:"corp" method:"post" summary:"新建公司接口"`
+	g.Meta `path:"/create" role:"admin" tags:"corp" method:"post" summary:"新建公司接口"`
 	model.CorpCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新公司接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" tags:"corp" method:"post" summary:"更新公司接口"`
+	g.Meta `path:"/update" role:"admin" tags:"corp" method:"post" summary:"更新公司接口"`
 	model.CorpUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改公司状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" tags:"corp" method:"post" summary:"更改公司状态接口"`
+	g.Meta `path:"/change/status" role:"admin" tags:"corp" method:"post" summary:"更改公司状态接口"`
 	model.CorpChangeStatusReq
 }
 
@@ -40,7 +40,7 @@ type ChangeStatusRes struct {
 
 // 更改公司公开状态接口请求参数
 type ChangePublicReq struct {
-	g.Meta `path:"/change/public" tags:"corp" method:"post" summary:"更改公司公开状态接口"`
+	g.Meta `path:"/change/public" role:"admin" tags:"corp" method:"post" summary:"更改公司公开状态接口"`
 	model.CorpChangePublicReq
 }
 
@@ -51,7 +51,7 @@ type ChangePublicRes struct {
 
 // 删除公司接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" tags:"corp" method:"post" summary:"删除公司接口"`
+	g.Meta `path:"/delete" role:"admin" tags:"corp" method:"post" summary:"删除公司接口"`
 	Id     string `json:"id"`
 }
 
@@ -62,7 +62,7 @@ type DeleteRes struct {
 
 // 公司详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" tags:"corp" method:"get" summary:"公司详情接口"`
+	g.Meta `path:"/detail" role:"admin" tags:"corp" method:"get" summary:"公司详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -74,7 +74,7 @@ type DetailRes struct {
 
 // 公司分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" tags:"corp" method:"post" summary:"公司分页列表接口"`
+	g.Meta `path:"/page" role:"admin" tags:"corp" method:"post" summary:"公司分页列表接口"`
 	model.CorpPageReq
 }
 
@@ -86,7 +86,7 @@ type PageRes struct {
 
 // 公司列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" tags:"corp" method:"get" summary:"公司列表接口"`
+	g.Meta `path:"/list" role:"user,admin" tags:"corp" method:"get" summary:"公司列表接口"`
 	model.CorpListReq
 }
 
@@ -98,7 +98,7 @@ type ListRes struct {
 
 // 公司批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" tags:"corp" method:"post" summary:"公司批量操作接口"`
+	g.Meta `path:"/batch/operate" role:"admin" tags:"corp" method:"post" summary:"公司批量操作接口"`
 	model.CorpBatchOperateReq
 }
 

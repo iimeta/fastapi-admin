@@ -7,7 +7,7 @@ import (
 
 // 新建应用接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" tags:"app" method:"post" summary:"新建应用接口"`
+	g.Meta `path:"/create" role:"user,admin" tags:"app" method:"post" summary:"新建应用接口"`
 	model.AppCreateReq
 }
 
@@ -19,7 +19,7 @@ type CreateRes struct {
 
 // 更新应用接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" tags:"app" method:"post" summary:"更新应用接口"`
+	g.Meta `path:"/update" role:"user,admin" tags:"app" method:"post" summary:"更新应用接口"`
 	model.AppUpdateReq
 }
 
@@ -30,7 +30,7 @@ type UpdateRes struct {
 
 // 更改应用状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" tags:"app" method:"post" summary:"更改应用状态接口"`
+	g.Meta `path:"/change/status" role:"user,admin" tags:"app" method:"post" summary:"更改应用状态接口"`
 	model.AppChangeStatusReq
 }
 
@@ -41,7 +41,7 @@ type ChangeStatusRes struct {
 
 // 删除应用接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" tags:"app" method:"post" summary:"删除应用接口"`
+	g.Meta `path:"/delete" role:"user,admin" tags:"app" method:"post" summary:"删除应用接口"`
 	Id     string `json:"id"`
 }
 
@@ -52,7 +52,7 @@ type DeleteRes struct {
 
 // 应用详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" tags:"app" method:"get" summary:"应用详情接口"`
+	g.Meta `path:"/detail" role:"user,admin" tags:"app" method:"get" summary:"应用详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -64,7 +64,7 @@ type DetailRes struct {
 
 // 应用分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" tags:"app" method:"post" summary:"应用分页列表接口"`
+	g.Meta `path:"/page" role:"user,admin" tags:"app" method:"post" summary:"应用分页列表接口"`
 	model.AppPageReq
 }
 
@@ -76,7 +76,7 @@ type PageRes struct {
 
 // 应用列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" tags:"app" method:"get" summary:"应用列表接口"`
+	g.Meta `path:"/list" role:"user,admin" tags:"app" method:"get" summary:"应用列表接口"`
 	model.AppListReq
 }
 
@@ -88,7 +88,7 @@ type ListRes struct {
 
 // 新建应用密钥接口请求参数
 type CreateKeyReq struct {
-	g.Meta `path:"/create/key" tags:"app" method:"post" summary:"新建应用密钥接口"`
+	g.Meta `path:"/create/key" role:"user,admin" tags:"app" method:"post" summary:"新建应用密钥接口"`
 	model.AppCreateKeyReq
 }
 
@@ -100,7 +100,7 @@ type CreateKeyRes struct {
 
 // 应用密钥配置接口请求参数
 type KeyConfigReq struct {
-	g.Meta `path:"/key/config" tags:"app" method:"post" summary:"应用密钥配置接口"`
+	g.Meta `path:"/key/config" role:"user,admin" tags:"app" method:"post" summary:"应用密钥配置接口"`
 	model.AppKeyConfigReq
 }
 

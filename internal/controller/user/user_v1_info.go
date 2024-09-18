@@ -2,6 +2,9 @@ package user
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gmeta"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -12,6 +15,12 @@ import (
 )
 
 func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoRes, err error) {
+
+	role := gmeta.Get(req, "role").String()
+	if role != "*" && !gstr.Contains(role, service.Session().GetRole(ctx)) {
+		g.RequestFromCtx(ctx).Response.WriteJson(g.Map{"code": 401, "message": "Unauthorized"})
+		return
+	}
 
 	if service.Session().IsUserRole(ctx) {
 

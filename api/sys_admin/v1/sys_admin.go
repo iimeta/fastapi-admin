@@ -7,7 +7,7 @@ import (
 
 // 新建管理员接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" tags:"admin" method:"post" summary:"新建管理员接口"`
+	g.Meta `path:"/create" role:"admin" tags:"admin" method:"post" summary:"新建管理员接口"`
 	model.SysAdminCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新管理员接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" tags:"admin" method:"post" summary:"更新管理员接口"`
+	g.Meta `path:"/update" role:"admin" tags:"admin" method:"post" summary:"更新管理员接口"`
 	model.SysAdminUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 删除管理员接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" tags:"admin" method:"get" summary:"删除管理员接口"`
+	g.Meta `path:"/delete" role:"admin" tags:"admin" method:"get" summary:"删除管理员接口"`
 	Id     string `json:"id"`
 }
 
@@ -40,7 +40,7 @@ type DeleteRes struct {
 
 // 管理员详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" tags:"admin" method:"get" summary:"管理员详情接口"`
+	g.Meta `path:"/detail" role:"admin" tags:"admin" method:"get" summary:"管理员详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -52,7 +52,7 @@ type DetailRes struct {
 
 // 管理员分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" tags:"admin" method:"get" summary:"管理员分页列表接口"`
+	g.Meta `path:"/page" role:"admin" tags:"admin" method:"get" summary:"管理员分页列表接口"`
 	model.SysAdminPageReq
 }
 

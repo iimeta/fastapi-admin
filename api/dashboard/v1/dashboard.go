@@ -7,7 +7,7 @@ import (
 
 // 仪表盘基础数据接口请求参数
 type BaseDataReq struct {
-	g.Meta `path:"/base/data" tags:"dashboard" method:"get" summary:"仪表盘基础数据接口"`
+	g.Meta `path:"/base/data" role:"user,admin" tags:"dashboard" method:"get" summary:"仪表盘基础数据接口"`
 }
 
 // 仪表盘基础数据接口响应参数
@@ -18,7 +18,7 @@ type BaseDataRes struct {
 
 // 仪表盘调用数据接口请求参数
 type CallDataReq struct {
-	g.Meta `path:"/call/data/:days" tags:"dashboard" method:"get" summary:"仪表盘调用数据接口"`
+	g.Meta `path:"/call/data/:days" role:"user,admin" tags:"dashboard" method:"get" summary:"仪表盘调用数据接口"`
 	model.DashboardCallDataReq
 }
 
@@ -30,7 +30,7 @@ type CallDataRes struct {
 
 // 仪表盘费用接口请求参数
 type ExpenseReq struct {
-	g.Meta `path:"/expense" tags:"dashboard" method:"get" summary:"仪表盘费用接口"`
+	g.Meta `path:"/expense" role:"user,admin" tags:"dashboard" method:"get" summary:"仪表盘费用接口"`
 }
 
 // 仪表盘费用接口响应参数
@@ -41,7 +41,7 @@ type ExpenseRes struct {
 
 // 仪表盘数据TOP接口请求参数
 type DataTopReq struct {
-	g.Meta `path:"/data/top" tags:"dashboard" method:"get" summary:"仪表盘数据TOP接口"`
+	g.Meta `path:"/data/top" role:"user,admin" tags:"dashboard" method:"get" summary:"仪表盘数据TOP接口"`
 	model.DashboardDataTopReq
 }
 
@@ -53,7 +53,7 @@ type DataTopRes struct {
 
 // 仪表盘模型占比接口请求参数
 type ModelPercentReq struct {
-	g.Meta `path:"/model/percent/:days" tags:"dashboard" method:"get" summary:"仪表盘模型占比接口"`
+	g.Meta `path:"/model/percent/:days" role:"user,admin" tags:"dashboard" method:"get" summary:"仪表盘模型占比接口"`
 	model.DashboardModelPercentReq
 }
 
@@ -65,7 +65,7 @@ type ModelPercentRes struct {
 
 // 每秒钟数据接口请求参数
 type PerSecondReq struct {
-	g.Meta `path:"/per/second" tags:"dashboard" method:"post" summary:"每秒钟数据接口"`
+	g.Meta `path:"/per/second" role:"user,admin" tags:"dashboard" method:"post" summary:"每秒钟数据接口"`
 	model.DashboardPerSecondReq
 }
 
@@ -77,7 +77,7 @@ type PerSecondRes struct {
 
 // 每分钟数据接口请求参数
 type PerMinuteReq struct {
-	g.Meta `path:"/per/minute" tags:"dashboard" method:"post" summary:"每分钟数据接口"`
+	g.Meta `path:"/per/minute" role:"user,admin" tags:"dashboard" method:"post" summary:"每分钟数据接口"`
 	model.DashboardPerMinuteReq
 }
 
