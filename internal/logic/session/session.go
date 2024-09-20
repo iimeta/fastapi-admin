@@ -103,7 +103,7 @@ func (s *sSession) GetRole(ctx context.Context) string {
 
 	role := ctx.Value(consts.SESSION_ROLE)
 	if role == nil {
-		return ""
+		return "nil"
 	}
 
 	return role.(string)
