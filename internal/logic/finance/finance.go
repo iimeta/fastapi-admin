@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -25,7 +26,33 @@ func New() service.IFinance {
 	return &sFinance{}
 }
 
-// 明细分页列表
+// 账单明细详情
+func (s *sFinance) BillDetail(ctx context.Context, id string) (*model.StatisticsUser, error) {
+
+	statisticsUser, err := dao.StatisticsUser.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	if service.Session().IsUserRole(ctx) && statisticsUser.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.New("Unauthorized")
+	}
+
+	return &model.StatisticsUser{
+		Id:             statisticsUser.Id,
+		UserId:         statisticsUser.UserId,
+		StatDate:       statisticsUser.StatDate,
+		StatTime:       statisticsUser.StatTime,
+		Total:          statisticsUser.Total,
+		Tokens:         statisticsUser.Tokens,
+		Abnormal:       statisticsUser.Abnormal,
+		AbnormalTokens: statisticsUser.AbnormalTokens,
+		ModelStats:     statisticsUser.ModelStats,
+	}, nil
+}
+
+// 账单明细分页列表
 func (s *sFinance) BillPage(ctx context.Context, params model.FinanceBillPageReq) (*model.FinanceBillPageRes, error) {
 
 	paging := &db.Paging{
@@ -67,70 +94,6 @@ func (s *sFinance) BillPage(ctx context.Context, params model.FinanceBillPageReq
 	}
 
 	return &model.FinanceBillPageRes{
-		Items: items,
-		Paging: &model.Paging{
-			Page:     paging.Page,
-			PageSize: paging.PageSize,
-			Total:    paging.Total,
-		},
-	}, nil
-}
-
-// 交易记录分页列表
-func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealRecordPageReq) (*model.FinanceDealRecordPageRes, error) {
-
-	paging := &db.Paging{
-		Page:     params.Page,
-		PageSize: params.PageSize,
-	}
-
-	filter := bson.M{}
-
-	if service.Session().IsUserRole(ctx) {
-		filter["user_id"] = service.Session().GetUserId(ctx)
-	} else if params.UserId != 0 {
-		filter["user_id"] = params.UserId
-	}
-
-	if params.Remark != "" {
-		filter["remark"] = bson.M{
-			"$regex": params.Remark,
-		}
-	}
-
-	if params.Status != 0 {
-		filter["status"] = params.Status
-	}
-
-	if len(params.CreatedAt) > 0 {
-		gte := gtime.NewFromStrFormat(params.CreatedAt[0], time.DateOnly).TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.CreatedAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
-		filter["created_at"] = bson.M{
-			"$gte": gte,
-			"$lte": lte,
-		}
-	}
-
-	results, err := dao.DealRecord.FindByPage(ctx, paging, filter, "", "-updated_at")
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	items := make([]*model.DealRecord, 0)
-	for _, result := range results {
-		items = append(items, &model.DealRecord{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			Quota:     result.Quota,
-			Remark:    result.Remark,
-			Status:    result.Status,
-			CreatedAt: util.FormatDateTime(result.CreatedAt),
-			UpdatedAt: util.FormatDateTime(result.UpdatedAt),
-		})
-	}
-
-	return &model.FinanceDealRecordPageRes{
 		Items: items,
 		Paging: &model.Paging{
 			Page:     paging.Page,
@@ -199,4 +162,68 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 	}
 
 	return filePath, nil
+}
+
+// 交易记录分页列表
+func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealRecordPageReq) (*model.FinanceDealRecordPageRes, error) {
+
+	paging := &db.Paging{
+		Page:     params.Page,
+		PageSize: params.PageSize,
+	}
+
+	filter := bson.M{}
+
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else if params.UserId != 0 {
+		filter["user_id"] = params.UserId
+	}
+
+	if params.Remark != "" {
+		filter["remark"] = bson.M{
+			"$regex": params.Remark,
+		}
+	}
+
+	if params.Status != 0 {
+		filter["status"] = params.Status
+	}
+
+	if len(params.CreatedAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.CreatedAt[0], time.DateOnly).TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.CreatedAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		filter["created_at"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
+	}
+
+	results, err := dao.DealRecord.FindByPage(ctx, paging, filter, "", "-updated_at")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.DealRecord, 0)
+	for _, result := range results {
+		items = append(items, &model.DealRecord{
+			Id:        result.Id,
+			UserId:    result.UserId,
+			Quota:     result.Quota,
+			Remark:    result.Remark,
+			Status:    result.Status,
+			CreatedAt: util.FormatDateTime(result.CreatedAt),
+			UpdatedAt: util.FormatDateTime(result.UpdatedAt),
+		})
+	}
+
+	return &model.FinanceDealRecordPageRes{
+		Items: items,
+		Paging: &model.Paging{
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
+		},
+	}, nil
 }

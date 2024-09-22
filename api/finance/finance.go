@@ -11,7 +11,8 @@ import (
 )
 
 type IFinanceV1 interface {
+	BillDetail(ctx context.Context, req *v1.BillDetailReq) (res *v1.BillDetailRes, err error)
 	BillPage(ctx context.Context, req *v1.BillPageReq) (res *v1.BillPageRes, err error)
-	DealRecordPage(ctx context.Context, req *v1.DealRecordPageReq) (res *v1.DealRecordPageRes, err error)
 	BillExport(ctx context.Context, req *v1.BillExportReq) (res *v1.BillExportRes, err error)
+	DealRecordPage(ctx context.Context, req *v1.DealRecordPageReq) (res *v1.DealRecordPageRes, err error)
 }

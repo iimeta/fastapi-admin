@@ -13,12 +13,14 @@ import (
 
 type (
 	IFinance interface {
-		// 明细分页列表
+		// 账单明细详情
+		BillDetail(ctx context.Context, id string) (*model.StatisticsUser, error)
+		// 账单明细分页列表
 		BillPage(ctx context.Context, params model.FinanceBillPageReq) (*model.FinanceBillPageRes, error)
-		// 交易记录分页列表
-		DealRecordPage(ctx context.Context, params model.FinanceDealRecordPageReq) (*model.FinanceDealRecordPageRes, error)
 		// 账单明细导出
 		BillExport(ctx context.Context, params model.FinanceBillExportReq) (string, error)
+		// 交易记录分页列表
+		DealRecordPage(ctx context.Context, params model.FinanceDealRecordPageReq) (*model.FinanceDealRecordPageRes, error)
 	}
 )
 

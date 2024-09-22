@@ -1,5 +1,10 @@
 package model
 
+// 账单明细详情接口响应参数
+type FinanceBillDetailRes struct {
+	*StatisticsUser
+}
+
 // 账单明细分页列表接口请求参数
 type FinanceBillPageReq struct {
 	Paging
@@ -11,21 +16,6 @@ type FinanceBillPageReq struct {
 type FinanceBillPageRes struct {
 	Items  []*Bill `json:"items"`
 	Paging *Paging `json:"paging"`
-}
-
-// 交易记录分页列表接口请求参数
-type FinanceDealRecordPageReq struct {
-	Paging
-	UserId    int      `json:"user_id,omitempty"`    // 用户ID
-	Remark    string   `json:"remark,omitempty"`     // 备注
-	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:退款, -1:删除]
-	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
-}
-
-// 交易记录分页列表接口响应参数
-type FinanceDealRecordPageRes struct {
-	Items  []*DealRecord `json:"items"`
-	Paging *Paging       `json:"paging"`
 }
 
 // 账单明细导出接口请求参数
@@ -51,6 +41,21 @@ type BillExport struct {
 	Model    string `bson:"model"`     // 模型
 	Total    int    `bson:"total"`     // 总数
 	Tokens   any    `bson:"tokens"`    // 令牌数
+}
+
+// 交易记录分页列表接口请求参数
+type FinanceDealRecordPageReq struct {
+	Paging
+	UserId    int      `json:"user_id,omitempty"`    // 用户ID
+	Remark    string   `json:"remark,omitempty"`     // 备注
+	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:退款, -1:删除]
+	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
+}
+
+// 交易记录分页列表接口响应参数
+type FinanceDealRecordPageRes struct {
+	Items  []*DealRecord `json:"items"`
+	Paging *Paging       `json:"paging"`
 }
 
 // 交易记录
