@@ -1,0 +1,1 @@
+import{b as r}from"./index.9fb5fac3.js";function i(e){return r.post("/api/v1/finance/bill",e)}function n(e){return r.post("/api/v1/finance/bill/export",e,{responseType:"blob"})}function o(e){return r.post("/api/v1/finance/deal/record",e)}export{o as a,i as q,n as s};

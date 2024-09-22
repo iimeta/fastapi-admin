@@ -12,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -335,15 +336,32 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 	}
 
 	if params.Name != "" {
-		filter["name"] = bson.M{
-			"$regex": params.Name,
+		filter["$or"] = bson.A{
+			bson.M{"name": bson.M{
+				"$regex": params.Name,
+			}},
+			bson.M{"email": bson.M{
+				"$regex": params.Name,
+			}},
 		}
 	}
 
-	if params.Email != "" {
-		filter["email"] = bson.M{
-			"$regex": params.Email,
+	if params.Account != "" && params.UserId == 0 {
+		account, err := dao.Account.FindOne(ctx, bson.M{"account": params.Account})
+		if err != nil {
+			return nil, nil
 		}
+		filter["user_id"] = account.UserId
+	}
+
+	if params.Quota != 0 {
+		filter["quota"] = bson.M{
+			"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+		}
+	}
+
+	if params.Status != 0 {
+		filter["status"] = params.Status
 	}
 
 	if len(params.QuotaExpiresAt) > 0 {
@@ -355,23 +373,24 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		}
 	}
 
-	if params.Status != 0 {
-		filter["status"] = params.Status
-	}
-
-	if len(params.UpdatedAt) > 0 {
-		gte := gtime.NewFromStrFormat(params.UpdatedAt[0], time.DateOnly).StartOfDay().TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.UpdatedAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
-		filter["updated_at"] = bson.M{
-			"$gte": gte,
-			"$lte": lte,
-		}
-	}
-
 	results, err := dao.User.FindByPage(ctx, paging, filter, "", "status", "-user_id", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	accountMap := make(map[int]*entity.Account)
+	if len(results) > 0 {
+
+		accounts, err := dao.Account.Find(ctx, bson.M{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		accountMap = util.ToMap(accounts, func(t *entity.Account) int {
+			return t.UserId
+		})
 	}
 
 	items := make([]*model.User, 0)
@@ -387,6 +406,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			UsedQuota:      result.UsedQuota,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
 			Models:         result.Models,
+			Account:        accountMap[result.UserId].Account,
 			Remark:         result.Remark,
 			Status:         result.Status,
 			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),

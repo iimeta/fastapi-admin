@@ -109,7 +109,7 @@ type UserPageReq struct {
 	Name           string   `json:"name,omitempty"`             // 姓名
 	Phone          string   `json:"phone,omitempty"`            // 手机号
 	Email          string   `json:"email,omitempty"`            // 邮箱
-	Key            string   `json:"key,omitempty"`              // 密钥
+	Account        string   `json:"account,omitempty"`          // 账号
 	Quota          int      `json:"quota,omitempty"`            // 额度
 	QuotaExpiresAt []string `json:"quota_expires_at,omitempty"` // 额度过期时间
 	Remark         string   `json:"remark,omitempty"`           // 备注
