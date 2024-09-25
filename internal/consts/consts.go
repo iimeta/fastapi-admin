@@ -19,6 +19,7 @@ const (
 )
 
 const (
+	SESSION_HOST    = "host"
 	SESSION_TOKEN   = "token"
 	SESSION_UID     = "uid"
 	SESSION_USER_ID = "user_id"

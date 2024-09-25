@@ -29,7 +29,7 @@ type (
 		List(ctx context.Context, params model.ModelListReq) ([]*model.Model, error)
 		// 模型批量操作
 		BatchOperate(ctx context.Context, params model.ModelBatchOperateReq) error
-		// 初始化模型
+		// 模型初始化
 		Init(ctx context.Context, params model.ModelInitReq) error
 		// 公开的模型Ids
 		PublicModels(ctx context.Context) ([]string, error)

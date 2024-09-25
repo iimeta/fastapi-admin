@@ -236,7 +236,8 @@ var (
 )
 
 func beforeServeHook(r *ghttp.Request) {
-	logger.Infof(r.GetCtx(), "beforeServeHook Host: %s, ClientIp: %s, RemoteIp: %s, IsFile: %t, URI: %s", r.GetHost(), r.GetClientIp(), r.GetRemoteIp(), r.IsFileRequest(), r.RequestURI)
+	r.SetCtxVar(consts.SESSION_HOST, r.GetHost())
+	logger.Infof(r.GetCtx(), "beforeServeHook ClientIp: %s, RemoteIp: %s, IsFile: %t, URI: %s", r.GetClientIp(), r.GetRemoteIp(), r.IsFileRequest(), r.RequestURI)
 	r.Response.CORSDefault()
 }
 
