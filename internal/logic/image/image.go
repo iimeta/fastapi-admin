@@ -61,6 +61,7 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 		ClientIp:        result.ClientIp,
 		Retry:           result.Retry,
 		Status:          result.Status,
+		Host:            result.Host,
 		Creator:         util.Desensitize(result.Creator),
 	}
 

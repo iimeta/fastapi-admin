@@ -77,10 +77,10 @@ type ImageData struct {
 }
 
 type ModelStat struct {
-	ModelId        string `bson:"model_id,omitempty"`        // 模型ID
-	Model          string `bson:"model,omitempty"`           // 模型
-	Total          int    `bson:"total,omitempty"`           // 总数
-	Tokens         int    `bson:"tokens,omitempty"`          // 令牌数
-	Abnormal       int    `bson:"abnormal,omitempty"`        // 异常数
-	AbnormalTokens int    `bson:"abnormal_tokens,omitempty"` // 异常令牌数
+	ModelId        string `bson:"model_id,omitempty"        json:"model_id,omitempty"`        // 模型ID
+	Model          string `bson:"model,omitempty"           json:"model,omitempty"`           // 模型
+	Total          int    `bson:"total,omitempty"           json:"total,omitempty"`           // 总数
+	Tokens         int    `bson:"tokens,omitempty"          json:"tokens,omitempty"`          // 令牌数
+	Abnormal       int    `bson:"abnormal,omitempty"        json:"abnormal,omitempty"`        // 异常数
+	AbnormalTokens int    `bson:"abnormal_tokens,omitempty" json:"abnormal_tokens,omitempty"` // 异常令牌数
 }

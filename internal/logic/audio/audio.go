@@ -62,6 +62,7 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		ClientIp:    result.ClientIp,
 		Retry:       result.Retry,
 		Status:      result.Status,
+		Host:        result.Host,
 		Creator:     util.Desensitize(result.Creator),
 	}
 
