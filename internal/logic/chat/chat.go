@@ -216,7 +216,6 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			TotalTime:        result.TotalTime,
 			ReqTime:          util.FormatDateTimeMonth(result.ReqTime),
 			Status:           result.Status,
-			Creator:          result.Creator,
 		}
 
 		if service.Session().IsAdminRole(ctx) {

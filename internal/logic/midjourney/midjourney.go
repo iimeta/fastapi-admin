@@ -61,8 +61,8 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 		ClientIp:         result.ClientIp,
 		Retry:            result.Retry,
 		Status:           result.Status,
-		Creator:          result.Creator,
-	}
+		Host:             result.Host,
+		Creator:          util.Desensitize(result.Creator)}
 
 	// todo
 	if midjourney.Status == -1 && service.Session().IsUserRole(ctx) {
@@ -197,7 +197,6 @@ func (s *sMidjourney) Page(ctx context.Context, params model.MidjourneyPageReq) 
 			TotalTime:        result.TotalTime,
 			ReqTime:          util.FormatDateTimeMonth(result.ReqTime),
 			Status:           result.Status,
-			Creator:          result.Creator,
 		}
 
 		if service.Session().IsAdminRole(ctx) {

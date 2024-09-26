@@ -506,7 +506,7 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 		items = append(items, &model.Key{
 			Id:     result.Id,
 			Corp:   result.Corp,
-			Key:    result.Key,
+			Key:    util.Desensitize(result.Key),
 			Type:   result.Type,
 			Remark: result.Remark,
 			Status: result.Status,

@@ -205,7 +205,6 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 			TotalTime:       result.TotalTime,
 			ReqTime:         util.FormatDateTimeMonth(result.ReqTime),
 			Status:          result.Status,
-			Creator:         result.Creator,
 		}
 
 		for _, imageData := range result.ImageData {
