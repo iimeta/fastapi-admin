@@ -587,6 +587,12 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		filter["type"] = params.Type
 	}
 
+	if params.Remark != "" {
+		filter["remark"] = bson.M{
+			"$regex": params.Remark,
+		}
+	}
+
 	if params.Status != 0 {
 		filter["status"] = params.Status
 	}
@@ -629,6 +635,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			MidjourneyQuotas: result.MidjourneyQuotas,
 			DataFormat:       result.DataFormat,
 			IsPublic:         result.IsPublic,
+			Remark:           result.Remark,
 			Status:           result.Status,
 			CreatedAt:        util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:        util.FormatDateTimeMonth(result.UpdatedAt),
