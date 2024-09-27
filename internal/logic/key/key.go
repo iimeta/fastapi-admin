@@ -289,6 +289,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 
 	return &model.Key{
 		Id:                 key.Id,
+		UserId:             key.UserId,
 		AppId:              key.AppId,
 		Corp:               key.Corp,
 		CorpName:           corpName,
