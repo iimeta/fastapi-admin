@@ -7,7 +7,7 @@ import (
 	"github.com/iimeta/fastapi-admin/api/model/v1"
 )
 
-func (c *ControllerV1) ModelInit(ctx context.Context, req *v1.ModelInitReq) (res *v1.ModelInitRes, err error) {
+func (c *ControllerV1) Init(ctx context.Context, req *v1.InitReq) (res *v1.InitRes, err error) {
 
 	if !service.Auth().Authenticator(ctx, req) {
 		return

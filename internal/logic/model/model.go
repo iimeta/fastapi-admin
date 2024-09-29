@@ -931,6 +931,17 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 		corpMap[corp.Code] = corp.Id
 	}
 
+	models, err := dao.Model.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	modelMap := make(map[string]string)
+	for _, model := range models {
+		modelMap[model.Name] = model.Name
+	}
+
 	modelAgentId := ""
 	if params.IsConfigModelAgent {
 
@@ -965,6 +976,7 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 				logger.Error(ctx, err)
 				return err
 			}
+
 		} else {
 			modelAgentId = modelAgent.Id
 		}
@@ -989,10 +1001,14 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 			}
 		}
 
+		if modelMap[data.Id] != "" {
+			continue
+		}
+
 		modelCreateReq := model.ModelCreateReq{
 			Corp:             corpMap[code],
 			Name:             data.Id,
-			Model:            data.Id,
+			Model:            data.FastAPI.Model,
 			Type:             data.FastAPI.Type,
 			BaseUrl:          data.FastAPI.BaseUrl,
 			Path:             data.FastAPI.Path,
@@ -1015,6 +1031,8 @@ func (s *sModel) Init(ctx context.Context, params model.ModelInitReq) error {
 			logger.Error(ctx, err)
 			return err
 		}
+
+		modelMap[data.Id] = data.Id
 	}
 
 	return nil
