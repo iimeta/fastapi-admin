@@ -2,6 +2,7 @@ package corp
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -14,6 +15,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"time"
 )
 
 type sCorp struct{}
@@ -221,6 +223,15 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 
 	if params.Status != 0 {
 		filter["status"] = params.Status
+	}
+
+	if len(params.UpdatedAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.UpdatedAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.UpdatedAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		filter["updated_at"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
 	}
 
 	results, err := dao.Corp.FindByPage(ctx, paging, filter, "", "status", "-updated_at")

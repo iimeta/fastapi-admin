@@ -381,6 +381,12 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		}
 	}
 
+	if params.Remark != "" {
+		filter["remark"] = bson.M{
+			"$regex": params.Remark,
+		}
+	}
+
 	results, err := dao.Key.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)

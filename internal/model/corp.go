@@ -48,6 +48,7 @@ type CorpPageReq struct {
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
+	UpdatedAt []string `json:"updated_at,omitempty"` // 更新时间
 }
 
 // 公司分页列表接口响应参数

@@ -92,12 +92,13 @@ type Dashboard struct {
 
 // 调用数据
 type CallData struct {
-	Date     string `json:"date"`     // 日期
-	Call     int    `json:"call"`     // 调用数
-	Tokens   int    `json:"tokens"`   // 令牌数
-	User     int    `json:"user"`     // 用户数
-	App      int    `json:"app"`      // 应用数
-	Abnormal int    `json:"abnormal"` // 异常数
+	Date     string  `json:"date"`     // 日期
+	Spend    float64 `json:"spend"`    // 花费($)
+	Call     int     `json:"call"`     // 调用数
+	Tokens   int     `json:"tokens"`   // 令牌数
+	User     int     `json:"user"`     // 用户数
+	App      int     `json:"app"`      // 应用数
+	Abnormal int     `json:"abnormal"` // 异常数
 }
 
 // 费用

@@ -184,6 +184,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 	for _, res := range result {
 		resultMap[gconv.String(res["_id"])] = &model.CallData{
 			Date:     gconv.String(res["_id"])[5:],
+			Spend:    util.QuotaConv(gconv.Int(res["tokens"])),
 			Call:     gconv.Int(res["count"]),
 			Tokens:   gconv.Int(res["tokens"]),
 			Abnormal: gconv.Int(res["abnormal"]),

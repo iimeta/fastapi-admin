@@ -475,6 +475,12 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		filter["status"] = params.Status
 	}
 
+	if params.Remark != "" {
+		filter["remark"] = bson.M{
+			"$regex": params.Remark,
+		}
+	}
+
 	results, err := dao.ModelAgent.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
@@ -525,6 +531,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Weight:             result.Weight,
 			Models:             modelMap[result.Id],
 			ModelNames:         modelNameMap[result.Id],
+			Remark:             result.Remark,
 			Status:             result.Status,
 			IsAutoDisabled:     result.IsAutoDisabled,
 			AutoDisabledReason: result.AutoDisabledReason,
