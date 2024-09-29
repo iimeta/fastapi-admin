@@ -907,8 +907,8 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 	return nil
 }
 
-// 模型同步初始化
-func (s *sModel) SyncInit(ctx context.Context, params model.ModelSyncInitReq) error {
+// 模型初始化同步
+func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) error {
 
 	result := &model.ModelsRes{}
 	if err := util.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, nil, &result); err != nil {
