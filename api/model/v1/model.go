@@ -96,13 +96,13 @@ type BatchOperateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
-// 模型初始化接口请求参数
-type InitReq struct {
-	g.Meta `path:"/init" role:"admin" tags:"model" method:"post" summary:"模型初始化接口"`
-	model.ModelInitReq
+// 模型同步初始化接口请求参数
+type SyncInitReq struct {
+	g.Meta `path:"/init" role:"admin" tags:"model" method:"post" summary:"模型同步初始化接口"`
+	model.ModelSyncInitReq
 }
 
-// 模型初始化接口响应参数
-type InitRes struct {
+// 模型同步初始化接口响应参数
+type SyncInitRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }

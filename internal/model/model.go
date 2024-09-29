@@ -119,8 +119,8 @@ type ModelBatchOperateReq struct {
 	FallbackModel string   `json:"fallback_model,omitempty"` // 后备模型
 }
 
-// 模型初始化接口请求参数
-type ModelInitReq struct {
+// 模型同步初始化接口请求参数
+type ModelSyncInitReq struct {
 	Url                string `json:"url"`                   // Fast API 模型接口
 	Key                string `json:"key"`                   // Fast API 应用密钥
 	IsConfigModelAgent bool   `json:"is_config_model_agent"` // 是否配置模型代理

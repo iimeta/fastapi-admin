@@ -19,5 +19,5 @@ type IModelV1 interface {
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
-	Init(ctx context.Context, req *v1.InitReq) (res *v1.InitRes, err error)
+	SyncInit(ctx context.Context, req *v1.SyncInitReq) (res *v1.SyncInitRes, err error)
 }
