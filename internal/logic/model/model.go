@@ -1019,6 +1019,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 			MidjourneyQuotas: data.FastAPI.MidjourneyQuotas,
 			DataFormat:       1,
 			IsPublic:         true,
+			ModelAgents:      []string{},
 			Status:           1,
 		}
 

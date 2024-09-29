@@ -20,7 +20,7 @@ type ModelCreateReq struct {
 	DataFormat           int                      `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                     `json:"is_public,omitempty"`               // 是否公开
 	IsEnableModelAgent   bool                     `json:"is_enable_model_agent,omitempty"`   // 是否启用模型代理
-	ModelAgents          []string                 `json:"model_agents,omitempty"`            // 模型代理
+	ModelAgents          []string                 `json:"model_agents,omitempty" d:"[]"`     // 模型代理
 	IsEnableForward      bool                     `json:"is_enable_forward,omitempty"`       // 是否启用模型转发
 	ForwardConfig        *common.ForwardConfig    `json:"forward_config,omitempty"`          // 模型转发配置
 	IsEnableFallback     bool                     `json:"is_enable_fallback,omitempty"`      // 是否启用后备模型
