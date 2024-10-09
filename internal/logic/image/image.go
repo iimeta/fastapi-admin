@@ -3,6 +3,8 @@ package image
 import (
 	"context"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -73,9 +75,17 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 		//}
 	}
 
-	// todo
 	if image.Status == -1 && service.Session().IsUserRole(ctx) {
 		image.ErrMsg = "详细错误信息请联系管理员..."
+		if len(config.Cfg.Error.ShieldUser) > 0 {
+			image.ErrMsg = result.ErrMsg
+			for _, shieldError := range config.Cfg.Error.ShieldUser {
+				if gstr.Contains(result.ErrMsg, shieldError) {
+					image.ErrMsg = "详细错误信息请联系管理员..."
+					break
+				}
+			}
+		}
 	}
 
 	if service.Session().IsAdminRole(ctx) {

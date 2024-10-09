@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
@@ -61,6 +63,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		TextQuota:        result.TextQuota,
 		ImageQuotas:      result.ImageQuotas,
 		MultimodalQuota:  result.MultimodalQuota,
+		RealtimeQuota:    result.RealtimeQuota,
 		PromptTokens:     result.PromptTokens,
 		CompletionTokens: result.CompletionTokens,
 		TotalTokens:      result.TotalTokens,
@@ -75,9 +78,17 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		Creator:          util.Desensitize(result.Creator),
 	}
 
-	// todo
 	if chat.Status == -1 && service.Session().IsUserRole(ctx) {
 		chat.ErrMsg = "详细错误信息请联系管理员..."
+		if len(config.Cfg.Error.ShieldUser) > 0 {
+			chat.ErrMsg = result.ErrMsg
+			for _, shieldError := range config.Cfg.Error.ShieldUser {
+				if gstr.Contains(result.ErrMsg, shieldError) {
+					chat.ErrMsg = "详细错误信息请联系管理员..."
+					break
+				}
+			}
+		}
 	}
 
 	if service.Session().IsAdminRole(ctx) {
@@ -208,6 +219,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			TextQuota:        result.TextQuota,
 			ImageQuotas:      result.ImageQuotas,
 			MultimodalQuota:  result.MultimodalQuota,
+			RealtimeQuota:    result.RealtimeQuota,
 			PromptTokens:     result.PromptTokens,
 			CompletionTokens: result.CompletionTokens,
 			TotalTokens:      result.TotalTokens,

@@ -3,6 +3,8 @@ package audio
 import (
 	"context"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -66,9 +68,17 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		Creator:     util.Desensitize(result.Creator),
 	}
 
-	// todo
 	if audio.Status == -1 && service.Session().IsUserRole(ctx) {
 		audio.ErrMsg = "详细错误信息请联系管理员..."
+		if len(config.Cfg.Error.ShieldUser) > 0 {
+			audio.ErrMsg = result.ErrMsg
+			for _, shieldError := range config.Cfg.Error.ShieldUser {
+				if gstr.Contains(result.ErrMsg, shieldError) {
+					audio.ErrMsg = "详细错误信息请联系管理员..."
+					break
+				}
+			}
+		}
 	}
 
 	if service.Session().IsAdminRole(ctx) {

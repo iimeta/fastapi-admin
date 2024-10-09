@@ -47,6 +47,7 @@ type Config struct {
 	Http               Http       `json:"http"`
 	Email              Email      `json:"email"`
 	Statistics         Statistics `json:"statistics"`
+	Error              Error      `json:"error"`
 	Debug              bool       `json:"debug"`
 }
 
@@ -89,6 +90,10 @@ type Statistics struct {
 	Days        int           `json:"days"`
 	Limit       int64         `json:"limit"`
 	LockMinutes time.Duration `json:"lock_minutes"`
+}
+
+type Error struct {
+	ShieldUser []string `json:"shield_user"`
 }
 
 func Get(ctx context.Context, pattern string, def ...interface{}) (*gvar.Var, error) {

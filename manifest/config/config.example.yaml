@@ -80,3 +80,10 @@ statistics:
   cron: "0 0/5 * * * ?"
   limit: 1000
   lock_minutes: 10
+
+# 错误配置
+error:
+  shield_user:  # 用户-包含关键字屏蔽的错误, 为空则屏蔽所有错误, 注: 关键字大小写敏感
+    - "TraceId"
+    - "http"
+    - "tcp"

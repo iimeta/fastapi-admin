@@ -7,7 +7,7 @@ type ModelCreateReq struct {
 	Corp                 string                   `json:"corp,omitempty"`                    // 公司
 	Name                 string                   `json:"name,omitempty"`                    // 模型名称
 	Model                string                   `json:"model,omitempty"`                   // 模型
-	Type                 int                      `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
+	Type                 int                      `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时]
 	BaseUrl              string                   `json:"base_url,omitempty"`                // 模型地址
 	Path                 string                   `json:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                     `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
@@ -16,6 +16,7 @@ type ModelCreateReq struct {
 	ImageQuotas          []common.ImageQuota      `json:"image_quotas,omitempty"`            // 图像额度
 	AudioQuota           common.AudioQuota        `json:"audio_quota,omitempty"`             // 音频额度
 	MultimodalQuota      common.MultimodalQuota   `json:"multimodal_quota,omitempty"`        // 多模态额度
+	RealtimeQuota        common.RealtimeQuota     `json:"realtime_quota,omitempty"`          // 多模态实时额度
 	MidjourneyQuotas     []common.MidjourneyQuota `json:"midjourney_quotas,omitempty"`       // Midjourney额度
 	DataFormat           int                      `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                     `json:"is_public,omitempty"`               // 是否公开
@@ -35,7 +36,7 @@ type ModelUpdateReq struct {
 	Corp                 string                   `json:"corp,omitempty"`                    // 公司
 	Name                 string                   `json:"name,omitempty"`                    // 模型名称
 	Model                string                   `json:"model,omitempty"`                   // 模型
-	Type                 int                      `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
+	Type                 int                      `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时]
 	BaseUrl              string                   `json:"base_url,omitempty"`                // 模型地址
 	Path                 string                   `json:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                     `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
@@ -44,6 +45,7 @@ type ModelUpdateReq struct {
 	ImageQuotas          []common.ImageQuota      `json:"image_quotas,omitempty"`            // 图像额度
 	AudioQuota           common.AudioQuota        `json:"audio_quota,omitempty"`             // 音频额度
 	MultimodalQuota      common.MultimodalQuota   `json:"multimodal_quota,omitempty"`        // 多模态额度
+	RealtimeQuota        common.RealtimeQuota     `json:"realtime_quota,omitempty"`          // 多模态实时额度
 	MidjourneyQuotas     []common.MidjourneyQuota `json:"midjourney_quotas,omitempty"`       // Midjourney额度
 	DataFormat           int                      `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                     `json:"is_public,omitempty"`               // 是否公开
@@ -74,7 +76,7 @@ type ModelPageReq struct {
 	Corp            string   `json:"corp,omitempty"`             // 公司
 	Name            string   `json:"name,omitempty"`             // 模型名称
 	Model           string   `json:"model,omitempty"`            // 模型
-	Type            int      `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
+	Type            int      `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时]
 	PromptRatio     float64  `json:"prompt_ratio,omitempty"`     // 提示倍率(提问倍率)
 	CompletionRatio float64  `json:"completion_ratio,omitempty"` // 补全倍率(回答倍率)
 	DataFormat      int      `json:"data_format,omitempty"`      // 数据格式[1:统一格式, 2:官方格式]
@@ -95,7 +97,7 @@ type ModelListReq struct {
 	Corp            string  `json:"corp,omitempty"`             // 公司
 	Name            string  `json:"name,omitempty"`             // 模型名称
 	Model           string  `json:"model,omitempty"`            // 模型
-	Type            int     `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
+	Type            int     `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时]
 	PromptRatio     float64 `json:"prompt_ratio,omitempty"`     // 提示倍率(提问倍率)
 	CompletionRatio float64 `json:"completion_ratio,omitempty"` // 补全倍率(回答倍率)
 	DataFormat      int     `json:"data_format,omitempty"`      // 数据格式[1:统一格式, 2:官方格式]
@@ -144,13 +146,14 @@ type FastAPI struct {
 	Corp             string                   `json:"corp,omitempty"`              // 公司名称
 	Code             string                   `json:"code,omitempty"`              // 公司代码
 	Model            string                   `json:"model,omitempty"`             // 模型
-	Type             int                      `json:"type,omitempty"`              // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
+	Type             int                      `json:"type,omitempty"`              // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时]
 	BaseUrl          string                   `json:"base_url,omitempty"`          // 模型地址
 	Path             string                   `json:"path,omitempty"`              // 模型路径
 	TextQuota        common.TextQuota         `json:"text_quota,omitempty"`        // 文本额度
 	ImageQuotas      []common.ImageQuota      `json:"image_quotas,omitempty"`      // 图像额度
 	AudioQuota       common.AudioQuota        `json:"audio_quota,omitempty"`       // 音频额度
 	MultimodalQuota  common.MultimodalQuota   `json:"multimodal_quota,omitempty"`  // 多模态额度
+	RealtimeQuota    common.RealtimeQuota     `json:"realtime_quota,omitempty"`    // 多模态实时额度
 	MidjourneyQuotas []common.MidjourneyQuota `json:"midjourney_quotas,omitempty"` // Midjourney额度
 }
 
@@ -161,7 +164,7 @@ type Model struct {
 	CorpCode             string                   `json:"corp_code,omitempty"`               // 公司代码
 	Name                 string                   `json:"name,omitempty"`                    // 模型名称
 	Model                string                   `json:"model,omitempty"`                   // 模型
-	Type                 int                      `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态]
+	Type                 int                      `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时]
 	BaseUrl              string                   `json:"base_url,omitempty"`                // 模型地址
 	Path                 string                   `json:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                     `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
@@ -170,6 +173,7 @@ type Model struct {
 	ImageQuotas          []common.ImageQuota      `json:"image_quotas,omitempty"`            // 图像额度
 	AudioQuota           common.AudioQuota        `json:"audio_quota,omitempty"`             // 音频额度
 	MultimodalQuota      common.MultimodalQuota   `json:"multimodal_quota,omitempty"`        // 多模态额度
+	RealtimeQuota        common.RealtimeQuota     `json:"realtime_quota,omitempty"`          // 多模态实时额度
 	MidjourneyQuotas     []common.MidjourneyQuota `json:"midjourney_quotas,omitempty"`       // Midjourney额度
 	DataFormat           int                      `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                     `json:"is_public"`                         // 是否公开
