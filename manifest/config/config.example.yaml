@@ -87,3 +87,5 @@ error:
     - "TraceId"
     - "http"
     - "tcp"
+    - "No available"
+    - "quota"
