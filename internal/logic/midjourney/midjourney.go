@@ -64,7 +64,8 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 		Retry:            result.Retry,
 		Status:           result.Status,
 		Host:             result.Host,
-		Creator:          util.Desensitize(result.Creator)}
+		Creator:          util.Desensitize(result.Creator),
+	}
 
 	if midjourney.Status == -1 && service.Session().IsUserRole(ctx) {
 		midjourney.ErrMsg = "详细错误信息请联系管理员..."

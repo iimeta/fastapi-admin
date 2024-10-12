@@ -918,7 +918,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) error {
 
 	result := &model.ModelsRes{}
-	if err := util.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, nil, &result); err != nil {
+	if err := util.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, g.MapStrAny{"is_fastapi": true}, &result); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -933,9 +933,11 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 		return err
 	}
 
-	corpMap := make(map[string]string)
+	corpNameMap := make(map[string]string)
+	corpCodeMap := make(map[string]string)
 	for _, corp := range corps {
-		corpMap[corp.Code] = corp.Id
+		corpNameMap[corp.Name] = corp.Id
+		corpCodeMap[corp.Code] = corp.Id
 	}
 
 	models, err := dao.Model.Find(ctx, bson.M{})
@@ -955,8 +957,8 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 		if modelAgent, err := dao.ModelAgent.FindOne(ctx, bson.M{"name": "FastAPI"}); err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 
-				if corpMap["FastAPI"] == "" {
-					if corpMap["FastAPI"], err = service.Corp().Create(ctx, model.CorpCreateReq{
+				if corpCodeMap["FastAPI"] == "" {
+					if corpCodeMap["FastAPI"], err = service.Corp().Create(ctx, model.CorpCreateReq{
 						Name:     "FastAPI",
 						Code:     "FastAPI",
 						IsPublic: true,
@@ -968,7 +970,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				}
 
 				if modelAgentId, err = service.ModelAgent().Create(ctx, model.ModelAgentCreateReq{
-					Corp:         corpMap["FastAPI"],
+					Corp:         corpCodeMap["FastAPI"],
 					Name:         "FastAPI",
 					BaseUrl:      gstr.Replace(params.Url, "/models", ""),
 					Key:          params.Key,
@@ -991,14 +993,20 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 	for _, data := range result.Data {
 
+		name := data.FastAPI.Corp
 		code := data.FastAPI.Code
 		if params.IsConfigModelAgent {
 			code += "2FastAPI"
 		}
 
-		if corpMap[code] == "" {
-			if corpMap[code], err = service.Corp().Create(ctx, model.CorpCreateReq{
-				Name:     data.FastAPI.Corp,
+		corp := corpNameMap[name]
+		if corp == "" {
+			corp = corpCodeMap[code]
+		}
+
+		if corp == "" {
+			if corp, err = service.Corp().Create(ctx, model.CorpCreateReq{
+				Name:     name,
 				Code:     code,
 				IsPublic: true,
 				Status:   1,
@@ -1006,6 +1014,8 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				logger.Error(ctx, err)
 				return err
 			}
+			corpNameMap[name] = corp
+			corpCodeMap[code] = corp
 		}
 
 		if modelMap[data.Id] != "" {
@@ -1013,7 +1023,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 		}
 
 		modelCreateReq := model.ModelCreateReq{
-			Corp:             corpMap[code],
+			Corp:             corp,
 			Name:             data.Id,
 			Model:            data.FastAPI.Model,
 			Type:             data.FastAPI.Type,
