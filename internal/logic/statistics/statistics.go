@@ -98,7 +98,7 @@ func (s *sStatistics) StatisticsChat(ctx context.Context) {
 		"is_retry":       bson.M{"$ne": true},
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, "", "created_at")
+	results, err := dao.Chat.FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, "created_at_1_is_smart_match_-1_is_retry_-1", "created_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return
