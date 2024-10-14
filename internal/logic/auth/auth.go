@@ -355,6 +355,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		}
 	}
 
+	time.Sleep(time.Duration(grand.N(100, 200)) * time.Millisecond)
+
 	return &model.LoginRes{
 		Type:      "Bearer",
 		Token:     token,
