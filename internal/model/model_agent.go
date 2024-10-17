@@ -93,6 +93,8 @@ type ModelAgent struct {
 	Weight             int      `json:"weight,omitempty"`               // 权重
 	Models             []string `json:"models,omitempty"`               // 绑定模型
 	ModelNames         []string `json:"model_names,omitempty"`          // 模型名称
+	FallbackModels     []string `json:"fallback_models,omitempty"`      // 后备模型
+	FallbackModelNames []string `json:"fallback_model_names,omitempty"` // 后备模型名称
 	Key                string   `json:"key,omitempty"`                  // 密钥
 	Remark             string   `json:"remark,omitempty"`               // 备注
 	Status             int      `json:"status,omitempty"`               // 状态[1:正常, 2:禁用, -1:删除]

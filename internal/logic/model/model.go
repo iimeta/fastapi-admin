@@ -603,7 +603,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		filter["status"] = params.Status
 	}
 
-	results, err := dao.Model.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
+	results, err := dao.Model.FindByPage(ctx, paging, filter, "", "status", "-updated_at", "name")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -676,7 +676,7 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 		}
 	}
 
-	results, err := dao.Model.Find(ctx, filter, "-updated_at")
+	results, err := dao.Model.Find(ctx, filter, "-updated_at", "name")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -686,13 +686,15 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	for _, result := range results {
 
 		model := &model.Model{
-			Id:         result.Id,
-			Corp:       result.Corp,
-			Name:       result.Name,
-			Model:      result.Model,
-			Type:       result.Type,
-			DataFormat: result.DataFormat,
-			Status:     result.Status,
+			Id:               result.Id,
+			Corp:             result.Corp,
+			Name:             result.Name,
+			Model:            result.Model,
+			Type:             result.Type,
+			DataFormat:       result.DataFormat,
+			IsEnableFallback: result.IsEnableFallback,
+			FallbackConfig:   result.FallbackConfig,
+			Status:           result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {

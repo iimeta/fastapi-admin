@@ -378,7 +378,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		corpName = corp.Name
 	}
 
-	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
+	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, "-updated_at", "name")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -390,6 +390,20 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 	for _, model := range modelList {
 		models = append(models, model.Id)
 		modelNames = append(modelNames, model.Name)
+	}
+
+	fallbackModelList, err := dao.Model.Find(ctx, bson.M{"fallback_config.model_agent": id}, "-updated_at", "name")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	fallbackModels := make([]string, 0)
+	fallbackModelNames := make([]string, 0)
+
+	for _, model := range fallbackModelList {
+		fallbackModels = append(fallbackModels, model.Id)
+		fallbackModelNames = append(fallbackModelNames, model.Name)
 	}
 
 	keyList, err := dao.Key.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
@@ -413,6 +427,8 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		Weight:             modelAgent.Weight,
 		Models:             models,
 		ModelNames:         modelNames,
+		FallbackModels:     fallbackModels,
+		FallbackModelNames: fallbackModelNames,
 		Key:                gstr.Join(keys, "\n"),
 		Remark:             modelAgent.Remark,
 		Status:             modelAgent.Status,
@@ -506,10 +522,19 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 	modelMap := make(map[string][]string)
 	modelNameMap := make(map[string][]string)
 
+	fallbackModelMap := make(map[string][]string)
+	fallbackModelNameMap := make(map[string][]string)
+
 	for _, model := range modelList {
+
 		for _, id := range model.ModelAgents {
 			modelMap[id] = append(modelMap[id], model.Id)
 			modelNameMap[id] = append(modelNameMap[id], model.Name)
+		}
+
+		if model.IsEnableFallback && model.FallbackConfig.ModelAgent != "" {
+			fallbackModelMap[model.FallbackConfig.ModelAgent] = append(fallbackModelMap[model.FallbackConfig.ModelAgent], model.Id)
+			fallbackModelNameMap[model.FallbackConfig.ModelAgent] = append(fallbackModelNameMap[model.FallbackConfig.ModelAgent], model.Name)
 		}
 	}
 
@@ -531,6 +556,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Weight:             result.Weight,
 			Models:             modelMap[result.Id],
 			ModelNames:         modelNameMap[result.Id],
+			FallbackModels:     fallbackModelMap[result.Id],
+			FallbackModelNames: fallbackModelNameMap[result.Id],
 			Remark:             result.Remark,
 			Status:             result.Status,
 			IsAutoDisabled:     result.IsAutoDisabled,
