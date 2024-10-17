@@ -48,21 +48,23 @@ type MidjourneyQuota struct {
 }
 
 type ForwardConfig struct {
-	ForwardRule       int      `bson:"forward_rule,omitempty"   json:"forward_rule,omitempty"`   // 转发规则[1:全部转发, 2:按关键字, 3:内容长度]
-	MatchRule         []int    `bson:"match_rule,omitempty"     json:"match_rule,omitempty"`     // 转发规则为2时的匹配规则[1:智能匹配, 2:正则匹配]
-	TargetModel       string   `bson:"target_model,omitempty"   json:"target_model,omitempty"`   // 转发规则为1和3时的目标模型
-	DecisionModel     string   `bson:"decision_model,omitempty" json:"decision_model,omitempty"` // 转发规则为2时并且匹配规则为1时的判定模型
-	Keywords          []string `bson:"keywords,omitempty"       json:"keywords,omitempty"`       // 转发规则为2时的关键字
-	TargetModels      []string `bson:"target_models,omitempty"  json:"target_models,omitempty"`  // 转发规则为2时的目标模型
-	ContentLength     int      `bson:"content_length,omitempty" json:"content_length,omitempty"` // 转发规则为3时的内容长度
-	TargetModelName   string   `json:"target_model_name,omitempty"`                              // 转发规则为1和3时的目标模型名称
-	DecisionModelName string   `json:"decision_model_name,omitempty"`                            // 转发规则为2时并且匹配规则为1时的判定模型名称
-	TargetModelNames  []string `json:"target_model_names,omitempty"`                             // 转发规则为2时的目标模型名称
+	ForwardRule       int      `bson:"forward_rule,omitempty"   json:"forward_rule,omitempty"`        // 转发规则[1:全部转发, 2:按关键字, 3:内容长度]
+	MatchRule         []int    `bson:"match_rule,omitempty"     json:"match_rule,omitempty"`          // 转发规则为2时的匹配规则[1:智能匹配, 2:正则匹配]
+	TargetModel       string   `bson:"target_model,omitempty"   json:"target_model,omitempty"`        // 转发规则为1和3时的目标模型
+	DecisionModel     string   `bson:"decision_model,omitempty" json:"decision_model,omitempty"`      // 转发规则为2时并且匹配规则为1时的判定模型
+	Keywords          []string `bson:"keywords,omitempty"       json:"keywords,omitempty"`            // 转发规则为2时的关键字
+	TargetModels      []string `bson:"target_models,omitempty"  json:"target_models,omitempty"`       // 转发规则为2时的目标模型
+	ContentLength     int      `bson:"content_length,omitempty" json:"content_length,omitempty"`      // 转发规则为3时的内容长度
+	TargetModelName   string   `bson:"-"                        json:"target_model_name,omitempty"`   // 转发规则为1和3时的目标模型名称
+	DecisionModelName string   `bson:"-"                        json:"decision_model_name,omitempty"` // 转发规则为2时并且匹配规则为1时的判定模型名称
+	TargetModelNames  []string `bson:"-"                        json:"target_model_names,omitempty"`  // 转发规则为2时的目标模型名称
 }
 
 type FallbackConfig struct {
-	FallbackModel     string `bson:"fallback_model,omitempty"      json:"fallback_model,omitempty"`      // 后备模型
-	FallbackModelName string `bson:"fallback_model_name,omitempty" json:"fallback_model_name,omitempty"` // 后备模型名称
+	ModelAgent     string `bson:"model_agent,omitempty"      json:"model_agent,omitempty"`      // 后备模型代理
+	ModelAgentName string `bson:"model_agent_name,omitempty" json:"model_agent_name,omitempty"` // 后备模型代理名称
+	Model          string `bson:"model,omitempty"            json:"model,omitempty"`            // 后备模型
+	ModelName      string `bson:"model_name,omitempty"       json:"model_name,omitempty"`       // 后备模型名称
 }
 
 type Message struct {

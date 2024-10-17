@@ -530,13 +530,16 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 
 	if detail.FallbackConfig != nil {
 
-		if detail.FallbackConfig.FallbackModel != "" {
-			modelNames, err := s.ModelNames(ctx, []string{detail.FallbackConfig.FallbackModel})
-			if err != nil {
-				logger.Error(ctx, err)
-				return nil, err
+		if detail.FallbackConfig.ModelAgent != "" {
+			if modelAgent, _ := dao.ModelAgent.FindById(ctx, detail.FallbackConfig.ModelAgent); modelAgent != nil {
+				detail.FallbackConfig.ModelAgentName = modelAgent.Name
 			}
-			detail.FallbackConfig.FallbackModelName = modelNames[0]
+		}
+
+		if detail.FallbackConfig.Model != "" {
+			if model, _ := dao.Model.FindById(ctx, detail.FallbackConfig.Model); model != nil {
+				detail.FallbackConfig.ModelName = model.Name
+			}
 		}
 	}
 
@@ -871,17 +874,11 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 			}
 
 			if params.Value == "all" {
-
-				if m.FallbackConfig == nil {
-					m.FallbackConfig = new(common.FallbackConfig)
-				}
-
 				m.IsEnableFallback = true
-				m.FallbackConfig.FallbackModel = params.FallbackModel
-
+				m.FallbackConfig = params.FallbackConfig
 			} else {
 				m.IsEnableFallback = gconv.Bool(params.Value)
-				if m.IsEnableFallback && (m.FallbackConfig == nil || m.FallbackConfig.FallbackModel == "") {
+				if m.IsEnableFallback && m.FallbackConfig == nil {
 					continue
 				}
 			}

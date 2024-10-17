@@ -24,8 +24,8 @@ type ModelCreateReq struct {
 	ModelAgents          []string                 `json:"model_agents,omitempty" d:"[]"`     // 模型代理
 	IsEnableForward      bool                     `json:"is_enable_forward,omitempty"`       // 是否启用模型转发
 	ForwardConfig        *common.ForwardConfig    `json:"forward_config,omitempty"`          // 模型转发配置
-	IsEnableFallback     bool                     `json:"is_enable_fallback,omitempty"`      // 是否启用后备模型
-	FallbackConfig       *common.FallbackConfig   `json:"fallback_config,omitempty"`         // 后备模型配置
+	IsEnableFallback     bool                     `json:"is_enable_fallback,omitempty"`      // 是否启用后备
+	FallbackConfig       *common.FallbackConfig   `json:"fallback_config,omitempty"`         // 后备配置
 	Remark               string                   `json:"remark,omitempty"`                  // 备注
 	Status               int                      `json:"status,omitempty" d:"1"`            // 状态[1:正常, 2:禁用, -1:删除]
 }
@@ -53,8 +53,8 @@ type ModelUpdateReq struct {
 	ModelAgents          []string                 `json:"model_agents,omitempty" d:"[]"`     // 模型代理
 	IsEnableForward      bool                     `json:"is_enable_forward,omitempty"`       // 是否启用模型转发
 	ForwardConfig        *common.ForwardConfig    `json:"forward_config,omitempty"`          // 模型转发配置
-	IsEnableFallback     bool                     `json:"is_enable_fallback,omitempty"`      // 是否启用后备模型
-	FallbackConfig       *common.FallbackConfig   `json:"fallback_config,omitempty"`         // 后备模型配置
+	IsEnableFallback     bool                     `json:"is_enable_fallback,omitempty"`      // 是否启用后备
+	FallbackConfig       *common.FallbackConfig   `json:"fallback_config,omitempty"`         // 后备配置
 	Remark               string                   `json:"remark,omitempty"`                  // 备注
 	Status               int                      `json:"status,omitempty" d:"1"`            // 状态[1:正常, 2:禁用, -1:删除]
 }
@@ -113,12 +113,12 @@ type ModelListRes struct {
 
 // 模型批量操作接口请求参数
 type ModelBatchOperateReq struct {
-	Action        string   `json:"action"`                   // 动作
-	Ids           []string `json:"ids"`                      // 主键Ids
-	Value         any      `json:"value"`                    // 值
-	ModelAgents   []string `json:"model_agents,omitempty"`   // 模型代理
-	TargetModel   string   `json:"target_model,omitempty"`   // 目标模型
-	FallbackModel string   `json:"fallback_model,omitempty"` // 后备模型
+	Action         string                 `json:"action"`                    // 动作
+	Ids            []string               `json:"ids"`                       // 主键Ids
+	Value          any                    `json:"value"`                     // 值
+	ModelAgents    []string               `json:"model_agents,omitempty"`    // 模型代理
+	TargetModel    string                 `json:"target_model,omitempty"`    // 目标模型
+	FallbackConfig *common.FallbackConfig `json:"fallback_config,omitempty"` // 后备配置
 }
 
 // 模型初始化同步接口请求参数
@@ -182,8 +182,8 @@ type Model struct {
 	ModelAgentNames      []string                 `json:"model_agent_names,omitempty"`       // 模型代理名称
 	IsEnableForward      bool                     `json:"is_enable_forward,omitempty"`       // 是否启用模型转发
 	ForwardConfig        *common.ForwardConfig    `json:"forward_config,omitempty"`          // 模型转发配置
-	IsEnableFallback     bool                     `json:"is_enable_fallback,omitempty"`      // 是否启用后备模型
-	FallbackConfig       *common.FallbackConfig   `json:"fallback_config,omitempty"`         // 后备模型配置
+	IsEnableFallback     bool                     `json:"is_enable_fallback,omitempty"`      // 是否启用后备
+	FallbackConfig       *common.FallbackConfig   `json:"fallback_config,omitempty"`         // 后备配置
 	Remark               string                   `json:"remark,omitempty"`                  // 备注
 	Status               int                      `json:"status,omitempty"`                  // 状态[1:正常, 2:禁用, -1:删除]
 	Creator              string                   `json:"creator,omitempty"`                 // 创建人
