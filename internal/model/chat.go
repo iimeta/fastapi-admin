@@ -32,13 +32,15 @@ type ChatPageRes struct {
 type ChatExportReq struct {
 	Ids     []string `json:"ids,omitempty"`      // 主键Ids
 	ReqTime []string `json:"req_time,omitempty"` // 请求时间
+	UserId  int      `json:"user_id"`            // 用户ID
 }
 
 // 聊天批量操作接口请求参数
 type ChatBatchOperateReq struct {
-	Action string   `json:"action"` // 动作
-	Ids    []string `json:"ids"`    // 主键Ids
-	Value  any      `json:"value"`  // 值
+	Action string   `json:"action"`  // 动作
+	Ids    []string `json:"ids"`     // 主键Ids
+	Value  any      `json:"value"`   // 值
+	UserId int      `json:"user_id"` // 用户ID
 }
 
 // 聊天日志详情复制字段值接口请求参数

@@ -3,6 +3,8 @@ package chat
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -265,6 +267,10 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else {
+		if params.UserId != 0 {
+			filter["user_id"] = params.UserId
+		}
 	}
 
 	results, err := dao.Chat.Find(ctx, filter, "-req_time", "status", "-created_at")
@@ -318,27 +324,36 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 // 聊天批量操作
 func (s *sChat) BatchOperate(ctx context.Context, params model.ChatBatchOperateReq) error {
 
-	switch params.Action {
-	case consts.ACTION_TIME:
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-		reqTime := params.Value.([]interface{})
-		filter := bson.M{
-			"req_time": bson.M{
-				"$gte": gtime.NewFromStrFormat(gconv.String(reqTime[0]), time.DateTime).TimestampMilli(),
-				"$lte": gtime.NewFromStrLayout(gconv.String(reqTime[1]), time.DateTime).TimestampMilli() + 999,
-			},
+		switch params.Action {
+		case consts.ACTION_TIME:
+
+			reqTime := params.Value.([]interface{})
+			filter := bson.M{
+				"req_time": bson.M{
+					"$gte": gtime.NewFromStrFormat(gconv.String(reqTime[0]), time.DateTime).TimestampMilli(),
+					"$lte": gtime.NewFromStrLayout(gconv.String(reqTime[1]), time.DateTime).TimestampMilli() + 999,
+				},
+			}
+
+			if params.UserId != 0 {
+				filter["user_id"] = params.UserId
+			}
+
+			if _, err := dao.Chat.DeleteMany(ctx, filter); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		case consts.ACTION_DELETE:
+			if _, err := dao.Chat.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": params.Ids}}); err != nil {
+				logger.Error(ctx, err)
+			}
 		}
 
-		if _, err := dao.Chat.DeleteMany(ctx, filter); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-	case consts.ACTION_DELETE:
-		if _, err := dao.Chat.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": params.Ids}}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
 	return nil
