@@ -15,36 +15,43 @@ type TextQuota struct {
 }
 
 type ImageQuota struct {
-	Width      int    `bson:"width,omitempty"       json:"width,omitempty"`       // 宽度
-	Height     int    `bson:"height,omitempty"      json:"height,omitempty"`      // 高度
-	Mode       string `bson:"mode,omitempty"        json:"mode,omitempty"`        // 模式[low, high, auto]
-	FixedQuota int    `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
-	IsDefault  bool   `bson:"is_default,omitempty"  json:"is_default,omitempty"`  // 是否默认选项
+	Width      int    `bson:"width,omitempty"      json:"width,omitempty"`      // 宽度
+	Height     int    `bson:"height,omitempty"     json:"height,omitempty"`     // 高度
+	Mode       string `bson:"mode,omitempty"       json:"mode,omitempty"`       // 模式[low, high, auto]
+	FixedQuota int    `bson:"fixed_quota"          json:"fixed_quota"`          // 固定额度
+	IsDefault  bool   `bson:"is_default,omitempty" json:"is_default,omitempty"` // 是否默认选项
 }
 
 type AudioQuota struct {
 	BillingMethod   int     `bson:"billing_method,omitempty"   json:"billing_method,omitempty"`         // 计费方式[1:倍率, 2:固定额度]
 	PromptRatio     float64 `bson:"prompt_ratio,omitempty"     json:"prompt_ratio,omitempty"     d:"1"` // 提示倍率(提问倍率)
 	CompletionRatio float64 `bson:"completion_ratio,omitempty" json:"completion_ratio,omitempty" d:"1"` // 补全倍率(回答倍率)
-	FixedQuota      int     `bson:"fixed_quota,omitempty"      json:"fixed_quota,omitempty"`            // 固定额度
+	FixedQuota      int     `bson:"fixed_quota"                json:"fixed_quota"`                      // 固定额度
 }
 
 type MultimodalQuota struct {
 	TextQuota   TextQuota    `bson:"text_quota,omitempty"   json:"text_quota,omitempty"`   // 文本额度
 	ImageQuotas []ImageQuota `bson:"image_quotas,omitempty" json:"image_quotas,omitempty"` // 图像额度
+	FixedQuota  int          `bson:"fixed_quota"            json:"fixed_quota"`            // 固定额度
 }
 
 type RealtimeQuota struct {
 	TextQuota  TextQuota  `bson:"text_quota,omitempty"  json:"text_quota,omitempty"`  // 文本额度
 	AudioQuota AudioQuota `bson:"audio_quota,omitempty" json:"audio_quota,omitempty"` // 音频额度
-	FixedQuota int        `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
+	FixedQuota int        `bson:"fixed_quota"           json:"fixed_quota"`           // 固定额度
+}
+
+type MultimodalAudioQuota struct {
+	TextQuota  TextQuota  `bson:"text_quota,omitempty"  json:"text_quota,omitempty"`  // 文本额度
+	AudioQuota AudioQuota `bson:"audio_quota,omitempty" json:"audio_quota,omitempty"` // 音频额度
+	FixedQuota int        `bson:"fixed_quota"           json:"fixed_quota"`           // 固定额度
 }
 
 type MidjourneyQuota struct {
-	Name       string `bson:"name,omitempty"        json:"name,omitempty"`        // 名称
-	Action     string `bson:"action,omitempty"      json:"action,omitempty"`      // 动作[IMAGINE, UPSCALE, VARIATION, ZOOM, PAN, DESCRIBE, BLEND, SHORTEN, SWAP_FACE]
-	Path       string `bson:"path,omitempty"        json:"path,omitempty"`        // 路径
-	FixedQuota int    `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
+	Name       string `bson:"name,omitempty"        json:"name,omitempty"`   // 名称
+	Action     string `bson:"action,omitempty"      json:"action,omitempty"` // 动作[IMAGINE, UPSCALE, VARIATION, ZOOM, PAN, DESCRIBE, BLEND, SHORTEN, SWAP_FACE]
+	Path       string `bson:"path,omitempty"        json:"path,omitempty"`   // 路径
+	FixedQuota int    `bson:"fixed_quota"           json:"fixed_quota"`      // 固定额度
 }
 
 type ForwardConfig struct {
