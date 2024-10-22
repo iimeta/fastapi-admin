@@ -316,6 +316,8 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		IPD:            user.IPD,
 		Remark:         user.Remark,
 		Status:         user.Status,
+		LoginIP:        account.LoginIP,
+		LoginTime:      util.FormatDateTime(account.LoginTime),
 		CreatedAt:      util.FormatDateTime(user.CreatedAt),
 		UpdatedAt:      util.FormatDateTime(user.UpdatedAt),
 	}, nil
