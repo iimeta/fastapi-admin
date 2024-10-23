@@ -28,10 +28,16 @@ func init() {
 }
 
 func FormatDateTimeMonth(timestamp int64) string {
+	if timestamp == 0 {
+		return ""
+	}
 	return gtime.NewFromTimeStamp(timestamp).Layout(DATE_TIME_MONTH_FORMAT)
 }
 
 func FormatDateTime(timestamp int64) string {
+	if timestamp == 0 {
+		return ""
+	}
 	return gtime.NewFromTimeStamp(timestamp).String()
 }
 
