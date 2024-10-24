@@ -9,16 +9,7 @@ type UserInfoRes struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Role      string `json:"role"`
-	RPS       int    `json:"rps,omitempty"` // 每秒钟请求数
-	RPM       int    `json:"rpm,omitempty"` // 每分钟请求数
-	RPD       int    `json:"rpd,omitempty"` // 每天的请求数
-	TPS       int    `json:"tps,omitempty"` // 每秒钟令牌数
-	TPM       int    `json:"tpm,omitempty"` // 每分钟令牌数
-	TPD       int    `json:"tpd,omitempty"` // 每天的令牌数
-	IPS       int    `json:"ips,omitempty"` // 每秒钟图像数
-	IPM       int    `json:"ipm,omitempty"` // 每分钟图像数
-	IPD       int    `json:"ipd,omitempty"` // 每天的图像数
-	CreatedAt string `json:"created_at"`    // 注册时间
+	CreatedAt string `json:"created_at"` // 注册时间
 }
 
 // 用户修改密码接口请求参数
@@ -47,15 +38,6 @@ type UserCreateReq struct {
 	Terminal       string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
 	Quota          int    `json:"quota,omitempty"`                                           // 额度
 	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`                                // 额度过期时间
-	RPS            int    `json:"rps,omitempty"`                                             // 每秒钟请求数
-	RPM            int    `json:"rpm,omitempty"`                                             // 每分钟请求数
-	RPD            int    `json:"rpd,omitempty"`                                             // 每天的请求数
-	TPS            int    `json:"tps,omitempty"`                                             // 每秒钟令牌数
-	TPM            int    `json:"tpm,omitempty"`                                             // 每分钟令牌数
-	TPD            int    `json:"tpd,omitempty"`                                             // 每天的令牌数
-	IPS            int    `json:"ips,omitempty"`                                             // 每秒钟图像数
-	IPM            int    `json:"ipm,omitempty"`                                             // 每分钟图像数
-	IPD            int    `json:"ipd,omitempty"`                                             // 每天的图像数
 	Remark         string `json:"remark,omitempty"`                                          // 备注
 }
 
@@ -70,15 +52,6 @@ type UserUpdateReq struct {
 	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`            // 是否限制额度
 	Quota          int      `json:"quota,omitempty"`                     // 额度
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`          // 额度过期时间
-	RPS            int      `json:"rps,omitempty"`                       // 每秒钟请求数
-	RPM            int      `json:"rpm,omitempty"`                       // 每分钟请求数
-	RPD            int      `json:"rpd,omitempty"`                       // 每天的请求数
-	TPS            int      `json:"tps,omitempty"`                       // 每秒钟令牌数
-	TPM            int      `json:"tpm,omitempty"`                       // 每分钟令牌数
-	TPD            int      `json:"tpd,omitempty"`                       // 每天的令牌数
-	IPS            int      `json:"ips,omitempty"`                       // 每秒钟图像数
-	IPM            int      `json:"ipm,omitempty"`                       // 每分钟图像数
-	IPD            int      `json:"ipd,omitempty"`                       // 每天的图像数
 	IpWhitelist    string   `json:"ip_whitelist,omitempty"`              // IP白名单
 	IpBlacklist    string   `json:"ip_blacklist,omitempty"`              // IP黑名单
 	Remark         string   `json:"remark,omitempty"`                    // 备注
@@ -167,15 +140,6 @@ type User struct {
 	QuotaExpiresAt string   `json:"quota_expires_at"`      // 额度过期时间
 	Models         []string `json:"models,omitempty"`      // 模型权限
 	ModelNames     []string `json:"model_names,omitempty"` // 模型名称
-	RPS            int      `json:"rps,omitempty"`         // 每秒钟请求数
-	RPM            int      `json:"rpm,omitempty"`         // 每分钟请求数
-	RPD            int      `json:"rpd,omitempty"`         // 每天的请求数
-	TPS            int      `json:"tps,omitempty"`         // 每秒钟令牌数
-	TPM            int      `json:"tpm,omitempty"`         // 每分钟令牌数
-	TPD            int      `json:"tpd,omitempty"`         // 每天的令牌数
-	IPS            int      `json:"ips,omitempty"`         // 每秒钟图像数
-	IPM            int      `json:"ipm,omitempty"`         // 每分钟图像数
-	IPD            int      `json:"ipd,omitempty"`         // 每天的图像数
 	Account        string   `json:"account,omitempty"`     // 账号
 	Remark         string   `json:"remark,omitempty"`      // 备注
 	Status         int      `json:"status,omitempty"`      // 状态[1:正常, 2:禁用, -1:删除]
