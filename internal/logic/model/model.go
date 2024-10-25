@@ -1045,6 +1045,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 			DataFormat:           1,
 			IsPublic:             true,
 			ModelAgents:          []string{},
+			Remark:               data.FastAPI.Remark,
 			Status:               1,
 		}
 
