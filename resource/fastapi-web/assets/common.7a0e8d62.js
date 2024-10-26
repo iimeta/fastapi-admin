@@ -1,1 +1,0 @@
-function t(o){return parseFloat((1e3/(5e5/o)).toFixed(6)).toLocaleString(void 0,{maximumFractionDigits:6})}function i(o){return parseFloat((o/5e5).toFixed(6)).toLocaleString(void 0,{maximumFractionDigits:6})}function a(o){return parseFloat((o/5e5).toFixed(4)).toLocaleString(void 0,{maximumFractionDigits:4})}export{a,t as p,i as q};
