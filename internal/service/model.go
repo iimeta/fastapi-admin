@@ -29,6 +29,8 @@ type (
 		List(ctx context.Context, params model.ModelListReq) ([]*model.Model, error)
 		// 模型批量操作
 		BatchOperate(ctx context.Context, params model.ModelBatchOperateReq) error
+		// 模型树
+		Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.Tree, error)
 		// 模型初始化同步
 		InitSync(ctx context.Context, params model.ModelInitSyncReq) error
 		// 公开的模型Ids

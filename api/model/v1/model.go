@@ -106,3 +106,15 @@ type InitSyncReq struct {
 type InitSyncRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 模型树接口请求参数
+type TreeReq struct {
+	g.Meta `path:"/tree" role:"user,admin" tags:"model" method:"get" summary:"模型树接口"`
+	model.ModelTreeReq
+}
+
+// 模型树接口响应参数
+type TreeRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ModelTreeRes
+}

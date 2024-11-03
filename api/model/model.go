@@ -20,4 +20,5 @@ type IModelV1 interface {
 	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
 	InitSync(ctx context.Context, req *v1.InitSyncReq) (res *v1.InitSyncRes, err error)
+	Tree(ctx context.Context, req *v1.TreeReq) (res *v1.TreeRes, err error)
 }

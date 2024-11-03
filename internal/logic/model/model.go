@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -918,6 +919,82 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 	}
 
 	return nil
+}
+
+// 模型树
+func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.Tree, error) {
+
+	filter := bson.M{}
+
+	if service.Session().IsUserRole(ctx) {
+
+		models := service.Session().GetUser(ctx).Models
+		if len(models) == 0 {
+			return nil, nil
+		}
+
+		filter["_id"] = bson.M{
+			"$in": models,
+		}
+	}
+
+	results, err := dao.Model.Find(ctx, filter, "-updated_at", "name")
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	treeData := make(map[string][]model.Tree) // [Corp:Type][][Model]
+
+	for _, result := range results {
+
+		corpTree := treeData[fmt.Sprintf("%s:%d", result.Corp, result.Type)]
+		if corpTree == nil {
+			corpTree = make([]model.Tree, 0)
+		}
+
+		corpTree = append(corpTree, model.Tree{
+			Title: result.Model,
+			Value: result.Id,
+			Key:   result.Id,
+		})
+
+		treeData[fmt.Sprintf("%s:%d", result.Corp, result.Type)] = corpTree
+	}
+
+	corps, err := service.Corp().List(ctx, model.CorpListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.Tree, 0)
+	for _, corp := range corps {
+
+		corpTree := &model.Tree{
+			Title:    corp.Name,
+			Value:    corp.Id,
+			Key:      corp.Id,
+			Children: make([]model.Tree, 0),
+		}
+
+		for _, typ := range consts.MODEL_TYPES {
+
+			modelTree := treeData[fmt.Sprintf("%s:%d", corp.Id, typ)]
+			if modelTree != nil {
+				corpTree.Children = append(corpTree.Children, model.Tree{
+					Title:    consts.MODEL_TYPE[typ],
+					Value:    fmt.Sprintf("%s:%d", corp.Id, typ),
+					Key:      fmt.Sprintf("%s:%d", corp.Id, typ),
+					Children: modelTree,
+				})
+			}
+		}
+
+		items = append(items, corpTree)
+	}
+
+	return items, nil
 }
 
 // 模型初始化同步
