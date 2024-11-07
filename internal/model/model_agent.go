@@ -2,31 +2,33 @@ package model
 
 // 新建模型代理接口请求参数
 type ModelAgentCreateReq struct {
-	Corp         string   `json:"corp,omitempty"`           // 公司
-	Name         string   `json:"name,omitempty"`           // 模型代理名称
-	BaseUrl      string   `json:"base_url,omitempty"`       // 模型代理地址
-	Path         string   `json:"path,omitempty"`           // 模型代理地址路径
-	Weight       int      `json:"weight,omitempty"`         // 权重
-	Models       []string `json:"models,omitempty"`         // 绑定模型
-	Key          string   `json:"key,omitempty"`            // 密钥
-	IsAgentsOnly bool     `json:"is_agents_only,omitempty"` // 是否代理专用
-	Remark       string   `json:"remark,omitempty"`         // 备注
-	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+	Corp         string   `json:"corp,omitempty"`              // 公司
+	Name         string   `json:"name,omitempty"`              // 模型代理名称
+	BaseUrl      string   `json:"base_url,omitempty"`          // 模型代理地址
+	Path         string   `json:"path,omitempty"`              // 模型代理地址路径
+	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"` // 负载均衡策略[1:轮询, 2:权重]
+	Weight       int      `json:"weight,omitempty"`            // 权重
+	Models       []string `json:"models,omitempty"`            // 绑定模型
+	Key          string   `json:"key,omitempty"`               // 密钥
+	IsAgentsOnly bool     `json:"is_agents_only,omitempty"`    // 是否代理专用
+	Remark       string   `json:"remark,omitempty"`            // 备注
+	Status       int      `json:"status,omitempty" d:"1"`      // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新模型代理接口请求参数
 type ModelAgentUpdateReq struct {
-	Id           string   `json:"id" v:"required"`          // ID
-	Corp         string   `json:"corp,omitempty"`           // 公司
-	Name         string   `json:"name,omitempty"`           // 模型代理名称
-	BaseUrl      string   `json:"base_url,omitempty"`       // 模型代理地址
-	Path         string   `json:"path,omitempty"`           // 模型代理地址路径
-	Weight       int      `json:"weight,omitempty"`         // 权重
-	Models       []string `json:"models,omitempty" d:"[]"`  // 绑定模型
-	Key          string   `json:"key,omitempty"`            // 密钥
-	IsAgentsOnly bool     `json:"is_agents_only,omitempty"` // 是否代理专用
-	Remark       string   `json:"remark,omitempty"`         // 备注
-	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+	Id           string   `json:"id" v:"required"`             // ID
+	Corp         string   `json:"corp,omitempty"`              // 公司
+	Name         string   `json:"name,omitempty"`              // 模型代理名称
+	BaseUrl      string   `json:"base_url,omitempty"`          // 模型代理地址
+	Path         string   `json:"path,omitempty"`              // 模型代理地址路径
+	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"` // 负载均衡策略[1:轮询, 2:权重]
+	Weight       int      `json:"weight,omitempty"`            // 权重
+	Models       []string `json:"models,omitempty" d:"[]"`     // 绑定模型
+	Key          string   `json:"key,omitempty"`               // 密钥
+	IsAgentsOnly bool     `json:"is_agents_only,omitempty"`    // 是否代理专用
+	Remark       string   `json:"remark,omitempty"`            // 备注
+	Status       int      `json:"status,omitempty" d:"1"`      // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改模型代理状态接口请求参数
@@ -47,7 +49,6 @@ type ModelAgentPageReq struct {
 	Name      string   `json:"name,omitempty"`       // 模型代理名称
 	BaseUrl   string   `json:"base_url,omitempty"`   // 模型代理地址
 	Path      string   `json:"path,omitempty"`       // 模型代理地址路径
-	Weight    int      `json:"weight,omitempty"`     // 权重
 	Models    []string `json:"models,omitempty"`     // 绑定模型
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
@@ -62,13 +63,9 @@ type ModelAgentPageRes struct {
 
 // 模型代理列表接口请求参数
 type ModelAgentListReq struct {
-	Corp    string `json:"corp,omitempty"`         // 公司
-	Name    string `json:"name,omitempty"`         // 模型代理名称
-	BaseUrl string `json:"base_url,omitempty"`     // 模型代理地址
-	Path    string `json:"path,omitempty"`         // 模型代理地址路径
-	Weight  int    `json:"weight,omitempty"`       // 权重
-	Remark  string `json:"remark,omitempty"`       // 备注
-	Status  int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Corp   string `json:"corp,omitempty"`         // 公司
+	Name   string `json:"name,omitempty"`         // 模型代理名称
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 模型代理列表接口响应参数
@@ -90,7 +87,8 @@ type ModelAgent struct {
 	Name               string   `json:"name,omitempty"`                 // 模型代理名称
 	BaseUrl            string   `json:"base_url,omitempty"`             // 模型代理地址
 	Path               string   `json:"path,omitempty"`                 // 模型代理地址路径
-	Weight             int      `json:"weight,omitempty"`               // 权重
+	LbStrategy         int      `json:"lb_strategy,omitempty"`          // 负载均衡策略[1:轮询, 2:权重]
+	Weight             int      `json:"weight"`                         // 权重
 	Models             []string `json:"models,omitempty"`               // 绑定模型
 	ModelNames         []string `json:"model_names,omitempty"`          // 模型名称
 	FallbackModels     []string `json:"fallback_models,omitempty"`      // 后备模型

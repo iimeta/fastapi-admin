@@ -38,13 +38,14 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}
 
 	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
-		Corp:    params.Corp,
-		Name:    gstr.Trim(params.Name),
-		BaseUrl: gstr.Trim(params.BaseUrl),
-		Path:    gstr.Trim(params.Path),
-		Weight:  params.Weight,
-		Remark:  params.Remark,
-		Status:  params.Status,
+		Corp:       params.Corp,
+		Name:       gstr.Trim(params.Name),
+		BaseUrl:    gstr.Trim(params.BaseUrl),
+		Path:       gstr.Trim(params.Path),
+		LbStrategy: params.LbStrategy,
+		Weight:     params.Weight,
+		Remark:     params.Remark,
+		Status:     params.Status,
 	})
 
 	if err != nil {
@@ -67,6 +68,8 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
 			Corp:         params.Corp,
 			Key:          params.Key,
+			LbStrategy:   params.LbStrategy,
+			Weight:       params.Weight,
 			Models:       params.Models,
 			ModelAgents:  []string{id},
 			IsAgentsOnly: params.IsAgentsOnly,
@@ -130,6 +133,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		Name:               gstr.Trim(params.Name),
 		BaseUrl:            gstr.Trim(params.BaseUrl),
 		Path:               gstr.Trim(params.Path),
+		LbStrategy:         params.LbStrategy,
 		Weight:             params.Weight,
 		Remark:             params.Remark,
 		Status:             params.Status,
@@ -186,6 +190,8 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
 			Corp:         params.Corp,
 			Key:          params.Key,
+			LbStrategy:   params.LbStrategy,
+			Weight:       params.Weight,
 			Models:       params.Models,
 			ModelAgents:  []string{params.Id},
 			IsAgentsOnly: params.IsAgentsOnly,
@@ -424,6 +430,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		Name:               modelAgent.Name,
 		BaseUrl:            modelAgent.BaseUrl,
 		Path:               modelAgent.Path,
+		LbStrategy:         modelAgent.LbStrategy,
 		Weight:             modelAgent.Weight,
 		Models:             models,
 		ModelNames:         modelNames,
@@ -553,6 +560,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Name:               result.Name,
 			BaseUrl:            result.BaseUrl,
 			Path:               result.Path,
+			LbStrategy:         result.LbStrategy,
 			Weight:             result.Weight,
 			Models:             modelMap[result.Id],
 			ModelNames:         modelNameMap[result.Id],
@@ -612,7 +620,6 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 			Name:       result.Name,
 			BaseUrl:    result.BaseUrl,
 			Path:       result.Path,
-			Weight:     result.Weight,
 			Models:     modelMap[result.Id],
 			ModelNames: modelNameMap[result.Id],
 			Status:     result.Status,

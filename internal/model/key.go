@@ -2,13 +2,15 @@ package model
 
 // 新建密钥接口请求参数
 type KeyCreateReq struct {
-	Corp         string   `json:"corp,omitempty"`           // 公司
-	Key          string   `json:"key,omitempty"`            // 密钥
-	Models       []string `json:"models,omitempty"`         // 模型
-	ModelAgents  []string `json:"model_agents,omitempty"`   // 模型代理
-	IsAgentsOnly bool     `json:"is_agents_only,omitempty"` // 是否代理专用
-	Remark       string   `json:"remark,omitempty"`         // 备注
-	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+	Corp         string   `json:"corp,omitempty"`              // 公司
+	Key          string   `json:"key,omitempty"`               // 密钥
+	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"` // 负载均衡策略[1:轮询, 2:权重]
+	Weight       int      `json:"weight,omitempty"`            // 权重
+	Models       []string `json:"models,omitempty"`            // 模型
+	ModelAgents  []string `json:"model_agents,omitempty"`      // 模型代理
+	IsAgentsOnly bool     `json:"is_agents_only,omitempty"`    // 是否代理专用
+	Remark       string   `json:"remark,omitempty"`            // 备注
+	Status       int      `json:"status,omitempty" d:"1"`      // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新密钥接口请求参数
@@ -16,6 +18,8 @@ type KeyUpdateReq struct {
 	Id           string   `json:"id,omitempty"`                  // ID
 	Corp         string   `json:"corp,omitempty"`                // 公司
 	Key          string   `json:"key,omitempty"`                 // 密钥
+	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"`   // 负载均衡策略[1:轮询, 2:权重]
+	Weight       int      `json:"weight,omitempty"`              // 权重
 	Models       []string `json:"models,omitempty" d:"[]"`       // 模型
 	ModelAgents  []string `json:"model_agents,omitempty" d:"[]"` // 模型代理
 	IsAgentsOnly bool     `json:"is_agents_only,omitempty"`      // 是否代理专用
@@ -96,6 +100,8 @@ type Key struct {
 	CorpName           string   `json:"corp_name,omitempty"`            // 公司名称
 	Key                string   `json:"key,omitempty"`                  // 密钥
 	Type               int      `json:"type,omitempty"`                 // 密钥类型[1:应用, 2:模型]
+	LbStrategy         int      `json:"lb_strategy,omitempty"`          // 负载均衡策略[1:轮询, 2:权重]
+	Weight             int      `json:"weight"`                         // 权重
 	Models             []string `json:"models,omitempty"`               // 模型
 	ModelNames         []string `json:"model_names,omitempty"`          // 模型名称
 	ModelAgents        []string `json:"model_agents,omitempty"`         // 模型代理
