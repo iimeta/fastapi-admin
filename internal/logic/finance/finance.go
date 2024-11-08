@@ -1,6 +1,7 @@
 package finance
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -8,11 +9,13 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"slices"
 	"time"
 )
 
@@ -38,6 +41,10 @@ func (s *sFinance) BillDetail(ctx context.Context, id string) (*model.Statistics
 	if service.Session().IsUserRole(ctx) && statisticsUser.UserId != service.Session().GetUserId(ctx) {
 		return nil, errors.New("Unauthorized")
 	}
+
+	slices.SortFunc(statisticsUser.ModelStats, func(s1, s2 *common.ModelStat) int {
+		return cmp.Compare(s2.Tokens, s1.Tokens)
+	})
 
 	return &model.StatisticsUser{
 		Id:             statisticsUser.Id,
@@ -146,13 +153,18 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 
 	values := make([]interface{}, 0)
 	for _, result := range results {
+
+		slices.SortFunc(result.ModelStats, func(s1, s2 *common.ModelStat) int {
+			return cmp.Compare(s2.Tokens, s1.Tokens)
+		})
+
 		for _, modelStat := range result.ModelStats {
 			values = append(values, &model.BillExport{
 				StatDate: result.StatDate,
 				UserId:   result.UserId,
 				Model:    modelStat.Model,
 				Total:    modelStat.Total,
-				Tokens:   gconv.String(util.QuotaConv(result.Tokens)),
+				Tokens:   gconv.String(util.QuotaConv(modelStat.Tokens)),
 			})
 		}
 	}

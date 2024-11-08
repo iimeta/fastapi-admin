@@ -6,9 +6,9 @@ type ModelAgentCreateReq struct {
 	Name         string   `json:"name,omitempty"`              // 模型代理名称
 	BaseUrl      string   `json:"base_url,omitempty"`          // 模型代理地址
 	Path         string   `json:"path,omitempty"`              // 模型代理地址路径
-	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"` // 负载均衡策略[1:轮询, 2:权重]
 	Weight       int      `json:"weight,omitempty"`            // 权重
 	Models       []string `json:"models,omitempty"`            // 绑定模型
+	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"` // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key          string   `json:"key,omitempty"`               // 密钥
 	IsAgentsOnly bool     `json:"is_agents_only,omitempty"`    // 是否代理专用
 	Remark       string   `json:"remark,omitempty"`            // 备注
@@ -22,9 +22,9 @@ type ModelAgentUpdateReq struct {
 	Name         string   `json:"name,omitempty"`              // 模型代理名称
 	BaseUrl      string   `json:"base_url,omitempty"`          // 模型代理地址
 	Path         string   `json:"path,omitempty"`              // 模型代理地址路径
-	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"` // 负载均衡策略[1:轮询, 2:权重]
 	Weight       int      `json:"weight,omitempty"`            // 权重
 	Models       []string `json:"models,omitempty" d:"[]"`     // 绑定模型
+	LbStrategy   int      `json:"lb_strategy,omitempty" d:"1"` // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key          string   `json:"key,omitempty"`               // 密钥
 	IsAgentsOnly bool     `json:"is_agents_only,omitempty"`    // 是否代理专用
 	Remark       string   `json:"remark,omitempty"`            // 备注
@@ -87,12 +87,12 @@ type ModelAgent struct {
 	Name               string   `json:"name,omitempty"`                 // 模型代理名称
 	BaseUrl            string   `json:"base_url,omitempty"`             // 模型代理地址
 	Path               string   `json:"path,omitempty"`                 // 模型代理地址路径
-	LbStrategy         int      `json:"lb_strategy,omitempty"`          // 负载均衡策略[1:轮询, 2:权重]
 	Weight             int      `json:"weight"`                         // 权重
 	Models             []string `json:"models,omitempty"`               // 绑定模型
 	ModelNames         []string `json:"model_names,omitempty"`          // 模型名称
 	FallbackModels     []string `json:"fallback_models,omitempty"`      // 后备模型
 	FallbackModelNames []string `json:"fallback_model_names,omitempty"` // 后备模型名称
+	LbStrategy         int      `json:"lb_strategy,omitempty"`          // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key                string   `json:"key,omitempty"`                  // 密钥
 	Remark             string   `json:"remark,omitempty"`               // 备注
 	Status             int      `json:"status,omitempty"`               // 状态[1:正常, 2:禁用, -1:删除]

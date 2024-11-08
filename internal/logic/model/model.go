@@ -60,6 +60,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		DataFormat:           params.DataFormat,
 		IsPublic:             params.IsPublic,
 		IsEnableModelAgent:   params.IsEnableModelAgent,
+		LbStrategy:           params.LbStrategy,
 		ModelAgents:          params.ModelAgents,
 		IsEnableForward:      params.IsEnableForward,
 		ForwardConfig:        params.ForwardConfig,
@@ -150,16 +151,17 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			}
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:      modelAgent.Id,
-				Corp:    modelAgent.Corp,
-				Name:    modelAgent.Name,
-				BaseUrl: modelAgent.BaseUrl,
-				Path:    modelAgent.Path,
-				Weight:  modelAgent.Weight,
-				Models:  append(modelAgent.Models, params.Id),
-				Key:     modelAgent.Key,
-				Remark:  modelAgent.Remark,
-				Status:  modelAgent.Status,
+				Id:         modelAgent.Id,
+				Corp:       modelAgent.Corp,
+				Name:       modelAgent.Name,
+				BaseUrl:    modelAgent.BaseUrl,
+				Path:       modelAgent.Path,
+				Weight:     modelAgent.Weight,
+				Models:     append(modelAgent.Models, params.Id),
+				LbStrategy: modelAgent.LbStrategy,
+				Key:        modelAgent.Key,
+				Remark:     modelAgent.Remark,
+				Status:     modelAgent.Status,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -184,16 +186,17 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			}
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:      modelAgent.Id,
-				Corp:    modelAgent.Corp,
-				Name:    modelAgent.Name,
-				BaseUrl: modelAgent.BaseUrl,
-				Path:    modelAgent.Path,
-				Weight:  modelAgent.Weight,
-				Models:  modelAgent.Models,
-				Key:     modelAgent.Key,
-				Remark:  modelAgent.Remark,
-				Status:  modelAgent.Status,
+				Id:         modelAgent.Id,
+				Corp:       modelAgent.Corp,
+				Name:       modelAgent.Name,
+				BaseUrl:    modelAgent.BaseUrl,
+				Path:       modelAgent.Path,
+				Weight:     modelAgent.Weight,
+				Models:     modelAgent.Models,
+				LbStrategy: modelAgent.LbStrategy,
+				Key:        modelAgent.Key,
+				Remark:     modelAgent.Remark,
+				Status:     modelAgent.Status,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -220,6 +223,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		DataFormat:           params.DataFormat,
 		IsPublic:             params.IsPublic,
 		IsEnableModelAgent:   params.IsEnableModelAgent,
+		LbStrategy:           params.LbStrategy,
 		ModelAgents:          params.ModelAgents,
 		IsEnableForward:      params.IsEnableForward,
 		ForwardConfig:        params.ForwardConfig,
@@ -490,6 +494,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		DataFormat:           m.DataFormat,
 		IsPublic:             m.IsPublic,
 		IsEnableModelAgent:   m.IsEnableModelAgent,
+		LbStrategy:           m.LbStrategy,
 		ModelAgents:          m.ModelAgents,
 		ModelAgentNames:      modelAgentNames,
 		IsEnableForward:      m.IsEnableForward,
@@ -696,7 +701,6 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 			Name:             result.Name,
 			Model:            result.Model,
 			Type:             result.Type,
-			DataFormat:       result.DataFormat,
 			IsEnableFallback: result.IsEnableFallback,
 			FallbackConfig:   result.FallbackConfig,
 			Status:           result.Status,

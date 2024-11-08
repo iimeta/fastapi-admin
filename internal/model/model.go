@@ -22,6 +22,7 @@ type ModelCreateReq struct {
 	DataFormat           int                         `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                        `json:"is_public,omitempty"`               // 是否公开
 	IsEnableModelAgent   bool                        `json:"is_enable_model_agent,omitempty"`   // 是否启用模型代理
+	LbStrategy           int                         `json:"lb_strategy,omitempty" d:"1"`       // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents          []string                    `json:"model_agents,omitempty" d:"[]"`     // 模型代理
 	IsEnableForward      bool                        `json:"is_enable_forward,omitempty"`       // 是否启用模型转发
 	ForwardConfig        *common.ForwardConfig       `json:"forward_config,omitempty"`          // 模型转发配置
@@ -52,6 +53,7 @@ type ModelUpdateReq struct {
 	DataFormat           int                         `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                        `json:"is_public,omitempty"`               // 是否公开
 	IsEnableModelAgent   bool                        `json:"is_enable_model_agent,omitempty"`   // 是否启用模型代理
+	LbStrategy           int                         `json:"lb_strategy,omitempty" d:"1"`       // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents          []string                    `json:"model_agents,omitempty" d:"[]"`     // 模型代理
 	IsEnableForward      bool                        `json:"is_enable_forward,omitempty"`       // 是否启用模型转发
 	ForwardConfig        *common.ForwardConfig       `json:"forward_config,omitempty"`          // 模型转发配置
@@ -75,17 +77,13 @@ type ModelDetailRes struct {
 // 模型分页列表接口请求参数
 type ModelPageReq struct {
 	Paging
-	Corp            string   `json:"corp,omitempty"`             // 公司
-	Name            string   `json:"name,omitempty"`             // 模型名称
-	Model           string   `json:"model,omitempty"`            // 模型
-	Type            int      `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
-	PromptRatio     float64  `json:"prompt_ratio,omitempty"`     // 提示倍率(提问倍率)
-	CompletionRatio float64  `json:"completion_ratio,omitempty"` // 补全倍率(回答倍率)
-	DataFormat      int      `json:"data_format,omitempty"`      // 数据格式[1:统一格式, 2:官方格式]
-	IsPublic        bool     `json:"is_public"`                  // 是否公开
-	Remark          string   `json:"remark,omitempty"`           // 备注
-	Status          int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt       []string `json:"created_at,omitempty"`       // 创建时间
+	Corp      string   `json:"corp,omitempty"`       // 公司
+	Name      string   `json:"name,omitempty"`       // 模型名称
+	Model     string   `json:"model,omitempty"`      // 模型
+	Type      int      `json:"type,omitempty"`       // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Remark    string   `json:"remark,omitempty"`     // 备注
+	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
 }
 
 // 模型分页列表接口响应参数
@@ -96,16 +94,11 @@ type ModelPageRes struct {
 
 // 模型列表接口请求参数
 type ModelListReq struct {
-	Corp            string  `json:"corp,omitempty"`             // 公司
-	Name            string  `json:"name,omitempty"`             // 模型名称
-	Model           string  `json:"model,omitempty"`            // 模型
-	Type            int     `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
-	PromptRatio     float64 `json:"prompt_ratio,omitempty"`     // 提示倍率(提问倍率)
-	CompletionRatio float64 `json:"completion_ratio,omitempty"` // 补全倍率(回答倍率)
-	DataFormat      int     `json:"data_format,omitempty"`      // 数据格式[1:统一格式, 2:官方格式]
-	IsPublic        bool    `json:"is_public"`                  // 是否公开
-	Remark          string  `json:"remark,omitempty"`           // 备注
-	Status          int     `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
+	Corp   string `json:"corp,omitempty"`         // 公司
+	Name   string `json:"name,omitempty"`         // 模型名称
+	Model  string `json:"model,omitempty"`        // 模型
+	Type   int    `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 模型列表接口响应参数
@@ -125,16 +118,11 @@ type ModelBatchOperateReq struct {
 
 // 模型树接口请求参数
 type ModelTreeReq struct {
-	Corp            string  `json:"corp,omitempty"`             // 公司
-	Name            string  `json:"name,omitempty"`             // 模型名称
-	Model           string  `json:"model,omitempty"`            // 模型
-	Type            int     `json:"type,omitempty"`             // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
-	PromptRatio     float64 `json:"prompt_ratio,omitempty"`     // 提示倍率(提问倍率)
-	CompletionRatio float64 `json:"completion_ratio,omitempty"` // 补全倍率(回答倍率)
-	DataFormat      int     `json:"data_format,omitempty"`      // 数据格式[1:统一格式, 2:官方格式]
-	IsPublic        bool    `json:"is_public"`                  // 是否公开
-	Remark          string  `json:"remark,omitempty"`           // 备注
-	Status          int     `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
+	Corp   string `json:"corp,omitempty"`         // 公司
+	Name   string `json:"name,omitempty"`         // 模型名称
+	Model  string `json:"model,omitempty"`        // 模型
+	Type   int    `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 模型树接口响应参数
@@ -202,6 +190,7 @@ type Model struct {
 	DataFormat           int                         `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                        `json:"is_public"`                         // 是否公开
 	IsEnableModelAgent   bool                        `json:"is_enable_model_agent"`             // 是否启用模型代理
+	LbStrategy           int                         `json:"lb_strategy,omitempty"`             // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents          []string                    `json:"model_agents,omitempty"`            // 模型代理
 	ModelAgentNames      []string                    `json:"model_agent_names,omitempty"`       // 模型代理名称
 	IsEnableForward      bool                        `json:"is_enable_forward,omitempty"`       // 是否启用模型转发
