@@ -172,6 +172,12 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		index = "req_time_-1_model_id_1_user_id_1_status_1_created_at_-1"
 	}
 
+	if len(params.ModelAgents) > 0 && service.Session().IsAdminRole(ctx) {
+		filter["model_agent_id"] = bson.M{
+			"$in": params.ModelAgents,
+		}
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
 		filter["is_smart_match"] = bson.M{"$exists": false}
@@ -194,7 +200,11 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	}
 
 	if params.Key != "" {
-		filter["creator"] = params.Key
+		if service.Session().IsAdminRole(ctx) {
+			filter["key"] = params.Key
+		} else {
+			filter["creator"] = params.Key
+		}
 	}
 
 	if params.TotalTime != 0 {

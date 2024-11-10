@@ -636,7 +636,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			corpName = corpMap[result.Corp].Name
 		}
 
-		items = append(items, &model.Model{
+		model := &model.Model{
 			Id:                   result.Id,
 			Corp:                 result.Corp,
 			CorpName:             corpName,
@@ -656,7 +656,14 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			Status:               result.Status,
 			CreatedAt:            util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:            util.FormatDateTimeMonth(result.UpdatedAt),
-		})
+		}
+
+		if result.IsEnableModelAgent && service.Session().IsAdminRole(ctx) {
+			model.IsEnableModelAgent = result.IsEnableModelAgent
+			model.LbStrategy = result.LbStrategy
+		}
+
+		items = append(items, model)
 	}
 
 	return &model.ModelPageRes{
@@ -764,6 +771,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 
 			if params.Value == "all" {
 				m.IsEnableModelAgent = true
+				m.LbStrategy = params.LbStrategy
 				m.ModelAgents = params.ModelAgents
 			} else {
 				m.IsEnableModelAgent = gconv.Bool(params.Value)

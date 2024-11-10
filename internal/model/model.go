@@ -108,12 +108,13 @@ type ModelListRes struct {
 
 // 模型批量操作接口请求参数
 type ModelBatchOperateReq struct {
-	Action         string                 `json:"action"`                    // 动作
-	Ids            []string               `json:"ids"`                       // 主键Ids
-	Value          any                    `json:"value"`                     // 值
-	ModelAgents    []string               `json:"model_agents,omitempty"`    // 模型代理
-	TargetModel    string                 `json:"target_model,omitempty"`    // 目标模型
-	FallbackConfig *common.FallbackConfig `json:"fallback_config,omitempty"` // 后备配置
+	Action         string                 `json:"action"`                      // 动作
+	Ids            []string               `json:"ids"`                         // 主键Ids
+	Value          any                    `json:"value"`                       // 值
+	LbStrategy     int                    `json:"lb_strategy,omitempty" d:"1"` // 代理负载均衡策略[1:轮询, 2:权重]
+	ModelAgents    []string               `json:"model_agents,omitempty"`      // 模型代理
+	TargetModel    string                 `json:"target_model,omitempty"`      // 目标模型
+	FallbackConfig *common.FallbackConfig `json:"fallback_config,omitempty"`   // 后备配置
 }
 
 // 模型树接口请求参数

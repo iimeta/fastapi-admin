@@ -161,12 +161,22 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 	}
 
 	if params.Key != "" {
-		filter["creator"] = params.Key
+		if service.Session().IsAdminRole(ctx) {
+			filter["key"] = params.Key
+		} else {
+			filter["creator"] = params.Key
+		}
 	}
 
 	if len(params.Models) > 0 {
 		filter["model_id"] = bson.M{
 			"$in": params.Models,
+		}
+	}
+
+	if len(params.ModelAgents) > 0 && service.Session().IsAdminRole(ctx) {
+		filter["model_agent_id"] = bson.M{
+			"$in": params.ModelAgents,
 		}
 	}
 
