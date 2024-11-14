@@ -90,18 +90,20 @@ type AppCreateKeyRes struct {
 
 // 应用密钥配置接口请求参数
 type AppKeyConfigReq struct {
-	Id             string   `json:"id,omitempty"`               // ID
-	UserId         int      `json:"user_id,omitempty"`          // 用户ID
-	AppId          int      `json:"app_id,omitempty"`           // 应用ID
-	Key            string   `json:"key,omitempty"`              // 密钥
-	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
-	Quota          int      `json:"quota,omitempty"`            // 额度
-	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
-	Models         []string `json:"models,omitempty"`           // 模型权限
-	IpWhitelist    string   `json:"ip_whitelist,omitempty"`     // IP白名单
-	IpBlacklist    string   `json:"ip_blacklist,omitempty"`     // IP黑名单
-	Remark         string   `json:"remark,omitempty"`           // 备注
-	Status         int      `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
+	Id                  string   `json:"id,omitempty"`                    // ID
+	UserId              int      `json:"user_id,omitempty"`               // 用户ID
+	AppId               int      `json:"app_id,omitempty"`                // 应用ID
+	Key                 string   `json:"key,omitempty"`                   // 密钥
+	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`        // 是否限制额度
+	Quota               int      `json:"quota,omitempty"`                 // 额度
+	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty"`    // 额度过期规则[1:固定, 2:时长]
+	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`      // 额度过期时间
+	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"` // 额度过期分钟数
+	Models              []string `json:"models,omitempty"`                // 模型权限
+	IpWhitelist         string   `json:"ip_whitelist,omitempty"`          // IP白名单
+	IpBlacklist         string   `json:"ip_blacklist,omitempty"`          // IP黑名单
+	Remark              string   `json:"remark,omitempty"`                // 备注
+	Status              int      `json:"status,omitempty" d:"1"`          // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 应用模型权限接口请求参数

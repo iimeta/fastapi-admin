@@ -439,18 +439,20 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		oldData *entity.Key
 		action  = consts.ACTION_CREATE
 		key     = &do.Key{
-			UserId:         service.Session().GetUserId(ctx),
-			AppId:          params.AppId,
-			Key:            params.Key,
-			IsLimitQuota:   params.IsLimitQuota,
-			Quota:          params.Quota,
-			QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
-			Type:           1,
-			Models:         params.Models,
-			IpWhitelist:    gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
-			IpBlacklist:    gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
-			Remark:         params.Remark,
-			Status:         params.Status,
+			UserId:              service.Session().GetUserId(ctx),
+			AppId:               params.AppId,
+			Key:                 params.Key,
+			IsLimitQuota:        params.IsLimitQuota,
+			Quota:               params.Quota,
+			QuotaExpiresRule:    params.QuotaExpiresRule,
+			QuotaExpiresAt:      common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+			QuotaExpiresMinutes: params.QuotaExpiresMinutes,
+			Type:                1,
+			Models:              params.Models,
+			IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+			IpBlacklist:         gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
+			Remark:              params.Remark,
+			Status:              params.Status,
 		}
 	)
 
@@ -506,20 +508,22 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		}
 
 		keyInfo = &entity.Key{
-			Id:             id,
-			UserId:         key.UserId,
-			AppId:          key.AppId,
-			Key:            key.Key,
-			IsLimitQuota:   key.IsLimitQuota,
-			Quota:          key.Quota,
-			UsedQuota:      key.UsedQuota,
-			QuotaExpiresAt: key.QuotaExpiresAt,
-			Type:           key.Type,
-			Models:         key.Models,
-			IpWhitelist:    key.IpWhitelist,
-			IpBlacklist:    key.IpBlacklist,
-			Remark:         key.Remark,
-			Status:         key.Status,
+			Id:                  id,
+			UserId:              key.UserId,
+			AppId:               key.AppId,
+			Key:                 key.Key,
+			IsLimitQuota:        key.IsLimitQuota,
+			Quota:               key.Quota,
+			UsedQuota:           key.UsedQuota,
+			QuotaExpiresRule:    key.QuotaExpiresRule,
+			QuotaExpiresAt:      key.QuotaExpiresAt,
+			QuotaExpiresMinutes: key.QuotaExpiresMinutes,
+			Type:                key.Type,
+			Models:              key.Models,
+			IpWhitelist:         key.IpWhitelist,
+			IpBlacklist:         key.IpBlacklist,
+			Remark:              key.Remark,
+			Status:              key.Status,
 		}
 	}
 
