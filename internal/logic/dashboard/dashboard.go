@@ -433,7 +433,7 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"req_time": bson.M{
+				"created_at": bson.M{
 					"$gte": startTime,
 					"$lte": endTime,
 				},
@@ -495,7 +495,7 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"req_time": bson.M{
+				"created_at": bson.M{
 					"$gte": startTime,
 					"$lte": endTime,
 				},
