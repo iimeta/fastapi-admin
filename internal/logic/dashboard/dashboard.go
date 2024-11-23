@@ -473,6 +473,12 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 		}
 	}
 
+	if len(params.ModelAgents) > 0 && service.Session().IsAdminRole(ctx) {
+		match["model_agent_id"] = bson.M{
+			"$in": params.ModelAgents,
+		}
+	}
+
 	result := make([]map[string]interface{}, 0)
 	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
@@ -532,6 +538,12 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	if len(params.Models) > 0 {
 		match["model_id"] = bson.M{
 			"$in": params.Models,
+		}
+	}
+
+	if len(params.ModelAgents) > 0 && service.Session().IsAdminRole(ctx) {
+		match["model_agent_id"] = bson.M{
+			"$in": params.ModelAgents,
 		}
 	}
 
