@@ -194,7 +194,7 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 		filter["status"] = bson.M{"$ne": 1}
 	}
 
-	if len(params.ReqTime) > 0 {
+	if len(params.ReqTime) > 0 && params.TraceId == "" {
 		gte := gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli()
 		lte := gtime.NewFromStrLayout(params.ReqTime[1], time.DateTime).TimestampMilli() + 999
 		filter["req_time"] = bson.M{
