@@ -89,3 +89,6 @@ error:
     - "tcp"
     - "No available"
     - "quota"
+    - "All key error."
+    - "All model agent error."
+    - "All model agent key error."
