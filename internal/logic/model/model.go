@@ -983,18 +983,11 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 	items := make([]*model.Tree, 0)
 	for _, corp := range corps {
 
-		corpTree := &model.Tree{
-			Title:    corp.Name,
-			Value:    corp.Id,
-			Key:      corp.Id,
-			Children: make([]model.Tree, 0),
-		}
+		children := make([]model.Tree, 0)
 
 		for _, typ := range consts.MODEL_TYPES {
-
-			modelTree := treeData[fmt.Sprintf("%s:%d", corp.Id, typ)]
-			if modelTree != nil {
-				corpTree.Children = append(corpTree.Children, model.Tree{
+			if modelTree := treeData[fmt.Sprintf("%s:%d", corp.Id, typ)]; modelTree != nil {
+				children = append(children, model.Tree{
 					Title:    consts.MODEL_TYPE[typ],
 					Value:    fmt.Sprintf("%s:%d", corp.Id, typ),
 					Key:      fmt.Sprintf("%s:%d", corp.Id, typ),
@@ -1003,7 +996,14 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 			}
 		}
 
-		items = append(items, corpTree)
+		if len(children) > 0 {
+			items = append(items, &model.Tree{
+				Title:    corp.Name,
+				Value:    corp.Id,
+				Key:      corp.Id,
+				Children: children,
+			})
+		}
 	}
 
 	return items, nil
