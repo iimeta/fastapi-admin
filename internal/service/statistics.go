@@ -13,12 +13,6 @@ type (
 	IStatistics interface {
 		// 统计任务
 		StatisticsTask(ctx context.Context)
-		// 统计聊天数据
-		StatisticsChat(ctx context.Context)
-		// 统计绘图数据
-		StatisticsImage(ctx context.Context)
-		// 统计音频数据
-		StatisticsAudio(ctx context.Context)
 		// 统计数据
 		StatisticsData(ctx context.Context, collection string, index string, lastTimeKey string, lastIdKey string)
 	}
