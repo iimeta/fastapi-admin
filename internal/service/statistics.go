@@ -19,6 +19,8 @@ type (
 		StatisticsImage(ctx context.Context)
 		// 统计音频数据
 		StatisticsAudio(ctx context.Context)
+		// 统计数据
+		StatisticsData(ctx context.Context, collection string, index string, lastTimeKey string, lastIdKey string)
 	}
 )
 

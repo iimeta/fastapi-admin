@@ -58,3 +58,17 @@ type StatisticsAppKey struct {
 	CreatedAt      int64               `bson:"created_at,omitempty"`      // 创建时间
 	UpdatedAt      int64               `bson:"updated_at,omitempty"`      // 更新时间
 }
+
+type StatisticsData struct {
+	gmeta.Meta  `role:"*" bson:"-"`
+	Id          string `bson:"_id,omitempty"`          // ID
+	UserId      int    `bson:"user_id,omitempty"`      // 用户ID
+	AppId       int    `bson:"app_id,omitempty"`       // 应用ID
+	ModelId     string `bson:"model_id,omitempty"`     // 模型ID
+	Model       string `bson:"model,omitempty"`        // 模型
+	TotalTokens int    `bson:"total_tokens,omitempty"` // 总令牌数
+	ReqDate     string `bson:"req_date,omitempty"`     // 请求日期
+	Status      int    `bson:"status,omitempty"`       // 状态[1:成功, -1:失败, 2:中止, 3:重试]
+	Creator     string `bson:"creator,omitempty"`      // 创建人
+	UpdatedAt   int64  `bson:"updated_at,omitempty"`   // 更新时间
+}
