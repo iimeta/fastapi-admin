@@ -5,8 +5,8 @@ go 1.23
 require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/go-redsync/redsync/v4 v4.13.0
-	github.com/gogf/gf/contrib/nosql/redis/v2 v2.8.2
-	github.com/gogf/gf/v2 v2.8.2
+	github.com/gogf/gf/contrib/nosql/redis/v2 v2.8.3
+	github.com/gogf/gf/v2 v2.8.3
 	github.com/gorilla/websocket v1.5.3
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/tjfoc/gmsm v1.4.1
@@ -51,7 +51,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect

@@ -41,10 +41,10 @@ github.com/go-redis/redis/v8 v8.11.5 h1:AcZZR7igkdvfVmQTPnu9WE37LRrO/YrBH5zWyjDC
 github.com/go-redis/redis/v8 v8.11.5/go.mod h1:gREzHqY1hg6oD9ngVRbLStwAWKhA0FEgq8Jd4h5lpwo=
 github.com/go-redsync/redsync/v4 v4.13.0 h1:49X6GJfnbLGaIpBBREM/zA4uIMDXKAh1NDkvQ1EkZKA=
 github.com/go-redsync/redsync/v4 v4.13.0/go.mod h1:HMW4Q224GZQz6x1Xc7040Yfgacukdzu7ifTDAKiyErQ=
-github.com/gogf/gf/contrib/nosql/redis/v2 v2.8.2 h1:w8EfQgPvKfLBvS1rEFJfirixCRJYiSauOYlrjCZ2Y/Q=
-github.com/gogf/gf/contrib/nosql/redis/v2 v2.8.2/go.mod h1:9oQtAMrDDbVIWSSb9NTMAywpZ1cqtywgpzwbHk0lvxM=
-github.com/gogf/gf/v2 v2.8.2 h1:4k641rn+hV1COAKygqsqcTm8+lDTkcO8HQ4iBv/uTFs=
-github.com/gogf/gf/v2 v2.8.2/go.mod h1:n++xPYGUUMadw6IygLEgGZqc6y6DRLrJKg5kqCrPLWY=
+github.com/gogf/gf/contrib/nosql/redis/v2 v2.8.3 h1:SpstyaADpaJmTgv55Teb8i7mpQrKH9IMzL0TwnhGcHI=
+github.com/gogf/gf/contrib/nosql/redis/v2 v2.8.3/go.mod h1:kPSHCSoDQZNKcJ/ZlLd/c1sGKR+0BJRa5nCP3YkSteo=
+github.com/gogf/gf/v2 v2.8.3 h1:h9Px3lqJnnH6It0AqHRz4/1hx0JmvaSf1IvUir5x1rA=
+github.com/gogf/gf/v2 v2.8.3/go.mod h1:n++xPYGUUMadw6IygLEgGZqc6y6DRLrJKg5kqCrPLWY=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
@@ -161,8 +161,8 @@ golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLL
 golang.org/x/net v0.0.0-20201010224723-4f7140c49acb/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
 golang.org/x/net v0.0.0-20220722155237-a158d28d115b/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
-golang.org/x/net v0.32.0 h1:ZqPmj8Kzc+Y6e0+skZsuACbx+wzMgo5MQsJh9Qd6aYI=
-golang.org/x/net v0.32.0/go.mod h1:CwU0IoeOlnQQWJ6ioyFrfRuomB8GKF6KbYXZVyeXNfs=
+golang.org/x/net v0.33.0 h1:74SYHlV8BIgHIFC/LrYkOGIwL19eTYXQ5wc6TBuO36I=
+golang.org/x/net v0.33.0/go.mod h1:HXLR5J+9DxmrqMwG9qjGCxZ+zKXxBru04zlTvWlWuN4=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
