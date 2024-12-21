@@ -86,7 +86,7 @@ func init() {
 	}
 
 	if _, err = client.Database(DefaultDatabase).Collection("chat").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{bson.E{Key: "created_at", Value: 1}, bson.E{Key: "is_smart_match", Value: -1}, bson.E{Key: "is_retry", Value: -1}},
+		Keys: bson.D{bson.E{Key: "updated_at", Value: 1}, bson.E{Key: "is_smart_match", Value: -1}, bson.E{Key: "is_retry", Value: -1}},
 	}); err != nil {
 		panic(err)
 	}
