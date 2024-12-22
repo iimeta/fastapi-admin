@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/crypto/gmd5"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -23,14 +24,18 @@ import (
 	"time"
 )
 
-type sCommon struct{}
+type sCommon struct {
+	secretKeyPrefix string
+}
 
 func init() {
 	service.RegisterCommon(New())
 }
 
 func New() service.ICommon {
-	return &sCommon{}
+	return &sCommon{
+		secretKeyPrefix: config.GetString(gctx.New(), "core.secret_key_prefix", "sk-FastAPI"),
+	}
 }
 
 // 发送短信验证码
@@ -243,11 +248,11 @@ func ConvQuotaExpiresAt(quotaExpiresAt string) int64 {
 // 解析密钥
 func (s *sCommon) ParseSecretKey(ctx context.Context, secretKey string) (int, int, error) {
 
-	if !gstr.HasPrefix(secretKey, "sk-FastAPI") {
+	if !gstr.HasPrefix(secretKey, s.secretKeyPrefix) {
 		return 0, 0, errors.ERR_INVALID_API_KEY
 	}
 
-	secretKey = strings.TrimPrefix(secretKey, "sk-FastAPI")
+	secretKey = strings.TrimPrefix(secretKey, s.secretKeyPrefix)
 
 	userId, err := gregex.ReplaceString("[a-zA-Z-]*", "", secretKey[:len(secretKey)/2])
 	if err != nil {

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -24,14 +26,18 @@ import (
 	"time"
 )
 
-type sApp struct{}
+type sApp struct {
+	secretKeyPrefix string
+}
 
 func init() {
 	service.RegisterApp(New())
 }
 
 func New() service.IApp {
-	return &sApp{}
+	return &sApp{
+		secretKeyPrefix: config.GetString(gctx.New(), "core.secret_key_prefix", "sk-FastAPI"),
+	}
 }
 
 // 新建应用
@@ -427,8 +433,19 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 		userId = params.UserId
 	}
 
-	// 警告: 固定前缀, 修改请慎重, 可能会引发不可预知问题!!!
-	return util.NewKey("sk-FastAPI", 51, gconv.String(userId), gconv.String(params.AppId)), nil
+	key := util.NewKey(s.secretKeyPrefix, 51, gconv.String(userId), gconv.String(params.AppId))
+
+	u, a, err := service.Common().ParseSecretKey(ctx, key)
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", errors.New("创建密钥异常, 请重试...")
+	}
+
+	if u != userId || a != params.AppId {
+		return "", errors.New("创建密钥异常, 请重试...")
+	}
+
+	return key, nil
 }
 
 // 应用密钥配置

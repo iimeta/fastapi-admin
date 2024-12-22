@@ -31,14 +31,20 @@ func NewKey(prefix string, length int, ids ...string) string {
 
 		for _, id := range ids {
 
-			n := (length - len(prefix)) / len(ids)
-			l := len(id)
+			l := (length - len(prefix)) / len(ids)
+			i := len(id)
+			n := (l - i) / i
+			k := ""
 
-			n = (n - l) / l
-
-			for i := 0; i < l; i++ {
-				key += gstr.Join(slices.Insert(strings.Split(grand.Letters(n), ""), grand.Intn(n), id[i:i+1]), "")
+			for j := 0; j < i; j++ {
+				k += gstr.Join(slices.Insert(strings.Split(grand.Letters(n), ""), grand.Intn(n), id[j:j+1]), "")
 			}
+
+			if len(k) < l {
+				k += grand.Letters(l - len(k))
+			}
+
+			key += k
 		}
 
 		if len(key) < length {

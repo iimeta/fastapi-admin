@@ -19,9 +19,9 @@ type (
 		// 发送邮件验证码
 		EmailCode(ctx context.Context, params model.SendEmailReq) (*model.SendEmailRes, error)
 		SetCode(ctx context.Context, channel string, email string, code string, exp time.Duration) error
-		GetCode(ctx context.Context, channel, account string) (string, error)
-		DelCode(ctx context.Context, channel, account string) error
-		VerifyCode(ctx context.Context, channel, account, code string) (pass bool)
+		GetCode(ctx context.Context, channel string, account string) (string, error)
+		DelCode(ctx context.Context, channel string, account string) error
+		VerifyCode(ctx context.Context, channel string, account string, code string) (pass bool)
 		// 解析密钥
 		ParseSecretKey(ctx context.Context, secretKey string) (int, int, error)
 	}
