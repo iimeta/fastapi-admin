@@ -427,8 +427,8 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 // 每秒钟数据
 func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSecondReq) (int, int, error) {
 
-	startTime := gtime.Now().TimestampMilli() - 5000
-	endTime := gtime.Now().TimestampMilli()
+	startTime := gtime.TimestampMilli() - 5000
+	endTime := gtime.TimestampMilli()
 
 	pipeline := []bson.M{
 		{
@@ -495,8 +495,8 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 // 每分钟数据
 func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMinuteReq) (int, int, error) {
 
-	startTime := gtime.Now().TimestampMilli() - 60000
-	endTime := gtime.Now().TimestampMilli()
+	startTime := gtime.TimestampMilli() - 60000
+	endTime := gtime.TimestampMilli()
 
 	pipeline := []bson.M{
 		{
