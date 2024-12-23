@@ -14,13 +14,17 @@ import (
 
 type (
 	ICommon interface {
-		// 发送短信验证码
-		SmsCode(ctx context.Context, params model.SendSmsReq) (*model.SendSmsRes, error)
 		// 发送邮件验证码
 		EmailCode(ctx context.Context, params model.SendEmailReq) (*model.SendEmailRes, error)
-		SetCode(ctx context.Context, channel string, email string, code string, exp time.Duration) error
+		// 发送短信验证码
+		SmsCode(ctx context.Context, params model.SendSmsReq) (*model.SendSmsRes, error)
+		// 缓存验证码
+		SetCode(ctx context.Context, channel string, account string, code string, exp time.Duration) error
+		// 获取验证码
 		GetCode(ctx context.Context, channel string, account string) (string, error)
+		// 删除验证码
 		DelCode(ctx context.Context, channel string, account string) error
+		// 校验验证码
 		VerifyCode(ctx context.Context, channel string, account string, code string) (pass bool)
 		// 解析密钥
 		ParseSecretKey(ctx context.Context, secretKey string) (int, int, error)

@@ -91,9 +91,19 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		Creator: id,
 	}
 
-	if config.Cfg.App.Register.GrantQuota != 0 {
+	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
+	if siteConfig != nil && siteConfig.RegisterTips == "" && siteConfig.GrantQuota > 0 {
+		user.Quota = siteConfig.GrantQuota
+		if siteConfig.QuotaExpiresAt > 0 {
+			user.QuotaExpiresAt = gtime.Now().Add(time.Duration(siteConfig.QuotaExpiresAt) * time.Minute).TimestampMilli()
+		}
+	}
+
+	if siteConfig == nil && config.Cfg.App.Register.GrantQuota > 0 {
 		user.Quota = config.Cfg.App.Register.GrantQuota
-		user.QuotaExpiresAt = gtime.Now().Add(config.Cfg.App.Register.QuotaExpiresAt * time.Minute).TimestampMilli()
+		if config.Cfg.App.Register.QuotaExpiresAt > 0 {
+			user.QuotaExpiresAt = gtime.Now().Add(config.Cfg.App.Register.QuotaExpiresAt * time.Minute).TimestampMilli()
+		}
 	}
 
 	uid, err := dao.User.Insert(ctx, user)
@@ -208,11 +218,33 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						}
 					}
 
+					if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain); siteConfig != nil {
+
+						if siteConfig.RegisterTips != "" {
+							return nil, errors.New(siteConfig.RegisterTips)
+						}
+
+						if len(siteConfig.SupportEmailSuffix) > 0 {
+
+							isSupport := false
+							for _, emailSuffix := range siteConfig.SupportEmailSuffix {
+								if isSupport = gstr.HasSuffix(params.Account, emailSuffix); isSupport {
+									break
+								}
+							}
+
+							if !isSupport {
+								return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix))
+							}
+						}
+					}
+
 					if err = s.Register(ctx, model.RegisterReq{
 						Account:  params.Account,
 						Password: grand.Letters(8),
 						Terminal: params.Terminal,
 						Code:     params.Code,
+						Domain:   params.Domain,
 					}, consts.CHANNEL_LOGIN); err != nil {
 						logger.Error(ctx, err)
 						return nil, err

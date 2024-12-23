@@ -20,6 +20,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/midjourney"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
+	"github.com/iimeta/fastapi-admin/internal/controller/site_config"
 	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
@@ -75,6 +76,9 @@ var (
 			s.AddStaticPath("/log/chat", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
+			s.AddStaticPath("/sys/site/config", "./resource/fastapi-web/")
+			s.AddStaticPath("/sys/site/config/create", "./resource/fastapi-web/")
+			s.AddStaticPath("/sys/site/config/update", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
 
@@ -89,6 +93,7 @@ var (
 						return
 					},
 					health.NewV1(),
+					site_config.NewV1(),
 				)
 			})
 
@@ -215,6 +220,12 @@ var (
 				v1.Group("/admin", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						sys_admin.NewV1(),
+					)
+				})
+
+				v1.Group("/site", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						site_config.NewV1(),
 					)
 				})
 			})

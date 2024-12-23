@@ -38,6 +38,126 @@ func New() service.ICommon {
 	}
 }
 
+// 发送邮件验证码
+func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*model.SendEmailRes, error) {
+
+	if !config.Cfg.App.Debug {
+		defer func() {
+			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); val == 1 {
+				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email), 30*60) // 锁定30分钟
+			}
+		}()
+
+		if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); err == nil && val >= 5 {
+			return nil, errors.New("发送验证码过于频繁, 请稍后再试")
+		}
+	}
+
+	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
+
+	switch params.Channel {
+	// 需要判断账号是否存在
+	case consts.CHANNEL_LOGIN:
+		//if !dao.User.IsAccountExist(ctx, params.Email) {
+		//	return nil, errors.New("账号不存在或密码错误")
+		//}
+
+	// 需要判断账号是否存在
+	case consts.CHANNEL_FORGET_ACCOUNT:
+		if !dao.User.IsAccountExist(ctx, params.Email) {
+			return nil, errors.New("账号不存在")
+		}
+
+	// 需要判断账号是否存在
+	case consts.CHANNEL_REGISTER, consts.CHANNEL_CHANGE_EMAIL:
+
+		if len(config.Cfg.App.Register.SupportEmailSuffix) > 0 {
+
+			isSupport := false
+			for _, emailSuffix := range config.Cfg.App.Register.SupportEmailSuffix {
+				if isSupport = gstr.HasSuffix(params.Email, emailSuffix); isSupport {
+					break
+				}
+			}
+
+			if !isSupport {
+				return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", config.Cfg.App.Register.SupportEmailSuffix))
+			}
+		}
+
+		if siteConfig != nil && len(siteConfig.SupportEmailSuffix) > 0 {
+
+			isSupport := false
+			for _, emailSuffix := range siteConfig.SupportEmailSuffix {
+				if isSupport = gstr.HasSuffix(params.Email, emailSuffix); isSupport {
+					break
+				}
+			}
+
+			if !isSupport {
+				return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix))
+			}
+		}
+
+		if dao.User.IsAccountExist(ctx, params.Email) {
+			return nil, errors.New("邮箱已被他人使用")
+		}
+
+	default:
+		return nil, errors.New("发送异常")
+	}
+
+	if params.Channel == consts.CHANNEL_REGISTER && siteConfig != nil && siteConfig.RegisterTips != "" {
+		return nil, errors.New(siteConfig.RegisterTips)
+	}
+
+	code := grand.Digits(6)
+
+	if err := s.SetCode(ctx, params.Channel, params.Email, code, 15*time.Minute); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "正在发送邮件验证码, 操作: %s, 收件人: %s, 验证码: %s", consts.CHANNEL_MAP[params.Channel], params.Email, code)
+
+	data := make(map[string]string)
+	data["service_name"] = consts.CHANNEL_MAP[params.Channel]
+	data["code"] = code
+
+	dialer := email.NewDefaultDialer()
+
+	if siteConfig != nil {
+
+		if siteConfig.Host == "" {
+			return nil, errors.New("发信邮箱未配置, 请联系管理员")
+		}
+
+		dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
+		data["copyright"] = siteConfig.Copyright
+		data["jump_url"] = siteConfig.JumpUrl
+	}
+
+	template, err := util.RenderTemplate(data)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	message := email.NewMessage([]string{params.Email}, consts.CHANNEL_MAP[params.Channel], template)
+
+	// 发送邮件验证码
+	_ = email.SendMail(message, dialer)
+
+	if config.Cfg.App.Debug {
+		return &model.SendEmailRes{
+			IsDebug: true,
+			Code:    code,
+		}, nil
+	}
+
+	return nil, nil
+}
+
 // 发送短信验证码
 func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.SendSmsRes, error) {
 
@@ -92,115 +212,29 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.
 	return nil, nil
 }
 
-// 发送邮件验证码
-func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*model.SendEmailRes, error) {
-
-	if !config.Cfg.App.Debug {
-		defer func() {
-			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); val == 1 {
-				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email), 30*60) // 锁定30分钟
-			}
-		}()
-
-		if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); err == nil && val >= 5 {
-			return nil, errors.New("发送验证码过于频繁, 请稍后再试")
-		}
-	}
-
-	switch params.Channel {
-	// 需要判断账号是否存在
-	case consts.CHANNEL_LOGIN:
-		//if !dao.User.IsAccountExist(ctx, params.Email) {
-		//	return nil, errors.New("账号不存在或密码错误")
-		//}
-
-	// 需要判断账号是否存在
-	case consts.CHANNEL_FORGET_ACCOUNT:
-		if !dao.User.IsAccountExist(ctx, params.Email) {
-			return nil, errors.New("账号不存在")
-		}
-
-	// 需要判断账号是否存在
-	case consts.CHANNEL_REGISTER, consts.CHANNEL_CHANGE_EMAIL:
-
-		if len(config.Cfg.App.Register.SupportEmailSuffix) > 0 {
-
-			isSupport := false
-			for _, emailSuffix := range config.Cfg.App.Register.SupportEmailSuffix {
-				if isSupport = gstr.HasSuffix(params.Email, emailSuffix); isSupport {
-					break
-				}
-			}
-
-			if !isSupport {
-				return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", config.Cfg.App.Register.SupportEmailSuffix))
-			}
-		}
-
-		if dao.User.IsAccountExist(ctx, params.Email) {
-			return nil, errors.New("邮箱已被他人使用")
-		}
-
-	default:
-		return nil, errors.New("发送异常")
-	}
-
-	code := grand.Digits(6)
-
-	// 添加发送记录
-	if err := s.SetCode(ctx, params.Channel, params.Email, code, 15*time.Minute); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	logger.Debugf(ctx, "正在发送邮件验证码, 操作: %s, 收件人: %s, 验证码: %s", consts.CHANNEL_MAP[params.Channel], params.Email, code)
-
-	data := make(map[string]string)
-	data["service_name"] = consts.CHANNEL_MAP[params.Channel]
-	data["code"] = code
-
-	template, err := util.RenderTemplate(data)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	// 发送邮件验证码
-	_ = email.SendMail(&email.Option{
-		To:      []string{params.Email},
-		Subject: consts.CHANNEL_MAP[params.Channel],
-		Body:    template,
-	})
-
-	if config.Cfg.App.Debug {
-		return &model.SendEmailRes{
-			IsDebug: true,
-			Code:    code,
-		}, nil
-	}
-
-	return nil, nil
-}
-
-func (s *sCommon) SetCode(ctx context.Context, channel string, email string, code string, exp time.Duration) error {
+// 缓存验证码
+func (s *sCommon) SetCode(ctx context.Context, channel string, account string, code string, exp time.Duration) error {
 
 	pipe := redis.Pipeline(ctx)
-	pipe.Del(ctx, s.failName(channel, email))
-	pipe.Set(ctx, s.name(channel, email), code, exp)
+	pipe.Del(ctx, s.failName(channel, account))
+	pipe.Set(ctx, s.name(channel, account), code, exp)
 	_, err := redis.Pipelined(ctx, pipe)
 
 	return err
 }
 
+// 获取验证码
 func (s *sCommon) GetCode(ctx context.Context, channel, account string) (string, error) {
 	return redis.GetStr(ctx, s.name(channel, account))
 }
 
+// 删除验证码
 func (s *sCommon) DelCode(ctx context.Context, channel, account string) error {
 	_, err := redis.Del(ctx, s.name(channel, account))
 	return err
 }
 
+// 校验验证码
 func (s *sCommon) VerifyCode(ctx context.Context, channel, account, code string) (pass bool) {
 
 	defer func() {
