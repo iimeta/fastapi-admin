@@ -1,6 +1,6 @@
 <div align=center>
 
-<img src="https://iim.ai/public/images/logo.png?t=20231207" width="128"/>
+<img src="https://www.fastapi.ai/logo.png" width="128"/>
 
 # 智元 Fast API Admin
 
@@ -32,6 +32,8 @@
     - 聊天日志
     - 绘图日志
     - 音频日志
+  - 系统管理
+    - 站点配置
 - 用户端
   - 仪表盘
   - 我的模型
