@@ -13,5 +13,5 @@ SET GOOS=linux
 SET GOARCH=amd64
 
 echo build start
-go build -ldflags "-X main.Version=v0.1.1 -X main.Build=%timestamp%" -o ./bin/
+go build -ldflags "-X main.Version=v1.0.0 -X main.Build=%timestamp%" -o ./bin/
 echo build finish.
