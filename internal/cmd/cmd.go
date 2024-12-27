@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/errors/gcode"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -84,7 +86,7 @@ var (
 
 			s.Group("/", func(g *ghttp.RouterGroup) {
 
-				g.Middleware(ghttp.MiddlewareHandlerResponse)
+				g.Middleware(middlewareHandlerResponse)
 
 				g.Bind(
 					func(r *ghttp.Request) {
@@ -99,7 +101,7 @@ var (
 
 			s.Group("/api/v1", func(v1 *ghttp.RouterGroup) {
 
-				v1.Middleware(ghttp.MiddlewareHandlerResponse)
+				v1.Middleware(middlewareHandlerResponse)
 
 				v1.Group("/common", func(g *ghttp.RouterGroup) {
 					g.Bind(
@@ -214,7 +216,7 @@ var (
 
 			s.Group("/api/v1/sys", func(v1 *ghttp.RouterGroup) {
 
-				v1.Middleware(ghttp.MiddlewareHandlerResponse)
+				v1.Middleware(middlewareHandlerResponse)
 				v1.Middleware(sysMiddleware)
 
 				v1.Group("/admin", func(g *ghttp.RouterGroup) {
@@ -346,4 +348,58 @@ func sysMiddleware(r *ghttp.Request) {
 	}
 
 	r.Middleware.Next()
+}
+
+func middlewareHandlerResponse(r *ghttp.Request) {
+
+	r.Middleware.Next()
+
+	// There's custom buffer content, it then exits current handler.
+	if r.Response.BufferLength() > 0 {
+		return
+	}
+
+	var (
+		msg  string
+		err  = r.GetError()
+		res  = r.GetHandlerResponse()
+		code = gerror.Code(err)
+	)
+
+	if err != nil {
+
+		if code == gcode.CodeNil {
+			code = gcode.CodeInternalError
+		}
+
+		msg = err.Error()
+
+		if gstr.Contains(msg, "timeout") || gstr.Contains(msg, "tcp") || gstr.Contains(msg, "http") || gstr.Contains(msg, "connection") {
+			msg = "系统出现异常, 请联系管理员"
+		}
+
+	} else {
+		if r.Response.Status > 0 && r.Response.Status != http.StatusOK {
+			msg = http.StatusText(r.Response.Status)
+			switch r.Response.Status {
+			case http.StatusNotFound:
+				code = gcode.CodeNotFound
+			case http.StatusForbidden:
+				code = gcode.CodeNotAuthorized
+			default:
+				code = gcode.CodeUnknown
+			}
+			// It creates an error as it can be retrieved by other middlewares.
+			err = gerror.NewCode(code, msg)
+			r.SetError(err)
+		} else {
+			code = gcode.CodeOK
+		}
+	}
+
+	r.Response.WriteJson(ghttp.DefaultHandlerResponse{
+		Code:    code.Code(),
+		Message: msg,
+		Data:    res,
+	})
 }
