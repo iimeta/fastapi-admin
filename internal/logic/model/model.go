@@ -632,14 +632,17 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 	for _, result := range results {
 
 		corpName := result.Corp
+		corpCode := result.Corp
 		if corpMap[result.Corp] != nil {
 			corpName = corpMap[result.Corp].Name
+			corpCode = corpMap[result.Corp].Code
 		}
 
 		model := &model.Model{
 			Id:                   result.Id,
 			Corp:                 result.Corp,
 			CorpName:             corpName,
+			CorpCode:             corpCode,
 			Name:                 result.Name,
 			Model:                result.Model,
 			Type:                 result.Type,
