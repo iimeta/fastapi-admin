@@ -94,11 +94,12 @@ type ModelPageRes struct {
 
 // 模型列表接口请求参数
 type ModelListReq struct {
-	Corp   string `json:"corp,omitempty"`         // 公司
-	Name   string `json:"name,omitempty"`         // 模型名称
-	Model  string `json:"model,omitempty"`        // 模型
-	Type   int    `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
-	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	Corp   string   `json:"corp,omitempty"`   // 公司
+	Name   string   `json:"name,omitempty"`   // 模型名称
+	Model  string   `json:"model,omitempty"`  // 模型
+	Type   int      `json:"type,omitempty"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Status int      `json:"status,omitempty"` // 状态[1:正常, 2:禁用, -1:删除]
+	Models []string `json:"models,omitempty"` // 模型权限
 }
 
 // 模型列表接口响应参数
@@ -129,6 +130,20 @@ type ModelTreeReq struct {
 // 模型树接口响应参数
 type ModelTreeRes struct {
 	Items []*Tree `json:"items"`
+}
+
+// 模型权限列表接口请求参数
+type ModelPermissionsReq struct {
+	Corp   string `json:"corp,omitempty"`   // 公司
+	Name   string `json:"name,omitempty"`   // 模型名称
+	Model  string `json:"model,omitempty"`  // 模型
+	Type   int    `json:"type,omitempty"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Status int    `json:"status,omitempty"` // 状态[1:正常, 2:禁用, -1:删除]
+}
+
+// 模型权限列表接口响应参数
+type ModelPermissionsRes struct {
+	Items []*Model `json:"items"`
 }
 
 // 模型初始化同步接口请求参数

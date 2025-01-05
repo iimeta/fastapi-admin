@@ -96,6 +96,18 @@ type BatchOperateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 模型权限列表接口请求参数
+type PermissionsReq struct {
+	g.Meta `path:"/permissions" role:"user,admin" tags:"model" method:"post" summary:"模型权限列表接口"`
+	model.ModelPermissionsReq
+}
+
+// 模型权限列表接口响应参数
+type PermissionsRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ModelPermissionsRes
+}
+
 // 模型初始化同步接口请求参数
 type InitSyncReq struct {
 	g.Meta `path:"/init" role:"admin" tags:"model" method:"post" summary:"模型初始化同步接口"`

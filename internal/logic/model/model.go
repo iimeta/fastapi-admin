@@ -684,6 +684,12 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 
 	filter := bson.M{}
 
+	if len(params.Models) > 0 {
+		filter["_id"] = bson.M{
+			"$in": params.Models,
+		}
+	}
+
 	if service.Session().IsUserRole(ctx) {
 
 		models := service.Session().GetUser(ctx).Models
@@ -691,8 +697,14 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 			return nil, nil
 		}
 
-		filter["_id"] = bson.M{
-			"$in": models,
+		if len(params.Models) > 0 {
+			filter["_id"] = bson.M{
+				"$in": gset.NewStrSetFrom(params.Models).Intersect(gset.NewStrSetFrom(models)).Slice(),
+			}
+		} else {
+			filter["_id"] = bson.M{
+				"$in": models,
+			}
 		}
 	}
 
@@ -702,22 +714,38 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 		return nil, err
 	}
 
+	corps, err := dao.Corp.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
+		return t.Id
+	})
+
 	items := make([]*model.Model, 0)
 	for _, result := range results {
 
+		corpName := result.Corp
+		if corpMap[result.Corp] != nil {
+			corpName = corpMap[result.Corp].Name
+		}
+
 		model := &model.Model{
-			Id:               result.Id,
-			Corp:             result.Corp,
-			Name:             result.Name,
-			Model:            result.Model,
-			Type:             result.Type,
-			IsEnableFallback: result.IsEnableFallback,
-			FallbackConfig:   result.FallbackConfig,
-			Status:           result.Status,
+			Id:       result.Id,
+			Corp:     result.Corp,
+			CorpName: corpName,
+			Name:     result.Name,
+			Model:    result.Model,
+			Type:     result.Type,
+			Status:   result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
 			model.ModelAgents = result.ModelAgents
+			model.IsEnableFallback = result.IsEnableFallback
+			model.FallbackConfig = result.FallbackConfig
 		}
 
 		items = append(items, model)
@@ -1010,6 +1038,11 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 	}
 
 	return items, nil
+}
+
+// 模型权限列表
+func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsReq) ([]*model.Model, error) {
+	return s.List(ctx, model.ModelListReq{})
 }
 
 // 模型初始化同步
