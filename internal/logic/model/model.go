@@ -684,6 +684,30 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 
 	filter := bson.M{}
 
+	if params.Corp != "" {
+		filter["corp"] = params.Corp
+	}
+
+	if params.Name != "" {
+		filter["name"] = bson.M{
+			"$regex": params.Name,
+		}
+	}
+
+	if params.Model != "" {
+		filter["model"] = bson.M{
+			"$regex": params.Model,
+		}
+	}
+
+	if params.Type != 0 {
+		filter["type"] = params.Type
+	}
+
+	if params.Status != 0 {
+		filter["status"] = params.Status
+	}
+
 	if len(params.Models) > 0 {
 		filter["_id"] = bson.M{
 			"$in": params.Models,
@@ -1042,7 +1066,77 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 
 // 模型权限列表
 func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsReq) ([]*model.Model, error) {
-	return s.List(ctx, model.ModelListReq{})
+
+	modelListReq := model.ModelListReq{
+		Corp:   params.Corp,
+		Name:   params.Name,
+		Model:  params.Model,
+		Type:   params.Type,
+		Status: params.Status,
+	}
+
+	switch params.Action {
+	case consts.ACTION_USER:
+
+		user, err := service.AdminUser().Detail(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if user.Models == nil {
+			return nil, nil
+		}
+
+		modelListReq.Models = user.Models
+
+	case consts.ACTION_APP:
+
+		app, err := service.App().Detail(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if app.Models == nil {
+			return nil, nil
+		}
+
+		modelListReq.Models = app.Models
+
+	case consts.ACTION_KEY:
+
+		key, err := service.Key().Detail(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if key.Models == nil {
+			return nil, nil
+		}
+
+		modelListReq.Models = key.Models
+
+	case consts.ACTION_AGENT:
+
+		modelAgent, err := service.ModelAgent().Detail(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if modelAgent.Models == nil {
+			return nil, nil
+		}
+
+		modelListReq.Models = modelAgent.Models
+
+	default:
+		return nil, nil
+	}
+
+	return s.List(ctx, modelListReq)
 }
 
 // 模型初始化同步

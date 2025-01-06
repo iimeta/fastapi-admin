@@ -22,4 +22,7 @@ const (
 	ACTION_FORWARD  = "forward"
 	ACTION_FALLBACK = "fallback"
 	ACTION_TIME     = "time"
+	ACTION_USER     = "user"
+	ACTION_APP      = "app"
+	ACTION_KEY      = "key"
 )

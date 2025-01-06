@@ -134,11 +134,13 @@ type ModelTreeRes struct {
 
 // 模型权限列表接口请求参数
 type ModelPermissionsReq struct {
-	Corp   string `json:"corp,omitempty"`   // 公司
-	Name   string `json:"name,omitempty"`   // 模型名称
-	Model  string `json:"model,omitempty"`  // 模型
-	Type   int    `json:"type,omitempty"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
-	Status int    `json:"status,omitempty"` // 状态[1:正常, 2:禁用, -1:删除]
+	Id     string `json:"id"`     // 主键Id
+	Action string `json:"action"` // 动作
+	Corp   string `json:"corp"`   // 公司
+	Name   string `json:"name"`   // 模型名称
+	Model  string `json:"model"`  // 模型
+	Type   int    `json:"type"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Status int    `json:"status"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 模型权限列表接口响应参数
