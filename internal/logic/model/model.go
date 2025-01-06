@@ -1132,6 +1132,20 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 
 		modelListReq.Models = modelAgent.Models
 
+	case consts.ACTION_FALLBACK:
+
+		modelAgent, err := service.ModelAgent().Detail(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if modelAgent.FallbackModels == nil {
+			return nil, nil
+		}
+
+		modelListReq.Models = modelAgent.FallbackModels
+
 	default:
 		return nil, nil
 	}
