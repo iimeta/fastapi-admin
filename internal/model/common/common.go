@@ -100,3 +100,18 @@ type ModelStat struct {
 	Abnormal       int    `bson:"abnormal,omitempty"        json:"abnormal,omitempty"`        // 异常数
 	AbnormalTokens int    `bson:"abnormal_tokens,omitempty" json:"abnormal_tokens,omitempty"` // 异常令牌数
 }
+
+type Carousel struct {
+	ImageUrl string `bson:"image_url,omitempty" json:"image_url,omitempty"` // 图像URL
+	JumpUrl  string `bson:"jump_url,omitempty"  json:"jump_url,omitempty"`  // 跳转URL
+}
+
+type Announcement struct {
+	Content string `bson:"content,omitempty"  json:"content,omitempty"`  // 公告内容
+	JumpUrl string `bson:"jump_url,omitempty" json:"jump_url,omitempty"` // 跳转URL
+}
+
+type Document struct {
+	Title   string `bson:"title,omitempty"    json:"title,omitempty"`    // 文档标题
+	JumpUrl string `bson:"jump_url,omitempty" json:"jump_url,omitempty"` // 跳转URL
+}
