@@ -249,7 +249,7 @@ func (s *sSiteConfig) Page(ctx context.Context, params model.SiteConfigPageReq) 
 		filter["status"] = params.Status
 	}
 
-	results, err := dao.SiteConfig.FindByPage(ctx, paging, filter, "", "-updated_at")
+	results, err := dao.SiteConfig.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
