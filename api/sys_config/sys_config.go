@@ -14,4 +14,5 @@ type ISysConfigV1 interface {
 	Update(ctx context.Context, req *v1.UpdateReq) (res *v1.UpdateRes, err error)
 	ChangeStatus(ctx context.Context, req *v1.ChangeStatusReq) (res *v1.ChangeStatusRes, err error)
 	Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error)
+	Reset(ctx context.Context, req *v1.ResetReq) (res *v1.ResetRes, err error)
 }

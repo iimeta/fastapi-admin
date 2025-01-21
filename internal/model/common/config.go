@@ -7,18 +7,21 @@ type Core struct {
 }
 
 type Register struct {
+	Open               bool          `bson:"open"                 json:"open"` // 开关
 	SupportEmailSuffix []string      `bson:"support_email_suffix" json:"support_email_suffix"`
 	GrantQuota         int           `bson:"grant_quota"          json:"grant_quota"`
 	QuotaExpiresAt     time.Duration `bson:"quota_expires_at"     json:"quota_expires_at"`
 }
 
 type Http struct {
+	Open     bool          `bson:"open"      json:"open"` // 开关
 	Timeout  time.Duration `bson:"timeout"   json:"timeout"`
 	ProxyUrl string        `bson:"proxy_url" json:"proxy_url"`
 }
 
 // 邮件配置信息
 type Email struct {
+	Open     bool   `bson:"open"      json:"open"`      // 开关
 	Host     string `bson:"host"      json:"host"`      // smtp.xxx.com
 	Port     int    `bson:"port"      json:"port"`      // 端口号
 	UserName string `bson:"user_name" json:"user_name"` // 登录账号
@@ -28,6 +31,7 @@ type Email struct {
 
 // 统计
 type Statistics struct {
+	Open        bool          `bson:"open"         json:"open"` // 开关
 	Cron        string        `bson:"cron"         json:"cron"`
 	Days        int           `bson:"days"         json:"days"`
 	Limit       int64         `bson:"limit"        json:"limit"`
@@ -42,6 +46,7 @@ type Api struct {
 }
 
 type Midjourney struct {
+	Open            bool   `bson:"open"              json:"open"` // 开关
 	CdnUrl          string `bson:"cdn_url"           json:"cdn_url"`
 	ApiBaseUrl      string `bson:"api_base_url"      json:"api_base_url"`
 	ApiSecret       string `bson:"api_secret"        json:"api_secret"`
@@ -54,12 +59,18 @@ type Gcp struct {
 }
 
 type Log struct {
+	Open    bool     `bson:"open"    json:"open"`    // 开关
 	Records []string `bson:"records" json:"records"` // 日志记录
 }
 
 type Error struct {
+	Open         bool     `bson:"open"          json:"open"` // 开关
 	ShieldUser   []string `bson:"shield_user"   json:"shield_user"`
 	AutoDisabled []string `bson:"auto_disabled" json:"auto_disabled"`
 	NotRetry     []string `bson:"not_retry"     json:"not_retry"`
 	NotShield    []string `bson:"not_shield"    json:"not_shield"`
+}
+
+type Debug struct {
+	Open bool `bson:"open" json:"open"` // 开关
 }

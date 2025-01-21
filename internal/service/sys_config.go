@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 )
 
 type (
@@ -19,6 +20,10 @@ type (
 		ChangeStatus(ctx context.Context, params model.SysConfigChangeStatusReq) error
 		// 配置详情
 		Detail(ctx context.Context) (*model.SysConfig, error)
+		// 重置配置
+		Reset(ctx context.Context) (*entity.SysConfig, error)
+		// 默认配置
+		Default(ctx context.Context) (*entity.SysConfig, error)
 	}
 )
 

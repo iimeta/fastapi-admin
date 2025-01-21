@@ -37,3 +37,13 @@ type DetailRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.SysConfigDetailRes
 }
+
+// 重置配置接口请求参数
+type ResetReq struct {
+	g.Meta `path:"/reset" role:"admin" tags:"sys_config" method:"get" summary:"重置配置接口"`
+}
+
+// 重置配置接口响应参数
+type ResetRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
