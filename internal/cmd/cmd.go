@@ -25,6 +25,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/site_config"
 	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
+	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -228,6 +229,12 @@ var (
 				v1.Group("/site", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						site_config.NewV1(),
+					)
+				})
+
+				v1.Group("/config", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						sys_config.NewV1(),
 					)
 				})
 			})

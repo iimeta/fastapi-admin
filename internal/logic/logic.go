@@ -23,5 +23,6 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/site_config"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/statistics"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_admin"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_config"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/user"
 )
