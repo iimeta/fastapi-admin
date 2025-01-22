@@ -13,7 +13,7 @@ func (c *ControllerV1) Reset(ctx context.Context, req *v1.ResetReq) (res *v1.Res
 		return
 	}
 
-	_, err = service.SysConfig().Reset(ctx)
+	_, err = service.SysConfig().Reset(ctx, req.SysConfigResetReq)
 
 	return
 }

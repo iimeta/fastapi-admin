@@ -19,7 +19,6 @@ type Http struct {
 	ProxyUrl string        `bson:"proxy_url" json:"proxy_url"`
 }
 
-// 邮件配置信息
 type Email struct {
 	Open     bool   `bson:"open"      json:"open"`      // 开关
 	Host     string `bson:"host"      json:"host"`      // smtp.xxx.com
@@ -29,7 +28,6 @@ type Email struct {
 	FromName string `bson:"from_name" json:"from_name"` // 发送人名称
 }
 
-// 统计
 type Statistics struct {
 	Open        bool          `bson:"open"         json:"open"` // 开关
 	Cron        string        `bson:"cron"         json:"cron"`

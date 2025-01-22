@@ -40,7 +40,8 @@ type DetailRes struct {
 
 // 重置配置接口请求参数
 type ResetReq struct {
-	g.Meta `path:"/reset" role:"admin" tags:"sys_config" method:"get" summary:"重置配置接口"`
+	g.Meta `path:"/reset" role:"admin" tags:"sys_config" method:"post" summary:"重置配置接口"`
+	model.SysConfigResetReq
 }
 
 // 重置配置接口响应参数

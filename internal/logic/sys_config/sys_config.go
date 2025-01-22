@@ -128,11 +128,23 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 }
 
 // 重置配置
-func (s *sSysConfig) Reset(ctx context.Context) (*entity.SysConfig, error) {
+func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) (*entity.SysConfig, error) {
 
-	if _, err := dao.SysConfig.DeleteOne(ctx, bson.M{}); err != nil {
-		logger.Error(ctx, err)
-		return nil, err
+	switch params.Action {
+	case "core":
+	case "http":
+	case "email":
+	case "statistics":
+	case "api":
+	case "midjourney":
+	case "gcp":
+	case "log":
+	case "error":
+	case "all":
+		if _, err := dao.SysConfig.DeleteOne(ctx, bson.M{}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	return s.Default(ctx)

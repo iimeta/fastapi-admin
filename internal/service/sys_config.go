@@ -21,7 +21,7 @@ type (
 		// 配置详情
 		Detail(ctx context.Context) (*model.SysConfig, error)
 		// 重置配置
-		Reset(ctx context.Context) (*entity.SysConfig, error)
+		Reset(ctx context.Context, params model.SysConfigResetReq) (*entity.SysConfig, error)
 		// 默认配置
 		Default(ctx context.Context) (*entity.SysConfig, error)
 	}

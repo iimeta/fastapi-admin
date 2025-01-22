@@ -23,6 +23,13 @@ type SysConfigChangeStatusReq struct {
 	Id     string `json:"id,omitempty"`     // ID
 	Action string `json:"action,omitempty"` // 动作
 	Status int    `json:"status,omitempty"` // 状态
+	Open   bool   `json:"open,omitempty"`   // 开关
+}
+
+// 重置配置接口请求参数
+type SysConfigResetReq struct {
+	Id     string `json:"id,omitempty"`     // ID
+	Action string `json:"action,omitempty"` // 动作
 }
 
 // 配置详情接口响应参数
