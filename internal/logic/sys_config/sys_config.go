@@ -78,7 +78,7 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		}
 	}
 
-	if err := dao.SysConfig.UpdateById(ctx, params.Id, sysConfig); err != nil {
+	if err := dao.SysConfig.UpdateOne(ctx, bson.M{}, sysConfig); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -89,8 +89,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 // 更改配置状态
 func (s *sSysConfig) ChangeStatus(ctx context.Context, params model.SysConfigChangeStatusReq) error {
 
-	if err := dao.SysConfig.UpdateById(ctx, params.Id, bson.M{
-		params.Action + ".open": params.Status == 1,
+	if err := dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
+		params.Action + ".open": params.Open,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -157,6 +157,10 @@ func (s *sSysConfig) Default(ctx context.Context) (*entity.SysConfig, error) {
 	if err != nil && errors.Is(err, mongo.ErrNoDocuments) {
 
 		id, err := dao.SysConfig.Insert(ctx, &do.SysConfig{
+			Core: &common.Core{
+				SecretKeyPrefix: "sk-FastAPI",
+				ErrorPrefix:     "fastapi",
+			},
 			Http: &common.Http{
 				Timeout: 60,
 			},

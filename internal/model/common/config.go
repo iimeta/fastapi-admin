@@ -3,14 +3,9 @@ package common
 import "time"
 
 type Core struct {
-	ChannelPrefix string `bson:"channel_prefix" json:"channel_prefix"`
-}
-
-type Register struct {
-	Open               bool          `bson:"open"                 json:"open"` // 开关
-	SupportEmailSuffix []string      `bson:"support_email_suffix" json:"support_email_suffix"`
-	GrantQuota         int           `bson:"grant_quota"          json:"grant_quota"`
-	QuotaExpiresAt     time.Duration `bson:"quota_expires_at"     json:"quota_expires_at"`
+	SecretKeyPrefix string `bson:"secret_key_prefix" json:"secret_key_prefix"`
+	ErrorPrefix     string `bson:"error_prefix"      json:"error_prefix"`
+	ChannelPrefix   string `bson:"channel_prefix"    json:"channel_prefix"`
 }
 
 type Http struct {

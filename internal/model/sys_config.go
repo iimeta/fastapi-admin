@@ -4,7 +4,6 @@ import "github.com/iimeta/fastapi-admin/internal/model/common"
 
 // 更新配置接口请求参数
 type SysConfigUpdateReq struct {
-	Id         string             `json:"id,omitempty"`         // ID
 	Action     string             `json:"action,omitempty"`     // 动作
 	Core       *common.Core       `json:"core,omitempty"`       // 核心
 	Http       *common.Http       `json:"http,omitempty"`       // HTTP
@@ -20,15 +19,12 @@ type SysConfigUpdateReq struct {
 
 // 更改配置状态接口请求参数
 type SysConfigChangeStatusReq struct {
-	Id     string `json:"id,omitempty"`     // ID
 	Action string `json:"action,omitempty"` // 动作
-	Status int    `json:"status,omitempty"` // 状态
 	Open   bool   `json:"open,omitempty"`   // 开关
 }
 
 // 重置配置接口请求参数
 type SysConfigResetReq struct {
-	Id     string `json:"id,omitempty"`     // ID
 	Action string `json:"action,omitempty"` // 动作
 }
 
