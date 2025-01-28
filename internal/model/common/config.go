@@ -3,15 +3,14 @@ package common
 import "time"
 
 type Core struct {
-	SecretKeyPrefix string `bson:"secret_key_prefix" json:"secret_key_prefix"`
-	ErrorPrefix     string `bson:"error_prefix"      json:"error_prefix"`
-	ChannelPrefix   string `bson:"channel_prefix"    json:"channel_prefix"`
+	SecretKeyPrefix string `bson:"secret_key_prefix" json:"secret_key_prefix"` // 密钥前缀
+	ErrorPrefix     string `bson:"error_prefix"      json:"error_prefix"`      // 错误码前缀
+	ChannelPrefix   string `bson:"channel_prefix"    json:"channel_prefix"`    // 通道前缀
 }
 
 type Http struct {
-	Open     bool          `bson:"open"      json:"open"` // 开关
-	Timeout  time.Duration `bson:"timeout"   json:"timeout"`
-	ProxyUrl string        `bson:"proxy_url" json:"proxy_url"`
+	Timeout  time.Duration `bson:"timeout"   json:"timeout"`   // 超时时间
+	ProxyUrl string        `bson:"proxy_url" json:"proxy_url"` // 代理地址
 }
 
 type Email struct {

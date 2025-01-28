@@ -13,7 +13,7 @@ func (c *ControllerV1) Update(ctx context.Context, req *v1.UpdateReq) (res *v1.U
 		return
 	}
 
-	err = service.SysConfig().Update(ctx, req.SysConfigUpdateReq)
+	_, err = service.SysConfig().Update(ctx, req.SysConfigUpdateReq)
 
 	return
 }

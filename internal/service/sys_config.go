@@ -15,7 +15,7 @@ import (
 type (
 	ISysConfig interface {
 		// 更新配置
-		Update(ctx context.Context, params model.SysConfigUpdateReq) error
+		Update(ctx context.Context, params model.SysConfigUpdateReq) (*entity.SysConfig, error)
 		// 更改配置状态
 		ChangeStatus(ctx context.Context, params model.SysConfigChangeStatusReq) error
 		// 配置详情

@@ -32,7 +32,7 @@ func New() service.ISysConfig {
 }
 
 // 更新配置
-func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq) error {
+func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq) (*entity.SysConfig, error) {
 
 	sysConfig := &do.SysConfig{}
 	switch params.Action {
@@ -78,12 +78,7 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		}
 	}
 
-	if err := dao.SysConfig.UpdateOne(ctx, bson.M{}, sysConfig); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
+	return dao.SysConfig.FindOneAndUpdate(ctx, bson.M{}, sysConfig)
 }
 
 // 更改配置状态
@@ -130,24 +125,105 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 // 重置配置
 func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) (*entity.SysConfig, error) {
 
+	sysConfigUpdateReq := model.SysConfigUpdateReq{
+		Action: params.Action,
+	}
 	switch params.Action {
 	case "core":
+		sysConfigUpdateReq.Core = &common.Core{
+			SecretKeyPrefix: "sk-FastAPI",
+			ErrorPrefix:     "fastapi",
+		}
 	case "http":
+		sysConfigUpdateReq.Http = &common.Http{
+			Timeout: 60,
+		}
 	case "email":
+		sysConfigUpdateReq.Email = &common.Email{
+			Host:     "smtp.xxx.com",
+			Port:     465,
+			UserName: "xxx@xxx.com",
+			Password: "xxx",
+			FromName: "智元 Fast API",
+		}
 	case "statistics":
+		sysConfigUpdateReq.Statistics = &common.Statistics{
+			Open:        true,
+			Cron:        "0 0/5 * * * ?",
+			Limit:       1000,
+			LockMinutes: 30,
+		}
 	case "api":
+		sysConfigUpdateReq.Api = &common.Api{
+			Retry:                   3,
+			ModelKeyErrDisable:      100000,
+			ModelAgentErrDisable:    100000,
+			ModelAgentKeyErrDisable: 100000,
+		}
 	case "midjourney":
+		sysConfigUpdateReq.Midjourney = &common.Midjourney{
+			CdnUrl:          "https://cdn.xxx.com",
+			ApiBaseUrl:      "https://xxx/mj",
+			ApiSecret:       "xxx",
+			ApiSecretHeader: "mj-api-secret",
+			CdnOriginalUrl:  "https://cdn.discordapp.com",
+		}
 	case "gcp":
+		sysConfigUpdateReq.Gcp = &common.Gcp{
+			GetTokenUrl: "https://www.googleapis.com/oauth2/v4/token",
+		}
 	case "log":
+		sysConfigUpdateReq.Log = &common.Log{
+			Open: true,
+			Records: []string{
+				"prompt",
+				"completion",
+				"messages",
+				"image",
+			},
+		}
 	case "error":
+		sysConfigUpdateReq.Error = &common.Error{
+			Open: true,
+			ShieldUser: []string{
+				"TraceId",
+				"http",
+				"tcp",
+				"No available",
+				"quota",
+				"All key error.",
+				"All model agent error.",
+				"All model agent key error.",
+			},
+			AutoDisabled: []string{
+				"Incorrect API key provided or has been disabled.",
+				"You exceeded your current quota.",
+				"The OpenAI account associated with this API key has been deactivated.",
+				"PERMISSION_DENIED",
+				"BILLING_DISABLED",
+				"ACCESS_TOKEN_EXPIRED",
+				"is not allowed to use Publisher Model",
+				"Resource has been exhausted",
+				"IAM_PERMISSION_DENIED",
+				"SERVICE_DISABLED",
+				"ACCOUNT_STATE_INVALID",
+			},
+			NotRetry: []string{
+				"Please reduce the length of the messages.",
+			},
+			NotShield: []string{
+				"Please reduce the length of the messages.",
+			},
+		}
 	case "all":
 		if _, err := dao.SysConfig.DeleteOne(ctx, bson.M{}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
+		return s.Default(ctx)
 	}
 
-	return s.Default(ctx)
+	return s.Update(ctx, sysConfigUpdateReq)
 }
 
 // 默认配置
