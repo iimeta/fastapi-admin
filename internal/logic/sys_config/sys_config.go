@@ -60,10 +60,6 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{
 			Midjourney: params.Midjourney,
 		}
-	case "gcp":
-		sysConfig = &do.SysConfig{
-			Gcp: params.Gcp,
-		}
 	case "log":
 		sysConfig = &do.SysConfig{
 			Log: params.Log,
@@ -111,7 +107,6 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Statistics: sysConfig.Statistics,
 		Api:        sysConfig.Api,
 		Midjourney: sysConfig.Midjourney,
-		Gcp:        sysConfig.Gcp,
 		Log:        sysConfig.Log,
 		Error:      sysConfig.Error,
 		Debug:      sysConfig.Debug,
@@ -167,10 +162,6 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 			ApiSecret:       "xxx",
 			ApiSecretHeader: "mj-api-secret",
 			CdnOriginalUrl:  "https://cdn.discordapp.com",
-		}
-	case "gcp":
-		sysConfigUpdateReq.Gcp = &common.Gcp{
-			GetTokenUrl: "https://www.googleapis.com/oauth2/v4/token",
 		}
 	case "log":
 		sysConfigUpdateReq.Log = &common.Log{
@@ -265,9 +256,6 @@ func (s *sSysConfig) Default(ctx context.Context) (*entity.SysConfig, error) {
 				ApiSecret:       "xxx",
 				ApiSecretHeader: "mj-api-secret",
 				CdnOriginalUrl:  "https://cdn.discordapp.com",
-			},
-			Gcp: &common.Gcp{
-				GetTokenUrl: "https://www.googleapis.com/oauth2/v4/token",
 			},
 			Log: &common.Log{
 				Open: true,

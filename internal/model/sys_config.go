@@ -11,7 +11,6 @@ type SysConfigUpdateReq struct {
 	Statistics *common.Statistics `json:"statistics,omitempty"` // 统计
 	Api        *common.Api        `json:"api,omitempty"`        // API
 	Midjourney *common.Midjourney `json:"midjourney,omitempty"` // Midjourney
-	Gcp        *common.Gcp        `json:"gcp,omitempty"`        // GCP
 	Log        *common.Log        `json:"log,omitempty"`        // 日志
 	Error      *common.Error      `json:"error,omitempty"`      // 错误配置
 	Debug      *common.Debug      `json:"debug,omitempty"`      // 调试
@@ -41,7 +40,6 @@ type SysConfig struct {
 	Statistics *common.Statistics `json:"statistics,omitempty"` // 统计
 	Api        *common.Api        `json:"api,omitempty"`        // API
 	Midjourney *common.Midjourney `json:"midjourney,omitempty"` // Midjourney
-	Gcp        *common.Gcp        `json:"gcp,omitempty"`        // GCP
 	Log        *common.Log        `json:"log,omitempty"`        // 日志
 	Error      *common.Error      `json:"error,omitempty"`      // 错误配置
 	Debug      *common.Debug      `json:"debug,omitempty"`      // 调试

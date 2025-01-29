@@ -17,7 +17,6 @@ type SysConfig struct {
 	Statistics *common.Statistics `bson:"statistics,omitempty"` // 统计
 	Api        *common.Api        `bson:"api,omitempty"`        // API
 	Midjourney *common.Midjourney `bson:"midjourney,omitempty"` // Midjourney
-	Gcp        *common.Gcp        `bson:"gcp,omitempty"`        // GCP
 	Log        *common.Log        `bson:"log,omitempty"`        // 日志
 	Error      *common.Error      `bson:"error,omitempty"`      // 错误配置
 	Debug      *common.Debug      `bson:"debug,omitempty"`      // 调试

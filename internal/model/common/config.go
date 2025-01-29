@@ -23,11 +23,10 @@ type Email struct {
 }
 
 type Statistics struct {
-	Open        bool          `bson:"open"         json:"open"` // 开关
-	Cron        string        `bson:"cron"         json:"cron"`
-	Days        int           `bson:"days"         json:"days"`
-	Limit       int64         `bson:"limit"        json:"limit"`
-	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"`
+	Open        bool          `bson:"open"         json:"open"`         // 开关
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	Limit       int64         `bson:"limit"        json:"limit"`        // 查询条数
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长
 }
 
 type Api struct {
@@ -44,10 +43,6 @@ type Midjourney struct {
 	ApiSecret       string `bson:"api_secret"        json:"api_secret"`
 	ApiSecretHeader string `bson:"api_secret_header" json:"api_secret_header"`
 	CdnOriginalUrl  string `bson:"cdn_original_url"  json:"cdn_original_url"`
-}
-
-type Gcp struct {
-	GetTokenUrl string `bson:"get_token_url" json:"get_token_url"`
 }
 
 type Log struct {

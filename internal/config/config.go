@@ -87,7 +87,6 @@ type Email struct {
 // 统计
 type Statistics struct {
 	Cron        string        `json:"cron"`
-	Days        int           `json:"days"`
 	Limit       int64         `json:"limit"`
 	LockMinutes time.Duration `json:"lock_minutes"`
 }
