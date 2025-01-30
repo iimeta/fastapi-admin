@@ -9,10 +9,10 @@ type SysConfigUpdateReq struct {
 	Http       *common.Http       `json:"http,omitempty"`       // HTTP
 	Email      *common.Email      `json:"email,omitempty"`      // 邮箱
 	Statistics *common.Statistics `json:"statistics,omitempty"` // 统计
-	Api        *common.Api        `json:"api,omitempty"`        // API
+	Base       *common.Base       `json:"base,omitempty"`       // 基础
 	Midjourney *common.Midjourney `json:"midjourney,omitempty"` // Midjourney
 	Log        *common.Log        `json:"log,omitempty"`        // 日志
-	Error      *common.Error      `json:"error,omitempty"`      // 错误配置
+	Error      *common.Error      `json:"error,omitempty"`      // 错误
 	Debug      *common.Debug      `json:"debug,omitempty"`      // 调试
 }
 
@@ -38,10 +38,10 @@ type SysConfig struct {
 	Http       *common.Http       `json:"http,omitempty"`       // HTTP
 	Email      *common.Email      `json:"email,omitempty"`      // 邮箱
 	Statistics *common.Statistics `json:"statistics,omitempty"` // 统计
-	Api        *common.Api        `json:"api,omitempty"`        // API
+	Base       *common.Base       `json:"base,omitempty"`       // 基础
 	Midjourney *common.Midjourney `json:"midjourney,omitempty"` // Midjourney
 	Log        *common.Log        `json:"log,omitempty"`        // 日志
-	Error      *common.Error      `json:"error,omitempty"`      // 错误配置
+	Error      *common.Error      `json:"error,omitempty"`      // 错误
 	Debug      *common.Debug      `json:"debug,omitempty"`      // 调试
 	Creator    string             `json:"creator,omitempty"`    // 创建人
 	Updater    string             `json:"updater,omitempty"`    // 更新人

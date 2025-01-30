@@ -3,6 +3,9 @@ package sys_config
 import (
 	"context"
 	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
+	"github.com/iimeta/fastapi-admin/internal/config"
+	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -11,18 +14,55 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type sSysConfig struct{}
 
 func init() {
+
+	ctx := gctx.New()
 	sSysConfig := New()
+
 	service.RegisterSysConfig(sSysConfig)
-	_, err := sSysConfig.Default(gctx.New())
+	if _, err := sSysConfig.Init(ctx); err != nil {
+		panic(err)
+	}
+
+	conn, _, err := redis.Subscribe(ctx, consts.CHANGE_CHANNEL_CONFIG)
 	if err != nil {
+		panic(err)
+	}
+
+	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+		for {
+
+			msg, err := conn.ReceiveMessage(ctx)
+			if err != nil {
+				logger.Errorf(ctx, "sSysConfig Subscribe error: %v", err)
+				time.Sleep(5 * time.Second)
+				if conn, _, err = redis.Subscribe(ctx, consts.CHANGE_CHANNEL_CONFIG); err != nil {
+					logger.Errorf(ctx, "sSysConfig Subscribe Reconnect error: %v", err)
+				} else {
+					logger.Info(ctx, "sSysConfig Subscribe Reconnect success")
+				}
+				continue
+			}
+
+			switch msg.Channel {
+			case consts.CHANGE_CHANNEL_CONFIG:
+				_, err = service.SysConfig().Init(ctx)
+			}
+
+			if err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+	}, nil); err != nil {
 		panic(err)
 	}
 }
@@ -34,44 +74,34 @@ func New() service.ISysConfig {
 // 更新配置
 func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq) (*entity.SysConfig, error) {
 
+	defer func() {
+		if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_CONFIG, model.PubMessage{
+			Action: consts.ACTION_UPDATE,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}()
+
 	sysConfig := &do.SysConfig{}
 	switch params.Action {
 	case "core":
-		sysConfig = &do.SysConfig{
-			Core: params.Core,
-		}
+		sysConfig = &do.SysConfig{Core: params.Core}
 	case "http":
-		sysConfig = &do.SysConfig{
-			Http: params.Http,
-		}
+		sysConfig = &do.SysConfig{Http: params.Http}
 	case "email":
-		sysConfig = &do.SysConfig{
-			Email: params.Email,
-		}
+		sysConfig = &do.SysConfig{Email: params.Email}
 	case "statistics":
-		sysConfig = &do.SysConfig{
-			Statistics: params.Statistics,
-		}
-	case "api":
-		sysConfig = &do.SysConfig{
-			Api: params.Api,
-		}
+		sysConfig = &do.SysConfig{Statistics: params.Statistics}
+	case "base":
+		sysConfig = &do.SysConfig{Base: params.Base}
 	case "midjourney":
-		sysConfig = &do.SysConfig{
-			Midjourney: params.Midjourney,
-		}
+		sysConfig = &do.SysConfig{Midjourney: params.Midjourney}
 	case "log":
-		sysConfig = &do.SysConfig{
-			Log: params.Log,
-		}
+		sysConfig = &do.SysConfig{Log: params.Log}
 	case "error":
-		sysConfig = &do.SysConfig{
-			Error: params.Error,
-		}
+		sysConfig = &do.SysConfig{Error: params.Error}
 	case "debug":
-		sysConfig = &do.SysConfig{
-			Debug: params.Debug,
-		}
+		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
 
 	return dao.SysConfig.FindOneAndUpdate(ctx, bson.M{}, sysConfig)
@@ -79,6 +109,14 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 
 // 更改配置状态
 func (s *sSysConfig) ChangeStatus(ctx context.Context, params model.SysConfigChangeStatusReq) error {
+
+	defer func() {
+		if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_CONFIG, model.PubMessage{
+			Action: consts.ACTION_STATUS,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}()
 
 	if err := dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
 		params.Action + ".open": params.Open,
@@ -105,7 +143,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Http:       sysConfig.Http,
 		Email:      sysConfig.Email,
 		Statistics: sysConfig.Statistics,
-		Api:        sysConfig.Api,
+		Base:       sysConfig.Base,
 		Midjourney: sysConfig.Midjourney,
 		Log:        sysConfig.Log,
 		Error:      sysConfig.Error,
@@ -123,48 +161,125 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 	sysConfigUpdateReq := model.SysConfigUpdateReq{
 		Action: params.Action,
 	}
+
 	switch params.Action {
 	case "core":
-		sysConfigUpdateReq.Core = &common.Core{
+		sysConfigUpdateReq.Core = s.Default().Core
+	case "http":
+		sysConfigUpdateReq.Http = s.Default().Http
+	case "email":
+		sysConfigUpdateReq.Email = s.Default().Email
+	case "statistics":
+		sysConfigUpdateReq.Statistics = s.Default().Statistics
+	case "base":
+		sysConfigUpdateReq.Base = s.Default().Base
+	case "midjourney":
+		sysConfigUpdateReq.Midjourney = s.Default().Midjourney
+	case "log":
+		sysConfigUpdateReq.Log = s.Default().Log
+	case "error":
+		sysConfigUpdateReq.Error = s.Default().Error
+	}
+
+	return s.Update(ctx, sysConfigUpdateReq)
+}
+
+// 初始化配置
+func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err error) {
+
+	defer func() {
+		if err == nil && sysConfig != nil {
+			config.Reload(ctx, sysConfig)
+		}
+	}()
+
+	sysConfig, err = dao.SysConfig.FindOne(ctx, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			id, err := dao.SysConfig.Insert(ctx, s.Default())
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			return dao.SysConfig.FindById(ctx, id)
+		} else {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.Core == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "core"})
+	}
+
+	if sysConfig.Http == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "http"})
+	}
+
+	if sysConfig.Email == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "email"})
+	}
+
+	if sysConfig.Statistics == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "statistics"})
+	}
+
+	if sysConfig.Base == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "base"})
+	}
+
+	if sysConfig.Midjourney == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "midjourney"})
+	}
+
+	if sysConfig.Log == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "log"})
+	}
+
+	if sysConfig.Error == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "error"})
+	}
+
+	return sysConfig, nil
+}
+
+// 默认配置
+func (s *sSysConfig) Default() *do.SysConfig {
+	return &do.SysConfig{
+		Core: &common.Core{
 			SecretKeyPrefix: "sk-FastAPI",
 			ErrorPrefix:     "fastapi",
-		}
-	case "http":
-		sysConfigUpdateReq.Http = &common.Http{
+		},
+		Http: &common.Http{
 			Timeout: 60,
-		}
-	case "email":
-		sysConfigUpdateReq.Email = &common.Email{
+		},
+		Email: &common.Email{
 			Host:     "smtp.xxx.com",
 			Port:     465,
 			UserName: "xxx@xxx.com",
 			Password: "xxx",
 			FromName: "智元 Fast API",
-		}
-	case "statistics":
-		sysConfigUpdateReq.Statistics = &common.Statistics{
+		},
+		Statistics: &common.Statistics{
 			Open:        true,
 			Cron:        "0 0/5 * * * ?",
 			Limit:       1000,
 			LockMinutes: 30,
-		}
-	case "api":
-		sysConfigUpdateReq.Api = &common.Api{
-			Retry:                   3,
+		},
+		Base: &common.Base{
+			ErrRetry:                3,
 			ModelKeyErrDisable:      100000,
 			ModelAgentErrDisable:    100000,
 			ModelAgentKeyErrDisable: 100000,
-		}
-	case "midjourney":
-		sysConfigUpdateReq.Midjourney = &common.Midjourney{
+		},
+		Midjourney: &common.Midjourney{
 			CdnUrl:          "https://cdn.xxx.com",
 			ApiBaseUrl:      "https://xxx/mj",
 			ApiSecret:       "xxx",
 			ApiSecretHeader: "mj-api-secret",
 			CdnOriginalUrl:  "https://cdn.discordapp.com",
-		}
-	case "log":
-		sysConfigUpdateReq.Log = &common.Log{
+		},
+		Log: &common.Log{
 			Open: true,
 			Records: []string{
 				"prompt",
@@ -172,9 +287,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 				"messages",
 				"image",
 			},
-		}
-	case "error":
-		sysConfigUpdateReq.Error = &common.Error{
+		},
+		Error: &common.Error{
 			Open: true,
 			ShieldUser: []string{
 				"TraceId",
@@ -205,107 +319,6 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 			NotShield: []string{
 				"Please reduce the length of the messages.",
 			},
-		}
-	case "all":
-		if _, err := dao.SysConfig.DeleteOne(ctx, bson.M{}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-		return s.Default(ctx)
+		},
 	}
-
-	return s.Update(ctx, sysConfigUpdateReq)
-}
-
-// 默认配置
-func (s *sSysConfig) Default(ctx context.Context) (*entity.SysConfig, error) {
-
-	sysConfig, err := dao.SysConfig.FindOne(ctx, bson.M{})
-	if err != nil && errors.Is(err, mongo.ErrNoDocuments) {
-
-		id, err := dao.SysConfig.Insert(ctx, &do.SysConfig{
-			Core: &common.Core{
-				SecretKeyPrefix: "sk-FastAPI",
-				ErrorPrefix:     "fastapi",
-			},
-			Http: &common.Http{
-				Timeout: 60,
-			},
-			Email: &common.Email{
-				Host:     "smtp.xxx.com",
-				Port:     465,
-				UserName: "xxx@xxx.com",
-				Password: "xxx",
-				FromName: "智元 Fast API",
-			},
-			Statistics: &common.Statistics{
-				Open:        true,
-				Cron:        "0 0/5 * * * ?",
-				Limit:       1000,
-				LockMinutes: 30,
-			},
-			Api: &common.Api{
-				Retry:                   3,
-				ModelKeyErrDisable:      100000,
-				ModelAgentErrDisable:    100000,
-				ModelAgentKeyErrDisable: 100000,
-			},
-			Midjourney: &common.Midjourney{
-				CdnUrl:          "https://cdn.xxx.com",
-				ApiBaseUrl:      "https://xxx/mj",
-				ApiSecret:       "xxx",
-				ApiSecretHeader: "mj-api-secret",
-				CdnOriginalUrl:  "https://cdn.discordapp.com",
-			},
-			Log: &common.Log{
-				Open: true,
-				Records: []string{
-					"prompt",
-					"completion",
-					"messages",
-					"image",
-				},
-			},
-			Error: &common.Error{
-				Open: true,
-				ShieldUser: []string{
-					"TraceId",
-					"http",
-					"tcp",
-					"No available",
-					"quota",
-					"All key error.",
-					"All model agent error.",
-					"All model agent key error.",
-				},
-				AutoDisabled: []string{
-					"Incorrect API key provided or has been disabled.",
-					"You exceeded your current quota.",
-					"The OpenAI account associated with this API key has been deactivated.",
-					"PERMISSION_DENIED",
-					"BILLING_DISABLED",
-					"ACCESS_TOKEN_EXPIRED",
-					"is not allowed to use Publisher Model",
-					"Resource has been exhausted",
-					"IAM_PERMISSION_DENIED",
-					"SERVICE_DISABLED",
-					"ACCOUNT_STATE_INVALID",
-				},
-				NotRetry: []string{
-					"Please reduce the length of the messages.",
-				},
-				NotShield: []string{
-					"Please reduce the length of the messages.",
-				},
-			},
-		})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		return dao.SysConfig.FindById(ctx, id)
-	}
-
-	return sysConfig, err
 }

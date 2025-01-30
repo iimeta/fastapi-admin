@@ -1,8 +1,11 @@
 package consts
 
-import "github.com/iimeta/fastapi-admin/internal/config"
+import (
+	"github.com/iimeta/fastapi-admin/internal/config"
+)
 
 var (
+	CHANGE_CHANNEL_CONFIG  = config.Cfg.Core.ChannelPrefix + "change:channel:config"
 	CHANGE_CHANNEL_USER    = config.Cfg.Core.ChannelPrefix + "admin:change:channel:user"
 	CHANGE_CHANNEL_APP     = config.Cfg.Core.ChannelPrefix + "admin:change:channel:app"
 	CHANGE_CHANNEL_APP_KEY = config.Cfg.Core.ChannelPrefix + "admin:change:channel:app:key"

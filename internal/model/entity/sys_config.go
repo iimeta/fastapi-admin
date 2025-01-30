@@ -12,10 +12,10 @@ type SysConfig struct {
 	Http       *common.Http       `bson:"http,omitempty"`       // HTTP
 	Email      *common.Email      `bson:"email,omitempty"`      // 邮箱
 	Statistics *common.Statistics `bson:"statistics,omitempty"` // 统计
-	Api        *common.Api        `bson:"api,omitempty"`        // API
+	Base       *common.Base       `bson:"base,omitempty"`       // 基础
 	Midjourney *common.Midjourney `bson:"midjourney,omitempty"` // Midjourney
 	Log        *common.Log        `bson:"log,omitempty"`        // 日志
-	Error      *common.Error      `bson:"error,omitempty"`      // 错误配置
+	Error      *common.Error      `bson:"error,omitempty"`      // 错误
 	Debug      *common.Debug      `bson:"debug,omitempty"`      // 调试
 	Creator    string             `bson:"creator,omitempty"`    // 创建人
 	Updater    string             `bson:"updater,omitempty"`    // 更新人

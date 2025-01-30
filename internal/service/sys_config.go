@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 )
 
@@ -22,8 +23,10 @@ type (
 		Detail(ctx context.Context) (*model.SysConfig, error)
 		// 重置配置
 		Reset(ctx context.Context, params model.SysConfigResetReq) (*entity.SysConfig, error)
+		// 初始化配置
+		Init(ctx context.Context) (sysConfig *entity.SysConfig, err error)
 		// 默认配置
-		Default(ctx context.Context) (*entity.SysConfig, error)
+		Default() *do.SysConfig
 	}
 )
 

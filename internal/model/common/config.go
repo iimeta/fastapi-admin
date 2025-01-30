@@ -29,11 +29,11 @@ type Statistics struct {
 	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长
 }
 
-type Api struct {
-	Retry                   int   `bson:"retry"                       json:"retry"`
-	ModelKeyErrDisable      int64 `bson:"model_key_err_disable"       json:"model_key_err_disable"`
-	ModelAgentErrDisable    int64 `bson:"model_agent_err_disable"     json:"model_agent_err_disable"`
-	ModelAgentKeyErrDisable int64 `bson:"model_agent_key_err_disable" json:"model_agent_key_err_disable"`
+type Base struct {
+	ErrRetry                int   `bson:"err_retry"                   json:"err_retry"`                   // 错误重试次数
+	ModelKeyErrDisable      int64 `bson:"model_key_err_disable"       json:"model_key_err_disable"`       // 模型密钥禁用次数
+	ModelAgentErrDisable    int64 `bson:"model_agent_err_disable"     json:"model_agent_err_disable"`     // 模型代理禁用次数
+	ModelAgentKeyErrDisable int64 `bson:"model_agent_key_err_disable" json:"model_agent_key_err_disable"` // 模型代理密钥禁用次数
 }
 
 type Midjourney struct {

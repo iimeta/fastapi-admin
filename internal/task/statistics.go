@@ -10,7 +10,7 @@ import (
 
 func init() {
 	// 定时统计任务
-	if config.Cfg.Statistics.Cron != "" {
+	if config.Cfg.Statistics.Open {
 		gcron.StopGracefully()
 		_, _ = gcron.AddSingleton(gctx.New(), config.Cfg.Statistics.Cron, func(ctx context.Context) {
 			service.Statistics().StatisticsTask(gctx.New())
