@@ -70,9 +70,9 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 
 	if audio.Status == -1 && service.Session().IsUserRole(ctx) {
 		audio.ErrMsg = "详细错误信息请联系管理员..."
-		if len(config.Cfg.Error.ShieldUser) > 0 {
+		if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
 			audio.ErrMsg = result.ErrMsg
-			for _, shieldError := range config.Cfg.Error.ShieldUser {
+			for _, shieldError := range config.Cfg.UserShieldError.Errors {
 				if gstr.Contains(result.ErrMsg, shieldError) {
 					audio.ErrMsg = "详细错误信息请联系管理员..."
 					break

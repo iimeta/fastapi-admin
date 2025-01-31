@@ -98,8 +98,14 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Midjourney: params.Midjourney}
 	case "log":
 		sysConfig = &do.SysConfig{Log: params.Log}
-	case "error":
-		sysConfig = &do.SysConfig{Error: params.Error}
+	case "user_shield_error":
+		sysConfig = &do.SysConfig{UserShieldError: params.UserShieldError}
+	case "auto_disabled_error":
+		sysConfig = &do.SysConfig{AutoDisabledError: params.AutoDisabledError}
+	case "not_retry_error":
+		sysConfig = &do.SysConfig{NotRetryError: params.NotRetryError}
+	case "not_shield_error":
+		sysConfig = &do.SysConfig{NotShieldError: params.NotShieldError}
 	case "debug":
 		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
@@ -138,20 +144,23 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 	}
 
 	return &model.SysConfig{
-		Id:         sysConfig.Id,
-		Core:       sysConfig.Core,
-		Http:       sysConfig.Http,
-		Email:      sysConfig.Email,
-		Statistics: sysConfig.Statistics,
-		Base:       sysConfig.Base,
-		Midjourney: sysConfig.Midjourney,
-		Log:        sysConfig.Log,
-		Error:      sysConfig.Error,
-		Debug:      sysConfig.Debug,
-		Creator:    sysConfig.Creator,
-		Updater:    sysConfig.Updater,
-		CreatedAt:  util.FormatDateTime(sysConfig.CreatedAt),
-		UpdatedAt:  util.FormatDateTime(sysConfig.UpdatedAt),
+		Id:                sysConfig.Id,
+		Core:              sysConfig.Core,
+		Http:              sysConfig.Http,
+		Email:             sysConfig.Email,
+		Statistics:        sysConfig.Statistics,
+		Base:              sysConfig.Base,
+		Midjourney:        sysConfig.Midjourney,
+		Log:               sysConfig.Log,
+		UserShieldError:   sysConfig.UserShieldError,
+		AutoDisabledError: sysConfig.AutoDisabledError,
+		NotRetryError:     sysConfig.NotRetryError,
+		NotShieldError:    sysConfig.NotShieldError,
+		Debug:             sysConfig.Debug,
+		Creator:           sysConfig.Creator,
+		Updater:           sysConfig.Updater,
+		CreatedAt:         util.FormatDateTime(sysConfig.CreatedAt),
+		UpdatedAt:         util.FormatDateTime(sysConfig.UpdatedAt),
 	}, nil
 }
 
@@ -177,8 +186,14 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Midjourney = s.Default().Midjourney
 	case "log":
 		sysConfigUpdateReq.Log = s.Default().Log
-	case "error":
-		sysConfigUpdateReq.Error = s.Default().Error
+	case "user_shield_error":
+		sysConfigUpdateReq.UserShieldError = s.Default().UserShieldError
+	case "auto_disabled_error":
+		sysConfigUpdateReq.AutoDisabledError = s.Default().AutoDisabledError
+	case "not_retry_error":
+		sysConfigUpdateReq.NotRetryError = s.Default().NotRetryError
+	case "not_shield_error":
+		sysConfigUpdateReq.NotShieldError = s.Default().NotShieldError
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -236,8 +251,20 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		return s.Reset(ctx, model.SysConfigResetReq{Action: "log"})
 	}
 
-	if sysConfig.Error == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "error"})
+	if sysConfig.UserShieldError == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "user_shield_error"})
+	}
+
+	if sysConfig.AutoDisabledError == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "auto_disabled_error"})
+	}
+
+	if sysConfig.NotRetryError == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "not_retry_error"})
+	}
+
+	if sysConfig.NotShieldError == nil {
+		return s.Reset(ctx, model.SysConfigResetReq{Action: "not_shield_error"})
 	}
 
 	return sysConfig, nil
@@ -288,9 +315,9 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"image",
 			},
 		},
-		Error: &common.Error{
+		UserShieldError: &common.UserShieldError{
 			Open: true,
-			ShieldUser: []string{
+			Errors: []string{
 				"TraceId",
 				"http",
 				"tcp",
@@ -300,7 +327,10 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"All model agent error.",
 				"All model agent key error.",
 			},
-			AutoDisabled: []string{
+		},
+		AutoDisabledError: &common.AutoDisabledError{
+			Open: true,
+			Errors: []string{
 				"Incorrect API key provided or has been disabled.",
 				"You exceeded your current quota.",
 				"The OpenAI account associated with this API key has been deactivated.",
@@ -313,12 +343,21 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"SERVICE_DISABLED",
 				"ACCOUNT_STATE_INVALID",
 			},
-			NotRetry: []string{
+		},
+		NotRetryError: &common.NotRetryError{
+			Open: true,
+			Errors: []string{
 				"Please reduce the length of the messages.",
 			},
-			NotShield: []string{
+		},
+		NotShieldError: &common.NotShieldError{
+			Open: true,
+			Errors: []string{
 				"Please reduce the length of the messages.",
 			},
+		},
+		Debug: &common.Debug{
+			Open: false,
 		},
 	}
 }

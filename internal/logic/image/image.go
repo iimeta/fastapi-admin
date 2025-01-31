@@ -77,9 +77,9 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 
 	if image.Status == -1 && service.Session().IsUserRole(ctx) {
 		image.ErrMsg = "详细错误信息请联系管理员..."
-		if len(config.Cfg.Error.ShieldUser) > 0 {
+		if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
 			image.ErrMsg = result.ErrMsg
-			for _, shieldError := range config.Cfg.Error.ShieldUser {
+			for _, shieldError := range config.Cfg.UserShieldError.Errors {
 				if gstr.Contains(result.ErrMsg, shieldError) {
 					image.ErrMsg = "详细错误信息请联系管理员..."
 					break

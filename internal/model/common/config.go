@@ -50,12 +50,24 @@ type Log struct {
 	Records []string `bson:"records" json:"records"` // 日志记录
 }
 
-type Error struct {
-	Open         bool     `bson:"open"          json:"open"` // 开关
-	ShieldUser   []string `bson:"shield_user"   json:"shield_user"`
-	AutoDisabled []string `bson:"auto_disabled" json:"auto_disabled"`
-	NotRetry     []string `bson:"not_retry"     json:"not_retry"`
-	NotShield    []string `bson:"not_shield"    json:"not_shield"`
+type UserShieldError struct {
+	Open   bool     `bson:"open"   json:"open"`   // 开关
+	Errors []string `bson:"errors" json:"errors"` // 错误
+}
+
+type AutoDisabledError struct {
+	Open   bool     `bson:"open"   json:"open"`   // 开关
+	Errors []string `bson:"errors" json:"errors"` // 错误
+}
+
+type NotRetryError struct {
+	Open   bool     `bson:"open"   json:"open"`   // 开关
+	Errors []string `bson:"errors" json:"errors"` // 错误
+}
+
+type NotShieldError struct {
+	Open   bool     `bson:"open"   json:"open"`   // 开关
+	Errors []string `bson:"errors" json:"errors"` // 错误
 }
 
 type Debug struct {

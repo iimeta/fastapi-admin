@@ -86,9 +86,9 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
 	if chat.Status == -1 && service.Session().IsUserRole(ctx) {
 		chat.ErrMsg = "详细错误信息请联系管理员..."
-		if len(config.Cfg.Error.ShieldUser) > 0 {
+		if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
 			chat.ErrMsg = result.ErrMsg
-			for _, shieldError := range config.Cfg.Error.ShieldUser {
+			for _, shieldError := range config.Cfg.UserShieldError.Errors {
 				if gstr.Contains(result.ErrMsg, shieldError) {
 					chat.ErrMsg = "详细错误信息请联系管理员..."
 					break

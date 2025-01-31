@@ -82,6 +82,7 @@ var (
 			s.AddStaticPath("/sys/site/config", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config/update", "./resource/fastapi-web/")
+			s.AddStaticPath("/sys/config", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
 
