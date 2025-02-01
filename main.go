@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/gogf/gf/v2/os/gtime"
 
-	_ "github.com/iimeta/fastapi-admin/internal/packed"
-
 	_ "github.com/iimeta/fastapi-admin/internal/logic"
+
+	_ "github.com/iimeta/fastapi-admin/internal/packed"
 
 	"github.com/gogf/gf/v2/os/gctx"
 

@@ -14,7 +14,6 @@ type SendSmsReq struct {
 // 发送短信验证码接口响应参数
 type SendSmsRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.SendSmsRes
 }
 
 // 发送邮件验证码接口请求参数
@@ -26,5 +25,4 @@ type SendEmailReq struct {
 // 发送邮件验证码接口响应参数
 type SendEmailRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-	*model.SendEmailRes
 }

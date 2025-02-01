@@ -11,7 +11,6 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/gmeta"
 	"github.com/gogf/gf/v2/util/grand"
-	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -96,13 +95,6 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		user.Quota = siteConfig.GrantQuota
 		if siteConfig.QuotaExpiresAt > 0 {
 			user.QuotaExpiresAt = gtime.Now().Add(time.Duration(siteConfig.QuotaExpiresAt) * time.Minute).TimestampMilli()
-		}
-	}
-
-	if siteConfig == nil && config.Cfg.App.Register.GrantQuota > 0 {
-		user.Quota = config.Cfg.App.Register.GrantQuota
-		if config.Cfg.App.Register.QuotaExpiresAt > 0 {
-			user.QuotaExpiresAt = gtime.Now().Add(config.Cfg.App.Register.QuotaExpiresAt * time.Minute).TimestampMilli()
 		}
 	}
 
@@ -203,20 +195,6 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
-
-					if len(config.Cfg.App.Register.SupportEmailSuffix) > 0 {
-
-						isSupport := false
-						for _, emailSuffix := range config.Cfg.App.Register.SupportEmailSuffix {
-							if isSupport = gstr.HasSuffix(params.Account, emailSuffix); isSupport {
-								break
-							}
-						}
-
-						if !isSupport {
-							return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", config.Cfg.App.Register.SupportEmailSuffix))
-						}
-					}
 
 					if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain); siteConfig != nil {
 

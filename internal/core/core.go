@@ -40,7 +40,6 @@ func init() {
 
 	// 自增起始appId
 	_, _ = redis.SetNX(ctx, APP_ID_AUTO_INCREMENT_KEY, appId)
-
 }
 
 func IncrUserId(ctx context.Context) int {

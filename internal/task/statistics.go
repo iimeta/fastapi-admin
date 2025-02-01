@@ -8,12 +8,32 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/service"
 )
 
-func init() {
+var (
+	statisticsCron  string
+	statisticsEntry *gcron.Entry
+)
+
+func Init(ctx context.Context) {
+
 	// 定时统计任务
 	if config.Cfg.Statistics.Open {
-		gcron.StopGracefully()
-		_, _ = gcron.AddSingleton(gctx.New(), config.Cfg.Statistics.Cron, func(ctx context.Context) {
+
+		if statisticsCron != config.Cfg.Statistics.Cron {
+			statisticsCron = config.Cfg.Statistics.Cron
+			if statisticsEntry != nil {
+				statisticsEntry.Stop()
+			}
+		} else if statisticsEntry != nil {
+			return
+		}
+
+		statisticsEntry, _ = gcron.AddSingleton(ctx, config.Cfg.Statistics.Cron, func(ctx context.Context) {
 			service.Statistics().StatisticsTask(gctx.New())
 		})
+
+	} else {
+		if statisticsEntry != nil {
+			statisticsEntry.Stop()
+		}
 	}
 }

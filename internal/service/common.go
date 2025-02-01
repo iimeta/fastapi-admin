@@ -15,9 +15,9 @@ import (
 type (
 	ICommon interface {
 		// 发送邮件验证码
-		EmailCode(ctx context.Context, params model.SendEmailReq) (*model.SendEmailRes, error)
+		EmailCode(ctx context.Context, params model.SendEmailReq) error
 		// 发送短信验证码
-		SmsCode(ctx context.Context, params model.SendSmsReq) (*model.SendSmsRes, error)
+		SmsCode(ctx context.Context, params model.SendSmsReq) error
 		// 缓存验证码
 		SetCode(ctx context.Context, channel string, account string, code string, exp time.Duration) error
 		// 获取验证码

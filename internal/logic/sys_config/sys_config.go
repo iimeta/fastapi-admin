@@ -13,6 +13,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
+	"github.com/iimeta/fastapi-admin/internal/task"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
@@ -54,7 +55,7 @@ func init() {
 			}
 
 			switch msg.Channel {
-			case consts.CHANGE_CHANNEL_CONFIG:
+			case config.Cfg.Core.ChannelPrefix + consts.CHANGE_CHANNEL_CONFIG:
 				_, err = service.SysConfig().Init(ctx)
 			}
 
@@ -205,6 +206,7 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 	defer func() {
 		if err == nil && sysConfig != nil {
 			config.Reload(ctx, sysConfig)
+			task.Init(ctx)
 		}
 	}()
 

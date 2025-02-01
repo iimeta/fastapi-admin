@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/crypto/gmd5"
-	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -24,33 +23,27 @@ import (
 	"time"
 )
 
-type sCommon struct {
-	secretKeyPrefix string
-}
+type sCommon struct{}
 
 func init() {
 	service.RegisterCommon(New())
 }
 
 func New() service.ICommon {
-	return &sCommon{
-		secretKeyPrefix: config.GetString(gctx.New(), "core.secret_key_prefix", "sk-FastAPI"),
-	}
+	return &sCommon{}
 }
 
 // 发送邮件验证码
-func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*model.SendEmailRes, error) {
+func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) error {
 
-	if !config.Cfg.App.Debug {
-		defer func() {
-			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); val == 1 {
-				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email), 30*60) // 锁定30分钟
-			}
-		}()
-
-		if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); err == nil && val >= 5 {
-			return nil, errors.New("发送验证码过于频繁, 请稍后再试")
+	defer func() {
+		if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); val == 1 {
+			_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email), 30*60) // 锁定30分钟
 		}
+	}()
+
+	if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); err == nil && val >= 5 {
+		return errors.New("发送验证码过于频繁, 请稍后再试")
 	}
 
 	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
@@ -59,31 +52,17 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 	// 需要判断账号是否存在
 	case consts.CHANNEL_LOGIN:
 		//if !dao.User.IsAccountExist(ctx, params.Email) {
-		//	return nil, errors.New("账号不存在或密码错误")
+		//	return errors.New("账号不存在或密码错误")
 		//}
 
 	// 需要判断账号是否存在
 	case consts.CHANNEL_FORGET_ACCOUNT:
 		if !dao.User.IsAccountExist(ctx, params.Email) {
-			return nil, errors.New("账号不存在")
+			return errors.New("账号不存在")
 		}
 
 	// 需要判断账号是否存在
 	case consts.CHANNEL_REGISTER, consts.CHANNEL_CHANGE_EMAIL:
-
-		if len(config.Cfg.App.Register.SupportEmailSuffix) > 0 {
-
-			isSupport := false
-			for _, emailSuffix := range config.Cfg.App.Register.SupportEmailSuffix {
-				if isSupport = gstr.HasSuffix(params.Email, emailSuffix); isSupport {
-					break
-				}
-			}
-
-			if !isSupport {
-				return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", config.Cfg.App.Register.SupportEmailSuffix))
-			}
-		}
 
 		if siteConfig != nil && len(siteConfig.SupportEmailSuffix) > 0 {
 
@@ -95,27 +74,27 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 			}
 
 			if !isSupport {
-				return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix))
+				return errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix))
 			}
 		}
 
 		if dao.User.IsAccountExist(ctx, params.Email) {
-			return nil, errors.New("邮箱已被他人使用")
+			return errors.New("邮箱已被他人使用")
 		}
 
 	default:
-		return nil, errors.New("发送异常")
+		return errors.New("发送异常")
 	}
 
 	if params.Channel == consts.CHANNEL_REGISTER && siteConfig != nil && siteConfig.RegisterTips != "" {
-		return nil, errors.New(siteConfig.RegisterTips)
+		return errors.New(siteConfig.RegisterTips)
 	}
 
 	code := grand.Digits(6)
 
 	if err := s.SetCode(ctx, params.Channel, params.Email, code, 15*time.Minute); err != nil {
 		logger.Error(ctx, err)
-		return nil, err
+		return err
 	}
 
 	logger.Infof(ctx, "正在发送邮件验证码, 操作: %s, 收件人: %s, 验证码: %s", consts.CHANNEL_MAP[params.Channel], params.Email, code)
@@ -129,7 +108,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 	if siteConfig != nil {
 
 		if siteConfig.Host == "" {
-			return nil, errors.New("发信邮箱未配置, 请联系管理员")
+			return errors.New("发信邮箱未配置, 请联系管理员")
 		}
 
 		dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
@@ -140,7 +119,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 	template, err := util.RenderTemplate(data)
 	if err != nil {
 		logger.Error(ctx, err)
-		return nil, err
+		return err
 	}
 
 	message := email.NewMessage([]string{params.Email}, consts.CHANNEL_MAP[params.Channel], template)
@@ -148,46 +127,37 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (*mo
 	// 发送邮件验证码
 	_ = email.SendMail(message, dialer)
 
-	if config.Cfg.App.Debug {
-		return &model.SendEmailRes{
-			IsDebug: true,
-			Code:    code,
-		}, nil
-	}
-
-	return nil, nil
+	return nil
 }
 
 // 发送短信验证码
-func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.SendSmsRes, error) {
+func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) error {
 
-	if !config.Cfg.App.Debug {
-		defer func() {
-			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone)); val == 1 {
-				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone), 30*60) // 锁定30分钟
-			}
-		}()
-
-		if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone)); err == nil && val >= 5 {
-			return nil, errors.New("发送验证码过于频繁, 请稍后再试")
+	defer func() {
+		if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone)); val == 1 {
+			_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone), 30*60) // 锁定30分钟
 		}
+	}()
+
+	if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Phone)); err == nil && val >= 5 {
+		return errors.New("发送验证码过于频繁, 请稍后再试")
 	}
 
 	switch params.Channel {
 	// 需要判断账号是否存在
 	case consts.CHANNEL_LOGIN, consts.CHANNEL_FORGET_ACCOUNT:
 		if !dao.User.IsAccountExist(ctx, params.Phone) {
-			return nil, errors.New("账号不存在或密码错误")
+			return errors.New("账号不存在或密码错误")
 		}
 
 	// 需要判断账号是否存在
 	case consts.CHANNEL_REGISTER, consts.CHANNEL_CHANGE_MOBILE:
 		if dao.User.IsAccountExist(ctx, params.Phone) {
-			return nil, errors.New("手机号已被他人使用")
+			return errors.New("手机号已被他人使用")
 		}
 
 	default:
-		return nil, errors.New("发送异常")
+		return errors.New("发送异常")
 	}
 
 	code := grand.Digits(6)
@@ -195,21 +165,14 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) (*model.
 	// 添加发送记录
 	if err := s.SetCode(ctx, params.Channel, params.Phone, code, 15*time.Minute); err != nil {
 		logger.Error(ctx, err)
-		return nil, err
+		return err
 	}
 
 	// 发送短信验证码
 	// TODO ... 请求第三方短信接口
 	logger.Debugf(ctx, "正在发送短信验证码: %s", code)
 
-	if config.Cfg.App.Debug {
-		return &model.SendSmsRes{
-			IsDebug: true,
-			SmsCode: code,
-		}, nil
-	}
-
-	return nil, nil
+	return nil
 }
 
 // 缓存验证码
@@ -282,11 +245,11 @@ func ConvQuotaExpiresAt(quotaExpiresAt string) int64 {
 // 解析密钥
 func (s *sCommon) ParseSecretKey(ctx context.Context, secretKey string) (int, int, error) {
 
-	if !gstr.HasPrefix(secretKey, s.secretKeyPrefix) {
+	if !gstr.HasPrefix(secretKey, config.Cfg.Core.SecretKeyPrefix) {
 		return 0, 0, errors.ERR_INVALID_API_KEY
 	}
 
-	secretKey = strings.TrimPrefix(secretKey, s.secretKeyPrefix)
+	secretKey = strings.TrimPrefix(secretKey, config.Cfg.Core.SecretKeyPrefix)
 
 	userId, err := gregex.ReplaceString("[a-zA-Z-]*", "", secretKey[:len(secretKey)/2])
 	if err != nil {

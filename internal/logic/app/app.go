@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -26,18 +25,14 @@ import (
 	"time"
 )
 
-type sApp struct {
-	secretKeyPrefix string
-}
+type sApp struct{}
 
 func init() {
 	service.RegisterApp(New())
 }
 
 func New() service.IApp {
-	return &sApp{
-		secretKeyPrefix: config.GetString(gctx.New(), "core.secret_key_prefix", "sk-FastAPI"),
-	}
+	return &sApp{}
 }
 
 // 新建应用
@@ -433,7 +428,7 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 		userId = params.UserId
 	}
 
-	key := util.NewKey(s.secretKeyPrefix, 51, gconv.String(userId), gconv.String(params.AppId))
+	key := util.NewKey(config.Cfg.Core.SecretKeyPrefix, 51, gconv.String(userId), gconv.String(params.AppId))
 
 	u, a, err := service.Common().ParseSecretKey(ctx, key)
 	if err != nil {
