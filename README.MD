@@ -34,6 +34,7 @@
     - 音频日志
   - 系统管理
     - 站点配置
+    - 配置管理
 - 用户端
   - 仪表盘
   - 我的模型
@@ -50,21 +51,15 @@
 ## 项目预览
 
 - 用户端: https://demo.fastapi.ai/login
-- 账号/密码: demo@fastapi.ai/123456
-
 - 管理端: https://demo.fastapi.ai/admin
-- 账号/密码: admin/admin123
+- 账号/密码均是: demo/123456
 
 ## 专业版预览
 
 - 用户端: https://demo.fastapi.pro/login
-- 账号/密码: user@fastapi.pro/user@fastapi.pro
-
 - 代理商: https://demo.fastapi.pro/reseller
-- 账号/密码: reseller@fastapi.pro/reseller@fastapi.pro
-
 - 管理端: https://demo.fastapi.pro/admin
-- 账号/密码: admin@fastapi.pro/admin@fastapi.pro
+- 账号/密码均是: demo/123456
 
 ## 部署支持
 
@@ -109,7 +104,7 @@ https://files.fastapi.ai/public/video/install.mp4
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250126" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250202" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
