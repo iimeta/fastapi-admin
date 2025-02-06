@@ -195,6 +195,22 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.NotRetryError = s.Default().NotRetryError
 	case "not_shield_error":
 		sysConfigUpdateReq.NotShieldError = s.Default().NotShieldError
+	case "reset_api_error":
+
+		keys, err := redis.Keys(ctx, "api:error:*")
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if len(keys) > 0 {
+			if _, err = redis.Del(ctx, keys...); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+		}
+
+		return nil, nil
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -210,8 +226,7 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}()
 
-	sysConfig, err = dao.SysConfig.FindOne(ctx, bson.M{})
-	if err != nil {
+	if sysConfig, err = dao.SysConfig.FindOne(ctx, bson.M{}); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			id, err := dao.SysConfig.Insert(ctx, s.Default())
 			if err != nil {
@@ -226,47 +241,80 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 	}
 
 	if sysConfig.Core == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "core"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "core"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.Http == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "http"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "http"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.Email == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "email"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "email"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.Statistics == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "statistics"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "statistics"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.Base == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "base"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "base"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.Midjourney == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "midjourney"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "midjourney"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.Log == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "log"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "log"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.UserShieldError == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "user_shield_error"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "user_shield_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.AutoDisabledError == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "auto_disabled_error"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "auto_disabled_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.NotRetryError == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "not_retry_error"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "not_retry_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	if sysConfig.NotShieldError == nil {
-		return s.Reset(ctx, model.SysConfigResetReq{Action: "not_shield_error"})
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "not_shield_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	return sysConfig, nil

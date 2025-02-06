@@ -241,3 +241,7 @@ func LRange(ctx context.Context, key string, start, stop int64) (gvar.Vars, erro
 func TTL(ctx context.Context, key string) (int64, error) {
 	return slave.TTL(ctx, key)
 }
+
+func Keys(ctx context.Context, pattern string) ([]string, error) {
+	return slave.Keys(ctx, pattern)
+}
