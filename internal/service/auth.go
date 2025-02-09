@@ -15,13 +15,13 @@ type (
 	IAuth interface {
 		// 身份核验
 		Authenticator(ctx context.Context, req interface{}) bool
-		// 注册接口
+		// 注册
 		Register(ctx context.Context, params model.RegisterReq, channel ...string) error
-		// 登录接口
+		// 登录
 		Login(ctx context.Context, params model.LoginReq) (res *model.LoginRes, err error)
-		// 退出登录接口
+		// 退出登录
 		Logout(ctx context.Context) error
-		// 账号找回接口
+		// 找回密码
 		Forget(ctx context.Context, params model.ForgetReq) error
 		// 生成用户Token
 		GenUserToken(ctx context.Context, user *model.User, isSaveSession bool) (token string, err error)

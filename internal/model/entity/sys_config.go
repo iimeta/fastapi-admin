@@ -15,6 +15,7 @@ type SysConfig struct {
 	Base              *common.Base              `bson:"base,omitempty"`                // 基础
 	Midjourney        *common.Midjourney        `bson:"midjourney,omitempty"`          // Midjourney
 	Log               *common.Log               `bson:"log,omitempty"`                 // 日志
+	UserLoginRegister *common.UserLoginRegister `bson:"user_login_register,omitempty"` // 用户登录注册
 	UserShieldError   *common.UserShieldError   `bson:"user_shield_error,omitempty"`   // 用户屏蔽错误
 	AutoDisabledError *common.AutoDisabledError `bson:"auto_disabled_error,omitempty"` // 自动禁用错误
 	NotRetryError     *common.NotRetryError     `bson:"not_retry_error,omitempty"`     // 不重试错误

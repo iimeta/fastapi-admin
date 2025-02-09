@@ -18,5 +18,4 @@ type ISiteConfigV1 interface {
 	Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error)
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
-	Site(ctx context.Context, req *v1.SiteReq) (res *v1.SiteRes, err error)
 }

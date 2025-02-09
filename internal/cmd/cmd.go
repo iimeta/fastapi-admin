@@ -22,6 +22,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/midjourney"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
+	"github.com/iimeta/fastapi-admin/internal/controller/open"
 	"github.com/iimeta/fastapi-admin/internal/controller/site_config"
 	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
@@ -97,13 +98,18 @@ var (
 						return
 					},
 					health.NewV1(),
-					site_config.NewV1(),
 				)
 			})
 
 			s.Group("/api/v1", func(v1 *ghttp.RouterGroup) {
 
 				v1.Middleware(middlewareHandlerResponse)
+
+				v1.Group("/open", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						open.NewV1(),
+					)
+				})
 
 				v1.Group("/common", func(g *ghttp.RouterGroup) {
 					g.Bind(

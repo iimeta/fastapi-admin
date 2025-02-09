@@ -83,15 +83,3 @@ type BatchOperateReq struct {
 type BatchOperateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
-
-// 站点配置接口请求参数
-type SiteReq struct {
-	g.Meta `path:"/site" role:"*" tags:"site_config" method:"get" summary:"站点配置接口"`
-	model.SiteConfigDetailReq
-}
-
-// 站点配置接口响应参数
-type SiteRes struct {
-	g.Meta `mime:"application/json" example:"json"`
-	*model.SiteConfigDetailRes
-}

@@ -99,6 +99,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Midjourney: params.Midjourney}
 	case "log":
 		sysConfig = &do.SysConfig{Log: params.Log}
+	case "user_login_register":
+		sysConfig = &do.SysConfig{UserLoginRegister: params.UserLoginRegister}
 	case "user_shield_error":
 		sysConfig = &do.SysConfig{UserShieldError: params.UserShieldError}
 	case "auto_disabled_error":
@@ -153,6 +155,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Base:              sysConfig.Base,
 		Midjourney:        sysConfig.Midjourney,
 		Log:               sysConfig.Log,
+		UserLoginRegister: sysConfig.UserLoginRegister,
 		UserShieldError:   sysConfig.UserShieldError,
 		AutoDisabledError: sysConfig.AutoDisabledError,
 		NotRetryError:     sysConfig.NotRetryError,
@@ -187,6 +190,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Midjourney = s.Default().Midjourney
 	case "log":
 		sysConfigUpdateReq.Log = s.Default().Log
+	case "user_login_register":
+		sysConfigUpdateReq.UserLoginRegister = s.Default().UserLoginRegister
 	case "user_shield_error":
 		sysConfigUpdateReq.UserShieldError = s.Default().UserShieldError
 	case "auto_disabled_error":
@@ -216,6 +221,20 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 	return s.Update(ctx, sysConfigUpdateReq)
 }
 
+// 系统配置
+func (s *sSysConfig) Config(ctx context.Context) (*model.SysConfig, error) {
+
+	sysConfig, err := dao.SysConfig.FindOne(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return &model.SysConfig{
+		UserLoginRegister: sysConfig.UserLoginRegister,
+	}, nil
+}
+
 // 初始化配置
 func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err error) {
 
@@ -242,76 +261,6 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.Core == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "core"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.Http == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "http"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.Email == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "email"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.Statistics == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "statistics"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.Base == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "base"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.Midjourney == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "midjourney"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.Log == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "log"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.UserShieldError == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "user_shield_error"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.AutoDisabledError == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "auto_disabled_error"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.NotRetryError == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "not_retry_error"}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if sysConfig.NotShieldError == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "not_shield_error"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -364,6 +313,12 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"messages",
 				"image",
 			},
+		},
+		UserLoginRegister: &common.UserLoginRegister{
+			AccountLogin:  true,
+			EmailLogin:    true,
+			EmailRegister: true,
+			EmailRetrieve: true,
 		},
 		UserShieldError: &common.UserShieldError{
 			Open: true,

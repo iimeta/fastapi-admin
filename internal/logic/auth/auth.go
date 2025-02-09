@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/gmeta"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -55,7 +55,7 @@ func (s *sAuth) Authenticator(ctx context.Context, req interface{}) bool {
 	return true
 }
 
-// 注册接口
+// 注册
 func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel ...string) error {
 
 	if len(channel) == 0 {
@@ -65,6 +65,10 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	// 验证验证码是否正确
 	if !service.Common().VerifyCode(ctx, channel[0], params.Account, params.Code) {
 		return errors.New("验证码填写错误")
+	}
+
+	if !config.Cfg.UserLoginRegister.EmailRegister {
+		return errors.New("未开启用户注册, 请联系管理员")
 	}
 
 	if dao.User.IsAccountExist(ctx, params.Account) {
@@ -140,7 +144,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	return nil
 }
 
-// 登录接口
+// 登录
 func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.LoginRes, err error) {
 
 	defer func() {
@@ -260,8 +264,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 		r.SetCtxVar("uid", user.Id)
 
-		// 记录登录IP和时间
-		if err = dao.Account.UpdateById(gctx.WithCtx(r.GetCtx()), accountInfo.Id, bson.M{
+		// 记录登录IP和登录时间
+		if err = dao.Account.UpdateById(ctx, accountInfo.Id, bson.M{
 			"login_ip":   ip,
 			"login_time": gtime.TimestampMilli(),
 		}); err != nil {
@@ -303,9 +307,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 					return nil, err
 				}
 
-				// 初次登录自动创建账号
+				// 首次登录自动创建账号
 				if count == 0 {
-
 					if err = service.SysAdmin().Create(ctx, model.SysAdminCreateReq{
 						Name:     params.Account,
 						Account:  params.Account,
@@ -319,7 +322,6 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						logger.Error(ctx, err)
 						return nil, err
 					}
-
 				} else {
 					return nil, errors.New("账号或密码不正确")
 				}
@@ -339,8 +341,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 		r.SetCtxVar("uid", admin.Id)
 
-		// 记录登录ip和时间
-		if err = dao.SysAdmin.UpdateById(gctx.WithCtx(r.GetCtx()), admin.Id, bson.M{
+		// 记录登录IP和登录时间
+		if err = dao.SysAdmin.UpdateById(ctx, admin.Id, bson.M{
 			"login_ip":   ip,
 			"login_time": gtime.TimestampMilli(),
 		}); err != nil {
@@ -374,7 +376,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 	}, nil
 }
 
-// 退出登录接口
+// 退出登录
 func (s *sAuth) Logout(ctx context.Context) error {
 
 	token := g.RequestFromCtx(ctx).GetHeader("Authorization")
@@ -399,12 +401,16 @@ func (s *sAuth) Logout(ctx context.Context) error {
 	return nil
 }
 
-// 账号找回接口
+// 找回密码
 func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 
 	// 验证验证码是否正确
 	if !service.Common().VerifyCode(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account, params.Code) {
 		return errors.New("验证码填写错误")
+	}
+
+	if !config.Cfg.UserLoginRegister.EmailRetrieve {
+		return errors.New("未开启找回密码, 请联系管理员")
 	}
 
 	account, err := dao.User.FindAccount(ctx, params.Account)

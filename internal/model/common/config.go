@@ -50,6 +50,13 @@ type Log struct {
 	Records []string `bson:"records" json:"records"` // 日志记录
 }
 
+type UserLoginRegister struct {
+	AccountLogin  bool `bson:"account_login"  json:"account_login"`  // 账密登录
+	EmailLogin    bool `bson:"email_login"    json:"email_login"`    // 邮箱登录
+	EmailRegister bool `bson:"email_register" json:"email_register"` // 邮箱注册
+	EmailRetrieve bool `bson:"email_retrieve" json:"email_retrieve"` // 找回密码
+}
+
 type UserShieldError struct {
 	Open   bool     `bson:"open"   json:"open"`   // 开关
 	Errors []string `bson:"errors" json:"errors"` // 错误
