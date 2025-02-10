@@ -34,11 +34,13 @@ func New() service.ICommon {
 }
 
 // 发送邮件验证码
-func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) error {
+func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err error) {
 
 	defer func() {
-		if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); val == 1 {
-			_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email), 30*60) // 锁定30分钟
+		if err == nil {
+			if val, _ := redis.Incr(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email)); val == 1 {
+				_, _ = redis.Expire(ctx, fmt.Sprintf(consts.LOCK_CODE, params.Email), 30*60) // 锁定30分钟
+			}
 		}
 	}()
 
@@ -107,13 +109,26 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) erro
 
 	if siteConfig != nil {
 
-		if siteConfig.Host == "" {
+		if siteConfig.Host == "" && (!config.Cfg.Email.Open || config.Cfg.Email.Host == "") {
 			return errors.New("发信邮箱未配置, 请联系管理员")
 		}
 
-		dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
 		data["copyright"] = siteConfig.Copyright
 		data["jump_url"] = siteConfig.JumpUrl
+
+		if siteConfig.Host != "" {
+			dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
+		} else {
+			dialer = email.NewDialer(config.Cfg.Email.Host, config.Cfg.Email.Port, config.Cfg.Email.UserName, config.Cfg.Email.Password)
+		}
+
+	} else {
+
+		if !config.Cfg.Email.Open || config.Cfg.Email.Host == "" {
+			return errors.New("发信邮箱未配置, 请联系管理员")
+		}
+
+		dialer = email.NewDialer(config.Cfg.Email.Host, config.Cfg.Email.Port, config.Cfg.Email.UserName, config.Cfg.Email.Password)
 	}
 
 	template, err := util.RenderTemplate(data)
@@ -125,7 +140,10 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) erro
 	message := email.NewMessage([]string{params.Email}, consts.CHANNEL_MAP[params.Channel], template)
 
 	// 发送邮件验证码
-	_ = email.SendMail(message, dialer)
+	if err = email.SendMail(message, dialer); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
 
 	return nil
 }

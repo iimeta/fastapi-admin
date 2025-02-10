@@ -319,6 +319,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			EmailLogin:    true,
 			EmailRegister: true,
 			EmailRetrieve: true,
+			SessionExpire: 3600 * 6,
 		},
 		UserShieldError: &common.UserShieldError{
 			Open: true,

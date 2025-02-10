@@ -367,12 +367,12 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		}
 	}
 
-	time.Sleep(time.Duration(grand.N(150, 200)) * time.Millisecond)
+	time.Sleep(time.Duration(grand.N(150, 220)) * time.Millisecond)
 
 	return &model.LoginRes{
 		Type:      "Bearer",
 		Token:     token,
-		ExpiresIn: 3600 * 6,
+		ExpiresIn: config.Cfg.UserLoginRegister.SessionExpire,
 	}, nil
 }
 
@@ -435,12 +435,12 @@ func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSessio
 
 	if isSaveSession {
 
-		if err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), 3600*6); err != nil {
-			logger.Error(ctx, err)
+		if err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), int64(config.Cfg.UserLoginRegister.SessionExpire)); err != nil {
+			logger.Errorf(ctx, "GenUserToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
 			return
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Second*3600*6); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Duration(config.Cfg.UserLoginRegister.SessionExpire)*time.Second); err != nil {
 			logger.Errorf(ctx, "GenUserToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
 			return
 		}
@@ -475,12 +475,32 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.USER_SESSION, token)); err != nil {
 		logger.Error(ctx, err)
 	} else {
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Second*time.Duration(ttl)); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Duration(ttl)*time.Second); err != nil {
 			logger.Errorf(ctx, "GetUserByToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
 		}
 	}
 
 	return user, nil
+}
+
+// 根据Token更新用户信息
+func (s *sAuth) UpdateUserByToken(ctx context.Context, token string, user *model.User) error {
+
+	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.USER_SESSION, token)); err != nil {
+		logger.Error(ctx, err)
+	} else {
+		if err = redis.SetEX(ctx, fmt.Sprintf(consts.USER_SESSION, token), gjson.MustEncodeString(user), ttl); err != nil {
+			logger.Errorf(ctx, "UpdateUserByToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
+			return err
+		}
+
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Duration(ttl)*time.Second); err != nil {
+			logger.Errorf(ctx, "UpdateUserByToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 // 生成管理员Token
@@ -490,12 +510,12 @@ func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSave
 
 	if isSaveSession {
 
-		if err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), 3600*6); err != nil {
-			logger.Error(ctx, err)
+		if err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), int64(config.Cfg.UserLoginRegister.SessionExpire)); err != nil {
+			logger.Errorf(ctx, "GenAdminToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 			return
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Second*3600*6); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(config.Cfg.UserLoginRegister.SessionExpire)*time.Second); err != nil {
 			logger.Errorf(ctx, "GenAdminToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 			return
 		}
@@ -530,10 +550,30 @@ func (s *sAuth) GetAdminByToken(ctx context.Context, token string) (*model.SysAd
 	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token)); err != nil {
 		logger.Error(ctx, err)
 	} else {
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Second*time.Duration(ttl)); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(ttl)*time.Second); err != nil {
 			logger.Errorf(ctx, "GetAdminByToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 		}
 	}
 
 	return admin, nil
+}
+
+// 根据Token更新管理员信息
+func (s *sAuth) UpdateAdminByToken(ctx context.Context, token string, admin *model.SysAdmin) error {
+
+	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token)); err != nil {
+		logger.Error(ctx, err)
+	} else {
+		if err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), ttl); err != nil {
+			logger.Errorf(ctx, "UpdateAdminByToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
+			return err
+		}
+
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(ttl)*time.Second); err != nil {
+			logger.Errorf(ctx, "UpdateAdminByToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
+			return err
+		}
+	}
+
+	return nil
 }
