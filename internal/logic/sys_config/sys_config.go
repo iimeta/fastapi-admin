@@ -103,6 +103,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{UserLoginRegister: params.UserLoginRegister}
 	case "user_shield_error":
 		sysConfig = &do.SysConfig{UserShieldError: params.UserShieldError}
+	case "admin_login":
+		sysConfig = &do.SysConfig{AdminLogin: params.AdminLogin}
 	case "auto_disabled_error":
 		sysConfig = &do.SysConfig{AutoDisabledError: params.AutoDisabledError}
 	case "not_retry_error":
@@ -157,6 +159,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Log:               sysConfig.Log,
 		UserLoginRegister: sysConfig.UserLoginRegister,
 		UserShieldError:   sysConfig.UserShieldError,
+		AdminLogin:        sysConfig.AdminLogin,
 		AutoDisabledError: sysConfig.AutoDisabledError,
 		NotRetryError:     sysConfig.NotRetryError,
 		NotShieldError:    sysConfig.NotShieldError,
@@ -194,6 +197,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.UserLoginRegister = s.Default().UserLoginRegister
 	case "user_shield_error":
 		sysConfigUpdateReq.UserShieldError = s.Default().UserShieldError
+	case "admin_login":
+		sysConfigUpdateReq.AdminLogin = s.Default().AdminLogin
 	case "auto_disabled_error":
 		sysConfigUpdateReq.AutoDisabledError = s.Default().AutoDisabledError
 	case "not_retry_error":
@@ -232,6 +237,7 @@ func (s *sSysConfig) Config(ctx context.Context) (*model.SysConfig, error) {
 
 	return &model.SysConfig{
 		UserLoginRegister: sysConfig.UserLoginRegister,
+		AdminLogin:        sysConfig.AdminLogin,
 	}, nil
 }
 
@@ -333,6 +339,12 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"All model agent error.",
 				"All model agent key error.",
 			},
+		},
+		AdminLogin: &common.AdminLogin{
+			AccountLogin:  true,
+			EmailLogin:    true,
+			EmailRetrieve: true,
+			SessionExpire: 3600 * 6,
 		},
 		AutoDisabledError: &common.AutoDisabledError{
 			Open: true,

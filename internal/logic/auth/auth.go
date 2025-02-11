@@ -59,7 +59,7 @@ func (s *sAuth) Authenticator(ctx context.Context, req interface{}) bool {
 func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel ...string) error {
 
 	if len(channel) == 0 {
-		channel = []string{consts.CHANNEL_REGISTER}
+		channel = []string{consts.ACTION_REGISTER}
 	}
 
 	// 验证验证码是否正确
@@ -121,7 +121,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		return err
 	}
 
-	_ = service.Common().DelCode(ctx, consts.CHANNEL_REGISTER, params.Account)
+	_ = service.Common().DelCode(ctx, consts.ACTION_REGISTER, params.Account)
 
 	if user.Quota != 0 {
 
@@ -162,18 +162,36 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		return nil, errors.New("登录失败次数过多, 请稍后再试")
 	}
 
+	if params.Method == consts.METHOD_CODE {
+
+		// 验证验证码是否正确
+		if !service.Common().VerifyCode(ctx, consts.ACTION_LOGIN, params.Account, params.Code) {
+			return nil, errors.New("验证码填写错误")
+		}
+
+		if params.Channel == consts.USER_CHANNEL && !config.Cfg.UserLoginRegister.EmailLogin {
+			return nil, errors.New("未开启邮箱登录, 请联系管理员")
+		}
+
+		if params.Channel == consts.ADMIN_CHANNEL && !config.Cfg.AdminLogin.EmailLogin {
+			return nil, errors.New("未开启邮箱登录, 请联系作者")
+		}
+
+	} else {
+		if params.Channel == consts.USER_CHANNEL && !config.Cfg.UserLoginRegister.AccountLogin {
+			return nil, errors.New("未开启账密登录, 请联系管理员")
+		}
+
+		if params.Channel == consts.ADMIN_CHANNEL && !config.Cfg.AdminLogin.AccountLogin {
+			return nil, errors.New("未开启账密登录, 请联系作者")
+		}
+	}
+
 	r := g.RequestFromCtx(ctx)
 	ip := r.GetClientIp()
 	token := ""
 
 	if params.Channel == consts.USER_CHANNEL {
-
-		if params.Method == consts.METHOD_CODE {
-			// 验证验证码是否正确
-			if !service.Common().VerifyCode(ctx, consts.CHANNEL_LOGIN, params.Account, params.Code) {
-				return nil, errors.New("验证码填写错误")
-			}
-		}
 
 		accountInfo, err := dao.User.FindAccount(ctx, params.Account)
 
@@ -216,7 +234,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 							}
 
 							if !isSupport {
-								return nil, errors.New(fmt.Sprintf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix))
+								return nil, errors.Newf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix)
 							}
 						}
 					}
@@ -227,7 +245,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						Terminal: params.Terminal,
 						Code:     params.Code,
 						Domain:   params.Domain,
-					}, consts.CHANNEL_LOGIN); err != nil {
+					}, consts.ACTION_LOGIN); err != nil {
 						logger.Error(ctx, err)
 						return nil, err
 					}
@@ -335,7 +353,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			return nil, errors.New("账号已被禁用")
 		}
 
-		if !crypto.VerifyPassword(admin.Password, params.Password+admin.Salt) {
+		if params.Method == consts.METHOD_ACCOUNT && !crypto.VerifyPassword(admin.Password, params.Password+admin.Salt) {
 			return nil, errors.New("账号或密码不正确")
 		}
 
@@ -405,25 +423,45 @@ func (s *sAuth) Logout(ctx context.Context) error {
 func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 
 	// 验证验证码是否正确
-	if !service.Common().VerifyCode(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.ACTION_FORGET_ACCOUNT, params.Account, params.Code) {
 		return errors.New("验证码填写错误")
 	}
 
-	if !config.Cfg.UserLoginRegister.EmailRetrieve {
-		return errors.New("未开启找回密码, 请联系管理员")
+	if params.Channel == consts.USER_CHANNEL {
+
+		if !config.Cfg.UserLoginRegister.EmailRetrieve {
+			return errors.New("未开启找回密码, 请联系管理员")
+		}
+
+		account, err := dao.User.FindAccount(ctx, params.Account)
+		if err != nil || account.Id == "" {
+			return errors.New(params.Account + " 账号不存在")
+		}
+
+		if err = dao.User.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return errors.New("找回密码失败")
+		}
 	}
 
-	account, err := dao.User.FindAccount(ctx, params.Account)
-	if err != nil || account.Id == "" {
-		return errors.New(params.Account + " 账号不存在")
+	if params.Channel == consts.ADMIN_CHANNEL {
+
+		if !config.Cfg.AdminLogin.EmailRetrieve {
+			return errors.New("未开启找回密码, 请联系作者")
+		}
+
+		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{"email": params.Account})
+		if err != nil {
+			return errors.New(params.Account + " 账号不存在")
+		}
+
+		if err = dao.SysAdmin.ChangePassword(ctx, admin.Id, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return errors.New("找回密码失败")
+		}
 	}
 
-	if err = dao.User.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
-		logger.Error(ctx, err)
-		return errors.New("找回密码失败")
-	}
-
-	_ = service.Common().DelCode(ctx, consts.CHANNEL_FORGET_ACCOUNT, params.Account)
+	_ = service.Common().DelCode(ctx, consts.ACTION_FORGET_ACCOUNT, params.Account)
 
 	return nil
 }
@@ -510,12 +548,12 @@ func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSave
 
 	if isSaveSession {
 
-		if err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), int64(config.Cfg.UserLoginRegister.SessionExpire)); err != nil {
+		if err = redis.SetEX(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), gjson.MustEncodeString(admin), int64(config.Cfg.AdminLogin.SessionExpire)); err != nil {
 			logger.Errorf(ctx, "GenAdminToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 			return
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(config.Cfg.UserLoginRegister.SessionExpire)*time.Second); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(config.Cfg.AdminLogin.SessionExpire)*time.Second); err != nil {
 			logger.Errorf(ctx, "GenAdminToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 			return
 		}

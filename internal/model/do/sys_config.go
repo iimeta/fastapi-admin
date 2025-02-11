@@ -20,6 +20,7 @@ type SysConfig struct {
 	Log               *common.Log               `bson:"log,omitempty"`                 // 日志
 	UserLoginRegister *common.UserLoginRegister `bson:"user_login_register,omitempty"` // 用户登录注册
 	UserShieldError   *common.UserShieldError   `bson:"user_shield_error,omitempty"`   // 用户屏蔽错误
+	AdminLogin        *common.AdminLogin        `bson:"admin_login,omitempty"`         // 管理员登录
 	AutoDisabledError *common.AutoDisabledError `bson:"auto_disabled_error,omitempty"` // 自动禁用错误
 	NotRetryError     *common.NotRetryError     `bson:"not_retry_error,omitempty"`     // 不重试错误
 	NotShieldError    *common.NotShieldError    `bson:"not_shield_error,omitempty"`    // 不屏蔽错误

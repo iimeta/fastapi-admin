@@ -95,7 +95,7 @@ func (s *sUser) ChangePassword(ctx context.Context, params model.UserChangePassw
 // 用户更改邮箱
 func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error {
 
-	if !service.Common().VerifyCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.ACTION_CHANGE_EMAIL, params.Email, params.Code) {
 		return errors.New("邮件验证码填写错误")
 	}
 
@@ -116,7 +116,7 @@ func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq
 	}
 
 	defer func() {
-		_ = service.Common().DelCode(ctx, consts.CHANNEL_CHANGE_EMAIL, params.Email)
+		_ = service.Common().DelCode(ctx, consts.ACTION_CHANGE_EMAIL, params.Email)
 	}()
 
 	if user.Email == params.Email {

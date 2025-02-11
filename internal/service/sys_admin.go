@@ -16,9 +16,9 @@ type (
 	ISysAdmin interface {
 		// 管理员更新信息
 		UpdateInfo(ctx context.Context, params model.UserUpdateInfoReq) error
-		// 管理员修改密码
+		// 管理员更改密码
 		ChangePassword(ctx context.Context, params model.UserChangePasswordReq) (err error)
-		// 管理员修改邮箱
+		// 管理员更改邮箱
 		ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error
 		// 管理员更改头像
 		ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error

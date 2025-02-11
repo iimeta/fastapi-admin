@@ -63,6 +63,13 @@ type UserShieldError struct {
 	Errors []string `bson:"errors" json:"errors"` // 错误
 }
 
+type AdminLogin struct {
+	AccountLogin  bool `bson:"account_login"  json:"account_login"`  // 账密登录
+	EmailLogin    bool `bson:"email_login"    json:"email_login"`    // 邮箱登录
+	EmailRetrieve bool `bson:"email_retrieve" json:"email_retrieve"` // 找回密码
+	SessionExpire int  `bson:"session_expire" json:"session_expire"` // 会话过期, 单位: 秒
+}
+
 type AutoDisabledError struct {
 	Open   bool     `bson:"open"   json:"open"`   // 开关
 	Errors []string `bson:"errors" json:"errors"` // 错误
