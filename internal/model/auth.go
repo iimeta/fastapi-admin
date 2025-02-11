@@ -23,6 +23,7 @@ type RegisterReq struct {
 	Account  string `json:"account,omitempty" v:"required"`                            // 账号
 	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
 	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
+	Channel  string `json:"channel,omitempty" v:"required|in:user,admin"`              // 渠道
 	Code     string `json:"code,omitempty" v:"required"`                               // 验证码
 	Domain   string `json:"domain,omitempty"`                                          // 域名
 }
@@ -39,6 +40,7 @@ type ForgetReq struct {
 	Account  string `json:"account,omitempty" v:"required"`                            // 账号
 	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
 	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
+	Channel  string `json:"channel,omitempty" v:"required|in:user,admin"`              // 渠道
 	Code     string `json:"code,omitempty" v:"required"`                               // 验证码
 	Domain   string `json:"domain,omitempty"`                                          // 域名
 }
