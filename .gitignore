@@ -21,3 +21,4 @@ bin/*.zip
 **/config/config.yaml
 **/resource/export/*.xls
 **/resource/export/*.xlsx
+**/resource/public/avatar/*.*
