@@ -95,8 +95,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Statistics: params.Statistics}
 	case "base":
 		sysConfig = &do.SysConfig{Base: params.Base}
-	case "midjourney":
-		sysConfig = &do.SysConfig{Midjourney: params.Midjourney}
+	//case "midjourney":
+	//	sysConfig = &do.SysConfig{Midjourney: params.Midjourney}
 	case "log":
 		sysConfig = &do.SysConfig{Log: params.Log}
 	case "user_login_register":
@@ -147,13 +147,13 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 	}
 
 	return &model.SysConfig{
-		Id:                sysConfig.Id,
-		Core:              sysConfig.Core,
-		Http:              sysConfig.Http,
-		Email:             sysConfig.Email,
-		Statistics:        sysConfig.Statistics,
-		Base:              sysConfig.Base,
-		Midjourney:        sysConfig.Midjourney,
+		Id:         sysConfig.Id,
+		Core:       sysConfig.Core,
+		Http:       sysConfig.Http,
+		Email:      sysConfig.Email,
+		Statistics: sysConfig.Statistics,
+		Base:       sysConfig.Base,
+		//Midjourney:        sysConfig.Midjourney,
 		Log:               sysConfig.Log,
 		UserLoginRegister: sysConfig.UserLoginRegister,
 		UserShieldError:   sysConfig.UserShieldError,
@@ -186,8 +186,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Statistics = s.Default().Statistics
 	case "base":
 		sysConfigUpdateReq.Base = s.Default().Base
-	case "midjourney":
-		sysConfigUpdateReq.Midjourney = s.Default().Midjourney
+	//case "midjourney":
+	//	sysConfigUpdateReq.Midjourney = s.Default().Midjourney
 	case "log":
 		sysConfigUpdateReq.Log = s.Default().Log
 	case "user_login_register":
@@ -298,13 +298,13 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			ModelAgentErrDisable:    100000,
 			ModelAgentKeyErrDisable: 100000,
 		},
-		Midjourney: &common.Midjourney{
-			CdnUrl:          "https://cdn.xxx.com",
-			ApiBaseUrl:      "https://xxx/mj",
-			ApiSecret:       "xxx",
-			ApiSecretHeader: "mj-api-secret",
-			CdnOriginalUrl:  "https://cdn.discordapp.com",
-		},
+		//Midjourney: &common.Midjourney{
+		//	CdnUrl:          "https://cdn.xxx.com",
+		//	ApiBaseUrl:      "https://xxx/mj",
+		//	ApiSecret:       "xxx",
+		//	ApiSecretHeader: "mj-api-secret",
+		//	CdnOriginalUrl:  "https://cdn.discordapp.com",
+		//},
 		Log: &common.Log{
 			Open: true,
 			Records: []string{
