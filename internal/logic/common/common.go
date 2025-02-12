@@ -49,6 +49,13 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 	}
 
 	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
+	if siteConfig != nil {
+		if siteConfig.Host == "" && (!config.Cfg.Email.Open || config.Cfg.Email.Host == "") {
+			return errors.New("发信邮箱未配置, 请联系管理员")
+		}
+	} else if !config.Cfg.Email.Open || config.Cfg.Email.Host == "" {
+		return errors.New("发信邮箱未配置, 请联系管理员")
+	}
 
 	switch params.Action {
 	case consts.ACTION_LOGIN:
@@ -117,9 +124,6 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		if dao.User.IsAccountExist(ctx, params.Email) {
 			return errors.New("邮箱已被他人使用")
 		}
-
-	default:
-		return errors.New("发送异常")
 	}
 
 	code := grand.Digits(6)
@@ -139,26 +143,12 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 
 	if siteConfig != nil {
 
-		if siteConfig.Host == "" && (!config.Cfg.Email.Open || config.Cfg.Email.Host == "") {
-			return errors.New("发信邮箱未配置, 请联系管理员")
-		}
-
 		data["copyright"] = siteConfig.Copyright
 		data["jump_url"] = siteConfig.JumpUrl
 
 		if siteConfig.Host != "" {
 			dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
-		} else {
-			dialer = email.NewDialer(config.Cfg.Email.Host, config.Cfg.Email.Port, config.Cfg.Email.UserName, config.Cfg.Email.Password)
 		}
-
-	} else {
-
-		if !config.Cfg.Email.Open || config.Cfg.Email.Host == "" {
-			return errors.New("发信邮箱未配置, 请联系管理员")
-		}
-
-		dialer = email.NewDialer(config.Cfg.Email.Host, config.Cfg.Email.Port, config.Cfg.Email.UserName, config.Cfg.Email.Password)
 	}
 
 	template, err := util.RenderTemplate(data)
@@ -291,7 +281,7 @@ func ConvQuotaExpiresAt(quotaExpiresAt string) int64 {
 }
 
 // 解析密钥
-func (s *sCommon) ParseSecretKey(ctx context.Context, secretKey string) (int, int, error) {
+func ParseSecretKey(ctx context.Context, secretKey string) (int, int, error) {
 
 	if !gstr.HasPrefix(secretKey, config.Cfg.Core.SecretKeyPrefix) {
 		return 0, 0, errors.ERR_INVALID_API_KEY

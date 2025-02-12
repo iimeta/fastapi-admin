@@ -26,8 +26,6 @@ type (
 		DelCode(ctx context.Context, channel string, account string) error
 		// 校验验证码
 		VerifyCode(ctx context.Context, channel string, account string, code string) (pass bool)
-		// 解析密钥
-		ParseSecretKey(ctx context.Context, secretKey string) (int, int, error)
 	}
 )
 

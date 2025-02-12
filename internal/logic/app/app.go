@@ -280,7 +280,7 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 
 	if params.AppKey != "" {
 
-		userId, appId, err := service.Common().ParseSecretKey(ctx, params.AppKey)
+		userId, appId, err := common.ParseSecretKey(ctx, params.AppKey)
 		if err != nil {
 			logger.Error(ctx, err)
 			return nil, err
@@ -430,7 +430,7 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 
 	key := util.NewKey(config.Cfg.Core.SecretKeyPrefix, 51, gconv.String(userId), gconv.String(params.AppId))
 
-	u, a, err := service.Common().ParseSecretKey(ctx, key)
+	u, a, err := common.ParseSecretKey(ctx, key)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", errors.New("创建密钥异常, 请重试...")
@@ -503,7 +503,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 
 	} else {
 
-		userId, appId, err := service.Common().ParseSecretKey(ctx, key.Key)
+		userId, appId, err := common.ParseSecretKey(ctx, key.Key)
 		if err != nil {
 			logger.Error(ctx, err)
 			return "", err
