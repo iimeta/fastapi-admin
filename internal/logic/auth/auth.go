@@ -226,39 +226,18 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 				return nil, err
 			}
 
-			if accountInfo.Status == 2 {
-				return nil, errors.New("账号已被禁用")
-			}
-
 			if !crypto.VerifyPassword(accountInfo.Password, params.Password+accountInfo.Salt) {
 				return nil, errors.New("账号或密码不正确")
+			}
+
+			if accountInfo.Status == 2 {
+				return nil, errors.New("账号已被禁用")
 			}
 
 		} else if params.Method == consts.METHOD_CODE {
 
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
-
-					if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain); siteConfig != nil {
-
-						if siteConfig.RegisterTips != "" {
-							return nil, errors.New(siteConfig.RegisterTips)
-						}
-
-						if len(siteConfig.SupportEmailSuffix) > 0 {
-
-							isSupport := false
-							for _, emailSuffix := range siteConfig.SupportEmailSuffix {
-								if isSupport = gstr.HasSuffix(params.Account, emailSuffix); isSupport {
-									break
-								}
-							}
-
-							if !isSupport {
-								return nil, errors.Newf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix)
-							}
-						}
-					}
 
 					if err = s.Register(ctx, model.RegisterReq{
 						Account:  params.Account,
@@ -364,18 +343,19 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 				} else {
 					return nil, errors.New("账号或密码不正确")
 				}
+
 			} else {
 				logger.Error(ctx, err)
 				return nil, err
 			}
 		}
 
-		if admin.Status == 2 {
-			return nil, errors.New("账号已被禁用")
-		}
-
 		if params.Method == consts.METHOD_ACCOUNT && !crypto.VerifyPassword(admin.Password, params.Password+admin.Salt) {
 			return nil, errors.New("账号或密码不正确")
+		}
+
+		if admin.Status == 2 {
+			return nil, errors.New("账号已被禁用")
 		}
 
 		r.SetCtxVar("uid", admin.Id)
