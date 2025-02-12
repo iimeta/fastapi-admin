@@ -178,8 +178,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		}
 	}()
 
-	val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_LOGIN, params.Account))
-	if err == nil && val >= 5 {
+	if val, err := redis.GetInt(ctx, fmt.Sprintf(consts.LOCK_LOGIN, params.Account)); err == nil && val >= 5 {
 		return nil, errors.New("登录失败次数过多, 请稍后再试")
 	}
 
@@ -250,8 +249,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						return nil, err
 					}
 
-					accountInfo, err = dao.User.FindAccount(ctx, params.Account)
-					if err != nil {
+					if accountInfo, err = dao.User.FindAccount(ctx, params.Account); err != nil {
 						logger.Error(ctx, err)
 						return nil, err
 					}
@@ -261,10 +259,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 					return nil, err
 				}
 
-			} else {
-				if accountInfo.Status == 2 {
-					return nil, errors.New("账号已被禁用")
-				}
+			} else if accountInfo.Status == 2 {
+				return nil, errors.New("账号已被禁用")
 			}
 
 		} else {
@@ -327,6 +323,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 				// 首次登录自动创建账号
 				if count == 0 {
+
 					if err = service.SysAdmin().Create(ctx, model.SysAdminCreateReq{
 						Name:     params.Account,
 						Account:  params.Account,
@@ -340,6 +337,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						logger.Error(ctx, err)
 						return nil, err
 					}
+
 				} else {
 					return nil, errors.New("账号或密码不正确")
 				}
