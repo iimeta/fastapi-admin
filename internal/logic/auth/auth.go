@@ -71,6 +71,11 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		return errors.New("未开启用户注册, 请联系管理员")
 	}
 
+	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
+	if siteConfig != nil && siteConfig.RegisterTips != "" {
+		return errors.New(siteConfig.RegisterTips)
+	}
+
 	if dao.User.IsAccountExist(ctx, params.Account) {
 		return errors.New(params.Account + " 账号已存在")
 	}
@@ -94,8 +99,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		Creator: id,
 	}
 
-	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
-	if siteConfig != nil && siteConfig.RegisterTips == "" && siteConfig.GrantQuota > 0 {
+	if siteConfig != nil && siteConfig.GrantQuota > 0 {
 		user.Quota = siteConfig.GrantQuota
 		if siteConfig.QuotaExpiresAt > 0 {
 			user.QuotaExpiresAt = gtime.Now().Add(time.Duration(siteConfig.QuotaExpiresAt) * time.Minute).TimestampMilli()
