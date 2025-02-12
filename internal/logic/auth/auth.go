@@ -72,8 +72,25 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	}
 
 	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
-	if siteConfig != nil && siteConfig.RegisterTips != "" {
-		return errors.New(siteConfig.RegisterTips)
+	if siteConfig != nil {
+
+		if siteConfig.RegisterTips != "" {
+			return errors.New(siteConfig.RegisterTips)
+		}
+
+		if len(siteConfig.SupportEmailSuffix) > 0 {
+
+			isSupport := false
+			for _, emailSuffix := range siteConfig.SupportEmailSuffix {
+				if isSupport = gstr.HasSuffix(params.Account, emailSuffix); isSupport {
+					break
+				}
+			}
+
+			if !isSupport {
+				return errors.Newf("邮箱仅支持 %s 后缀", siteConfig.SupportEmailSuffix)
+			}
+		}
 	}
 
 	if dao.User.IsAccountExist(ctx, params.Account) {
