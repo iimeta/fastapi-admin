@@ -387,11 +387,17 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 	time.Sleep(time.Duration(grand.N(150, 220)) * time.Millisecond)
 
-	return &model.LoginRes{
+	loginRes := &model.LoginRes{
 		Type:      "Bearer",
 		Token:     token,
 		ExpiresIn: config.Cfg.UserLoginRegister.SessionExpire,
-	}, nil
+	}
+
+	if params.Channel == consts.ADMIN_CHANNEL {
+		loginRes.ExpiresIn = config.Cfg.AdminLogin.SessionExpire
+	}
+
+	return loginRes, nil
 }
 
 // 退出登录
