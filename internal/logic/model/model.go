@@ -1284,6 +1284,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 		if params.IsConfigModelAgent && modelAgentId != "" {
 			modelCreateReq.IsEnableModelAgent = true
+			modelCreateReq.LbStrategy = 1
 			modelCreateReq.ModelAgents = append(modelCreateReq.ModelAgents, modelAgentId)
 		}
 
