@@ -75,8 +75,17 @@ https://files.fastapi.ai/public/video/install.mp4
 
 ## 公益站点
 
-- API地址: https://api.free.fastapi.ai
-- 注册即送1000万额度, 使用上方API地址调用即可
+- 社区版
+- API接口: https://api.free.fastapi.ai
+- 用户端: https://free.fastapi.ai/login
+
+
+- 专业版
+- API接口: https://api.free.fastapi.pro
+- 用户端: https://free.fastapi.pro/login
+- 代理商: https://free.fastapi.pro/reseller
+
+- 社区版和专业版数据互通, 可以根据自己喜好选择, 社区版用户注册送1000万额度, 专业版用户注册送2500万额度, 专业版支持注册代理商
 
 ## 项目截图
 ### 管理端
@@ -104,7 +113,7 @@ https://files.fastapi.ai/public/video/install.mp4
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250210" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250215" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
