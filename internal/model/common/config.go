@@ -85,6 +85,17 @@ type NotShieldError struct {
 	Errors []string `bson:"errors" json:"errors"` // 错误
 }
 
+type AutoEnableError struct {
+	Open   bool          `bson:"open"   json:"open"`   // 开关
+	Errors []EnableError `bson:"errors" json:"errors"` // 错误
+}
+
+type EnableError struct {
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长
+	Error       string        `bson:"error" json:"error"`               // 错误
+}
+
 type Debug struct {
 	Open bool `bson:"open" json:"open"` // 开关
 }
