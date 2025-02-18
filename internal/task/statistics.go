@@ -13,9 +13,9 @@ var (
 	statisticsEntry *gcron.Entry
 )
 
-func Init(ctx context.Context) {
+// 统计任务
+func statisticsTask(ctx context.Context) {
 
-	// 定时统计任务
 	if config.Cfg.Statistics.Open {
 
 		if statisticsCron != config.Cfg.Statistics.Cron {

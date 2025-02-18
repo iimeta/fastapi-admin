@@ -26,7 +26,7 @@ type Statistics struct {
 	Open        bool          `bson:"open"         json:"open"`         // 开关
 	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
 	Limit       int64         `bson:"limit"        json:"limit"`        // 查询条数
-	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
 }
 
 type Base struct {
@@ -75,6 +75,17 @@ type AutoDisabledError struct {
 	Errors []string `bson:"errors" json:"errors"` // 错误
 }
 
+type AutoEnableError struct {
+	Open         bool          `bson:"open"          json:"open"`          // 开关
+	EnableErrors []EnableError `bson:"enable_errors" json:"enable_errors"` // 启用错误
+}
+
+type EnableError struct {
+	Cron       string        `bson:"cron"        json:"cron"`        // CRON表达式
+	EnableTime time.Duration `bson:"enable_time" json:"enable_time"` // 启用时间, 单位: 秒
+	Error      string        `bson:"error"       json:"error"`       // 错误
+}
+
 type NotRetryError struct {
 	Open   bool     `bson:"open"   json:"open"`   // 开关
 	Errors []string `bson:"errors" json:"errors"` // 错误
@@ -83,17 +94,6 @@ type NotRetryError struct {
 type NotShieldError struct {
 	Open   bool     `bson:"open"   json:"open"`   // 开关
 	Errors []string `bson:"errors" json:"errors"` // 错误
-}
-
-type AutoEnableError struct {
-	Open   bool          `bson:"open"   json:"open"`   // 开关
-	Errors []EnableError `bson:"errors" json:"errors"` // 错误
-}
-
-type EnableError struct {
-	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
-	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长
-	Error       string        `bson:"error" json:"error"`               // 错误
 }
 
 type Debug struct {

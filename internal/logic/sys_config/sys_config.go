@@ -2,8 +2,10 @@ package sys_config
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/os/gcron"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
+	"github.com/gogf/gf/v2/os/gtimer"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -33,6 +35,14 @@ func init() {
 	if _, err := sSysConfig.Init(ctx); err != nil {
 		panic(err)
 	}
+
+	_, _ = gcron.AddSingleton(gctx.New(), "0 0/30 * * * ?", func(ctx context.Context) {
+		_, _ = service.SysConfig().Init(ctx)
+	})
+
+	_ = gtimer.AddSingleton(gctx.New(), 30*time.Minute, func(ctx context.Context) {
+		_, _ = service.SysConfig().Init(ctx)
+	})
 
 	conn, _, err := redis.Subscribe(ctx, consts.CHANGE_CHANNEL_CONFIG)
 	if err != nil {
@@ -107,6 +117,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{AdminLogin: params.AdminLogin}
 	case "auto_disabled_error":
 		sysConfig = &do.SysConfig{AutoDisabledError: params.AutoDisabledError}
+	case "auto_enable_error":
+		sysConfig = &do.SysConfig{AutoEnableError: params.AutoEnableError}
 	case "not_retry_error":
 		sysConfig = &do.SysConfig{NotRetryError: params.NotRetryError}
 	case "not_shield_error":
@@ -161,6 +173,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		UserShieldError:   sysConfig.UserShieldError,
 		AdminLogin:        sysConfig.AdminLogin,
 		AutoDisabledError: sysConfig.AutoDisabledError,
+		AutoEnableError:   sysConfig.AutoEnableError,
 		NotRetryError:     sysConfig.NotRetryError,
 		NotShieldError:    sysConfig.NotShieldError,
 		Debug:             sysConfig.Debug,
@@ -201,6 +214,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.AdminLogin = s.Default().AdminLogin
 	case "auto_disabled_error":
 		sysConfigUpdateReq.AutoDisabledError = s.Default().AutoDisabledError
+	case "auto_enable_error":
+		sysConfigUpdateReq.AutoEnableError = s.Default().AutoEnableError
 	case "not_retry_error":
 		sysConfigUpdateReq.NotRetryError = s.Default().NotRetryError
 	case "not_shield_error":
@@ -267,6 +282,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.Core == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "core"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.AutoEnableError == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "auto_enable_error"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -360,6 +382,23 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"IAM_PERMISSION_DENIED",
 				"SERVICE_DISABLED",
 				"ACCOUNT_STATE_INVALID",
+				"on requests per min (RPM): Limit",
+				"on tokens per min (TPM): Limit",
+			},
+		},
+		AutoEnableError: &common.AutoEnableError{
+			Open: true,
+			EnableErrors: []common.EnableError{
+				{
+					Cron:       "0 * * * * ?",
+					EnableTime: 20,
+					Error:      "on requests per min (RPM): Limit",
+				},
+				{
+					Cron:       "0 0 0/2 * * ?",
+					EnableTime: 60 * 60 * 2,
+					Error:      "on tokens per min (TPM): Limit",
+				},
 			},
 		},
 		NotRetryError: &common.NotRetryError{

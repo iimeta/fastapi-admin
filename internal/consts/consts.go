@@ -40,6 +40,11 @@ const (
 	STATISTICS_AUDIO_LAST_TIME_KEY = "statistics:audio:last_time"
 )
 
+const (
+	CHECK_LOCK_KEY     = "check:lock"
+	CHECK_END_TIME_KEY = "check:end_time"
+)
+
 // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
 var MODEL_TYPES = []int{
 	1,

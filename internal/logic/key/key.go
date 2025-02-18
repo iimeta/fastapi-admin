@@ -3,6 +3,8 @@ package key
 import (
 	"context"
 	"errors"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -12,6 +14,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -25,8 +28,11 @@ import (
 
 type sKey struct{}
 
+var checkRedsync *redsync.Redsync
+
 func init() {
 	service.RegisterKey(New())
+	checkRedsync = redsync.New(goredis.NewPool(redis.UniversalClient))
 }
 
 func New() service.IKey {
@@ -615,4 +621,80 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 	}
 
 	return nil
+}
+
+// 检查任务
+func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
+
+	logger.Infof(ctx, "sKey CheckTask enableError: %s start", enableError.Error)
+
+	now := gtime.TimestampMilli()
+
+	mutex := checkRedsync.NewMutex(consts.CHECK_LOCK_KEY, redsync.WithExpiry(enableError.EnableTime*time.Second))
+	if err := mutex.LockContext(ctx); err != nil {
+		logger.Info(ctx, err)
+		logger.Debugf(ctx, "sKey CheckTask enableError: %s end time: %d", enableError.Error, gtime.TimestampMilli()-now)
+		return
+	}
+	logger.Debugf(ctx, "sKey CheckTask enableError: %s lock", enableError.Error)
+
+	defer func() {
+		if ok, err := mutex.UnlockContext(ctx); !ok || err != nil {
+			logger.Error(ctx, err)
+		} else {
+			logger.Debugf(ctx, "sKey CheckTask enableError: %s unlock", enableError.Error)
+		}
+		logger.Debugf(ctx, "sKey CheckTask enableError: %s end time: %d", enableError.Error, gtime.TimestampMilli()-now)
+	}()
+
+	keys, err := dao.Key.Find(ctx, bson.M{
+		"status":           2,
+		"is_auto_disabled": true,
+		"auto_disabled_reason": bson.M{
+			"$regex": enableError.Error,
+		},
+		"updated_at": bson.M{
+			"$lte": gtime.TimestampMilli() - (enableError.EnableTime * time.Second).Milliseconds(),
+		},
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	modelAgentSet := gset.NewStrSet()
+	for _, key := range keys {
+		if err = s.ChangeStatus(ctx, model.KeyChangeStatusReq{
+			Id:     key.Id,
+			Status: 1,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+		modelAgentSet.Add(key.ModelAgents...)
+	}
+
+	modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{
+		"status":           2,
+		"is_auto_disabled": true,
+		"_id": bson.M{
+			"$in": modelAgentSet.Slice(),
+		},
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	for _, modelAgent := range modelAgents {
+		if err = service.ModelAgent().ChangeStatus(ctx, model.ModelAgentChangeStatusReq{
+			Id:     modelAgent.Id,
+			Status: 1,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	if _, err := redis.Set(ctx, consts.CHECK_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
+		logger.Error(ctx, err)
+	}
 }
