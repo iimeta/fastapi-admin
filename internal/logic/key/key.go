@@ -3,6 +3,7 @@ package key
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/container/gset"
@@ -18,6 +19,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
+	"github.com/iimeta/fastapi-admin/utility/crypto"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
@@ -630,7 +632,7 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 
 	now := gtime.TimestampMilli()
 
-	mutex := checkRedsync.NewMutex(consts.CHECK_LOCK_KEY, redsync.WithExpiry(enableError.EnableTime*time.Second))
+	mutex := checkRedsync.NewMutex(fmt.Sprintf(consts.CHECK_LOCK_KEY, crypto.SM3(enableError.Error)), redsync.WithExpiry(enableError.EnableTime*time.Second))
 	if err := mutex.LockContext(ctx); err != nil {
 		logger.Info(ctx, err)
 		logger.Debugf(ctx, "sKey CheckTask enableError: %s end time: %d", enableError.Error, gtime.TimestampMilli()-now)
@@ -694,7 +696,7 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 		}
 	}
 
-	if _, err := redis.Set(ctx, consts.CHECK_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
+	if _, err = redis.Set(ctx, fmt.Sprintf(consts.CHECK_END_TIME_KEY, crypto.SM3(enableError.Error)), gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
 }
