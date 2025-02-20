@@ -20,6 +20,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"regexp"
 	"time"
 )
 
@@ -313,10 +314,10 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 	if params.Name != "" {
 		filter["$or"] = bson.A{
 			bson.M{"name": bson.M{
-				"$regex": params.Name,
+				"$regex": regexp.QuoteMeta(params.Name),
 			}},
 			bson.M{"email": bson.M{
-				"$regex": params.Name,
+				"$regex": regexp.QuoteMeta(params.Name),
 			}},
 		}
 	}

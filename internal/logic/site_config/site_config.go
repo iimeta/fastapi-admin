@@ -16,6 +16,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"regexp"
 )
 
 type sSiteConfig struct{}
@@ -223,25 +224,25 @@ func (s *sSiteConfig) Page(ctx context.Context, params model.SiteConfigPageReq) 
 
 	if params.Domain != "" {
 		filter["domain"] = bson.M{
-			"$regex": params.Domain,
+			"$regex": regexp.QuoteMeta(params.Domain),
 		}
 	}
 
 	if params.Title != "" {
 		filter["title"] = bson.M{
-			"$regex": params.Title,
+			"$regex": regexp.QuoteMeta(params.Title),
 		}
 	}
 
 	if params.RegisterTips != "" {
 		filter["register_tips"] = bson.M{
-			"$regex": params.RegisterTips,
+			"$regex": regexp.QuoteMeta(params.RegisterTips),
 		}
 	}
 
 	if params.Logo != "" {
 		filter["logo"] = bson.M{
-			"$regex": params.Logo,
+			"$regex": regexp.QuoteMeta(params.Logo),
 		}
 	}
 

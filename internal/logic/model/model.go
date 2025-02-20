@@ -21,6 +21,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"regexp"
 	"slices"
 )
 
@@ -588,13 +589,13 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 	if params.Name != "" {
 		filter["name"] = bson.M{
-			"$regex": params.Name,
+			"$regex": regexp.QuoteMeta(params.Name),
 		}
 	}
 
 	if params.Model != "" {
 		filter["model"] = bson.M{
-			"$regex": params.Model,
+			"$regex": regexp.QuoteMeta(params.Model),
 		}
 	}
 
@@ -604,7 +605,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 	if params.Remark != "" {
 		filter["remark"] = bson.M{
-			"$regex": params.Remark,
+			"$regex": regexp.QuoteMeta(params.Remark),
 		}
 	}
 
@@ -690,13 +691,13 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 
 	if params.Name != "" {
 		filter["name"] = bson.M{
-			"$regex": params.Name,
+			"$regex": regexp.QuoteMeta(params.Name),
 		}
 	}
 
 	if params.Model != "" {
 		filter["model"] = bson.M{
-			"$regex": params.Model,
+			"$regex": regexp.QuoteMeta(params.Model),
 		}
 	}
 

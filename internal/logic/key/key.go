@@ -25,6 +25,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"regexp"
 	"time"
 )
 
@@ -360,7 +361,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 
 	if params.Key != "" {
 		filter["key"] = bson.M{
-			"$regex": params.Key,
+			"$regex": regexp.QuoteMeta(params.Key),
 		}
 	}
 
@@ -398,7 +399,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 
 	if params.Remark != "" {
 		filter["remark"] = bson.M{
-			"$regex": params.Remark,
+			"$regex": regexp.QuoteMeta(params.Remark),
 		}
 	}
 
@@ -653,6 +654,9 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 	keys, err := dao.Key.Find(ctx, bson.M{
 		"status":           2,
 		"is_auto_disabled": true,
+		"auto_disabled_reason": bson.M{
+			"$regex": regexp.QuoteMeta(enableError.Error),
+		},
 		"updated_at": bson.M{
 			"$lte": gtime.TimestampMilli() - (enableError.EnableTime * time.Second).Milliseconds(),
 		},
@@ -664,15 +668,13 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 
 	modelAgentSet := gset.NewStrSet()
 	for _, key := range keys {
-		if gstr.Contains(key.AutoDisabledReason, enableError.Error) {
-			if err = s.ChangeStatus(ctx, model.KeyChangeStatusReq{
-				Id:     key.Id,
-				Status: 1,
-			}); err != nil {
-				logger.Error(ctx, err)
-			}
-			modelAgentSet.Add(key.ModelAgents...)
+		if err = s.ChangeStatus(ctx, model.KeyChangeStatusReq{
+			Id:     key.Id,
+			Status: 1,
+		}); err != nil {
+			logger.Error(ctx, err)
 		}
+		modelAgentSet.Add(key.ModelAgents...)
 	}
 
 	modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{

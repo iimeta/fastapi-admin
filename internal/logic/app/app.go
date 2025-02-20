@@ -22,6 +22,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"regexp"
 	"time"
 )
 
@@ -302,7 +303,7 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 
 	if params.Name != "" {
 		filter["name"] = bson.M{
-			"$regex": params.Name,
+			"$regex": regexp.QuoteMeta(params.Name),
 		}
 	}
 

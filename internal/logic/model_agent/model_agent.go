@@ -18,6 +18,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"regexp"
 )
 
 type sModelAgent struct{}
@@ -462,13 +463,13 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 	if params.Name != "" {
 		filter["name"] = bson.M{
-			"$regex": params.Name,
+			"$regex": regexp.QuoteMeta(params.Name),
 		}
 	}
 
 	if params.BaseUrl != "" {
 		filter["base_url"] = bson.M{
-			"$regex": params.BaseUrl,
+			"$regex": regexp.QuoteMeta(params.BaseUrl),
 		}
 	}
 
@@ -498,7 +499,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 	if params.Remark != "" {
 		filter["remark"] = bson.M{
-			"$regex": params.Remark,
+			"$regex": regexp.QuoteMeta(params.Remark),
 		}
 	}
 

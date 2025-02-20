@@ -15,6 +15,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"regexp"
 	"time"
 )
 
@@ -201,13 +202,13 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 
 	if params.Name != "" {
 		filter["name"] = bson.M{
-			"$regex": params.Name,
+			"$regex": regexp.QuoteMeta(params.Name),
 		}
 	}
 
 	if params.Code != "" {
 		filter["code"] = bson.M{
-			"$regex": params.Code,
+			"$regex": regexp.QuoteMeta(params.Code),
 		}
 	}
 
@@ -217,7 +218,7 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 
 	if params.Remark != "" {
 		filter["remark"] = bson.M{
-			"$regex": params.Remark,
+			"$regex": regexp.QuoteMeta(params.Remark),
 		}
 	}
 

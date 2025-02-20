@@ -15,6 +15,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"regexp"
 	"slices"
 	"time"
 )
@@ -194,7 +195,7 @@ func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealR
 
 	if params.Remark != "" {
 		filter["remark"] = bson.M{
-			"$regex": params.Remark,
+			"$regex": regexp.QuoteMeta(params.Remark),
 		}
 	}
 
