@@ -652,9 +652,6 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 	keys, err := dao.Key.Find(ctx, bson.M{
 		"status":           2,
 		"is_auto_disabled": true,
-		"auto_disabled_reason": bson.M{
-			"$regex": enableError.Error,
-		},
 		"updated_at": bson.M{
 			"$lte": gtime.TimestampMilli() - (enableError.EnableTime * time.Second).Milliseconds(),
 		},
@@ -666,13 +663,15 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 
 	modelAgentSet := gset.NewStrSet()
 	for _, key := range keys {
-		if err = s.ChangeStatus(ctx, model.KeyChangeStatusReq{
-			Id:     key.Id,
-			Status: 1,
-		}); err != nil {
-			logger.Error(ctx, err)
+		if gstr.Contains(key.AutoDisabledReason, enableError.Error) {
+			if err = s.ChangeStatus(ctx, model.KeyChangeStatusReq{
+				Id:     key.Id,
+				Status: 1,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
+			modelAgentSet.Add(key.ModelAgents...)
 		}
-		modelAgentSet.Add(key.ModelAgents...)
 	}
 
 	modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{
