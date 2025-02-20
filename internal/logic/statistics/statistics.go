@@ -19,17 +19,18 @@ import (
 	"time"
 )
 
-type sStatistics struct{}
-
-var statisticsRedsync *redsync.Redsync
+type sStatistics struct {
+	statisticsRedsync *redsync.Redsync
+}
 
 func init() {
 	service.RegisterStatistics(New())
-	statisticsRedsync = redsync.New(goredis.NewPool(redis.UniversalClient))
 }
 
 func New() service.IStatistics {
-	return &sStatistics{}
+	return &sStatistics{
+		statisticsRedsync: redsync.New(goredis.NewPool(redis.UniversalClient)),
+	}
 }
 
 // 统计任务
@@ -39,7 +40,7 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 
 	now := gtime.TimestampMilli()
 
-	mutex := statisticsRedsync.NewMutex(consts.STATISTICS_LOCK_KEY, redsync.WithExpiry(config.Cfg.Statistics.LockMinutes*time.Minute))
+	mutex := s.statisticsRedsync.NewMutex(consts.STATISTICS_LOCK_KEY, redsync.WithExpiry(config.Cfg.Statistics.LockMinutes*time.Minute))
 	if err := mutex.LockContext(ctx); err != nil {
 		logger.Info(ctx, err)
 		logger.Debugf(ctx, "sStatistics StatisticsTask end time: %d", gtime.TimestampMilli()-now)

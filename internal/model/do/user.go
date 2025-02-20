@@ -15,7 +15,6 @@ type User struct {
 	Avatar         string   `bson:"avatar,omitempty"`     // 头像
 	Email          string   `bson:"email,omitempty"`      // 邮箱
 	Phone          string   `bson:"phone,omitempty"`      // 手机号
-	VipLevel       int      `bson:"vip_level,omitempty"`  // 会员等级
 	Quota          int      `bson:"quota"`                // 剩余额度
 	UsedQuota      int      `bson:"used_quota,omitempty"` // 已用额度
 	QuotaExpiresAt int64    `bson:"quota_expires_at"`     // 额度过期时间

@@ -28,17 +28,18 @@ import (
 	"time"
 )
 
-type sKey struct{}
-
-var checkRedsync *redsync.Redsync
+type sKey struct {
+	checkRedsync *redsync.Redsync
+}
 
 func init() {
 	service.RegisterKey(New())
-	checkRedsync = redsync.New(goredis.NewPool(redis.UniversalClient))
 }
 
 func New() service.IKey {
-	return &sKey{}
+	return &sKey{
+		checkRedsync: redsync.New(goredis.NewPool(redis.UniversalClient)),
+	}
 }
 
 // 新建密钥
@@ -632,7 +633,7 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 
 	now := gtime.TimestampMilli()
 
-	mutex := checkRedsync.NewMutex(fmt.Sprintf(consts.CHECK_LOCK_KEY, crypto.SM3(enableError.Error)), redsync.WithExpiry(enableError.EnableTime*time.Second))
+	mutex := s.checkRedsync.NewMutex(fmt.Sprintf(consts.CHECK_LOCK_KEY, crypto.SM3(enableError.Error)), redsync.WithExpiry(enableError.EnableTime*time.Second))
 	if err := mutex.LockContext(ctx); err != nil {
 		logger.Info(ctx, err)
 		logger.Debugf(ctx, "sKey CheckTask enableError: %s end time: %d", enableError.Error, gtime.TimestampMilli()-now)
