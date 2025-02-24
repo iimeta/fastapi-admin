@@ -390,8 +390,9 @@ func middlewareHandlerResponse(r *ghttp.Request) {
 
 		msg = err.Error()
 
-		if gstr.Contains(msg, "timeout") || gstr.Contains(msg, "tcp") || gstr.Contains(msg, "http") || gstr.Contains(msg, "connection") {
-			msg = "系统出现异常, 请联系管理员"
+		if gstr.Contains(msg, "timeout") || gstr.Contains(msg, "tcp") || gstr.Contains(msg, "http") ||
+			gstr.Contains(msg, "connection") || gstr.Contains(msg, "failed") {
+			msg = "服务器繁忙, 请稍后再试"
 		}
 
 	} else {
