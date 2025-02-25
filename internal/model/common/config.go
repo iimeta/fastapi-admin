@@ -46,8 +46,12 @@ type Midjourney struct {
 }
 
 type Log struct {
-	Open    bool     `bson:"open"    json:"open"`    // 开关
-	Records []string `bson:"records" json:"records"` // 日志记录
+	Open         bool     `bson:"open"          json:"open"`          // 开关
+	ChatRecords  []string `bson:"chat_records"  json:"chat_records"`  // 聊天日志记录内容
+	ChatReserve  int      `bson:"chat_reserve"  json:"chat_reserve"`  // 聊天日志保留天数
+	ImageReserve int      `bson:"image_reserve" json:"image_reserve"` // 绘图日志保留天数
+	AudioReserve int      `bson:"audio_reserve" json:"audio_reserve"` // 音频日志保留天数
+	Cron         string   `bson:"cron"          json:"cron"`          // CRON表达式
 }
 
 type UserLoginRegister struct {

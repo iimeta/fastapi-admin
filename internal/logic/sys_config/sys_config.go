@@ -335,12 +335,16 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		//},
 		Log: &common.Log{
 			Open: true,
-			Records: []string{
+			ChatRecords: []string{
 				"prompt",
 				"completion",
 				"messages",
 				"image",
 			},
+			ChatReserve:  90,
+			ImageReserve: 90,
+			AudioReserve: 90,
+			Cron:         "0 0 2 * * ?",
 		},
 		UserLoginRegister: &common.UserLoginRegister{
 			AccountLogin:  true,
