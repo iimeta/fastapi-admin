@@ -10,4 +10,7 @@ func Init(ctx context.Context) {
 
 	// 错误检查任务
 	errorCheckTask(ctx)
+
+	// 日志删除任务
+	logDelTask(ctx)
 }
