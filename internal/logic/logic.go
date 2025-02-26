@@ -16,6 +16,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/finance"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/image"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/key"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/log"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/midjourney"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model_agent"

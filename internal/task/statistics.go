@@ -35,6 +35,7 @@ func statisticsTask(ctx context.Context) {
 		if statisticsEntry != nil {
 			statisticsEntry.Stop()
 			statisticsCron = ""
+			statisticsEntry = nil
 		}
 	}
 }

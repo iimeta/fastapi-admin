@@ -40,7 +40,7 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 
 	now := gtime.TimestampMilli()
 
-	mutex := s.statisticsRedsync.NewMutex(consts.STATISTICS_LOCK_KEY, redsync.WithExpiry(config.Cfg.Statistics.LockMinutes*time.Minute))
+	mutex := s.statisticsRedsync.NewMutex(consts.TASK_STATISTICS_LOCK_KEY, redsync.WithExpiry(config.Cfg.Statistics.LockMinutes*time.Minute))
 	if err := mutex.LockContext(ctx); err != nil {
 		logger.Info(ctx, err)
 		logger.Debugf(ctx, "sStatistics StatisticsTask end time: %d", gtime.TimestampMilli()-now)
@@ -64,7 +64,7 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 	// 统计音频数据
 	s.StatisticsData(ctx, do.AUDIO_COLLECTION, "", consts.STATISTICS_AUDIO_LAST_TIME_KEY, consts.STATISTICS_AUDIO_LAST_ID_KEY)
 
-	if _, err := redis.Set(ctx, consts.STATISTICS_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
+	if _, err := redis.Set(ctx, consts.TASK_STATISTICS_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
 }

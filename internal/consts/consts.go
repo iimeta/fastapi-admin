@@ -30,19 +30,21 @@ const (
 )
 
 const (
-	STATISTICS_LOCK_KEY            = "statistics:lock"
-	STATISTICS_END_TIME_KEY        = "statistics:end_time"
+	TASK_STATISTICS_LOCK_KEY     = "task:statistics:lock"
+	TASK_STATISTICS_END_TIME_KEY = "task:statistics:end_time"
+	TASK_CHECK_LOCK_KEY          = "task:check:lock:%s"
+	TASK_CHECK_END_TIME_KEY      = "task:check:end_time:%s"
+	TASK_LOG_LOCK_KEY            = "task:log:lock"
+	TASK_LOG_END_TIME_KEY        = "task:log:end_time"
+)
+
+const (
 	STATISTICS_CHAT_LAST_ID_KEY    = "statistics:chat:last_id"
 	STATISTICS_CHAT_LAST_TIME_KEY  = "statistics:chat:last_time"
 	STATISTICS_IMAGE_LAST_ID_KEY   = "statistics:image:last_id"
 	STATISTICS_IMAGE_LAST_TIME_KEY = "statistics:image:last_time"
 	STATISTICS_AUDIO_LAST_ID_KEY   = "statistics:audio:last_id"
 	STATISTICS_AUDIO_LAST_TIME_KEY = "statistics:audio:last_time"
-)
-
-const (
-	CHECK_LOCK_KEY     = "check:lock:%s"
-	CHECK_END_TIME_KEY = "check:end_time:%s"
 )
 
 // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]

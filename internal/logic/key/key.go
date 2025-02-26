@@ -634,7 +634,7 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 
 	now := gtime.TimestampMilli()
 
-	mutex := s.checkRedsync.NewMutex(fmt.Sprintf(consts.CHECK_LOCK_KEY, crypto.SM3(enableError.Error)), redsync.WithExpiry(enableError.EnableTime*time.Second))
+	mutex := s.checkRedsync.NewMutex(fmt.Sprintf(consts.TASK_CHECK_LOCK_KEY, crypto.SM3(enableError.Error)), redsync.WithExpiry(enableError.EnableTime*time.Second))
 	if err := mutex.LockContext(ctx); err != nil {
 		logger.Info(ctx, err)
 		logger.Debugf(ctx, "sKey CheckTask enableError: %s end time: %d", enableError.Error, gtime.TimestampMilli()-now)
@@ -698,7 +698,7 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 		}
 	}
 
-	if _, err = redis.Set(ctx, fmt.Sprintf(consts.CHECK_END_TIME_KEY, crypto.SM3(enableError.Error)), gtime.TimestampMilli()); err != nil {
+	if _, err = redis.Set(ctx, fmt.Sprintf(consts.TASK_CHECK_END_TIME_KEY, crypto.SM3(enableError.Error)), gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
 }
