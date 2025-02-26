@@ -69,16 +69,20 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 	}
 
 	if audio.Status == -1 && service.Session().IsUserRole(ctx) {
-		audio.ErrMsg = "详细错误信息请联系管理员..."
+
+		audio.ErrMsg = result.ErrMsg
+
+		// 用户屏蔽错误
 		if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
-			audio.ErrMsg = result.ErrMsg
 			for _, shieldError := range config.Cfg.UserShieldError.Errors {
-				if gstr.Contains(result.ErrMsg, shieldError) {
+				if gstr.Contains(audio.ErrMsg, shieldError) {
 					audio.ErrMsg = "详细错误信息请联系管理员..."
 					break
 				}
 			}
 		}
+
+		audio.ErrMsg = gstr.Split(audio.ErrMsg, " TraceId")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {

@@ -68,16 +68,20 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 	}
 
 	if midjourney.Status == -1 && service.Session().IsUserRole(ctx) {
-		midjourney.ErrMsg = "详细错误信息请联系管理员..."
+
+		midjourney.ErrMsg = result.ErrMsg
+
+		// 用户屏蔽错误
 		if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
-			midjourney.ErrMsg = result.ErrMsg
 			for _, shieldError := range config.Cfg.UserShieldError.Errors {
-				if gstr.Contains(result.ErrMsg, shieldError) {
+				if gstr.Contains(midjourney.ErrMsg, shieldError) {
 					midjourney.ErrMsg = "详细错误信息请联系管理员..."
 					break
 				}
 			}
 		}
+
+		midjourney.ErrMsg = gstr.Split(midjourney.ErrMsg, " TraceId")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {

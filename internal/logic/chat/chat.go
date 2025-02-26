@@ -85,16 +85,20 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 	}
 
 	if chat.Status == -1 && service.Session().IsUserRole(ctx) {
-		chat.ErrMsg = "详细错误信息请联系管理员..."
+
+		chat.ErrMsg = result.ErrMsg
+
+		// 用户屏蔽错误
 		if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
-			chat.ErrMsg = result.ErrMsg
 			for _, shieldError := range config.Cfg.UserShieldError.Errors {
-				if gstr.Contains(result.ErrMsg, shieldError) {
+				if gstr.Contains(chat.ErrMsg, shieldError) {
 					chat.ErrMsg = "详细错误信息请联系管理员..."
 					break
 				}
 			}
 		}
+
+		chat.ErrMsg = gstr.Split(chat.ErrMsg, " TraceId")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {
