@@ -563,6 +563,8 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 				return err
 			}
 		}
+	case consts.ACTION_ALL_STATUS:
+	case consts.ACTION_ALL_DELETE:
 	}
 
 	return nil
