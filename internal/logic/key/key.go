@@ -545,26 +545,132 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 // 密钥批量操作
 func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq) error {
 
-	switch params.Action {
-	case consts.ACTION_STATUS:
-		for _, id := range params.Ids {
-			if err := s.ChangeStatus(ctx, model.KeyChangeStatusReq{
-				Id:     id,
-				Status: gconv.Int(params.Value),
-			}); err != nil {
+	// 异步处理, 存在一定程度的延迟性
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+		switch params.Action {
+		case consts.ACTION_STATUS:
+			for _, id := range params.Ids {
+				if err := s.ChangeStatus(ctx, model.KeyChangeStatusReq{
+					Id:     id,
+					Status: gconv.Int(params.Value),
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		case consts.ACTION_DELETE:
+			for _, id := range params.Ids {
+				if err := s.Delete(ctx, id); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		case consts.ACTION_ALL_STATUS:
+
+			filter := bson.M{
+				"type": params.Type,
+			}
+
+			if params.Corp != "" {
+				filter["corp"] = params.Corp
+			}
+
+			if params.Key != "" {
+				filter["key"] = bson.M{
+					"$regex": regexp.QuoteMeta(params.Key),
+				}
+			}
+
+			if len(params.Models) > 0 {
+				filter["models"] = bson.M{
+					"$in": params.Models,
+				}
+			}
+
+			if len(params.ModelAgents) > 0 {
+				filter["model_agents"] = bson.M{
+					"$in": params.ModelAgents,
+				}
+			}
+
+			if params.Status != 0 {
+				filter["status"] = params.Status
+			}
+
+			if params.Remark != "" {
+				filter["remark"] = bson.M{
+					"$regex": regexp.QuoteMeta(params.Remark),
+				}
+			}
+
+			keys, err := dao.Key.Find(ctx, filter)
+			if err != nil {
 				logger.Error(ctx, err)
-				return err
+				return
+			}
+
+			for _, key := range keys {
+				if err = s.ChangeStatus(ctx, model.KeyChangeStatusReq{
+					Id:     key.Id,
+					Status: gconv.Int(params.Value),
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+		case consts.ACTION_ALL_DELETE:
+
+			filter := bson.M{
+				"type": params.Type,
+			}
+
+			if params.Corp != "" {
+				filter["corp"] = params.Corp
+			}
+
+			if params.Key != "" {
+				filter["key"] = bson.M{
+					"$regex": regexp.QuoteMeta(params.Key),
+				}
+			}
+
+			if len(params.Models) > 0 {
+				filter["models"] = bson.M{
+					"$in": params.Models,
+				}
+			}
+
+			if len(params.ModelAgents) > 0 {
+				filter["model_agents"] = bson.M{
+					"$in": params.ModelAgents,
+				}
+			}
+
+			if params.Status != 0 {
+				filter["status"] = params.Status
+			}
+
+			if params.Remark != "" {
+				filter["remark"] = bson.M{
+					"$regex": regexp.QuoteMeta(params.Remark),
+				}
+			}
+
+			keys, err := dao.Key.Find(ctx, filter)
+			if err != nil {
+				logger.Error(ctx, err)
+				return
+			}
+
+			for _, key := range keys {
+				if err = s.Delete(ctx, key.Id); err != nil {
+					logger.Error(ctx, err)
+				}
 			}
 		}
-	case consts.ACTION_DELETE:
-		for _, id := range params.Ids {
-			if err := s.Delete(ctx, id); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-	case consts.ACTION_ALL_STATUS:
-	case consts.ACTION_ALL_DELETE:
+
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
 	return nil
