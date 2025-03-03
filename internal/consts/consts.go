@@ -36,6 +36,8 @@ const (
 	TASK_CHECK_END_TIME_KEY      = "task:check:end_time:%s"
 	TASK_LOG_LOCK_KEY            = "task:log:lock"
 	TASK_LOG_END_TIME_KEY        = "task:log:end_time"
+	TASK_NOTICE_LOCK_KEY         = "task:notice:lock"
+	TASK_NOTICE_END_TIME_KEY     = "task:notice:end_time"
 )
 
 const (

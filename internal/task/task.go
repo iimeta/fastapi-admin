@@ -13,4 +13,7 @@ func Init(ctx context.Context) {
 
 	// 日志删除任务
 	logDelTask(ctx)
+
+	// 通知任务
+	noticeTask(ctx)
 }

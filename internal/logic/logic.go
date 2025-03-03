@@ -20,6 +20,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/midjourney"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model_agent"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/notice"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/session"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/site_config"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/statistics"

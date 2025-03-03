@@ -444,7 +444,9 @@ func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuota
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
-		"quota_expires_at": common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":  common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"warning_notice":    false,
+		"exhaustion_notice": false,
 	})
 	if err != nil {
 		logger.Error(ctx, err)

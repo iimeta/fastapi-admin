@@ -19,6 +19,8 @@ type SysConfigUpdateReq struct {
 	AutoEnableError   *common.AutoEnableError   `json:"auto_enable_error,omitempty"`   // 自动启用错误
 	NotRetryError     *common.NotRetryError     `json:"not_retry_error,omitempty"`     // 不重试错误
 	NotShieldError    *common.NotShieldError    `json:"not_shield_error,omitempty"`    // 不屏蔽错误
+	Notice            *common.Notice            `json:"notice,omitempty"`              // 通知
+	Warning           *common.Warning           `json:"warning,omitempty"`             // 预警
 	Debug             *common.Debug             `json:"debug,omitempty"`               // 调试
 }
 
@@ -54,6 +56,8 @@ type SysConfig struct {
 	AutoEnableError   *common.AutoEnableError   `json:"auto_enable_error,omitempty"`   // 自动启用错误
 	NotRetryError     *common.NotRetryError     `json:"not_retry_error,omitempty"`     // 不重试错误
 	NotShieldError    *common.NotShieldError    `json:"not_shield_error,omitempty"`    // 不屏蔽错误
+	Notice            *common.Notice            `json:"notice,omitempty"`              // 通知
+	Warning           *common.Warning           `json:"warning,omitempty"`             // 预警
 	Debug             *common.Debug             `json:"debug,omitempty"`               // 调试
 	Creator           string                    `json:"creator,omitempty"`             // 创建人
 	Updater           string                    `json:"updater,omitempty"`             // 更新人

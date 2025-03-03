@@ -123,6 +123,10 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{NotRetryError: params.NotRetryError}
 	case "not_shield_error":
 		sysConfig = &do.SysConfig{NotShieldError: params.NotShieldError}
+	case "notice":
+		sysConfig = &do.SysConfig{Notice: params.Notice}
+	case "warning":
+		sysConfig = &do.SysConfig{Warning: params.Warning}
 	case "debug":
 		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
@@ -176,6 +180,8 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		AutoEnableError:   sysConfig.AutoEnableError,
 		NotRetryError:     sysConfig.NotRetryError,
 		NotShieldError:    sysConfig.NotShieldError,
+		Notice:            sysConfig.Notice,
+		Warning:           sysConfig.Warning,
 		Debug:             sysConfig.Debug,
 		Creator:           sysConfig.Creator,
 		Updater:           sysConfig.Updater,
@@ -236,6 +242,10 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		}
 
 		return nil, nil
+	case "notice":
+		sysConfigUpdateReq.Notice = s.Default().Notice
+	case "warning":
+		sysConfigUpdateReq.Warning = s.Default().Warning
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -287,8 +297,15 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}
 
-	if sysConfig.AutoEnableError == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "auto_enable_error"}); err != nil {
+	if sysConfig.Notice == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "notice"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.Warning == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "warning"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -416,6 +433,16 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Errors: []string{
 				"Please reduce the length of the messages.",
 			},
+		},
+		Notice: &common.Notice{
+			Open:        false,
+			Cron:        "0 * * * * ?",
+			LockMinutes: 10,
+		},
+		Warning: &common.Warning{
+			QuotaWarning:     true,
+			WarningThreshold: 50 * consts.QUOTA_USD_UNIT,
+			ExhaustionNotice: true,
 		},
 		Debug: &common.Debug{
 			Open: false,

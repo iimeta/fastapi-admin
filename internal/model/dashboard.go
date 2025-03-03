@@ -80,6 +80,12 @@ type DashboardPerSecondRes struct {
 	TPS int `json:"tps"` // 每秒钟令牌数
 }
 
+// 预警配置接口请求参数
+type DashboardWarningConfigReq struct {
+	QuotaWarning     bool `json:"quota_warning"`     // 额度预警
+	WarningThreshold int  `json:"warning_threshold"` // 预警阈值
+}
+
 // 基础数据
 type Dashboard struct {
 	App       int64 `json:"app"`        // 应用数
@@ -105,11 +111,13 @@ type CallData struct {
 
 // 费用
 type Expense struct {
-	Quota          int     `json:"quota"`            // 剩余额度
-	QuotaUSD       float64 `json:"quota_usd"`        // 剩余额度美元单位
-	UsedQuota      int     `json:"used_quota"`       // 已用额度
-	UsedQuotaUSD   float64 `json:"used_quota_usd"`   // 已用额度美元单位
-	QuotaExpiresAt string  `json:"quota_expires_at"` // 额度过期时间
+	Quota            int     `json:"quota"`             // 剩余额度
+	QuotaUSD         float64 `json:"quota_usd"`         // 剩余额度美元单位
+	UsedQuota        int     `json:"used_quota"`        // 已用额度
+	UsedQuotaUSD     float64 `json:"used_quota_usd"`    // 已用额度美元单位
+	QuotaExpiresAt   string  `json:"quota_expires_at"`  // 额度过期时间
+	QuotaWarning     bool    `json:"quota_warning"`     // 额度预警
+	WarningThreshold int     `json:"warning_threshold"` // 预警阈值
 }
 
 // 数据TOP

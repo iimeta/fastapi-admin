@@ -100,6 +100,18 @@ type NotShieldError struct {
 	Errors []string `bson:"errors" json:"errors"` // 错误
 }
 
+type Notice struct {
+	Open        bool          `bson:"open"         json:"open"`         // 开关
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
+}
+
+type Warning struct {
+	QuotaWarning     bool `bson:"quota_warning"     json:"quota_warning"`     // 额度预警
+	WarningThreshold int  `bson:"warning_threshold" json:"warning_threshold"` // 预警阈值
+	ExhaustionNotice bool `bson:"exhaustion_notice" json:"exhaustion_notice"` // 耗尽通知
+}
+
 type Debug struct {
 	Open bool `bson:"open" json:"open"` // 开关
 }

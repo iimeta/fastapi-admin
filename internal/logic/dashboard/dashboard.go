@@ -221,11 +221,13 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 	}
 
 	return &model.Expense{
-		Quota:          user.Quota,
-		QuotaUSD:       util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
-		UsedQuota:      user.UsedQuota,
-		UsedQuotaUSD:   util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
-		QuotaExpiresAt: user.QuotaExpiresAt,
+		Quota:            user.Quota,
+		QuotaUSD:         util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
+		UsedQuota:        user.UsedQuota,
+		UsedQuotaUSD:     util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
+		QuotaExpiresAt:   user.QuotaExpiresAt,
+		QuotaWarning:     user.QuotaWarning,
+		WarningThreshold: user.WarningThreshold / consts.QUOTA_USD_UNIT,
 	}, nil
 }
 
@@ -558,4 +560,18 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	}
 
 	return 0, 0, nil
+}
+
+// 预警配置
+func (s *sDashboard) WarningConfig(ctx context.Context, params model.DashboardWarningConfigReq) error {
+
+	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, bson.M{
+		"quota_warning":     params.QuotaWarning,
+		"warning_threshold": params.WarningThreshold * consts.QUOTA_USD_UNIT,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
 }

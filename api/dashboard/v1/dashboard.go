@@ -86,3 +86,14 @@ type PerMinuteRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.DashboardPerMinuteRes
 }
+
+// 预警配置接口请求参数
+type WarningConfigReq struct {
+	g.Meta `path:"/warning/config" role:"user" tags:"dashboard" method:"post" summary:"预警配置接口"`
+	model.DashboardWarningConfigReq
+}
+
+// 预警配置接口响应参数
+type WarningConfigRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
