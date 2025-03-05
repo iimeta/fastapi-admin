@@ -80,9 +80,9 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			template string
 		)
 
-		if config.Cfg.Warning.QuotaWarning && !user.WarningNotice && !user.ExhaustionNotice && user.Quota <= config.Cfg.Warning.WarningThreshold {
+		if !user.WarningNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= config.Cfg.QuotaWarning.Threshold {
 			action = consts.ACTION_WARNING_THRESHOLD
-		} else if config.Cfg.Warning.ExhaustionNotice && !user.ExhaustionNotice && user.Quota <= 0 && user.UsedQuota != 0 {
+		} else if config.Cfg.QuotaWarning.ExhaustionNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= 0 {
 			action = consts.ACTION_EXHAUSTION_NOTICE
 		}
 
@@ -99,7 +99,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 		}
 
 		if action == consts.ACTION_WARNING_THRESHOLD {
-			data["warning_threshold"] = config.Cfg.Warning.WarningThreshold / consts.QUOTA_USD_UNIT
+			data["warning_threshold"] = config.Cfg.QuotaWarning.Threshold / consts.QUOTA_USD_UNIT
 		}
 
 		if action == consts.ACTION_WARNING_THRESHOLD {

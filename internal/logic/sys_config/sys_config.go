@@ -125,8 +125,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{NotShieldError: params.NotShieldError}
 	case "notice":
 		sysConfig = &do.SysConfig{Notice: params.Notice}
-	case "warning":
-		sysConfig = &do.SysConfig{Warning: params.Warning}
+	case "quota_warning":
+		sysConfig = &do.SysConfig{QuotaWarning: params.QuotaWarning}
 	case "debug":
 		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
@@ -181,7 +181,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		NotRetryError:     sysConfig.NotRetryError,
 		NotShieldError:    sysConfig.NotShieldError,
 		Notice:            sysConfig.Notice,
-		Warning:           sysConfig.Warning,
+		QuotaWarning:      sysConfig.QuotaWarning,
 		Debug:             sysConfig.Debug,
 		Creator:           sysConfig.Creator,
 		Updater:           sysConfig.Updater,
@@ -244,8 +244,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		return nil, nil
 	case "notice":
 		sysConfigUpdateReq.Notice = s.Default().Notice
-	case "warning":
-		sysConfigUpdateReq.Warning = s.Default().Warning
+	case "quota_warning":
+		sysConfigUpdateReq.QuotaWarning = s.Default().QuotaWarning
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -304,8 +304,8 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}
 
-	if sysConfig.Warning == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "warning"}); err != nil {
+	if sysConfig.QuotaWarning == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "quota_warning"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -439,10 +439,13 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Cron:        "0 * * * * ?",
 			LockMinutes: 10,
 		},
-		Warning: &common.Warning{
-			QuotaWarning:     true,
-			WarningThreshold: 50 * consts.QUOTA_USD_UNIT,
+		QuotaWarning: &common.QuotaWarning{
+			Open:             true,
+			Threshold:        50 * consts.QUOTA_USD_UNIT,
 			ExhaustionNotice: true,
+			ExpireWarning:    true,
+			ExpireThreshold:  3,
+			ExpireNotice:     true,
 		},
 		Debug: &common.Debug{
 			Open: false,

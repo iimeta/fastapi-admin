@@ -28,7 +28,9 @@ func noticeTask(ctx context.Context) {
 		}
 
 		noticeEntry, _ = gcron.AddSingleton(ctx, config.Cfg.Notice.Cron, func(ctx context.Context) {
-			service.Notice().QuotaWarningTask(gctx.New())
+			if config.Cfg.QuotaWarning.Open {
+				service.Notice().QuotaWarningTask(gctx.New())
+			}
 		})
 
 	} else {

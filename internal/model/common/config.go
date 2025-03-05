@@ -106,10 +106,13 @@ type Notice struct {
 	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
 }
 
-type Warning struct {
-	QuotaWarning     bool `bson:"quota_warning"     json:"quota_warning"`     // 额度预警
-	WarningThreshold int  `bson:"warning_threshold" json:"warning_threshold"` // 预警阈值
-	ExhaustionNotice bool `bson:"exhaustion_notice" json:"exhaustion_notice"` // 耗尽通知
+type QuotaWarning struct {
+	Open             bool          `bson:"open"              json:"open"`              // 额度预警开关
+	Threshold        int           `bson:"threshold"         json:"threshold"`         // 额度预警阈值, 单位: $
+	ExhaustionNotice bool          `bson:"exhaustion_notice" json:"exhaustion_notice"` // 额度耗尽通知开关
+	ExpireWarning    bool          `bson:"expire_warning"    json:"expire_warning"`    // 额度过期预警开关
+	ExpireThreshold  time.Duration `bson:"expire_threshold"  json:"expire_threshold"`  // 额度过期预警阈值, 单位: 天
+	ExpireNotice     bool          `bson:"expire_notice"     json:"expire_notice"`     // 额度过期通知开关
 }
 
 type Debug struct {

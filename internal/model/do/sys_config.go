@@ -26,7 +26,7 @@ type SysConfig struct {
 	NotRetryError     *common.NotRetryError     `bson:"not_retry_error,omitempty"`     // 不重试错误
 	NotShieldError    *common.NotShieldError    `bson:"not_shield_error,omitempty"`    // 不屏蔽错误
 	Notice            *common.Notice            `bson:"notice,omitempty"`              // 通知
-	Warning           *common.Warning           `bson:"warning,omitempty"`             // 预警
+	QuotaWarning      *common.QuotaWarning      `bson:"quota_warning,omitempty"`       // 额度预警
 	Debug             *common.Debug             `bson:"debug,omitempty"`               // 调试
 	Creator           string                    `bson:"creator,omitempty"`             // 创建人
 	Updater           string                    `bson:"updater,omitempty"`             // 更新人
