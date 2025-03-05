@@ -128,10 +128,12 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"name":             params.Name,
-		"quota_expires_at": common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
-		"remark":           params.Remark,
-		"status":           params.Status,
+		"name":                  params.Name,
+		"quota_expires_at":      common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"remark":                params.Remark,
+		"status":                params.Status,
+		"expire_warning_notice": false,
+		"expire_notice":         false,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -182,7 +184,9 @@ func (s *sAdminUser) ChangeQuotaExpire(ctx context.Context, params model.UserCha
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"quota_expires_at": common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"expire_warning_notice": false,
+		"expire_notice":         false,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -444,9 +448,11 @@ func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuota
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
-		"quota_expires_at":  common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
-		"warning_notice":    false,
-		"exhaustion_notice": false,
+		"quota_expires_at":      common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"warning_notice":        false,
+		"exhaustion_notice":     false,
+		"expire_warning_notice": false,
+		"expire_notice":         false,
 	})
 	if err != nil {
 		logger.Error(ctx, err)

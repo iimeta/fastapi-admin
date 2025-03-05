@@ -149,6 +149,7 @@ type User struct {
 	Status           int      `json:"status,omitempty"`            // 状态[1:正常, 2:禁用, -1:删除]
 	LoginIP          string   `json:"login_ip,omitempty"`          // 登录IP
 	LoginTime        string   `json:"login_time,omitempty"`        // 登录时间
+	LoginDomain      string   `json:"login_domain,omitempty"`      // 登录域名
 	CreatedAt        string   `json:"created_at,omitempty"`        // 创建时间
 	UpdatedAt        string   `json:"updated_at,omitempty"`        // 更新时间
 }

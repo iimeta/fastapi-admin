@@ -17,6 +17,7 @@ type SysAdmin struct {
 	IsSysAdmin   bool   `bson:"is_sys_admin,omitempty"`   // 是否系统管理员
 	LoginIP      string `bson:"login_ip,omitempty"`       // 登录IP
 	LoginTime    int64  `bson:"login_time,omitempty"`     // 登录时间
+	LoginDomain  string `bson:"login_domain,omitempty"`   // 登录域名
 	Remark       string `bson:"remark,omitempty"`         // 备注
 	Status       int    `bson:"status,omitempty"`         // 状态[1:正常, 2:禁用, -1:删除]
 	Creator      string `bson:"creator,omitempty"`        // 创建人

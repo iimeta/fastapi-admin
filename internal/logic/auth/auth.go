@@ -213,7 +213,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 	if params.Channel == consts.USER_CHANNEL {
 
-		accountInfo, err := dao.User.FindAccount(ctx, params.Account)
+		account, err := dao.User.FindAccount(ctx, params.Account)
 
 		if params.Method == consts.METHOD_ACCOUNT {
 
@@ -225,11 +225,11 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 				return nil, err
 			}
 
-			if !crypto.VerifyPassword(accountInfo.Password, params.Password+accountInfo.Salt) {
+			if !crypto.VerifyPassword(account.Password, params.Password+account.Salt) {
 				return nil, errors.New("账号或密码不正确")
 			}
 
-			if accountInfo.Status == 2 {
+			if account.Status == 2 {
 				return nil, errors.New("账号已被禁用")
 			}
 
@@ -249,7 +249,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						return nil, err
 					}
 
-					if accountInfo, err = dao.User.FindAccount(ctx, params.Account); err != nil {
+					if account, err = dao.User.FindAccount(ctx, params.Account); err != nil {
 						logger.Error(ctx, err)
 						return nil, err
 					}
@@ -259,7 +259,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 					return nil, err
 				}
 
-			} else if accountInfo.Status == 2 {
+			} else if account.Status == 2 {
 				return nil, errors.New("账号已被禁用")
 			}
 
@@ -267,7 +267,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			return nil, errors.New("账号或密码不正确")
 		}
 
-		user, err := dao.User.FindOne(ctx, bson.M{"_id": accountInfo.Uid, "status": 1})
+		user, err := dao.User.FindOne(ctx, bson.M{"_id": account.Uid, "status": 1})
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				return nil, errors.New("用户不存在或已被禁用")
@@ -279,9 +279,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 		r.SetCtxVar("uid", user.Id)
 
 		// 记录登录IP和登录时间
-		if err = dao.Account.UpdateById(ctx, accountInfo.Id, bson.M{
-			"login_ip":   ip,
-			"login_time": gtime.TimestampMilli(),
+		if err = dao.Account.UpdateById(ctx, account.Id, bson.M{
+			"login_ip":     ip,
+			"login_time":   gtime.TimestampMilli(),
+			"login_domain": params.Domain,
 		}); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -296,7 +297,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Quota:     user.Quota,
 			UsedQuota: user.UsedQuota,
 			Models:    user.Models,
-			Account:   accountInfo.Account,
+			Account:   account.Account,
 			CreatedAt: util.FormatDateTime(user.CreatedAt),
 			UpdatedAt: util.FormatDateTime(user.UpdatedAt),
 		}, true); err != nil {
@@ -360,8 +361,9 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 		// 记录登录IP和登录时间
 		if err = dao.SysAdmin.UpdateById(ctx, admin.Id, bson.M{
-			"login_ip":   ip,
-			"login_time": gtime.TimestampMilli(),
+			"login_ip":     ip,
+			"login_time":   gtime.TimestampMilli(),
+			"login_domain": params.Domain,
 		}); err != nil {
 			logger.Error(ctx, err)
 		}
