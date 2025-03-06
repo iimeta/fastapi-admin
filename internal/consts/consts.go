@@ -30,14 +30,14 @@ const (
 )
 
 const (
-	TASK_STATISTICS_LOCK_KEY     = "task:statistics:lock"
-	TASK_STATISTICS_END_TIME_KEY = "task:statistics:end_time"
-	TASK_CHECK_LOCK_KEY          = "task:check:lock:%s"
-	TASK_CHECK_END_TIME_KEY      = "task:check:end_time:%s"
-	TASK_LOG_LOCK_KEY            = "task:log:lock"
-	TASK_LOG_END_TIME_KEY        = "task:log:end_time"
-	TASK_NOTICE_LOCK_KEY         = "task:notice:lock"
-	TASK_NOTICE_END_TIME_KEY     = "task:notice:end_time"
+	TASK_STATISTICS_LOCK_KEY        = "task:statistics:lock"
+	TASK_STATISTICS_END_TIME_KEY    = "task:statistics:end_time"
+	TASK_CHECK_LOCK_KEY             = "task:check:lock:%s"
+	TASK_CHECK_END_TIME_KEY         = "task:check:end_time:%s"
+	TASK_LOG_LOCK_KEY               = "task:log:lock"
+	TASK_LOG_END_TIME_KEY           = "task:log:end_time"
+	TASK_QUOTA_WARNING_LOCK_KEY     = "task:quota:warning:lock"
+	TASK_QUOTA_WARNING_END_TIME_KEY = "task:quota:warning:end_time"
 )
 
 const (

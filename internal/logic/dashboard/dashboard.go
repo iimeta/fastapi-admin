@@ -566,15 +566,23 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 // 额度预警
 func (s *sDashboard) QuotaWarning(ctx context.Context, params model.DashboardQuotaWarningReq) error {
 
-	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, bson.M{
-		"quota_warning":            params.QuotaWarning,
-		"warning_threshold":        params.WarningThreshold * consts.QUOTA_USD_UNIT,
-		"expire_warning_threshold": params.ExpireWarningThreshold,
-		"warning_notice":           false,
-		"exhaustion_notice":        false,
-		"expire_warning_notice":    false,
-		"expire_notice":            false,
-	}); err != nil {
+	update := bson.M{
+		"quota_warning":         params.QuotaWarning,
+		"warning_notice":        false,
+		"exhaustion_notice":     false,
+		"expire_warning_notice": false,
+		"expire_notice":         false,
+	}
+
+	if params.WarningThreshold > 0 {
+		update["warning_threshold"] = params.WarningThreshold * consts.QUOTA_USD_UNIT
+	}
+
+	if params.ExpireWarningThreshold > 0 {
+		update["expire_warning_threshold"] = params.ExpireWarningThreshold
+	}
+
+	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, update); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
