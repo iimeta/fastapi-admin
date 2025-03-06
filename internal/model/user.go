@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // 用户信息接口响应参数
 type UserInfoRes struct {
 	UserId    int    `json:"user_id"`
@@ -129,27 +131,28 @@ type UserModelsReq struct {
 }
 
 type User struct {
-	Id               string   `json:"id,omitempty"`                // ID
-	UserId           int      `json:"user_id,omitempty"`           // 用户ID
-	Name             string   `json:"name,omitempty"`              // 姓名
-	Avatar           string   `json:"avatar,omitempty"`            // 头像
-	Email            string   `json:"email,omitempty"`             // 邮箱
-	Phone            string   `json:"phone,omitempty"`             // 手机号
-	Quota            int      `json:"quota"`                       // 剩余额度
-	UsedQuota        int      `json:"used_quota"`                  // 已用额度
-	QuotaExpiresAt   string   `json:"quota_expires_at"`            // 额度过期时间
-	Models           []string `json:"models,omitempty"`            // 模型权限
-	ModelNames       []string `json:"model_names,omitempty"`       // 模型名称
-	Account          string   `json:"account,omitempty"`           // 账号
-	QuotaWarning     bool     `json:"quota_warning,omitempty"`     // 额度预警
-	WarningThreshold int      `json:"warning_threshold,omitempty"` // 预警阈值
-	WarningNotice    bool     `json:"warning_notice,omitempty"`    // 预警通知
-	ExhaustionNotice bool     `json:"exhaustion_notice,omitempty"` // 耗尽通知
-	Remark           string   `json:"remark,omitempty"`            // 备注
-	Status           int      `json:"status,omitempty"`            // 状态[1:正常, 2:禁用, -1:删除]
-	LoginIP          string   `json:"login_ip,omitempty"`          // 登录IP
-	LoginTime        string   `json:"login_time,omitempty"`        // 登录时间
-	LoginDomain      string   `json:"login_domain,omitempty"`      // 登录域名
-	CreatedAt        string   `json:"created_at,omitempty"`        // 创建时间
-	UpdatedAt        string   `json:"updated_at,omitempty"`        // 更新时间
+	Id                     string        `json:"id,omitempty"`                // ID
+	UserId                 int           `json:"user_id,omitempty"`           // 用户ID
+	Name                   string        `json:"name,omitempty"`              // 姓名
+	Avatar                 string        `json:"avatar,omitempty"`            // 头像
+	Email                  string        `json:"email,omitempty"`             // 邮箱
+	Phone                  string        `json:"phone,omitempty"`             // 手机号
+	Quota                  int           `json:"quota"`                       // 剩余额度
+	UsedQuota              int           `json:"used_quota"`                  // 已用额度
+	QuotaExpiresAt         string        `json:"quota_expires_at"`            // 额度过期时间
+	Models                 []string      `json:"models,omitempty"`            // 模型权限
+	ModelNames             []string      `json:"model_names,omitempty"`       // 模型名称
+	Account                string        `json:"account,omitempty"`           // 账号
+	QuotaWarning           bool          `json:"quota_warning,omitempty"`     // 额度预警
+	WarningThreshold       int           `json:"warning_threshold,omitempty"` // 预警阈值
+	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold"`    // 过期预警阈值, 单位: 天
+	WarningNotice          bool          `json:"warning_notice,omitempty"`    // 预警通知
+	ExhaustionNotice       bool          `json:"exhaustion_notice,omitempty"` // 耗尽通知
+	Remark                 string        `json:"remark,omitempty"`            // 备注
+	Status                 int           `json:"status,omitempty"`            // 状态[1:正常, 2:禁用, -1:删除]
+	LoginIP                string        `json:"login_ip,omitempty"`          // 登录IP
+	LoginTime              string        `json:"login_time,omitempty"`        // 登录时间
+	LoginDomain            string        `json:"login_domain,omitempty"`      // 登录域名
+	CreatedAt              string        `json:"created_at,omitempty"`        // 创建时间
+	UpdatedAt              string        `json:"updated_at,omitempty"`        // 更新时间
 }

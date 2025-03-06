@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // 仪表盘基础数据接口响应参数
 type DashboardBaseDataRes struct {
 	*Dashboard
@@ -80,10 +82,11 @@ type DashboardPerSecondRes struct {
 	TPS int `json:"tps"` // 每秒钟令牌数
 }
 
-// 预警配置接口请求参数
-type DashboardWarningConfigReq struct {
-	QuotaWarning     bool `json:"quota_warning"`     // 额度预警
-	WarningThreshold int  `json:"warning_threshold"` // 预警阈值
+// 额度预警接口请求参数
+type DashboardQuotaWarningReq struct {
+	QuotaWarning           bool          `json:"quota_warning"`            // 额度预警开关
+	WarningThreshold       int           `json:"warning_threshold"`        // 预警阈值, 单位: $
+	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold"` // 过期预警阈值, 单位: 天
 }
 
 // 基础数据
@@ -111,13 +114,14 @@ type CallData struct {
 
 // 费用
 type Expense struct {
-	Quota            int     `json:"quota"`             // 剩余额度
-	QuotaUSD         float64 `json:"quota_usd"`         // 剩余额度美元单位
-	UsedQuota        int     `json:"used_quota"`        // 已用额度
-	UsedQuotaUSD     float64 `json:"used_quota_usd"`    // 已用额度美元单位
-	QuotaExpiresAt   string  `json:"quota_expires_at"`  // 额度过期时间
-	QuotaWarning     bool    `json:"quota_warning"`     // 额度预警
-	WarningThreshold int     `json:"warning_threshold"` // 预警阈值
+	Quota                  int           `json:"quota"`                    // 剩余额度
+	QuotaUSD               float64       `json:"quota_usd"`                // 剩余额度美元单位
+	UsedQuota              int           `json:"used_quota"`               // 已用额度
+	UsedQuotaUSD           float64       `json:"used_quota_usd"`           // 已用额度美元单位
+	QuotaExpiresAt         string        `json:"quota_expires_at"`         // 额度过期时间
+	QuotaWarning           bool          `json:"quota_warning"`            // 额度预警开关
+	WarningThreshold       int           `json:"warning_threshold"`        // 预警阈值, 单位: $
+	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold"` // 过期预警阈值, 单位: 天
 }
 
 // 数据TOP

@@ -87,13 +87,13 @@ type PerMinuteRes struct {
 	*model.DashboardPerMinuteRes
 }
 
-// 预警配置接口请求参数
-type WarningConfigReq struct {
-	g.Meta `path:"/warning/config" role:"user" tags:"dashboard" method:"post" summary:"预警配置接口"`
-	model.DashboardWarningConfigReq
+// 额度预警接口请求参数
+type QuotaWarningReq struct {
+	g.Meta `path:"/quota/warning" role:"user" tags:"dashboard" method:"post" summary:"额度预警接口"`
+	model.DashboardQuotaWarningReq
 }
 
-// 预警配置接口响应参数
-type WarningConfigRes struct {
+// 额度预警接口响应参数
+type QuotaWarningRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }

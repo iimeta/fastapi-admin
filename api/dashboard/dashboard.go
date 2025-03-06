@@ -18,5 +18,5 @@ type IDashboardV1 interface {
 	ModelPercent(ctx context.Context, req *v1.ModelPercentReq) (res *v1.ModelPercentRes, err error)
 	PerSecond(ctx context.Context, req *v1.PerSecondReq) (res *v1.PerSecondRes, err error)
 	PerMinute(ctx context.Context, req *v1.PerMinuteReq) (res *v1.PerMinuteRes, err error)
-	WarningConfig(ctx context.Context, req *v1.WarningConfigReq) (res *v1.WarningConfigRes, err error)
+	QuotaWarning(ctx context.Context, req *v1.QuotaWarningReq) (res *v1.QuotaWarningRes, err error)
 }

@@ -27,8 +27,8 @@ type (
 		PerSecond(ctx context.Context, params model.DashboardPerSecondReq) (int, int, error)
 		// 每分钟数据
 		PerMinute(ctx context.Context, params model.DashboardPerMinuteReq) (int, int, error)
-		// 预警配置
-		WarningConfig(ctx context.Context, params model.DashboardWarningConfigReq) error
+		// 额度预警
+		QuotaWarning(ctx context.Context, params model.DashboardQuotaWarningReq) error
 	}
 )
 
