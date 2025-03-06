@@ -151,7 +151,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		}
 	}
 
-	template, err := util.RenderTemplate(data)
+	template, err := util.RenderTemplate(data, "verify_code")
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
