@@ -54,11 +54,18 @@ func (s *sLog) DelTask(ctx context.Context) {
 	}()
 
 	if config.Cfg.Log.ChatReserve > 0 {
-		if deletedCount, err := dao.Chat.DeleteMany(ctx, bson.M{
+
+		filter := bson.M{
 			"req_time": bson.M{
 				"$lte": gtime.Now().StartOfDay().TimestampMilli() - (config.Cfg.Log.ChatReserve * gtime.D).Milliseconds() - 1,
 			},
-		}); err == nil {
+		}
+
+		if len(config.Cfg.Log.Status) != 4 {
+			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
+		}
+
+		if deletedCount, err := dao.Chat.DeleteMany(ctx, filter); err == nil {
 			logger.Infof(ctx, "聊天日志已删除 %d 条记录", deletedCount)
 		} else {
 			logger.Error(ctx, err)
@@ -66,11 +73,18 @@ func (s *sLog) DelTask(ctx context.Context) {
 	}
 
 	if config.Cfg.Log.ImageReserve > 0 {
-		if deletedCount, err := dao.Image.DeleteMany(ctx, bson.M{
+
+		filter := bson.M{
 			"req_time": bson.M{
 				"$lte": gtime.Now().StartOfDay().TimestampMilli() - (config.Cfg.Log.ImageReserve * gtime.D).Milliseconds() - 1,
 			},
-		}); err == nil {
+		}
+
+		if len(config.Cfg.Log.Status) != 4 {
+			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
+		}
+
+		if deletedCount, err := dao.Image.DeleteMany(ctx, filter); err == nil {
 			logger.Infof(ctx, "绘图日志已删除 %d 条记录", deletedCount)
 		} else {
 			logger.Error(ctx, err)
@@ -78,11 +92,18 @@ func (s *sLog) DelTask(ctx context.Context) {
 	}
 
 	if config.Cfg.Log.AudioReserve > 0 {
-		if deletedCount, err := dao.Audio.DeleteMany(ctx, bson.M{
+
+		filter := bson.M{
 			"req_time": bson.M{
 				"$lte": gtime.Now().StartOfDay().TimestampMilli() - (config.Cfg.Log.AudioReserve * gtime.D).Milliseconds() - 1,
 			},
-		}); err == nil {
+		}
+
+		if len(config.Cfg.Log.Status) != 4 {
+			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
+		}
+
+		if deletedCount, err := dao.Audio.DeleteMany(ctx, filter); err == nil {
 			logger.Infof(ctx, "音频日志已删除 %d 条记录", deletedCount)
 		} else {
 			logger.Error(ctx, err)

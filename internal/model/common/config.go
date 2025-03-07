@@ -51,6 +51,7 @@ type Log struct {
 	ChatReserve  time.Duration `bson:"chat_reserve"  json:"chat_reserve"`  // 聊天日志保留天数
 	ImageReserve time.Duration `bson:"image_reserve" json:"image_reserve"` // 绘图日志保留天数
 	AudioReserve time.Duration `bson:"audio_reserve" json:"audio_reserve"` // 音频日志保留天数
+	Status       []int         `bson:"status"        json:"status"`        // 删除日志状态
 	Cron         string        `bson:"cron"          json:"cron"`          // CRON表达式
 }
 

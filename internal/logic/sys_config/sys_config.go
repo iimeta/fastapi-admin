@@ -361,6 +361,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			ChatReserve:  90,
 			ImageReserve: 90,
 			AudioReserve: 90,
+			Status:       []int{1, 2, 3, -1},
 			Cron:         "0 0 2 * * ?",
 		},
 		UserLoginRegister: &common.UserLoginRegister{
@@ -373,7 +374,6 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		UserShieldError: &common.UserShieldError{
 			Open: true,
 			Errors: []string{
-				"TraceId",
 				"http",
 				"tcp",
 				"No available",

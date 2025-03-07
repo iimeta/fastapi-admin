@@ -360,6 +360,10 @@ func (s *sChat) BatchOperate(ctx context.Context, params model.ChatBatchOperateR
 				filter["user_id"] = params.UserId
 			}
 
+			if len(params.Status) != 4 {
+				filter["status"] = bson.M{"$in": params.Status}
+			}
+
 			if _, err := dao.Chat.DeleteMany(ctx, filter); err != nil {
 				logger.Error(ctx, err)
 			}
