@@ -142,7 +142,7 @@ func (s *sMidjourney) Page(ctx context.Context, params model.MidjourneyPageReq) 
 	filter := bson.M{}
 
 	if params.TraceId != "" {
-		filter["trace_id"] = params.TraceId
+		filter["trace_id"] = gstr.Trim(params.TraceId)
 	}
 
 	if service.Session().IsUserRole(ctx) {

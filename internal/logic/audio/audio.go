@@ -147,7 +147,7 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 	filter := bson.M{}
 
 	if params.TraceId != "" {
-		filter["trace_id"] = params.TraceId
+		filter["trace_id"] = gstr.Trim(params.TraceId)
 	}
 
 	if service.Session().IsUserRole(ctx) {

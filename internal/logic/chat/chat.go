@@ -169,7 +169,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	}
 
 	if params.TraceId != "" {
-		filter["trace_id"] = params.TraceId
+		filter["trace_id"] = gstr.Trim(params.TraceId)
 	}
 
 	if len(params.Models) > 0 {

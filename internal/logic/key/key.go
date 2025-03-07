@@ -398,8 +398,13 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	}
 
 	if params.Remark != "" {
-		filter["remark"] = bson.M{
-			"$regex": regexp.QuoteMeta(params.Remark),
+		filter["$or"] = bson.A{
+			bson.M{"remark": bson.M{
+				"$regex": regexp.QuoteMeta(params.Remark),
+			}},
+			bson.M{"auto_disabled_reason": bson.M{
+				"$regex": regexp.QuoteMeta(params.Remark),
+			}},
 		}
 	}
 
