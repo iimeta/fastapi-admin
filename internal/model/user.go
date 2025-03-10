@@ -144,7 +144,7 @@ type User struct {
 	ModelNames             []string      `json:"model_names,omitempty"`       // 模型名称
 	Account                string        `json:"account,omitempty"`           // 账号
 	QuotaWarning           bool          `json:"quota_warning,omitempty"`     // 额度预警
-	WarningThreshold       int           `json:"warning_threshold,omitempty"` // 预警阈值
+	WarningThreshold       int           `json:"warning_threshold,omitempty"` // 预警阈值, 单位: $
 	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold"`    // 过期预警阈值, 单位: 天
 	WarningNotice          bool          `json:"warning_notice,omitempty"`    // 预警通知
 	ExhaustionNotice       bool          `json:"exhaustion_notice,omitempty"` // 耗尽通知
