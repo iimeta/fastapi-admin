@@ -99,8 +99,8 @@ type ModelAgent struct {
 	FallbackModels       []string `json:"fallback_models,omitempty"`      // 后备模型
 	FallbackModelNames   []string `json:"fallback_model_names,omitempty"` // 后备模型名称
 	IsEnableModelReplace bool     `json:"is_enable_model_replace"`        // 是否启用模型替换
-	ReplaceModels        []string `json:"replace_models"`                 // 替换模型
-	TargetModels         []string `json:"target_models"`                  // 目标模型
+	ReplaceModels        []string `json:"replace_models,omitempty"`       // 替换模型
+	TargetModels         []string `json:"target_models,omitempty"`        // 目标模型
 	LbStrategy           int      `json:"lb_strategy,omitempty"`          // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key                  string   `json:"key,omitempty"`                  // 密钥
 	Remark               string   `json:"remark,omitempty"`               // 备注
