@@ -30,10 +30,11 @@ type AudioQuota struct {
 }
 
 type MultimodalQuota struct {
-	BillingRule int          `bson:"billing_rule,omitempty" json:"billing_rule,omitempty"` // 计费规则[1:按官方, 2:按系统]
-	TextQuota   TextQuota    `bson:"text_quota,omitempty"   json:"text_quota,omitempty"`   // 文本额度
-	ImageQuotas []ImageQuota `bson:"image_quotas,omitempty" json:"image_quotas,omitempty"` // 图像额度
-	SearchQuota int          `bson:"search_quota"           json:"search_quota"`           // 搜索额度
+	BillingRule  int           `bson:"billing_rule,omitempty" json:"billing_rule,omitempty"` // 计费规则[1:按官方, 2:按系统]
+	TextQuota    TextQuota     `bson:"text_quota,omitempty"   json:"text_quota,omitempty"`   // 文本额度
+	ImageQuotas  []ImageQuota  `bson:"image_quotas,omitempty" json:"image_quotas,omitempty"` // 图像额度
+	SearchQuota  int           `bson:"search_quota"           json:"search_quota"`           // 搜索额度
+	SearchQuotas []SearchQuota `bson:"search_quotas"          json:"search_quotas"`          // 搜索额度
 }
 
 type RealtimeQuota struct {
@@ -114,4 +115,10 @@ type Announcement struct {
 type Document struct {
 	Title   string `bson:"title,omitempty"    json:"title,omitempty"`    // 文档标题
 	JumpUrl string `bson:"jump_url,omitempty" json:"jump_url,omitempty"` // 跳转URL
+}
+
+type SearchQuota struct {
+	SearchContextSize string `bson:"search_context_size,omitempty" json:"search_context_size,omitempty"` // 搜索上下文大小[high, medium, low]
+	FixedQuota        int    `bson:"fixed_quota"                   json:"fixed_quota"`                   // 固定额度
+	IsDefault         bool   `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
 }
