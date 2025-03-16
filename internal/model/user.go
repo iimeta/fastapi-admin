@@ -96,13 +96,9 @@ type UserPageRes struct {
 
 // 用户列表接口请求参数
 type UserListReq struct {
-	UserId int      `json:"user_id,omitempty"` // 用户ID
-	Name   string   `json:"name,omitempty"`    // 姓名
-	Type   int      `json:"type,omitempty"`    // 用户类型
-	Models []string `json:"models,omitempty"`  // 模型权限
-	Quota  int      `json:"quota,omitempty"`   // 额度
-	Remark string   `json:"remark,omitempty"`  // 备注
-	Status int      `json:"status,omitempty"`  // 状态[1:正常, 2:禁用, -1:删除]
+	UserId int    `json:"user_id,omitempty"` // 用户ID
+	Name   string `json:"name,omitempty"`    // 姓名
+	Status int    `json:"status,omitempty"`  // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 用户列表接口响应参数
