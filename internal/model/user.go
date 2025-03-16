@@ -34,32 +34,25 @@ type UserUpdateInfoReq struct {
 
 // 新建用户接口请求参数
 type UserCreateReq struct {
-	Name           string `json:"name,omitempty" v:"required"`                               // 姓名
-	Email          string `json:"email,omitempty" v:"required"`                              // 邮箱
-	Account        string `json:"account,omitempty" v:"required"`                            // 账号
-	Password       string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
-	Terminal       string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
-	Quota          int    `json:"quota,omitempty"`                                           // 额度
-	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`                                // 额度过期时间
-	Remark         string `json:"remark,omitempty"`                                          // 备注
+	Name           string `json:"name,omitempty" v:"required"`                  // 姓名
+	Email          string `json:"email,omitempty" v:"required"`                 // 邮箱
+	Account        string `json:"account,omitempty" v:"required"`               // 账号
+	Password       string `json:"password,omitempty" v:"required|min-length:6"` // 密码
+	Quota          int    `json:"quota,omitempty"`                              // 额度
+	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`                   // 额度过期时间
+	Remark         string `json:"remark,omitempty"`                             // 备注
 }
 
 // 更新用户接口请求参数
 type UserUpdateReq struct {
-	Id             string   `json:"id,omitempty"`                        // ID
-	Name           string   `json:"name,omitempty" v:"required"`         // 姓名
-	Email          string   `json:"email,omitempty" v:"required"`        // 邮箱
-	Account        string   `json:"account,omitempty" v:"required"`      // 账号
-	Password       string   `json:"password,omitempty" v:"min-length:6"` // 密码
-	Type           int      `json:"type,omitempty"`                      // 用户类型
-	Models         []string `json:"models,omitempty" d:"[]"`             // 模型权限
-	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`            // 是否限制额度
-	Quota          int      `json:"quota,omitempty"`                     // 额度
-	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`          // 额度过期时间
-	IpWhitelist    string   `json:"ip_whitelist,omitempty"`              // IP白名单
-	IpBlacklist    string   `json:"ip_blacklist,omitempty"`              // IP黑名单
-	Remark         string   `json:"remark,omitempty"`                    // 备注
-	Status         int      `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
+	Id             string `json:"id,omitempty"`                        // ID
+	Name           string `json:"name,omitempty" v:"required"`         // 姓名
+	Email          string `json:"email,omitempty" v:"required"`        // 邮箱
+	Account        string `json:"account,omitempty" v:"required"`      // 账号
+	Password       string `json:"password,omitempty" v:"min-length:6"` // 密码
+	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`          // 额度过期时间
+	Remark         string `json:"remark,omitempty"`                    // 备注
+	Status         int    `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改用户额度过期时间接口请求参数
@@ -103,15 +96,13 @@ type UserPageRes struct {
 
 // 用户列表接口请求参数
 type UserListReq struct {
-	UserId      int      `json:"user_id,omitempty"`      // 用户ID
-	Name        string   `json:"name,omitempty"`         // 姓名
-	Type        int      `json:"type,omitempty"`         // 用户类型
-	Models      []string `json:"models,omitempty"`       // 模型权限
-	Quota       int      `json:"quota,omitempty"`        // 额度
-	IpWhitelist []string `json:"ip_whitelist,omitempty"` // IP白名单
-	IpBlacklist []string `json:"ip_blacklist,omitempty"` // IP黑名单
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	UserId int      `json:"user_id,omitempty"` // 用户ID
+	Name   string   `json:"name,omitempty"`    // 姓名
+	Type   int      `json:"type,omitempty"`    // 用户类型
+	Models []string `json:"models,omitempty"`  // 模型权限
+	Quota  int      `json:"quota,omitempty"`   // 额度
+	Remark string   `json:"remark,omitempty"`  // 备注
+	Status int      `json:"status,omitempty"`  // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 用户列表接口响应参数
