@@ -35,6 +35,11 @@ type SysConfigResetReq struct {
 	Action string `json:"action,omitempty"` // 动作
 }
 
+// 刷新配置接口请求参数
+type SysConfigRefreshReq struct {
+	Action string `json:"action,omitempty"` // 动作
+}
+
 // 配置详情接口响应参数
 type SysConfigDetailRes struct {
 	*SysConfig

@@ -48,3 +48,14 @@ type ResetReq struct {
 type ResetRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 刷新配置接口请求参数
+type RefreshReq struct {
+	g.Meta `path:"/refresh" role:"admin" tags:"sys_config" method:"post" summary:"刷新配置接口"`
+	model.SysConfigRefreshReq
+}
+
+// 刷新配置接口响应参数
+type RefreshRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

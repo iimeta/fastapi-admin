@@ -23,6 +23,8 @@ type (
 		Detail(ctx context.Context) (*model.SysConfig, error)
 		// 重置配置
 		Reset(ctx context.Context, params model.SysConfigResetReq) (*entity.SysConfig, error)
+		// 刷新配置
+		Refresh(ctx context.Context, params model.SysConfigRefreshReq) error
 		// 系统配置
 		Config(ctx context.Context) (*model.SysConfig, error)
 		// 初始化配置

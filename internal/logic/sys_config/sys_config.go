@@ -251,6 +251,22 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 	return s.Update(ctx, sysConfigUpdateReq)
 }
 
+// 刷新配置
+func (s *sSysConfig) Refresh(ctx context.Context, params model.SysConfigRefreshReq) error {
+
+	switch params.Action {
+	case "refresh_api_cache":
+		if _, err := redis.Publish(ctx, consts.REFRESH_CHANNEL_API, model.PubMessage{
+			Action: consts.ACTION_CACHE,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	return nil
+}
+
 // 系统配置
 func (s *sSysConfig) Config(ctx context.Context) (*model.SysConfig, error) {
 
