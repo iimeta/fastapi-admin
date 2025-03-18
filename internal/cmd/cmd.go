@@ -313,6 +313,13 @@ func middleware(r *ghttp.Request) {
 		}
 	}
 
+	if role := r.GetServeHandler().GetMetaTag("role"); role != "" && role != "*" && !gstr.Contains(role, service.Session().GetRole(r.GetCtx())) {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
 	if config.Cfg.Debug.Open {
 		if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
 			logger.Debugf(r.GetCtx(), "url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
@@ -349,6 +356,13 @@ func sysMiddleware(r *ghttp.Request) {
 	}
 
 	if err = service.Session().SaveAdmin(r.GetCtx(), token, admin); err != nil {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+		r.Exit()
+		return
+	}
+
+	if role := r.GetServeHandler().GetMetaTag("role"); role != "" && role != "*" && !gstr.Contains(role, service.Session().GetRole(r.GetCtx())) {
 		r.Response.Header().Set("Content-Type", "application/json")
 		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
 		r.Exit()
