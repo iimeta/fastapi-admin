@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) Delete(ctx context.Context, req *v1.DeleteReq) (res *v1.DeleteRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	err = service.ModelAgent().Delete(ctx, req.Id)
 
 	return

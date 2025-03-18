@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) KeyConfig(ctx context.Context, req *v1.KeyConfigReq) (res *v1.KeyConfigRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	key, err := service.App().KeyConfig(ctx, req.AppKeyConfigReq)
 	if err != nil {
 		return nil, err

@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) Permissions(ctx context.Context, req *v1.PermissionsReq) (res *v1.PermissionsRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	items, err := service.Model().Permissions(ctx, req.ModelPermissionsReq)
 	if err != nil {
 		return nil, err

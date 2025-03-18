@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	items, err := service.Corp().List(ctx, req.CorpListReq)
 	if err != nil {
 		return nil, err

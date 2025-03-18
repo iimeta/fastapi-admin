@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) Refresh(ctx context.Context, req *v1.RefreshReq) (res *v1.RefreshRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	err = service.SysConfig().Refresh(ctx, req.SysConfigRefreshReq)
 
 	return

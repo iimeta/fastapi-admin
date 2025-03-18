@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateReq) (res *v1.CreateRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	_, err = service.ModelAgent().Create(ctx, req.ModelAgentCreateReq)
 
 	return

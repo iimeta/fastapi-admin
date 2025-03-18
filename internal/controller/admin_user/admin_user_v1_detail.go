@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	user, err := service.AdminUser().Detail(ctx, req.Id)
 	if err != nil {
 		return nil, err

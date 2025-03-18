@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) Expense(ctx context.Context, req *v1.ExpenseReq) (res *v1.ExpenseRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	expense, err := service.Dashboard().Expense(ctx)
 	if err != nil {
 		return nil, err

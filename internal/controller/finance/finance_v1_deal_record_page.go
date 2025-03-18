@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) DealRecordPage(ctx context.Context, req *v1.DealRecordPageReq) (res *v1.DealRecordPageRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	dealRecordPageRes, err := service.Finance().DealRecordPage(ctx, req.FinanceDealRecordPageReq)
 	if err != nil {
 		return nil, err

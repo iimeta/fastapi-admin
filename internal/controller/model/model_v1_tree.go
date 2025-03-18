@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) Tree(ctx context.Context, req *v1.TreeReq) (res *v1.TreeRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	items, err := service.Model().Tree(ctx, req.ModelTreeReq)
 	if err != nil {
 		return nil, err

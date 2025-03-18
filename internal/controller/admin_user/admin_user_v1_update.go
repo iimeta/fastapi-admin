@@ -8,10 +8,6 @@ import (
 
 func (c *ControllerV1) Update(ctx context.Context, req *v1.UpdateReq) (res *v1.UpdateRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	err = service.AdminUser().Update(ctx, req.UserUpdateReq)
 
 	return

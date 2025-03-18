@@ -254,7 +254,7 @@ func (s *sAudio) CopyField(ctx context.Context, params model.AudioCopyFieldReq) 
 		return "", err
 	}
 
-	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
+	if service.Session().IsUserRole(ctx) && (params.Field == "key" || result.UserId != service.Session().GetUserId(ctx)) {
 		return "", errors.ERR_UNAUTHORIZED
 	}
 

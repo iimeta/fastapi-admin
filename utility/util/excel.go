@@ -13,8 +13,7 @@ func ExcelExport(sheetName string, titleCols []string, colFieldMap map[string]st
 
 	f := excelize.NewFile()
 
-	err := f.SetSheetName(f.GetSheetName(0), sheetName)
-	if err != nil {
+	if err := f.SetSheetName(f.GetSheetName(0), sheetName); err != nil {
 		return err
 	}
 
@@ -32,32 +31,30 @@ func ExcelExport(sheetName string, titleCols []string, colFieldMap map[string]st
 	}
 
 	for i, title := range titleCols {
-		err := f.SetCellValue(sheetName, fmt.Sprintf("%c1", COL_A+i), title)
-		if err != nil {
+
+		if err = f.SetCellValue(sheetName, fmt.Sprintf("%c1", COL_A+i), title); err != nil {
 			return err
 		}
-		err = f.SetCellStyle(sheetName, fmt.Sprintf("%c1", COL_A+i), fmt.Sprintf("%c1", COL_A+i), style)
-		if err != nil {
+
+		if err = f.SetCellStyle(sheetName, fmt.Sprintf("%c1", COL_A+i), fmt.Sprintf("%c1", COL_A+i), style); err != nil {
 			return err
 		}
 	}
 
-	err = f.SetColWidth(sheetName, fmt.Sprintf("%c", COL_A), fmt.Sprintf("%c", COL_A+len(titleCols)-1), 24)
-	if err != nil {
+	if err = f.SetColWidth(sheetName, fmt.Sprintf("%c", COL_A), fmt.Sprintf("%c", COL_A+len(titleCols)-1), 24); err != nil {
 		return err
 	}
 
 	for i := 0; i < len(values); i++ {
 		value := reflect.ValueOf(values[i]).Elem()
 		for j := 0; j < len(titleCols); j++ {
-			err := f.SetCellValue(sheetName, fmt.Sprintf("%c%d", COL_A+j, 2+i), value.FieldByName(colFieldMap[titleCols[j]]))
-			if err != nil {
+			if err = f.SetCellValue(sheetName, fmt.Sprintf("%c%d", COL_A+j, 2+i), value.FieldByName(colFieldMap[titleCols[j]])); err != nil {
 				return err
 			}
 		}
 	}
 
-	if err := f.SaveAs(saveExcelFilePath); err != nil {
+	if err = f.SaveAs(saveExcelFilePath); err != nil {
 		return err
 	}
 

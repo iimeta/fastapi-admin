@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) Update(ctx context.Context, req *v1.UpdateReq) (res *v1.UpdateRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	_, err = service.SysConfig().Update(ctx, req.SysConfigUpdateReq)
 
 	return

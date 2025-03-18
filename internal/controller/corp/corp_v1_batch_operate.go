@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	err = service.Corp().BatchOperate(ctx, req.CorpBatchOperateReq)
 
 	return

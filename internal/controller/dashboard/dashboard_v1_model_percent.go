@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) ModelPercent(ctx context.Context, req *v1.ModelPercentReq) (res *v1.ModelPercentRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	models, items, err := service.Dashboard().ModelPercent(ctx, req.DashboardModelPercentReq)
 	if err != nil {
 		return nil, err

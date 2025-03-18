@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	appPageRes, err := service.App().Page(ctx, req.AppPageReq)
 	if err != nil {
 		return nil, err

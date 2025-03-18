@@ -13,10 +13,6 @@ import (
 
 func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	if service.Session().IsUserRole(ctx) {
 
 		user := service.Session().GetUser(ctx)

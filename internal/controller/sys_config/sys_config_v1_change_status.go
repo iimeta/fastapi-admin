@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) ChangeStatus(ctx context.Context, req *v1.ChangeStatusReq) (res *v1.ChangeStatusRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	err = service.SysConfig().ChangeStatus(ctx, req.SysConfigChangeStatusReq)
 
 	return

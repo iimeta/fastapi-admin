@@ -13,8 +13,6 @@ import (
 
 type (
 	IAuth interface {
-		// 身份核验
-		Authenticator(ctx context.Context, req interface{}) bool
 		// 注册
 		Register(ctx context.Context, params model.RegisterReq, channel ...string) error
 		// 登录

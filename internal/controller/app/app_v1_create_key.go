@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) CreateKey(ctx context.Context, req *v1.CreateKeyReq) (res *v1.CreateKeyRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	key, err := service.App().CreateKey(ctx, req.AppCreateKeyReq)
 	if err != nil {
 		return nil, err

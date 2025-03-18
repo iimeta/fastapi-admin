@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) ChangePublic(ctx context.Context, req *v1.ChangePublicReq) (res *v1.ChangePublicRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	err = service.Corp().ChangePublic(ctx, req.CorpChangePublicReq)
 
 	return

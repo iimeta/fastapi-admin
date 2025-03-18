@@ -153,7 +153,7 @@ func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq
 				return err
 			}
 		} else {
-			if _, err := dao.User.CreateAccount(ctx, &do.Account{
+			if _, err = dao.User.CreateAccount(ctx, &do.Account{
 				Uid:      account.Uid,
 				UserId:   account.UserId,
 				Account:  params.Email,
@@ -170,7 +170,7 @@ func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq
 	userSession := service.Session().GetUser(ctx)
 	userSession.Email = params.Email
 
-	if err := service.Session().UpdateUserSession(ctx, userSession); err != nil {
+	if err = service.Session().UpdateUserSession(ctx, userSession); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

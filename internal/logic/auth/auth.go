@@ -8,7 +8,6 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/gogf/gf/v2/util/gmeta"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -41,18 +40,6 @@ func New() service.IAuth {
 	return &sAuth{
 		tokenCache: cache.New(),
 	}
-}
-
-// 身份核验
-func (s *sAuth) Authenticator(ctx context.Context, req interface{}) bool {
-
-	role := gmeta.Get(req, "role").String()
-	if role != "*" && !gstr.Contains(role, service.Session().GetRole(ctx)) {
-		g.RequestFromCtx(ctx).Response.WriteJson(g.Map{"code": 401, "message": "Unauthorized"})
-		return false
-	}
-
-	return true
 }
 
 // 注册

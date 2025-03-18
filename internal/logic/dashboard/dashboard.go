@@ -210,10 +210,6 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 // 费用
 func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
-	if service.Session().IsAdminRole(ctx) {
-		return &model.Expense{}, nil
-	}
-
 	user, err := service.User().GetUserByUserId(ctx, service.Session().GetUserId(ctx))
 	if err != nil {
 		logger.Error(ctx, err)

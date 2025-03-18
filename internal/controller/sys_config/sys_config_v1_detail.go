@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	sysConfig, err := service.SysConfig().Detail(ctx)
 	if err != nil {
 		return nil, err

@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) PerSecond(ctx context.Context, req *v1.PerSecondReq) (res *v1.PerSecondRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	rps, tps, err := service.Dashboard().PerSecond(ctx, req.DashboardPerSecondReq)
 	if err != nil {
 		return nil, err

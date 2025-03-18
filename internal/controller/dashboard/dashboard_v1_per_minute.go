@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) PerMinute(ctx context.Context, req *v1.PerMinuteReq) (res *v1.PerMinuteRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	rpm, tpm, err := service.Dashboard().PerMinute(ctx, req.DashboardPerMinuteReq)
 	if err != nil {
 		return nil, err

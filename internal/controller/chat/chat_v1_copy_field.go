@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) CopyField(ctx context.Context, req *v1.CopyFieldReq) (res *v1.CopyFieldRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	value, err := service.Chat().CopyField(ctx, req.ChatCopyFieldReq)
 	if err != nil {
 		return nil, err

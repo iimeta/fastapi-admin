@@ -10,10 +10,6 @@ import (
 
 func (c *ControllerV1) BillExport(ctx context.Context, req *v1.BillExportReq) (res *v1.BillExportRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	filePath, err := service.Finance().BillExport(ctx, req.FinanceBillExportReq)
 	if err != nil {
 		return nil, err

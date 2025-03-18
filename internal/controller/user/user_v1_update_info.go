@@ -9,10 +9,6 @@ import (
 
 func (c *ControllerV1) UpdateInfo(ctx context.Context, req *v1.UpdateInfoReq) (res *v1.UpdateInfoRes, err error) {
 
-	if !service.Auth().Authenticator(ctx, req) {
-		return
-	}
-
 	if service.Session().IsUserRole(ctx) {
 		err = service.User().UpdateInfo(ctx, req.UserUpdateInfoReq)
 	}
