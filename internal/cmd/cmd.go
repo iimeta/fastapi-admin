@@ -204,23 +204,20 @@ var (
 						midjourney.NewV1(),
 					)
 				})
-			})
 
-			s.Group("/api/v1/sys", func(v1 *ghttp.RouterGroup) {
-
-				v1.Group("/admin", func(g *ghttp.RouterGroup) {
+				v1.Group("/sys/admin", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						sys_admin.NewV1(),
 					)
 				})
 
-				v1.Group("/site", func(g *ghttp.RouterGroup) {
+				v1.Group("/sys/site", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						site_config.NewV1(),
 					)
 				})
 
-				v1.Group("/config", func(g *ghttp.RouterGroup) {
+				v1.Group("/sys/config", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						sys_config.NewV1(),
 					)
