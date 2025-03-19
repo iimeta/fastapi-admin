@@ -7,7 +7,7 @@ import (
 
 // 新建模型接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" auth:"true" role:"admin" tags:"model" method:"post" summary:"新建模型接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"admin" tags:"model" summary:"新建模型接口"`
 	model.ModelCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新模型接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" auth:"true" role:"admin" tags:"model" method:"post" summary:"更新模型接口"`
+	g.Meta `path:"/update" method:"post" auth:"true" role:"admin" tags:"model" summary:"更新模型接口"`
 	model.ModelUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改模型状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" auth:"true" role:"admin" tags:"model" method:"post" summary:"更改模型状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"admin" tags:"model" summary:"更改模型状态接口"`
 	model.ModelChangeStatusReq
 }
 
@@ -40,7 +40,7 @@ type ChangeStatusRes struct {
 
 // 删除模型接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" auth:"true" role:"admin" tags:"model" method:"post" summary:"删除模型接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"admin" tags:"model" summary:"删除模型接口"`
 	Id     string `json:"id"`
 }
 
@@ -51,7 +51,7 @@ type DeleteRes struct {
 
 // 模型详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" auth:"true" role:"admin" tags:"model" method:"get" summary:"模型详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"admin" tags:"model" summary:"模型详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -63,7 +63,7 @@ type DetailRes struct {
 
 // 模型分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" auth:"true" role:"user,admin" tags:"model" method:"post" summary:"模型分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,admin" tags:"model" summary:"模型分页列表接口"`
 	model.ModelPageReq
 }
 
@@ -75,7 +75,7 @@ type PageRes struct {
 
 // 模型列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" auth:"true" role:"user,admin" tags:"model" method:"get" summary:"模型列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"user,admin" tags:"model" summary:"模型列表接口"`
 	model.ModelListReq
 }
 
@@ -87,7 +87,7 @@ type ListRes struct {
 
 // 模型批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" auth:"true" role:"admin" tags:"model" method:"post" summary:"模型批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"model" summary:"模型批量操作接口"`
 	model.ModelBatchOperateReq
 }
 
@@ -98,7 +98,7 @@ type BatchOperateRes struct {
 
 // 模型权限列表接口请求参数
 type PermissionsReq struct {
-	g.Meta `path:"/permissions" auth:"true" role:"user,admin" tags:"model" method:"post" summary:"模型权限列表接口"`
+	g.Meta `path:"/permissions" method:"post" auth:"true" role:"user,admin" tags:"model" summary:"模型权限列表接口"`
 	model.ModelPermissionsReq
 }
 
@@ -110,7 +110,7 @@ type PermissionsRes struct {
 
 // 模型初始化同步接口请求参数
 type InitSyncReq struct {
-	g.Meta `path:"/init" auth:"true" role:"admin" tags:"model" method:"post" summary:"模型初始化同步接口"`
+	g.Meta `path:"/init" method:"post" auth:"true" role:"admin" tags:"model" summary:"模型初始化同步接口"`
 	model.ModelInitSyncReq
 }
 
@@ -121,7 +121,7 @@ type InitSyncRes struct {
 
 // 模型树接口请求参数
 type TreeReq struct {
-	g.Meta `path:"/tree" auth:"true" role:"user,admin" tags:"model" method:"get" summary:"模型树接口"`
+	g.Meta `path:"/tree" method:"get" auth:"true" role:"user,admin" tags:"model" summary:"模型树接口"`
 	model.ModelTreeReq
 }
 

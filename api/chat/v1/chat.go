@@ -7,7 +7,7 @@ import (
 
 // 聊天详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" auth:"true" role:"user,admin" tags:"log/chat" method:"get" summary:"聊天详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"user,admin" tags:"log/chat" summary:"聊天详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -19,7 +19,7 @@ type DetailRes struct {
 
 // 聊天分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" auth:"true" role:"user,admin" tags:"log/chat" method:"post" summary:"聊天分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,admin" tags:"log/chat" summary:"聊天分页列表接口"`
 	model.ChatPageReq
 }
 
@@ -31,7 +31,7 @@ type PageRes struct {
 
 // 聊天导出接口请求参数
 type ExportReq struct {
-	g.Meta `path:"/export" auth:"true" role:"user,admin" tags:"log/chat" method:"post" summary:"聊天导出接口"`
+	g.Meta `path:"/export" method:"post" auth:"true" role:"user,admin" tags:"log/chat" summary:"聊天导出接口"`
 	model.ChatExportReq
 }
 
@@ -42,7 +42,7 @@ type ExportRes struct {
 
 // 聊天批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" auth:"true" role:"admin" tags:"log/chat" method:"post" summary:"聊天批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"log/chat" summary:"聊天批量操作接口"`
 	model.ChatBatchOperateReq
 }
 
@@ -53,7 +53,7 @@ type BatchOperateRes struct {
 
 // 聊天日志详情复制字段值接口请求参数
 type CopyFieldReq struct {
-	g.Meta `path:"/copy/field" auth:"true" role:"user,admin" tags:"log/chat" method:"post" summary:"聊天日志详情复制字段值详情接口"`
+	g.Meta `path:"/copy/field" method:"post" auth:"true" role:"user,admin" tags:"log/chat" summary:"聊天日志详情复制字段值详情接口"`
 	model.ChatCopyFieldReq
 }
 

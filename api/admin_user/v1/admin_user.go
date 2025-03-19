@@ -7,7 +7,7 @@ import (
 
 // 新建用户接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"新建用户接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"新建用户接口"`
 	model.UserCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新用户接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"更新用户接口"`
+	g.Meta `path:"/update" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"更新用户接口"`
 	model.UserUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改用户额度过期时间接口请求参数
 type ChangeQuotaExpireReq struct {
-	g.Meta `path:"/change/quota/expire" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"更改用户额度过期时间接口"`
+	g.Meta `path:"/change/quota/expire" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"更改用户额度过期时间接口"`
 	model.UserChangeQuotaExpireReq
 }
 
@@ -40,7 +40,7 @@ type ChangeQuotaExpireRes struct {
 
 // 更改用户状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"更改用户状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"更改用户状态接口"`
 	model.UserChangeStatusReq
 }
 
@@ -51,7 +51,7 @@ type ChangeStatusRes struct {
 
 // 删除用户接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"删除用户接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"删除用户接口"`
 	Id     string `json:"id"`
 }
 
@@ -62,7 +62,7 @@ type DeleteRes struct {
 
 // 用户详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" auth:"true" role:"admin" tags:"admin_user" method:"get" summary:"用户详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"admin" tags:"admin_user" summary:"用户详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -74,7 +74,7 @@ type DetailRes struct {
 
 // 用户分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"用户分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"用户分页列表接口"`
 	model.UserPageReq
 }
 
@@ -86,7 +86,7 @@ type PageRes struct {
 
 // 用户列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" auth:"true" role:"admin" tags:"admin_user" method:"get" summary:"用户列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"admin" tags:"admin_user" summary:"用户列表接口"`
 	model.UserListReq
 }
 
@@ -98,7 +98,7 @@ type ListRes struct {
 
 // 授予用户额度接口请求参数
 type GrantQuotaReq struct {
-	g.Meta `path:"/grant/quota" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"授予用户额度接口"`
+	g.Meta `path:"/grant/quota" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"授予用户额度接口"`
 	model.UserGrantQuotaReq
 }
 
@@ -109,7 +109,7 @@ type GrantQuotaRes struct {
 
 // 用户模型权限接口请求参数
 type ModelsReq struct {
-	g.Meta `path:"/models" auth:"true" role:"admin" tags:"admin_user" method:"post" summary:"用户模型权限接口"`
+	g.Meta `path:"/models" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"用户模型权限接口"`
 	model.UserModelsReq
 }
 

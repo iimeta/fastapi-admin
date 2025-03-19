@@ -7,7 +7,7 @@ import (
 
 // 新建模型代理接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" auth:"true" role:"admin" tags:"model_agent" method:"post" summary:"新建模型代理接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"新建模型代理接口"`
 	model.ModelAgentCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新模型代理接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" auth:"true" role:"admin" tags:"model_agent" method:"post" summary:"更新模型代理接口"`
+	g.Meta `path:"/update" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"更新模型代理接口"`
 	model.ModelAgentUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改模型代理状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" auth:"true" role:"admin" tags:"model_agent" method:"post" summary:"更改模型代理状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"更改模型代理状态接口"`
 	model.ModelAgentChangeStatusReq
 }
 
@@ -40,7 +40,7 @@ type ChangeStatusRes struct {
 
 // 删除模型代理接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" auth:"true" role:"admin" tags:"model_agent" method:"post" summary:"删除模型代理接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"删除模型代理接口"`
 	Id     string `json:"id"`
 }
 
@@ -51,7 +51,7 @@ type DeleteRes struct {
 
 // 模型代理详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" auth:"true" role:"admin" tags:"model_agent" method:"get" summary:"模型代理详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -63,7 +63,7 @@ type DetailRes struct {
 
 // 模型代理分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" auth:"true" role:"admin" tags:"model_agent" method:"post" summary:"模型代理分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理分页列表接口"`
 	model.ModelAgentPageReq
 }
 
@@ -75,7 +75,7 @@ type PageRes struct {
 
 // 模型代理列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" auth:"true" role:"admin" tags:"model_agent" method:"get" summary:"模型代理列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理列表接口"`
 	model.ModelAgentListReq
 }
 
@@ -87,7 +87,7 @@ type ListRes struct {
 
 // 模型代理批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" auth:"true" role:"admin" tags:"model_agent" method:"post" summary:"模型代理批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理批量操作接口"`
 	model.ModelAgentBatchOperateReq
 }
 

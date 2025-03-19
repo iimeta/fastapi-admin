@@ -7,7 +7,7 @@ import (
 
 // 绘图详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" auth:"true" role:"user,admin" tags:"log/image" method:"get" summary:"绘图详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"user,admin" tags:"log/image" summary:"绘图详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -19,7 +19,7 @@ type DetailRes struct {
 
 // 绘图分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" auth:"true" role:"user,admin" tags:"log/image" method:"post" summary:"绘图分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,admin" tags:"log/image" summary:"绘图分页列表接口"`
 	model.ImagePageReq
 }
 
@@ -31,7 +31,7 @@ type PageRes struct {
 
 // 绘图日志详情复制字段值接口请求参数
 type CopyFieldReq struct {
-	g.Meta `path:"/copy/field" auth:"true" role:"user,admin" tags:"log/image" method:"post" summary:"绘图日志详情复制字段值详情接口"`
+	g.Meta `path:"/copy/field" method:"post" auth:"true" role:"user,admin" tags:"log/image" summary:"绘图日志详情复制字段值详情接口"`
 	model.ImageCopyFieldReq
 }
 

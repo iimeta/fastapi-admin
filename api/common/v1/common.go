@@ -7,7 +7,7 @@ import (
 
 // 发送短信验证码接口请求参数
 type SendSmsReq struct {
-	g.Meta `path:"/sms-code" tags:"common" method:"post" summary:"发送短信验证码接口"`
+	g.Meta `path:"/sms-code" method:"post" tags:"common" summary:"发送短信验证码接口"`
 	model.SendSmsReq
 }
 
@@ -18,7 +18,7 @@ type SendSmsRes struct {
 
 // 发送邮件验证码接口请求参数
 type SendEmailReq struct {
-	g.Meta `path:"/email-code" tags:"common" method:"post" summary:"发送邮件验证码接口"`
+	g.Meta `path:"/email-code" method:"post" tags:"common" summary:"发送邮件验证码接口"`
 	model.SendEmailReq
 }
 

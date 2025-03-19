@@ -7,7 +7,7 @@ import (
 
 // 新建密钥接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" auth:"true" role:"admin" tags:"key" method:"post" summary:"新建密钥接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"admin" tags:"key" summary:"新建密钥接口"`
 	model.KeyCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新密钥接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" auth:"true" role:"admin" tags:"key" method:"post" summary:"更新密钥接口"`
+	g.Meta `path:"/update" method:"post" auth:"true" role:"admin" tags:"key" summary:"更新密钥接口"`
 	model.KeyUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改密钥状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" auth:"true" role:"user,admin" tags:"key" method:"post" summary:"更改密钥状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"更改密钥状态接口"`
 	model.KeyChangeStatusReq
 }
 
@@ -40,7 +40,7 @@ type ChangeStatusRes struct {
 
 // 删除密钥接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" auth:"true" role:"user,admin" tags:"key" method:"post" summary:"删除密钥接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"删除密钥接口"`
 	Id     string `json:"id"`
 }
 
@@ -51,7 +51,7 @@ type DeleteRes struct {
 
 // 密钥详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" auth:"true" role:"user,admin" tags:"key" method:"get" summary:"密钥详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"user,admin" tags:"key" summary:"密钥详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -63,7 +63,7 @@ type DetailRes struct {
 
 // 密钥分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" auth:"true" role:"user,admin" tags:"key" method:"post" summary:"密钥分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"密钥分页列表接口"`
 	model.KeyPageReq
 }
 
@@ -75,7 +75,7 @@ type PageRes struct {
 
 // 密钥列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" auth:"true" role:"admin" tags:"key" method:"get" summary:"密钥列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"admin" tags:"key" summary:"密钥列表接口"`
 	model.KeyListReq
 }
 
@@ -87,7 +87,7 @@ type ListRes struct {
 
 // 密钥批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" auth:"true" role:"user,admin" tags:"key" method:"post" summary:"密钥批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"密钥批量操作接口"`
 	model.KeyBatchOperateReq
 }
 
