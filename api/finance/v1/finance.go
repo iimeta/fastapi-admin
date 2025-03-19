@@ -7,7 +7,7 @@ import (
 
 // 账单明细详情接口请求参数
 type BillDetailReq struct {
-	g.Meta `path:"/bill/detail" role:"user,admin" tags:"finance" method:"get" summary:"账单明细详情接口"`
+	g.Meta `path:"/bill/detail" auth:"true" role:"user,admin" tags:"finance" method:"get" summary:"账单明细详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -19,7 +19,7 @@ type BillDetailRes struct {
 
 // 账单明细分页列表接口请求参数
 type BillPageReq struct {
-	g.Meta `path:"/bill/page" role:"user,admin" tags:"finance" method:"post" summary:"账单明细分页列表接口"`
+	g.Meta `path:"/bill/page" auth:"true" role:"user,admin" tags:"finance" method:"post" summary:"账单明细分页列表接口"`
 	model.FinanceBillPageReq
 }
 
@@ -31,7 +31,7 @@ type BillPageRes struct {
 
 // 账单明细导出接口请求参数
 type BillExportReq struct {
-	g.Meta `path:"/bill/export" role:"user,admin" tags:"finance" method:"post" summary:"账单明细导出接口"`
+	g.Meta `path:"/bill/export" auth:"true" role:"user,admin" tags:"finance" method:"post" summary:"账单明细导出接口"`
 	model.FinanceBillExportReq
 }
 
@@ -42,7 +42,7 @@ type BillExportRes struct {
 
 // 交易记录分页列表接口请求参数
 type DealRecordPageReq struct {
-	g.Meta `path:"/deal/record/page" role:"user,admin" tags:"finance" method:"post" summary:"交易记录分页列表接口"`
+	g.Meta `path:"/deal/record/page" auth:"true" role:"user,admin" tags:"finance" method:"post" summary:"交易记录分页列表接口"`
 	model.FinanceDealRecordPageReq
 }
 

@@ -7,7 +7,7 @@ import (
 
 // 用户数据接口请求参数
 type DataUserReq struct {
-	g.Meta `path:"/data/user" role:"admin" tags:"statistics" method:"post" summary:"用户数据接口"`
+	g.Meta `path:"/data/user" auth:"true" role:"admin" tags:"statistics" method:"post" summary:"用户数据接口"`
 	model.StatisticsDataReq
 }
 
@@ -19,7 +19,7 @@ type DataUserRes struct {
 
 // 应用数据接口请求参数
 type DataAppReq struct {
-	g.Meta `path:"/data/app" role:"admin" tags:"statistics" method:"post" summary:"应用数据接口"`
+	g.Meta `path:"/data/app" auth:"true" role:"admin" tags:"statistics" method:"post" summary:"应用数据接口"`
 	model.StatisticsDataReq
 }
 
@@ -31,7 +31,7 @@ type DataAppRes struct {
 
 // 应用密钥数据接口请求参数
 type DataAppKeyReq struct {
-	g.Meta `path:"/data/app/key" role:"admin" tags:"statistics" method:"post" summary:"应用密钥数据接口"`
+	g.Meta `path:"/data/app/key" auth:"true" role:"admin" tags:"statistics" method:"post" summary:"应用密钥数据接口"`
 	model.StatisticsDataReq
 }
 

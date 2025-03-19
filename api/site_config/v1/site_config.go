@@ -7,7 +7,7 @@ import (
 
 // 新建站点配置接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" role:"admin" tags:"site_config" method:"post" summary:"新建站点配置接口"`
+	g.Meta `path:"/create" auth:"true" role:"admin" tags:"site_config" method:"post" summary:"新建站点配置接口"`
 	model.SiteConfigCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新站点配置接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" role:"admin" tags:"site_config" method:"post" summary:"更新站点配置接口"`
+	g.Meta `path:"/update" auth:"true" role:"admin" tags:"site_config" method:"post" summary:"更新站点配置接口"`
 	model.SiteConfigUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改站点配置状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" role:"admin" tags:"site_config" method:"post" summary:"更改站点配置状态接口"`
+	g.Meta `path:"/change/status" auth:"true" role:"admin" tags:"site_config" method:"post" summary:"更改站点配置状态接口"`
 	model.SiteConfigChangeStatusReq
 }
 
@@ -40,7 +40,7 @@ type ChangeStatusRes struct {
 
 // 删除站点配置接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" role:"admin" tags:"site_config" method:"post" summary:"删除站点配置接口"`
+	g.Meta `path:"/delete" auth:"true" role:"admin" tags:"site_config" method:"post" summary:"删除站点配置接口"`
 	Id     string `json:"id"`
 }
 
@@ -51,7 +51,7 @@ type DeleteRes struct {
 
 // 站点配置详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" role:"admin" tags:"site_config" method:"get" summary:"站点配置详情接口"`
+	g.Meta `path:"/detail" auth:"true" role:"admin" tags:"site_config" method:"get" summary:"站点配置详情接口"`
 	model.SiteConfigDetailReq
 }
 
@@ -63,7 +63,7 @@ type DetailRes struct {
 
 // 站点配置分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" role:"admin" tags:"site_config" method:"post" summary:"站点配置分页列表接口"`
+	g.Meta `path:"/page" auth:"true" role:"admin" tags:"site_config" method:"post" summary:"站点配置分页列表接口"`
 	model.SiteConfigPageReq
 }
 
@@ -75,7 +75,7 @@ type PageRes struct {
 
 // 站点配置批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" role:"admin" tags:"site_config" method:"post" summary:"站点配置批量操作接口"`
+	g.Meta `path:"/batch/operate" auth:"true" role:"admin" tags:"site_config" method:"post" summary:"站点配置批量操作接口"`
 	model.SiteConfigBatchOperateReq
 }
 

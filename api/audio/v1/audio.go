@@ -7,7 +7,7 @@ import (
 
 // 音频详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" role:"user,admin" tags:"log/audio" method:"get" summary:"音频详情接口"`
+	g.Meta `path:"/detail" auth:"true" role:"user,admin" tags:"log/audio" method:"get" summary:"音频详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -19,7 +19,7 @@ type DetailRes struct {
 
 // 音频分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" role:"user,admin" tags:"log/audio" method:"post" summary:"音频分页列表接口"`
+	g.Meta `path:"/page" auth:"true" role:"user,admin" tags:"log/audio" method:"post" summary:"音频分页列表接口"`
 	model.AudioPageReq
 }
 
@@ -31,7 +31,7 @@ type PageRes struct {
 
 // 音频日志详情复制字段值接口请求参数
 type CopyFieldReq struct {
-	g.Meta `path:"/copy/field" role:"user,admin" tags:"log/audio" method:"post" summary:"音频日志详情复制字段值详情接口"`
+	g.Meta `path:"/copy/field" auth:"true" role:"user,admin" tags:"log/audio" method:"post" summary:"音频日志详情复制字段值详情接口"`
 	model.AudioCopyFieldReq
 }
 

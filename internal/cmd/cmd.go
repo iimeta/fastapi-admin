@@ -87,10 +87,10 @@ var (
 
 			s.AddStaticPath("/public", "./resource/public")
 
+			s.Use(authMiddleware)
+			s.Use(middlewareHandlerResponse)
+
 			s.Group("/", func(g *ghttp.RouterGroup) {
-
-				g.Middleware(middlewareHandlerResponse)
-
 				g.Bind(
 					func(r *ghttp.Request) {
 						r.Response.WriteStatus(http.StatusOK, "Hello Fast API Admin")
@@ -102,8 +102,6 @@ var (
 			})
 
 			s.Group("/api/v1", func(v1 *ghttp.RouterGroup) {
-
-				v1.Middleware(middlewareHandlerResponse)
 
 				v1.Group("/open", func(g *ghttp.RouterGroup) {
 					g.Bind(
@@ -124,98 +122,84 @@ var (
 				})
 
 				v1.Group("/user", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						user.NewV1(),
 					)
 				})
 
 				v1.Group("/admin/user", func(g *ghttp.RouterGroup) {
-					g.Middleware(sysMiddleware)
 					g.Bind(
 						admin_user.NewV1(),
 					)
 				})
 
 				v1.Group("/app", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						app.NewV1(),
 					)
 				})
 
 				v1.Group("/model", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						model.NewV1(),
 					)
 				})
 
 				v1.Group("/model/agent", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						model_agent.NewV1(),
 					)
 				})
 
 				v1.Group("/key", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						key.NewV1(),
 					)
 				})
 
 				v1.Group("/dashboard", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						dashboard.NewV1(),
 					)
 				})
 
 				v1.Group("/corp", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						corp.NewV1(),
 					)
 				})
 
 				v1.Group("/finance", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						finance.NewV1(),
 					)
 				})
 
 				v1.Group("/statistics", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						statistics.NewV1(),
 					)
 				})
 
 				v1.Group("/log/chat", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						chat.NewV1(),
 					)
 				})
 
 				v1.Group("/log/image", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						image.NewV1(),
 					)
 				})
 
 				v1.Group("/log/audio", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						audio.NewV1(),
 					)
 				})
 
 				v1.Group("/log/mj", func(g *ghttp.RouterGroup) {
-					g.Middleware(middleware)
 					g.Bind(
 						midjourney.NewV1(),
 					)
@@ -223,9 +207,6 @@ var (
 			})
 
 			s.Group("/api/v1/sys", func(v1 *ghttp.RouterGroup) {
-
-				v1.Middleware(middlewareHandlerResponse)
-				v1.Middleware(sysMiddleware)
 
 				v1.Group("/admin", func(g *ghttp.RouterGroup) {
 					g.Bind(
@@ -262,11 +243,16 @@ func beforeServeHook(r *ghttp.Request) {
 	r.Response.CORSDefault()
 }
 
-func middleware(r *ghttp.Request) {
+func authMiddleware(r *ghttp.Request) {
 
-	token := r.GetHeader("Authorization")
-	token = strings.TrimSpace(strings.TrimPrefix(token, "Bearer"))
+	handler := r.GetServeHandler()
 
+	if handler.GetMetaTag("auth") != "true" {
+		r.Middleware.Next()
+		return
+	}
+
+	token := strings.TrimSpace(strings.TrimPrefix(r.GetHeader("Authorization"), "Bearer"))
 	if token == "" {
 		token = r.Get("token").String()
 	}
@@ -313,56 +299,7 @@ func middleware(r *ghttp.Request) {
 		}
 	}
 
-	if role := r.GetServeHandler().GetMetaTag("role"); role != "" && role != "*" && !gstr.Contains(role, service.Session().GetRole(r.GetCtx())) {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
-	}
-
-	if config.Cfg.Debug.Open {
-		if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
-			logger.Debugf(r.GetCtx(), "url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
-		} else {
-			logger.Debugf(r.GetCtx(), "url: %s, Content-Type: %s", r.GetUrl(), r.GetHeader("Content-Type"))
-		}
-	}
-
-	r.Middleware.Next()
-}
-
-func sysMiddleware(r *ghttp.Request) {
-
-	token := r.GetHeader("Authorization")
-	token = strings.TrimSpace(strings.TrimPrefix(token, "Bearer"))
-
-	if token == "" {
-		token = r.Get("token").String()
-	}
-
-	if token == "" {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
-	}
-
-	admin, err := service.Auth().GetAdminByToken(r.GetCtx(), token)
-	if err != nil {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
-	}
-
-	if err = service.Session().SaveAdmin(r.GetCtx(), token, admin); err != nil {
-		r.Response.Header().Set("Content-Type", "application/json")
-		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
-		r.Exit()
-		return
-	}
-
-	if role := r.GetServeHandler().GetMetaTag("role"); role != "" && role != "*" && !gstr.Contains(role, service.Session().GetRole(r.GetCtx())) {
+	if !checkRole(gstr.Split(handler.GetMetaTag("role"), ","), service.Session().GetRole(r.GetCtx())) {
 		r.Response.Header().Set("Content-Type", "application/json")
 		r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
 		r.Exit()
@@ -433,4 +370,13 @@ func middlewareHandlerResponse(r *ghttp.Request) {
 		Message: msg,
 		Data:    res,
 	})
+}
+
+func checkRole(roles []string, userRole string) bool {
+	for _, role := range roles {
+		if role == userRole {
+			return true
+		}
+	}
+	return false
 }
