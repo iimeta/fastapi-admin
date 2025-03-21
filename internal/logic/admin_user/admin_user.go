@@ -41,6 +41,10 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return errors.New(params.Account + " 账号已存在")
 	}
 
+	if dao.User.IsAccountExist(ctx, params.Email) {
+		return errors.New(params.Email + " 邮箱已被其它账号使用")
+	}
+
 	if len(params.Models) == 0 {
 
 		models, err := service.Model().PublicModels(ctx)
