@@ -1306,12 +1306,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 // 公开的模型Ids
 func (s *sModel) PublicModels(ctx context.Context) ([]string, error) {
 
-	filter := bson.M{
-		"is_public": true,
-		"status":    1,
-	}
-
-	results, err := dao.Model.Find(ctx, filter, "-updated_at")
+	results, err := dao.Model.Find(ctx, bson.M{"is_public": true}, "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

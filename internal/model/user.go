@@ -34,13 +34,14 @@ type UserUpdateInfoReq struct {
 
 // 新建用户接口请求参数
 type UserCreateReq struct {
-	Name           string `json:"name,omitempty" v:"required"`                  // 姓名
-	Email          string `json:"email,omitempty" v:"required"`                 // 邮箱
-	Account        string `json:"account,omitempty" v:"required"`               // 账号
-	Password       string `json:"password,omitempty" v:"required|min-length:6"` // 密码
-	Quota          int    `json:"quota,omitempty"`                              // 额度
-	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`                   // 额度过期时间
-	Remark         string `json:"remark,omitempty"`                             // 备注
+	Name           string   `json:"name,omitempty" v:"required"`                  // 姓名
+	Email          string   `json:"email,omitempty" v:"required"`                 // 邮箱
+	Account        string   `json:"account,omitempty" v:"required"`               // 账号
+	Password       string   `json:"password,omitempty" v:"required|min-length:6"` // 密码
+	Quota          int      `json:"quota,omitempty"`                              // 额度
+	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
+	Models         []string `json:"models,omitempty"`                             // 模型权限
+	Remark         string   `json:"remark,omitempty"`                             // 备注
 }
 
 // 更新用户接口请求参数

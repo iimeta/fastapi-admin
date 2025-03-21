@@ -41,10 +41,15 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return errors.New(params.Account + " 账号已存在")
 	}
 
-	models, err := service.Model().PublicModels(ctx)
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
+	if len(params.Models) == 0 {
+
+		models, err := service.Model().PublicModels(ctx)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		params.Models = models
 	}
 
 	var (
@@ -57,7 +62,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 			Email:          params.Email,
 			Quota:          params.Quota,
 			QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
-			Models:         models,
+			Models:         params.Models,
 			Remark:         params.Remark,
 			Status:         1,
 			Creator:        id,
