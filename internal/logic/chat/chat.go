@@ -220,7 +220,25 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		}
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, paging, filter, index, "-req_time", "status", "-created_at")
+	projection := bson.M{
+		"_id":               1,
+		"user_id":           1,
+		"app_id":            1,
+		"model":             1,
+		"stream":            1,
+		"prompt_tokens":     1,
+		"completion_tokens": 1,
+		"total_tokens":      1,
+		"conn_time":         1,
+		"duration":          1,
+		"total_time":        1,
+		"req_time":          1,
+		"status":            1,
+		"internal_time":     1,
+		"is_smart_match":    1,
+	}
+
+	results, err := dao.Chat.FindByPage(ctx, paging, filter, index, projection, "-req_time", "status", "-created_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -230,25 +248,20 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	for _, result := range results {
 
 		chat := &model.Chat{
-			Id:                   result.Id,
-			UserId:               result.UserId,
-			AppId:                result.AppId,
-			Corp:                 result.Corp,
-			Model:                result.Model,
-			Stream:               result.Stream,
-			TextQuota:            result.TextQuota,
-			ImageQuotas:          result.ImageQuotas,
-			MultimodalQuota:      result.MultimodalQuota,
-			RealtimeQuota:        result.RealtimeQuota,
-			MultimodalAudioQuota: result.MultimodalAudioQuota,
-			PromptTokens:         result.PromptTokens,
-			CompletionTokens:     result.CompletionTokens,
-			TotalTokens:          result.TotalTokens,
-			ConnTime:             result.ConnTime,
-			Duration:             result.Duration,
-			TotalTime:            result.TotalTime,
-			ReqTime:              util.FormatDateTimeMonth(result.ReqTime),
-			Status:               result.Status,
+			Id:               result.Id,
+			UserId:           result.UserId,
+			AppId:            result.AppId,
+			Corp:             result.Corp,
+			Model:            result.Model,
+			Stream:           result.Stream,
+			PromptTokens:     result.PromptTokens,
+			CompletionTokens: result.CompletionTokens,
+			TotalTokens:      result.TotalTokens,
+			ConnTime:         result.ConnTime,
+			Duration:         result.Duration,
+			TotalTime:        result.TotalTime,
+			ReqTime:          util.FormatDateTimeMonth(result.ReqTime),
+			Status:           result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {

@@ -408,7 +408,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		}
 	}
 
-	results, err := dao.Key.FindByPage(ctx, paging, filter, "", "status", "-updated_at", "key")
+	results, err := dao.Key.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at", "key")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

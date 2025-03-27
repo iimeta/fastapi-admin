@@ -11,6 +11,7 @@ type MongoDB struct {
 	Collection    string
 	Filter        map[string]interface{}
 	Hint          interface{}
+	Projection    interface{}
 	CountPipeline []bson.M // AggregateByPage
 	Pipeline      []bson.M // Aggregate/AggregateByPage
 }
@@ -18,6 +19,7 @@ type MongoDB struct {
 func (m *MongoDB) Find(ctx context.Context, result interface{}, sortFields ...string) error {
 
 	var findOptions []*options.FindOptions
+
 	if len(sortFields) > 0 {
 
 		sort := bson.D{}
@@ -32,6 +34,14 @@ func (m *MongoDB) Find(ctx context.Context, result interface{}, sortFields ...st
 		findOptions = append(findOptions, &options.FindOptions{Sort: sort})
 	}
 
+	if m.Hint != nil && m.Hint != "" {
+		findOptions = append(findOptions, &options.FindOptions{Hint: m.Hint})
+	}
+
+	if m.Projection != nil {
+		findOptions = append(findOptions, &options.FindOptions{Projection: m.Projection})
+	}
+
 	cursor, err := client.Database(m.Database).Collection(m.Collection).Find(ctx, m.Filter, findOptions...)
 	if err != nil {
 		return err
@@ -43,6 +53,7 @@ func (m *MongoDB) Find(ctx context.Context, result interface{}, sortFields ...st
 func (m *MongoDB) FindOne(ctx context.Context, result interface{}, sortFields ...string) error {
 
 	var findOneOptions []*options.FindOneOptions
+
 	if len(sortFields) > 0 {
 
 		sort := bson.D{}
@@ -55,6 +66,14 @@ func (m *MongoDB) FindOne(ctx context.Context, result interface{}, sortFields ..
 		}
 
 		findOneOptions = append(findOneOptions, &options.FindOneOptions{Sort: sort})
+	}
+
+	if m.Hint != nil && m.Hint != "" {
+		findOneOptions = append(findOneOptions, &options.FindOneOptions{Hint: m.Hint})
+	}
+
+	if m.Projection != nil {
+		findOneOptions = append(findOneOptions, &options.FindOneOptions{Projection: m.Projection})
 	}
 
 	return client.Database(m.Database).Collection(m.Collection).FindOne(ctx, m.Filter, findOneOptions...).Decode(result)
@@ -100,6 +119,10 @@ func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result interfa
 
 	if m.Hint != nil && m.Hint != "" {
 		findOptions = append(findOptions, &options.FindOptions{Hint: m.Hint})
+	}
+
+	if m.Projection != nil {
+		findOptions = append(findOptions, &options.FindOptions{Projection: m.Projection})
 	}
 
 	cursor, err := collection.Find(ctx, m.Filter, findOptions...)

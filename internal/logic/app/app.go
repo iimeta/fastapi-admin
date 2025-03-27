@@ -326,7 +326,7 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 		}
 	}
 
-	results, err := dao.App.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
+	results, err := dao.App.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

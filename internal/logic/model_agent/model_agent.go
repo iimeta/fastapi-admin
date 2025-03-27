@@ -514,7 +514,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		}
 	}
 
-	results, err := dao.ModelAgent.FindByPage(ctx, paging, filter, "", "status", "-updated_at")
+	results, err := dao.ModelAgent.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

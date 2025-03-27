@@ -613,7 +613,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		filter["status"] = params.Status
 	}
 
-	results, err := dao.Model.FindByPage(ctx, paging, filter, "", "status", "-updated_at", "name")
+	results, err := dao.Model.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at", "name")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

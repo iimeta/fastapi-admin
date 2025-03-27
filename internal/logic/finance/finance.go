@@ -83,7 +83,7 @@ func (s *sFinance) BillPage(ctx context.Context, params model.FinanceBillPageReq
 		}
 	}
 
-	results, err := dao.StatisticsUser.FindByPage(ctx, paging, filter, "", "-stat_date", "-tokens")
+	results, err := dao.StatisticsUser.FindByPage(ctx, paging, filter, "", nil, "-stat_date", "-tokens")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -212,7 +212,7 @@ func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealR
 		}
 	}
 
-	results, err := dao.DealRecord.FindByPage(ctx, paging, filter, "", "-updated_at")
+	results, err := dao.DealRecord.FindByPage(ctx, paging, filter, "", nil, "-updated_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

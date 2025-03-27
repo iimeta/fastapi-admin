@@ -207,7 +207,7 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 		}
 	}
 
-	results, err := dao.Image.FindByPage(ctx, paging, filter, "", "-req_time", "status", "-created_at")
+	results, err := dao.Image.FindByPage(ctx, paging, filter, "", nil, "-req_time", "status", "-created_at")
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
