@@ -220,25 +220,33 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		}
 	}
 
-	projection := bson.M{
-		"_id":               1,
-		"user_id":           1,
-		"app_id":            1,
-		"model":             1,
-		"stream":            1,
-		"prompt_tokens":     1,
-		"completion_tokens": 1,
-		"total_tokens":      1,
-		"conn_time":         1,
-		"duration":          1,
-		"total_time":        1,
-		"req_time":          1,
-		"status":            1,
-		"internal_time":     1,
-		"is_smart_match":    1,
+	findOptions := &dao.FindOptions{
+		SortFields: []string{
+			"-req_time",
+			"status",
+			"-created_at",
+		},
+		Index: index,
+		IncludeFields: []string{
+			"_id",
+			"user_id",
+			"app_id",
+			"model",
+			"stream",
+			"prompt_tokens",
+			"completion_tokens",
+			"total_tokens",
+			"conn_time",
+			"duration",
+			"total_time",
+			"req_time",
+			"status",
+			"internal_time",
+			"is_smart_match",
+		},
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, paging, filter, index, projection, "-req_time", "status", "-created_at")
+	results, err := dao.Chat.FindByPage(ctx, paging, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -305,7 +313,7 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 		}
 	}
 
-	results, err := dao.Chat.Find(ctx, filter, "-req_time", "status", "-created_at")
+	results, err := dao.Chat.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err

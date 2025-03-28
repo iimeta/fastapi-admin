@@ -613,7 +613,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		filter["status"] = params.Status
 	}
 
-	results, err := dao.Model.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at", "name")
+	results, err := dao.Model.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at", "name"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -733,7 +733,7 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 		}
 	}
 
-	results, err := dao.Model.Find(ctx, filter, "-updated_at", "name")
+	results, err := dao.Model.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -1009,7 +1009,7 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 		}
 	}
 
-	results, err := dao.Model.Find(ctx, filter, "-updated_at", "name")
+	results, err := dao.Model.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -1306,7 +1306,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 // 公开的模型Ids
 func (s *sModel) PublicModels(ctx context.Context) ([]string, error) {
 
-	results, err := dao.Model.Find(ctx, bson.M{"is_public": true}, "-updated_at")
+	results, err := dao.Model.Find(ctx, bson.M{"is_public": true}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

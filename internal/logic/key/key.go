@@ -408,7 +408,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		}
 	}
 
-	results, err := dao.Key.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at", "key")
+	results, err := dao.Key.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at", "key"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -526,7 +526,7 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 		filter["app_id"] = params.AppId
 	}
 
-	results, err := dao.Key.Find(ctx, filter, "status", "-updated_at", "key")
+	results, err := dao.Key.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at", "key"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

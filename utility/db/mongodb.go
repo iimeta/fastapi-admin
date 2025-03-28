@@ -10,20 +10,22 @@ type MongoDB struct {
 	Database      string
 	Collection    string
 	Filter        map[string]interface{}
-	Hint          interface{}
-	Projection    interface{}
+	SortFields    []string // 排序字段
+	Index         string   // 查询索引
+	IncludeFields []string // 包含字段
+	ExcludeFields []string // 排除字段
 	CountPipeline []bson.M // AggregateByPage
 	Pipeline      []bson.M // Aggregate/AggregateByPage
 }
 
-func (m *MongoDB) Find(ctx context.Context, result interface{}, sortFields ...string) error {
+func (m *MongoDB) Find(ctx context.Context, result interface{}) error {
 
 	var findOptions []*options.FindOptions
 
-	if len(sortFields) > 0 {
+	if len(m.SortFields) > 0 {
 
 		sort := bson.D{}
-		for _, field := range sortFields {
+		for _, field := range m.SortFields {
 			if field[:1] == "-" {
 				sort = append(sort, bson.E{Key: field[1:], Value: -1})
 			} else {
@@ -34,12 +36,28 @@ func (m *MongoDB) Find(ctx context.Context, result interface{}, sortFields ...st
 		findOptions = append(findOptions, &options.FindOptions{Sort: sort})
 	}
 
-	if m.Hint != nil && m.Hint != "" {
-		findOptions = append(findOptions, &options.FindOptions{Hint: m.Hint})
+	if m.Index != "" {
+		findOptions = append(findOptions, &options.FindOptions{Hint: m.Index})
 	}
 
-	if m.Projection != nil {
-		findOptions = append(findOptions, &options.FindOptions{Projection: m.Projection})
+	if len(m.IncludeFields) > 0 {
+
+		projection := make(map[string]interface{})
+		for _, field := range m.IncludeFields {
+			projection[field] = 1
+		}
+
+		findOptions = append(findOptions, &options.FindOptions{Projection: projection})
+	}
+
+	if len(m.ExcludeFields) > 0 {
+
+		projection := make(map[string]interface{})
+		for _, field := range m.ExcludeFields {
+			projection[field] = 0
+		}
+
+		findOptions = append(findOptions, &options.FindOptions{Projection: projection})
 	}
 
 	cursor, err := client.Database(m.Database).Collection(m.Collection).Find(ctx, m.Filter, findOptions...)
@@ -50,14 +68,14 @@ func (m *MongoDB) Find(ctx context.Context, result interface{}, sortFields ...st
 	return cursor.All(ctx, result)
 }
 
-func (m *MongoDB) FindOne(ctx context.Context, result interface{}, sortFields ...string) error {
+func (m *MongoDB) FindOne(ctx context.Context, result interface{}) error {
 
 	var findOneOptions []*options.FindOneOptions
 
-	if len(sortFields) > 0 {
+	if len(m.SortFields) > 0 {
 
 		sort := bson.D{}
-		for _, field := range sortFields {
+		for _, field := range m.SortFields {
 			if field[:1] == "-" {
 				sort = append(sort, bson.E{Key: field[1:], Value: -1})
 			} else {
@@ -68,18 +86,34 @@ func (m *MongoDB) FindOne(ctx context.Context, result interface{}, sortFields ..
 		findOneOptions = append(findOneOptions, &options.FindOneOptions{Sort: sort})
 	}
 
-	if m.Hint != nil && m.Hint != "" {
-		findOneOptions = append(findOneOptions, &options.FindOneOptions{Hint: m.Hint})
+	if m.Index != "" {
+		findOneOptions = append(findOneOptions, &options.FindOneOptions{Hint: m.Index})
 	}
 
-	if m.Projection != nil {
-		findOneOptions = append(findOneOptions, &options.FindOneOptions{Projection: m.Projection})
+	if len(m.IncludeFields) > 0 {
+
+		projection := make(map[string]interface{})
+		for _, field := range m.IncludeFields {
+			projection[field] = 1
+		}
+
+		findOneOptions = append(findOneOptions, &options.FindOneOptions{Projection: projection})
+	}
+
+	if len(m.ExcludeFields) > 0 {
+
+		projection := make(map[string]interface{})
+		for _, field := range m.ExcludeFields {
+			projection[field] = 0
+		}
+
+		findOneOptions = append(findOneOptions, &options.FindOneOptions{Projection: projection})
 	}
 
 	return client.Database(m.Database).Collection(m.Collection).FindOne(ctx, m.Filter, findOneOptions...).Decode(result)
 }
 
-func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result interface{}, sortFields ...string) (err error) {
+func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result interface{}) (err error) {
 
 	collection := client.Database(m.Database).Collection(m.Collection)
 
@@ -103,10 +137,10 @@ func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result interfa
 		AllowDiskUse: &allowDiskUse,
 	}}
 
-	if len(sortFields) > 0 {
+	if len(m.SortFields) > 0 {
 
 		sort := bson.D{}
-		for _, field := range sortFields {
+		for _, field := range m.SortFields {
 			if field[:1] == "-" {
 				sort = append(sort, bson.E{Key: field[1:], Value: -1})
 			} else {
@@ -117,12 +151,28 @@ func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result interfa
 		findOptions = append(findOptions, &options.FindOptions{Sort: sort})
 	}
 
-	if m.Hint != nil && m.Hint != "" {
-		findOptions = append(findOptions, &options.FindOptions{Hint: m.Hint})
+	if m.Index != "" {
+		findOptions = append(findOptions, &options.FindOptions{Hint: m.Index})
 	}
 
-	if m.Projection != nil {
-		findOptions = append(findOptions, &options.FindOptions{Projection: m.Projection})
+	if len(m.IncludeFields) > 0 {
+
+		projection := make(map[string]interface{})
+		for _, field := range m.IncludeFields {
+			projection[field] = 1
+		}
+
+		findOptions = append(findOptions, &options.FindOptions{Projection: projection})
+	}
+
+	if len(m.ExcludeFields) > 0 {
+
+		projection := make(map[string]interface{})
+		for _, field := range m.ExcludeFields {
+			projection[field] = 0
+		}
+
+		findOptions = append(findOptions, &options.FindOptions{Projection: projection})
 	}
 
 	cursor, err := collection.Find(ctx, m.Filter, findOptions...)

@@ -33,7 +33,7 @@ func New() service.ICorp {
 func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) (string, error) {
 
 	if params.Sort == 0 {
-		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, "-sort"); err == nil && corp != nil {
+		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-sort"}}); err == nil && corp != nil {
 			params.Sort = corp.Sort + 1
 		} else {
 			params.Sort = 1
@@ -73,7 +73,7 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) (string,
 func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
 
 	if params.Sort == 0 {
-		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, "-sort"); err == nil && corp != nil {
+		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-sort"}}); err == nil && corp != nil {
 			params.Sort = corp.Sort + 1
 		} else {
 			params.Sort = 1
@@ -235,7 +235,7 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 		}
 	}
 
-	results, err := dao.Corp.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at")
+	results, err := dao.Corp.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -277,7 +277,7 @@ func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Co
 		filter["is_public"] = true
 	}
 
-	results, err := dao.Corp.Find(ctx, filter, "sort", "status", "-updated_at")
+	results, err := dao.Corp.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"sort", "status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

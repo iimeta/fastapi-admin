@@ -67,7 +67,7 @@ func IncrAppId(ctx context.Context) int {
 // 获取最大用户ID
 func getMaxUserId(ctx context.Context) int {
 
-	if user, _ := dao.User.FindOne(ctx, bson.M{}, "-user_id"); user != nil {
+	if user, _ := dao.User.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-user_id"}}); user != nil {
 		return user.UserId
 	}
 
@@ -77,7 +77,7 @@ func getMaxUserId(ctx context.Context) int {
 // 获取最大应用ID
 func getMaxAppId(ctx context.Context) int {
 
-	if app, _ := dao.App.FindOne(ctx, bson.M{}, "-app_id"); app != nil {
+	if app, _ := dao.App.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-app_id"}}); app != nil {
 		return app.AppId
 	}
 

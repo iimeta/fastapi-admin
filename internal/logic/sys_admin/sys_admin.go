@@ -286,7 +286,7 @@ func (s *sSysAdmin) Page(ctx context.Context, params model.SysAdminPageReq) (*mo
 
 	filter := bson.M{}
 
-	results, err := dao.SysAdmin.FindByPage(ctx, paging, filter, "", nil, "-updated_at")
+	results, err := dao.SysAdmin.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

@@ -204,7 +204,7 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 		}
 	}
 
-	results, err := dao.Audio.FindByPage(ctx, paging, filter, "", nil, "-req_time", "status", "-created_at")
+	results, err := dao.Audio.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

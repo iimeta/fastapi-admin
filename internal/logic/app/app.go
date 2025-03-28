@@ -326,7 +326,7 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 		}
 	}
 
-	results, err := dao.App.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at")
+	results, err := dao.App.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -388,7 +388,7 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 		filter["user_id"] = service.Session().GetUserId(ctx)
 	}
 
-	results, err := dao.App.Find(ctx, filter, "-updated_at")
+	results, err := dao.App.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

@@ -119,7 +119,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 
 			dialer := email.NewDefaultDialer()
 
-			account, err := dao.Account.FindOne(ctx, bson.M{"user_id": user.UserId, "status": 1}, "-updated_at")
+			account, err := dao.Account.FindOne(ctx, bson.M{"user_id": user.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 			if err != nil {
 				logger.Error(ctx, err)
 				continue

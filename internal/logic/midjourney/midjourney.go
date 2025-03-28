@@ -190,7 +190,7 @@ func (s *sMidjourney) Page(ctx context.Context, params model.MidjourneyPageReq) 
 		}
 	}
 
-	results, err := dao.Midjourney.FindByPage(ctx, paging, filter, "", nil, "-req_time", "status", "-created_at")
+	results, err := dao.Midjourney.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

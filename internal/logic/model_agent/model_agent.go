@@ -391,7 +391,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		corpName = corp.Name
 	}
 
-	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, "-updated_at", "name")
+	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -405,7 +405,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		modelNames = append(modelNames, model.Name)
 	}
 
-	fallbackModelList, err := dao.Model.Find(ctx, bson.M{"fallback_config.model_agent": id}, "-updated_at", "name")
+	fallbackModelList, err := dao.Model.Find(ctx, bson.M{"fallback_config.model_agent": id}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -514,7 +514,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		}
 	}
 
-	results, err := dao.ModelAgent.FindByPage(ctx, paging, filter, "", nil, "status", "-updated_at")
+	results, err := dao.ModelAgent.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -600,7 +600,7 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 
 	filter := bson.M{}
 
-	results, err := dao.ModelAgent.Find(ctx, filter, "-updated_at")
+	results, err := dao.ModelAgent.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

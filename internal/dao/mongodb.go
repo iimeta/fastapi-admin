@@ -22,6 +22,13 @@ type MongoDB[T IMongoDB] struct {
 	*db.MongoDB
 }
 
+type FindOptions struct {
+	SortFields    []string // 排序字段
+	Index         string   // 查询索引
+	IncludeFields []string // 包含字段
+	ExcludeFields []string // 排除字段
+}
+
 func NewMongoDB[T IMongoDB](database, collection string) *MongoDB[T] {
 	return &MongoDB[T]{
 		MongoDB: &db.MongoDB{
@@ -30,7 +37,7 @@ func NewMongoDB[T IMongoDB](database, collection string) *MongoDB[T] {
 		}}
 }
 
-func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, sortFields ...string) ([]*T, error) {
+func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, findOptions ...*FindOptions) ([]*T, error) {
 
 	var result []*T
 
@@ -51,14 +58,14 @@ func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, so
 		}
 	}
 
-	if err := find(ctx, m.Database, m.Collection, filter, &result, sortFields...); err != nil {
+	if err := find(ctx, m.Database, m.Collection, filter, &result, findOptions...); err != nil {
 		return nil, err
 	}
 
 	return result, nil
 }
 
-func find(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, sortFields ...string) error {
+func find(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, findOptions ...*FindOptions) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -66,10 +73,17 @@ func find(ctx context.Context, database, collection string, filter map[string]in
 		Filter:     filter,
 	}
 
-	return m.Find(ctx, result, sortFields...)
+	if len(findOptions) > 0 {
+		m.SortFields = findOptions[0].SortFields
+		m.Index = findOptions[0].Index
+		m.IncludeFields = findOptions[0].IncludeFields
+		m.ExcludeFields = findOptions[0].ExcludeFields
+	}
+
+	return m.Find(ctx, result)
 }
 
-func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{}, sortFields ...string) (*T, error) {
+func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{}, findOptions ...*FindOptions) (*T, error) {
 
 	var result *T
 
@@ -90,14 +104,14 @@ func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{},
 		}
 	}
 
-	if err := findOne(ctx, m.Database, m.Collection, filter, &result, sortFields...); err != nil {
+	if err := findOne(ctx, m.Database, m.Collection, filter, &result, findOptions...); err != nil {
 		return nil, err
 	}
 
 	return result, nil
 }
 
-func findOne(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, sortFields ...string) error {
+func findOne(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, findOptions ...*FindOptions) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -105,20 +119,27 @@ func findOne(ctx context.Context, database, collection string, filter map[string
 		Filter:     filter,
 	}
 
-	return m.FindOne(ctx, result, sortFields...)
+	if len(findOptions) > 0 {
+		m.SortFields = findOptions[0].SortFields
+		m.Index = findOptions[0].Index
+		m.IncludeFields = findOptions[0].IncludeFields
+		m.ExcludeFields = findOptions[0].ExcludeFields
+	}
+
+	return m.FindOne(ctx, result)
 }
 
-func (m *MongoDB[T]) FindById(ctx context.Context, id interface{}) (*T, error) {
+func (m *MongoDB[T]) FindById(ctx context.Context, id interface{}, findOptions ...*FindOptions) (*T, error) {
 
 	var result *T
-	if err := findById(ctx, m.Database, m.Collection, id, &result); err != nil {
+	if err := findById(ctx, m.Database, m.Collection, id, &result, findOptions...); err != nil {
 		return nil, err
 	}
 
 	return result, nil
 }
 
-func findById(ctx context.Context, database, collection string, id, result interface{}) error {
+func findById(ctx context.Context, database, collection string, id, result interface{}, findOptions ...*FindOptions) error {
 
 	filter := bson.M{"_id": id}
 
@@ -141,20 +162,27 @@ func findById(ctx context.Context, database, collection string, id, result inter
 		Filter:     filter,
 	}
 
+	if len(findOptions) > 0 {
+		m.SortFields = findOptions[0].SortFields
+		m.Index = findOptions[0].Index
+		m.IncludeFields = findOptions[0].IncludeFields
+		m.ExcludeFields = findOptions[0].ExcludeFields
+	}
+
 	return m.FindOne(ctx, result)
 }
 
-func (m *MongoDB[T]) FindByIds(ctx context.Context, ids interface{}) ([]*T, error) {
+func (m *MongoDB[T]) FindByIds(ctx context.Context, ids interface{}, findOptions ...*FindOptions) ([]*T, error) {
 
 	var result []*T
-	if err := findByIds(ctx, m.Database, m.Collection, ids, &result); err != nil {
+	if err := findByIds(ctx, m.Database, m.Collection, ids, &result, findOptions...); err != nil {
 		return nil, err
 	}
 
 	return result, nil
 }
 
-func findByIds(ctx context.Context, database, collection string, ids, result interface{}) error {
+func findByIds(ctx context.Context, database, collection string, ids, result interface{}, findOptions ...*FindOptions) error {
 
 	filter := bson.M{"_id": bson.M{"$in": ids}}
 
@@ -177,10 +205,17 @@ func findByIds(ctx context.Context, database, collection string, ids, result int
 		Filter:     filter,
 	}
 
+	if len(findOptions) > 0 {
+		m.SortFields = findOptions[0].SortFields
+		m.Index = findOptions[0].Index
+		m.IncludeFields = findOptions[0].IncludeFields
+		m.ExcludeFields = findOptions[0].ExcludeFields
+	}
+
 	return m.Find(ctx, result)
 }
 
-func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter map[string]interface{}, index string, projection interface{}, sortFields ...string) ([]*T, error) {
+func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter map[string]interface{}, findOptions ...*FindOptions) ([]*T, error) {
 
 	var result []*T
 
@@ -201,24 +236,29 @@ func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter m
 		}
 	}
 
-	if err := findByPage(ctx, m.Database, m.Collection, index, projection, paging, filter, &result, sortFields...); err != nil {
+	if err := findByPage(ctx, m.Database, m.Collection, paging, filter, &result, findOptions...); err != nil {
 		return nil, err
 	}
 
 	return result, nil
 }
 
-func findByPage(ctx context.Context, database, collection, index string, projection interface{}, paging *db.Paging, filter map[string]interface{}, result interface{}, sortFields ...string) error {
+func findByPage(ctx context.Context, database, collection string, paging *db.Paging, filter map[string]interface{}, result interface{}, findOptions ...*FindOptions) error {
 
 	m := &db.MongoDB{
 		Database:   database,
 		Collection: collection,
 		Filter:     filter,
-		Hint:       index,
-		Projection: projection,
 	}
 
-	return m.FindByPage(ctx, paging, result, sortFields...)
+	if len(findOptions) > 0 {
+		m.SortFields = findOptions[0].SortFields
+		m.Index = findOptions[0].Index
+		m.IncludeFields = findOptions[0].IncludeFields
+		m.ExcludeFields = findOptions[0].ExcludeFields
+	}
+
+	return m.FindByPage(ctx, paging, result)
 }
 
 func (m *MongoDB[T]) Insert(ctx context.Context, document interface{}) (string, error) {
