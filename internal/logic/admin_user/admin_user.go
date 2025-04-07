@@ -371,7 +371,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		}
 	}
 
-	results, err := dao.User.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-user_id", "-updated_at"}})
+	results, err := dao.User.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-created_at", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -427,7 +427,7 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 
 	filter := bson.M{}
 
-	results, err := dao.User.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	results, err := dao.User.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"status", "-created_at", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
