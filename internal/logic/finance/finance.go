@@ -128,6 +128,10 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else {
+		if params.UserId != 0 {
+			filter["user_id"] = params.UserId
+		}
 	}
 
 	results, err := dao.StatisticsUser.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-stat_date", "-tokens"}})

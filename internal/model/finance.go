@@ -22,6 +22,7 @@ type FinanceBillPageRes struct {
 type FinanceBillExportReq struct {
 	Ids      []string `json:"ids,omitempty"`       // 主键Ids
 	StatDate []string `json:"stat_date,omitempty"` // 统计日期
+	UserId   int      `json:"user_id,omitempty"`   // 用户ID
 }
 
 // 账单明细
