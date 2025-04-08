@@ -43,7 +43,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 
 	mutex := s.noticeRedsync.NewMutex(consts.TASK_QUOTA_WARNING_LOCK_KEY, redsync.WithExpiry(config.Cfg.Notice.LockMinutes*time.Minute))
 	if err := mutex.LockContext(ctx); err != nil {
-		logger.Info(ctx, err)
+		logger.Info(ctx, "sNotice QuotaWarningTask", err)
 		logger.Debugf(ctx, "sNotice QuotaWarningTask end time: %d", gtime.TimestampMilli()-now)
 		return
 	}

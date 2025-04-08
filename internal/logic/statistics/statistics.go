@@ -42,7 +42,7 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 
 	mutex := s.statisticsRedsync.NewMutex(consts.TASK_STATISTICS_LOCK_KEY, redsync.WithExpiry(config.Cfg.Statistics.LockMinutes*time.Minute))
 	if err := mutex.LockContext(ctx); err != nil {
-		logger.Info(ctx, err)
+		logger.Info(ctx, "sStatistics StatisticsTask", err)
 		logger.Debugf(ctx, "sStatistics StatisticsTask end time: %d", gtime.TimestampMilli()-now)
 		return
 	}

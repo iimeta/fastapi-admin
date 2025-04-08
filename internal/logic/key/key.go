@@ -749,7 +749,7 @@ func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
 
 	mutex := s.checkRedsync.NewMutex(fmt.Sprintf(consts.TASK_CHECK_LOCK_KEY, crypto.SM3(enableError.Error)), redsync.WithExpiry(enableError.EnableTime*time.Second))
 	if err := mutex.LockContext(ctx); err != nil {
-		logger.Info(ctx, err)
+		logger.Info(ctx, "sKey CheckTask enableError: "+enableError.Error, err)
 		logger.Debugf(ctx, "sKey CheckTask enableError: %s end time: %d", enableError.Error, gtime.TimestampMilli()-now)
 		return
 	}

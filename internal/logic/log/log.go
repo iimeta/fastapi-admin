@@ -38,7 +38,7 @@ func (s *sLog) DelTask(ctx context.Context) {
 
 	mutex := s.logRedsync.NewMutex(consts.TASK_LOG_LOCK_KEY, redsync.WithExpiry(23*time.Hour))
 	if err := mutex.LockContext(ctx); err != nil {
-		logger.Info(ctx, err)
+		logger.Info(ctx, "sLog DelTask", err)
 		logger.Debugf(ctx, "sLog DelTask end time: %d", gtime.TimestampMilli()-now)
 		return
 	}
