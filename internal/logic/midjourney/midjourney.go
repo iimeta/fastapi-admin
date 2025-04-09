@@ -82,6 +82,7 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 		}
 
 		midjourney.ErrMsg = gstr.Split(midjourney.ErrMsg, " TraceId")[0]
+		midjourney.ErrMsg = gstr.Split(midjourney.ErrMsg, " (request id:")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {

@@ -99,6 +99,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		}
 
 		chat.ErrMsg = gstr.Split(chat.ErrMsg, " TraceId")[0]
+		chat.ErrMsg = gstr.Split(chat.ErrMsg, " (request id:")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {

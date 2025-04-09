@@ -90,6 +90,7 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 		}
 
 		image.ErrMsg = gstr.Split(image.ErrMsg, " TraceId")[0]
+		image.ErrMsg = gstr.Split(image.ErrMsg, " (request id:")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {

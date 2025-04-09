@@ -83,6 +83,7 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		}
 
 		audio.ErrMsg = gstr.Split(audio.ErrMsg, " TraceId")[0]
+		audio.ErrMsg = gstr.Split(audio.ErrMsg, " (request id:")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {
