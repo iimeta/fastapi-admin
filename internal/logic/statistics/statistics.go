@@ -99,7 +99,13 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		"is_retry":       bson.M{"$ne": true},
 	}
 
-	results, err := dao.NewMongoDB[entity.StatisticsData](db.DefaultDatabase, collection).FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, &dao.FindOptions{Index: index, SortFields: []string{"updated_at"}})
+	findOptions := &dao.FindOptions{
+		SortFields:    []string{"updated_at"},
+		Index:         index,
+		IncludeFields: []string{"_id", "user_id", "app_id", "model_id", "model", "total_tokens", "req_date", "status", "creator", "updated_at"},
+	}
+
+	results, err := dao.NewMongoDB[entity.StatisticsData](db.DefaultDatabase, collection).FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, err)
 		return
