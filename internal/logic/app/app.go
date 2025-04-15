@@ -41,7 +41,11 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 
 	userId := service.Session().GetUserId(ctx)
 
-	if params.UserId != 0 && service.Session().IsAdminRole(ctx) {
+	if service.Session().IsAdminRole(ctx) {
+
+		if params.UserId == 0 {
+			return "", errors.New("请输入用户ID")
+		}
 
 		if _, err := service.User().GetUserByUserId(ctx, params.UserId); err != nil {
 			logger.Error(ctx, err)
