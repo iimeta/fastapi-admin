@@ -107,8 +107,16 @@ type UserListRes struct {
 	Items []*User `json:"items"`
 }
 
-// 授予用户额度接口请求参数
-type UserGrantQuotaReq struct {
+// 用户批量操作接口请求参数
+type UserBatchOperateReq struct {
+	Action         string   `json:"action"`                     // 动作
+	Ids            []string `json:"ids"`                        // 主键Ids
+	Value          any      `json:"value"`                      // 值
+	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+}
+
+// 用户充值接口请求参数
+type UserRechargeReq struct {
 	UserId         int    `json:"user_id,omitempty"`            // 用户ID
 	Quota          int    `json:"quota,omitempty" v:"required"` // 额度
 	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`   // 额度过期时间

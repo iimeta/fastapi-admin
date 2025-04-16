@@ -29,10 +29,12 @@ type (
 		Page(ctx context.Context, params model.UserPageReq) (*model.UserPageRes, error)
 		// 用户列表
 		List(ctx context.Context, params model.UserListReq) ([]*model.User, error)
-		// 授予用户额度
-		GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error
+		// 用户充值
+		Recharge(ctx context.Context, params model.UserRechargeReq) error
 		// 用户模型权限
 		Models(ctx context.Context, params model.UserModelsReq) error
+		// 用户批量操作
+		BatchOperate(ctx context.Context, params model.UserBatchOperateReq) error
 	}
 )
 

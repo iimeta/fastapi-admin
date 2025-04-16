@@ -86,6 +86,17 @@ type ListRes struct {
 	*model.AppListRes
 }
 
+// 应用批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"user,admin" tags:"app" summary:"应用批量操作接口"`
+	model.AppBatchOperateReq
+}
+
+// 应用批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 新建应用密钥接口请求参数
 type CreateKeyReq struct {
 	g.Meta `path:"/create/key" method:"post" auth:"true" role:"user,admin" tags:"app" summary:"新建应用密钥接口"`

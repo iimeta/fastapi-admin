@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
@@ -453,8 +454,8 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 	return items, nil
 }
 
-// 授予用户额度
-func (s *sAdminUser) GrantQuota(ctx context.Context, params model.UserGrantQuotaReq) error {
+// 用户充值
+func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq) error {
 
 	oldData, err := dao.User.FindOne(ctx, bson.M{"user_id": params.UserId})
 	if err != nil {
@@ -528,6 +529,56 @@ func (s *sAdminUser) Models(ctx context.Context, params model.UserModelsReq) err
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	return nil
+}
+
+// 用户批量操作
+func (s *sAdminUser) BatchOperate(ctx context.Context, params model.UserBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_RECHARGE:
+
+		users, err := dao.User.FindByIds(ctx, params.Ids)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		for _, user := range users {
+
+			quotaExpiresAt := params.QuotaExpiresAt
+			if quotaExpiresAt == "" {
+				quotaExpiresAt = util.FormatDateTime(user.QuotaExpiresAt)
+			}
+
+			if err := s.Recharge(ctx, model.UserRechargeReq{
+				UserId:         user.UserId,
+				Quota:          gconv.Int(params.Value),
+				QuotaExpiresAt: quotaExpiresAt,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_STATUS:
+		for _, id := range params.Ids {
+			if err := s.ChangeStatus(ctx, model.UserChangeStatusReq{
+				Id:     id,
+				Status: gconv.Int(params.Value),
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_DELETE:
+		for _, id := range params.Ids {
+			if err := s.Delete(ctx, id); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
 	}
 
 	return nil

@@ -96,14 +96,25 @@ type ListRes struct {
 	*model.UserListRes
 }
 
-// 授予用户额度接口请求参数
-type GrantQuotaReq struct {
-	g.Meta `path:"/grant/quota" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"授予用户额度接口"`
-	model.UserGrantQuotaReq
+// 用户批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"用户批量操作接口"`
+	model.UserBatchOperateReq
 }
 
-// 授予用户额度接口响应参数
-type GrantQuotaRes struct {
+// 用户批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
+// 用户充值接口请求参数
+type RechargeReq struct {
+	g.Meta `path:"/recharge" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"用户充值接口"`
+	model.UserRechargeReq
+}
+
+// 用户充值接口响应参数
+type RechargeRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 

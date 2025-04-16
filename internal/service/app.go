@@ -33,6 +33,8 @@ type (
 		KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k string, err error)
 		// 应用模型权限
 		Models(ctx context.Context, params model.AppModelsReq) error
+		// 应用批量操作
+		BatchOperate(ctx context.Context, params model.AppBatchOperateReq) error
 	}
 )
 

@@ -604,3 +604,29 @@ func (s *sApp) Models(ctx context.Context, params model.AppModelsReq) error {
 
 	return nil
 }
+
+// 应用批量操作
+func (s *sApp) BatchOperate(ctx context.Context, params model.AppBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_STATUS:
+		for _, id := range params.Ids {
+			if err := s.ChangeStatus(ctx, model.AppChangeStatusReq{
+				Id:     id,
+				Status: gconv.Int(params.Value),
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_DELETE:
+		for _, id := range params.Ids {
+			if err := s.Delete(ctx, id); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}

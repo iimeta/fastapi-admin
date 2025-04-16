@@ -76,6 +76,13 @@ type AppListRes struct {
 	Items []*App `json:"items"`
 }
 
+// 应用批量操作接口请求参数
+type AppBatchOperateReq struct {
+	Action string   `json:"action"` // 动作
+	Ids    []string `json:"ids"`    // 主键Ids
+	Value  any      `json:"value"`  // 值
+}
+
 // 新建应用密钥接口请求参数
 type AppCreateKeyReq struct {
 	UserId int `json:"user_id,omitempty"` // 用户ID
