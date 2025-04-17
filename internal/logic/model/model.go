@@ -364,18 +364,18 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 
 	for _, user := range users {
 
-		userModelsReq := model.UserPermissionsReq{
+		userPermissionsReq := model.UserPermissionsReq{
 			UserId: user.UserId,
 			Models: []string{},
 		}
 
 		for _, m := range user.Models {
 			if m != id {
-				userModelsReq.Models = append(userModelsReq.Models, m)
+				userPermissionsReq.Models = append(userPermissionsReq.Models, m)
 			}
 		}
 
-		if err = service.AdminUser().Permissions(ctx, userModelsReq); err != nil {
+		if err = service.AdminUser().Permissions(ctx, userPermissionsReq); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
