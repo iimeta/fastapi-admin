@@ -505,8 +505,8 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 	return nil
 }
 
-// 用户模型权限
-func (s *sAdminUser) Models(ctx context.Context, params model.UserModelsReq) error {
+// 用户权限
+func (s *sAdminUser) Permissions(ctx context.Context, params model.UserPermissionsReq) error {
 
 	oldData, err := dao.User.FindOne(ctx, bson.M{"user_id": params.UserId})
 	if err != nil {
@@ -523,7 +523,7 @@ func (s *sAdminUser) Models(ctx context.Context, params model.UserModelsReq) err
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-		Action:  consts.ACTION_MODELS,
+		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
 		NewData: newData,
 	}); err != nil {

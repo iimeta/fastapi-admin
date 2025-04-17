@@ -20,7 +20,6 @@ const (
 	ACTION_UPDATE     = "update"
 	ACTION_DELETE     = "delete"
 	ACTION_STATUS     = "status"
-	ACTION_MODELS     = "models"
 	ACTION_AGENT      = "agent"
 	ACTION_FORWARD    = "forward"
 	ACTION_FALLBACK   = "fallback"

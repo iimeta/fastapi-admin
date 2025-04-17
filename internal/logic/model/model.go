@@ -115,7 +115,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 			newUserData.Models = append(newUserData.Models, id)
 
 			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-				Action:  consts.ACTION_MODELS,
+				Action:  consts.ACTION_UPDATE,
 				OldData: user,
 				NewData: newUserData,
 			}); err != nil {
@@ -270,7 +270,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			}
 
 			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-				Action:  consts.ACTION_MODELS,
+				Action:  consts.ACTION_UPDATE,
 				OldData: user,
 				NewData: newUserData,
 			}); err != nil {
@@ -303,7 +303,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			newUserData.Models = gset.NewStrSetFrom(append(newUserData.Models, params.Id)).Slice()
 
 			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-				Action:  consts.ACTION_MODELS,
+				Action:  consts.ACTION_UPDATE,
 				OldData: user,
 				NewData: newUserData,
 			}); err != nil {
@@ -364,7 +364,7 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 
 	for _, user := range users {
 
-		userModelsReq := model.UserModelsReq{
+		userModelsReq := model.UserPermissionsReq{
 			UserId: user.UserId,
 			Models: []string{},
 		}
@@ -375,7 +375,7 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 			}
 		}
 
-		if err = service.AdminUser().Models(ctx, userModelsReq); err != nil {
+		if err = service.AdminUser().Permissions(ctx, userModelsReq); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}

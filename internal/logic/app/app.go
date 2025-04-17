@@ -594,7 +594,7 @@ func (s *sApp) Models(ctx context.Context, params model.AppModelsReq) error {
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, model.PubMessage{
-		Action:  consts.ACTION_MODELS,
+		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
 		NewData: newData,
 	}); err != nil {

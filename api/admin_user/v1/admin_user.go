@@ -118,13 +118,13 @@ type RechargeRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
-// 用户模型权限接口请求参数
-type ModelsReq struct {
-	g.Meta `path:"/models" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"用户模型权限接口"`
-	model.UserModelsReq
+// 用户权限接口请求参数
+type PermissionsReq struct {
+	g.Meta `path:"/permissions" method:"post" auth:"true" role:"admin" tags:"admin_user" summary:"用户权限接口"`
+	model.UserPermissionsReq
 }
 
-// 用户模型权限接口响应参数
-type ModelsRes struct {
+// 用户权限接口响应参数
+type PermissionsRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }

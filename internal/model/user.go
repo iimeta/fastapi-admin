@@ -122,8 +122,8 @@ type UserRechargeReq struct {
 	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`   // 额度过期时间
 }
 
-// 用户模型权限接口请求参数
-type UserModelsReq struct {
+// 用户权限接口请求参数
+type UserPermissionsReq struct {
 	UserId int      `json:"user_id,omitempty"`       // 用户ID
 	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
 }

@@ -31,8 +31,8 @@ type (
 		List(ctx context.Context, params model.UserListReq) ([]*model.User, error)
 		// 用户充值
 		Recharge(ctx context.Context, params model.UserRechargeReq) error
-		// 用户模型权限
-		Models(ctx context.Context, params model.UserModelsReq) error
+		// 用户权限
+		Permissions(ctx context.Context, params model.UserPermissionsReq) error
 		// 用户批量操作
 		BatchOperate(ctx context.Context, params model.UserBatchOperateReq) error
 	}

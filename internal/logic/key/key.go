@@ -729,7 +729,7 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 	}
 
 	if _, err = redis.Publish(ctx, channel, model.PubMessage{
-		Action:  consts.ACTION_MODELS,
+		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
 		NewData: newData,
 	}); err != nil {
