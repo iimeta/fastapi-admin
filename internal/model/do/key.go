@@ -17,6 +17,7 @@ type Key struct {
 	Models              []string `bson:"models"`                       // 模型
 	ModelAgents         []string `bson:"model_agents"`                 // 模型代理
 	IsAgentsOnly        bool     `bson:"is_agents_only"`               // 是否代理专用
+	IsNeverDisable      bool     `bson:"is_never_disable"`             // 是否永不禁用
 	IsLimitQuota        bool     `bson:"is_limit_quota"`               // 是否限制额度
 	Quota               int      `bson:"quota"`                        // 剩余额度
 	UsedQuota           int      `bson:"used_quota,omitempty"`         // 已用额度

@@ -2,27 +2,29 @@ package model
 
 // 新建密钥接口请求参数
 type KeyCreateReq struct {
-	Corp         string   `json:"corp,omitempty"`           // 公司
-	Key          string   `json:"key,omitempty"`            // 密钥
-	Weight       int      `json:"weight,omitempty"`         // 权重
-	Models       []string `json:"models,omitempty"`         // 模型
-	ModelAgents  []string `json:"model_agents,omitempty"`   // 模型代理
-	IsAgentsOnly bool     `json:"is_agents_only,omitempty"` // 是否代理专用
-	Remark       string   `json:"remark,omitempty"`         // 备注
-	Status       int      `json:"status,omitempty" d:"1"`   // 状态[1:正常, 2:禁用, -1:删除]
+	Corp           string   `json:"corp,omitempty"`             // 公司
+	Key            string   `json:"key,omitempty"`              // 密钥
+	Weight         int      `json:"weight,omitempty"`           // 权重
+	Models         []string `json:"models,omitempty"`           // 模型
+	ModelAgents    []string `json:"model_agents,omitempty"`     // 模型代理
+	IsAgentsOnly   bool     `json:"is_agents_only,omitempty"`   // 是否代理专用
+	IsNeverDisable bool     `json:"is_never_disable,omitempty"` // 是否永不禁用
+	Remark         string   `json:"remark,omitempty"`           // 备注
+	Status         int      `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新密钥接口请求参数
 type KeyUpdateReq struct {
-	Id           string   `json:"id,omitempty"`                  // ID
-	Corp         string   `json:"corp,omitempty"`                // 公司
-	Key          string   `json:"key,omitempty"`                 // 密钥
-	Weight       int      `json:"weight,omitempty"`              // 权重
-	Models       []string `json:"models,omitempty" d:"[]"`       // 模型
-	ModelAgents  []string `json:"model_agents,omitempty" d:"[]"` // 模型代理
-	IsAgentsOnly bool     `json:"is_agents_only,omitempty"`      // 是否代理专用
-	Remark       string   `json:"remark,omitempty"`              // 备注
-	Status       int      `json:"status,omitempty" d:"1"`        // 状态[1:正常, 2:禁用, -1:删除]
+	Id             string   `json:"id,omitempty"`                  // ID
+	Corp           string   `json:"corp,omitempty"`                // 公司
+	Key            string   `json:"key,omitempty"`                 // 密钥
+	Weight         int      `json:"weight,omitempty"`              // 权重
+	Models         []string `json:"models,omitempty" d:"[]"`       // 模型
+	ModelAgents    []string `json:"model_agents,omitempty" d:"[]"` // 模型代理
+	IsAgentsOnly   bool     `json:"is_agents_only,omitempty"`      // 是否代理专用
+	IsNeverDisable bool     `json:"is_never_disable,omitempty"`    // 是否永不禁用
+	Remark         string   `json:"remark,omitempty"`              // 备注
+	Status         int      `json:"status,omitempty" d:"1"`        // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改密钥状态接口请求参数
@@ -111,6 +113,7 @@ type Key struct {
 	ModelAgents         []string `json:"model_agents,omitempty"`          // 模型代理
 	ModelAgentNames     []string `json:"model_agent_names,omitempty"`     // 模型代理名称
 	IsAgentsOnly        bool     `json:"is_agents_only"`                  // 是否代理专用
+	IsNeverDisable      bool     `json:"is_never_disable,omitempty"`      // 是否永不禁用
 	IsLimitQuota        bool     `json:"is_limit_quota"`                  // 是否限制额度
 	Quota               int      `json:"quota"`                           // 剩余额度
 	UsedQuota           int      `json:"used_quota"`                      // 已用额度

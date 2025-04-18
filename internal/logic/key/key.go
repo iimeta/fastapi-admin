@@ -72,15 +72,16 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 			if key == nil {
 
 				id, err := dao.Key.Insert(ctx, &do.Key{
-					Corp:         params.Corp,
-					Key:          gstr.Trim(k),
-					Type:         2,
-					Weight:       params.Weight,
-					Models:       params.Models,
-					ModelAgents:  params.ModelAgents,
-					IsAgentsOnly: params.IsAgentsOnly,
-					Remark:       params.Remark,
-					Status:       params.Status,
+					Corp:           params.Corp,
+					Key:            gstr.Trim(k),
+					Type:           2,
+					Weight:         params.Weight,
+					Models:         params.Models,
+					ModelAgents:    params.ModelAgents,
+					IsAgentsOnly:   params.IsAgentsOnly,
+					IsNeverDisable: params.IsNeverDisable,
+					Remark:         params.Remark,
+					Status:         params.Status,
 				})
 
 				if err != nil {
@@ -155,6 +156,7 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 		Models:             params.Models,
 		ModelAgents:        params.ModelAgents,
 		IsAgentsOnly:       params.IsAgentsOnly,
+		IsNeverDisable:     params.IsNeverDisable,
 		Remark:             params.Remark,
 		Status:             params.Status,
 		IsAutoDisabled:     oldData.IsAutoDisabled,
@@ -314,6 +316,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		ModelAgents:         key.ModelAgents,
 		ModelAgentNames:     modelAgentNames,
 		IsAgentsOnly:        key.IsAgentsOnly,
+		IsNeverDisable:      key.IsNeverDisable,
 		IsLimitQuota:        key.IsLimitQuota,
 		Quota:               key.Quota,
 		UsedQuota:           key.UsedQuota,

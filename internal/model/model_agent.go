@@ -11,6 +11,7 @@ type ModelAgentCreateReq struct {
 	IsEnableModelReplace bool     `json:"is_enable_model_replace,omitempty"` // 是否启用模型替换
 	ReplaceModels        []string `json:"replace_models,omitempty"`          // 替换模型
 	TargetModels         []string `json:"target_models,omitempty"`           // 目标模型
+	IsNeverDisable       bool     `json:"is_never_disable,omitempty"`        // 是否永不禁用
 	LbStrategy           int      `json:"lb_strategy,omitempty" d:"1"`       // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key                  string   `json:"key,omitempty"`                     // 密钥
 	IsAgentsOnly         bool     `json:"is_agents_only,omitempty"`          // 是否代理专用
@@ -30,6 +31,7 @@ type ModelAgentUpdateReq struct {
 	IsEnableModelReplace bool     `json:"is_enable_model_replace,omitempty"` // 是否启用模型替换
 	ReplaceModels        []string `json:"replace_models,omitempty"`          // 替换模型
 	TargetModels         []string `json:"target_models,omitempty"`           // 目标模型
+	IsNeverDisable       bool     `json:"is_never_disable,omitempty"`        // 是否永不禁用
 	LbStrategy           int      `json:"lb_strategy,omitempty" d:"1"`       // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key                  string   `json:"key,omitempty"`                     // 密钥
 	IsAgentsOnly         bool     `json:"is_agents_only,omitempty"`          // 是否代理专用
@@ -101,6 +103,7 @@ type ModelAgent struct {
 	IsEnableModelReplace bool     `json:"is_enable_model_replace"`        // 是否启用模型替换
 	ReplaceModels        []string `json:"replace_models,omitempty"`       // 替换模型
 	TargetModels         []string `json:"target_models,omitempty"`        // 目标模型
+	IsNeverDisable       bool     `json:"is_never_disable,omitempty"`     // 是否永不禁用
 	LbStrategy           int      `json:"lb_strategy,omitempty"`          // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key                  string   `json:"key,omitempty"`                  // 密钥
 	Remark               string   `json:"remark,omitempty"`               // 备注
