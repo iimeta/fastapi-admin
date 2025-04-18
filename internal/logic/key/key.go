@@ -111,13 +111,14 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 				modelAgentSet.Add(params.ModelAgents...)
 
 				if err := s.Update(ctx, model.KeyUpdateReq{
-					Id:           key.Id,
-					Corp:         params.Corp,
-					Key:          key.Key,
-					Weight:       key.Weight,
-					Models:       modelSet.Slice(),
-					ModelAgents:  modelAgentSet.Slice(),
-					IsAgentsOnly: params.IsAgentsOnly,
+					Id:             key.Id,
+					Corp:           params.Corp,
+					Key:            key.Key,
+					Weight:         key.Weight,
+					Models:         modelSet.Slice(),
+					ModelAgents:    modelAgentSet.Slice(),
+					IsAgentsOnly:   params.IsAgentsOnly,
+					IsNeverDisable: params.IsNeverDisable,
 				}, isModelAgent); err != nil {
 					logger.Error(ctx, err)
 				}
@@ -417,28 +418,20 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		return nil, err
 	}
 
-	corps, err := dao.Corp.Find(ctx, bson.M{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
-		return t.Id
-	})
-
-	models, err := service.Model().List(ctx, model.ModelListReq{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	modelMap := util.ToMap(models, func(t *model.Model) string {
-		return t.Id
-	})
-
+	corpMap := make(map[string]*entity.Corp)
 	modelAgentMap := make(map[string]*entity.ModelAgent)
-	if service.Session().IsAdminRole(ctx) {
+
+	if params.Type == 2 && service.Session().IsAdminRole(ctx) {
+
+		corps, err := dao.Corp.Find(ctx, bson.M{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		corpMap = util.ToMap(corps, func(t *entity.Corp) string {
+			return t.Id
+		})
 
 		modelAgentResults, err := dao.ModelAgent.Find(ctx, bson.M{})
 		if err != nil {
@@ -454,38 +447,16 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 
-		corpName := result.Corp
-		if corpMap[result.Corp] != nil {
-			corpName = corpMap[result.Corp].Name
-		}
-
-		modelNames := make([]string, 0)
-		for _, id := range result.Models {
-			if modelMap[id] != nil {
-				modelNames = append(modelNames, modelMap[id].Name)
-			}
-		}
-
-		modelAgentNames := make([]string, 0)
-		for _, id := range result.ModelAgents {
-			if modelAgentMap[id] != nil {
-				modelAgentNames = append(modelAgentNames, modelAgentMap[id].Name)
-			}
-		}
-
-		items = append(items, &model.Key{
+		key := &model.Key{
 			Id:                  result.Id,
 			UserId:              result.UserId,
 			AppId:               result.AppId,
 			Corp:                result.Corp,
-			CorpName:            corpName,
 			Key:                 util.Desensitize(result.Key),
 			Type:                result.Type,
 			Weight:              result.Weight,
 			Models:              result.Models,
-			ModelNames:          modelNames,
 			ModelAgents:         result.ModelAgents,
-			ModelAgentNames:     modelAgentNames,
 			IsAgentsOnly:        result.IsAgentsOnly,
 			IsLimitQuota:        result.IsLimitQuota,
 			Quota:               result.Quota,
@@ -497,11 +468,28 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			IpBlacklist:         result.IpBlacklist,
 			Remark:              result.Remark,
 			Status:              result.Status,
-			IsAutoDisabled:      result.IsAutoDisabled,
-			AutoDisabledReason:  result.AutoDisabledReason,
 			CreatedAt:           util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:           util.FormatDateTimeMonth(result.UpdatedAt),
-		})
+		}
+
+		if params.Type == 2 && service.Session().IsAdminRole(ctx) {
+
+			corpName := result.Corp
+			if corpMap[result.Corp] != nil {
+				corpName = corpMap[result.Corp].Name
+			}
+			key.CorpName = corpName
+
+			modelAgentNames := make([]string, 0)
+			for _, id := range result.ModelAgents {
+				if modelAgentMap[id] != nil {
+					modelAgentNames = append(modelAgentNames, modelAgentMap[id].Name)
+				}
+			}
+			key.ModelAgentNames = modelAgentNames
+		}
+
+		items = append(items, key)
 	}
 
 	return &model.KeyPageRes{

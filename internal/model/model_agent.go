@@ -15,6 +15,7 @@ type ModelAgentCreateReq struct {
 	LbStrategy           int      `json:"lb_strategy,omitempty" d:"1"`       // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key                  string   `json:"key,omitempty"`                     // 密钥
 	IsAgentsOnly         bool     `json:"is_agents_only,omitempty"`          // 是否代理专用
+	IsNeverDisableKey    bool     `json:"is_never_disable_key,omitempty"`    // 是否永不禁用密钥
 	Remark               string   `json:"remark,omitempty"`                  // 备注
 	Status               int      `json:"status,omitempty" d:"1"`            // 状态[1:正常, 2:禁用, -1:删除]
 }
@@ -35,6 +36,7 @@ type ModelAgentUpdateReq struct {
 	LbStrategy           int      `json:"lb_strategy,omitempty" d:"1"`       // 密钥负载均衡策略[1:轮询, 2:权重]
 	Key                  string   `json:"key,omitempty"`                     // 密钥
 	IsAgentsOnly         bool     `json:"is_agents_only,omitempty"`          // 是否代理专用
+	IsNeverDisableKey    bool     `json:"is_never_disable_key,omitempty"`    // 是否永不禁用密钥
 	Remark               string   `json:"remark,omitempty"`                  // 备注
 	Status               int      `json:"status,omitempty" d:"1"`            // 状态[1:正常, 2:禁用, -1:删除]
 }

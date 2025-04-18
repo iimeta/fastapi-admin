@@ -72,14 +72,15 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 
 	if params.Key != "" {
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
-			Corp:         params.Corp,
-			Key:          params.Key,
-			Weight:       params.Weight,
-			Models:       params.Models,
-			ModelAgents:  []string{id},
-			IsAgentsOnly: params.IsAgentsOnly,
-			Remark:       params.Remark,
-			Status:       params.Status,
+			Corp:           params.Corp,
+			Key:            params.Key,
+			Weight:         params.Weight,
+			Models:         params.Models,
+			ModelAgents:    []string{id},
+			IsAgentsOnly:   params.IsAgentsOnly,
+			IsNeverDisable: params.IsNeverDisableKey,
+			Remark:         params.Remark,
+			Status:         params.Status,
 		}, true); err != nil {
 			logger.Error(ctx, err)
 			return "", err
@@ -143,6 +144,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		IsEnableModelReplace: params.IsEnableModelReplace,
 		ReplaceModels:        params.ReplaceModels,
 		TargetModels:         params.TargetModels,
+		IsNeverDisable:       params.IsNeverDisable,
 		LbStrategy:           params.LbStrategy,
 		Remark:               params.Remark,
 		Status:               params.Status,
@@ -197,14 +199,15 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 
 	if params.Key != "" {
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
-			Corp:         params.Corp,
-			Key:          params.Key,
-			Weight:       params.Weight,
-			Models:       params.Models,
-			ModelAgents:  []string{params.Id},
-			IsAgentsOnly: params.IsAgentsOnly,
-			Remark:       params.Remark,
-			Status:       params.Status,
+			Corp:           params.Corp,
+			Key:            params.Key,
+			Weight:         params.Weight,
+			Models:         params.Models,
+			ModelAgents:    []string{params.Id},
+			IsAgentsOnly:   params.IsAgentsOnly,
+			IsNeverDisable: params.IsNeverDisableKey,
+			Remark:         params.Remark,
+			Status:         params.Status,
 		}, true); err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -580,8 +583,6 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			FallbackModelNames: fallbackModelNameMap[result.Id],
 			Remark:             result.Remark,
 			Status:             result.Status,
-			IsAutoDisabled:     result.IsAutoDisabled,
-			AutoDisabledReason: result.AutoDisabledReason,
 			CreatedAt:          util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:          util.FormatDateTimeMonth(result.UpdatedAt),
 		})
