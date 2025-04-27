@@ -41,6 +41,14 @@ func FormatDateTime(timestamp int64) string {
 	return gtime.NewFromTimeStamp(timestamp).String()
 }
 
+// 过期时间转换
+func ConvExpiresAt(expiresAt string) int64 {
+	if expiresAt == "" {
+		return 0
+	}
+	return gtime.NewFromStrLayout(expiresAt, time.DateTime).TimestampMilli() + 999
+}
+
 func Day(startTime, endTime string) (dateTimeList []*DateTime) {
 
 	dateTimeList = make([]*DateTime, 0)

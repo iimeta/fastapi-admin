@@ -10,7 +10,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
-	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
@@ -66,7 +65,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 			Name:           params.Name,
 			Email:          params.Email,
 			Quota:          params.Quota,
-			QuotaExpiresAt: common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+			QuotaExpiresAt: util.ConvExpiresAt(params.QuotaExpiresAt),
 			Models:         params.Models,
 			Remark:         params.Remark,
 			Status:         1,
@@ -140,7 +139,7 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"name":                  params.Name,
 		"email":                 params.Email,
-		"quota_expires_at":      common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
 		"remark":                params.Remark,
 		"status":                params.Status,
 		"expire_warning_notice": false,
@@ -195,7 +194,7 @@ func (s *sAdminUser) ChangeQuotaExpire(ctx context.Context, params model.UserCha
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"quota_expires_at":      common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
 		"expire_warning_notice": false,
 		"expire_notice":         false,
 	})
@@ -467,7 +466,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
-		"quota_expires_at":      common.ConvQuotaExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
 		"warning_notice":        false,
 		"exhaustion_notice":     false,
 		"expire_warning_notice": false,
