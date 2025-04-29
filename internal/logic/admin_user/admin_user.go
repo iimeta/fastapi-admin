@@ -97,7 +97,8 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		// 交易记录
 		if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
 			UserId: user.UserId,
-			Quota:  user.Quota,
+			Quota:  params.Quota,
+			Type:   params.QuotaType,
 			Status: 1,
 		}); err != nil {
 			logger.Error(ctx, err)
@@ -462,6 +463,10 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		return err
 	}
 
+	if params.QuotaType == 2 {
+		params.Quota = -params.Quota
+	}
+
 	newData, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
 		"$inc": bson.M{
 			"quota": params.Quota,
@@ -486,6 +491,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 	if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
 		UserId: params.UserId,
 		Quota:  params.Quota,
+		Type:   params.QuotaType,
 		Status: 1,
 	}); err != nil {
 		logger.Error(ctx, err)

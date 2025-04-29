@@ -39,6 +39,7 @@ type UserCreateReq struct {
 	Account        string   `json:"account,omitempty" v:"required"`               // 账号
 	Password       string   `json:"password,omitempty" v:"required|min-length:6"` // 密码
 	Quota          int      `json:"quota,omitempty"`                              // 额度
+	QuotaType      int      `json:"quota_type,omitempty"`                         // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
 	Models         []string `json:"models,omitempty"`                             // 模型权限
 	Remark         string   `json:"remark,omitempty"`                             // 备注
@@ -119,6 +120,7 @@ type UserBatchOperateReq struct {
 type UserRechargeReq struct {
 	UserId         int    `json:"user_id,omitempty"`            // 用户ID
 	Quota          int    `json:"quota,omitempty" v:"required"` // 额度
+	QuotaType      int    `json:"quota_type,omitempty"`         // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`   // 额度过期时间
 }
 

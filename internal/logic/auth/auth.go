@@ -137,6 +137,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
 			UserId: user.UserId,
 			Quota:  user.Quota,
+			Type:   3,
 			Status: 1,
 		}); err != nil {
 			logger.Error(ctx, err)

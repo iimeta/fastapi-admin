@@ -6,9 +6,10 @@ type DealRecord struct {
 	gmeta.Meta `role:"*" bson:"-"`
 	Id         string `bson:"_id,omitempty"`        // ID
 	UserId     int    `bson:"user_id,omitempty"`    // 用户ID
-	Quota      int    `bson:"quota,omitempty"`      // 充值额度
+	Quota      int    `bson:"quota,omitempty"`      // 额度
+	Type       int    `bson:"type,omitempty"`       // 交易类型[1:充值, 2:扣除, 3:赠送]
 	Remark     string `bson:"remark,omitempty"`     // 备注
-	Status     int    `bson:"status,omitempty"`     // 状态[1:正常, 2:退款, -1:删除]
+	Status     int    `bson:"status,omitempty"`     // 状态[1:成功, 2:退款, 3:失败, -1:删除]
 	Creator    string `bson:"creator,omitempty"`    // 创建人
 	Updater    string `bson:"updater,omitempty"`    // 更新人
 	CreatedAt  int64  `bson:"created_at,omitempty"` // 创建时间

@@ -39,9 +39,9 @@ type Bill struct {
 type BillExport struct {
 	StatDate string `json:"stat_date"` // 统计日期
 	UserId   int    `json:"user_id"`   // 用户ID
-	Model    string `bson:"model"`     // 模型
-	Total    int    `bson:"total"`     // 总数
-	Tokens   any    `bson:"tokens"`    // 令牌数
+	Model    string `json:"model"`     // 模型
+	Total    int    `json:"total"`     // 总数
+	Tokens   any    `json:"tokens"`    // 令牌数
 }
 
 // 交易记录分页列表接口请求参数
@@ -63,9 +63,10 @@ type FinanceDealRecordPageRes struct {
 type DealRecord struct {
 	Id        string `json:"id,omitempty"`         // ID
 	UserId    int    `json:"user_id,omitempty"`    // 用户ID
-	Quota     int    `json:"quota"`                // 充值额度
+	Quota     int    `json:"quota,omitempty"`      // 额度
+	Type      int    `json:"type,omitempty"`       // 交易类型[1:充值, 2:扣除, 3:赠送]
 	Remark    string `json:"remark,omitempty"`     // 备注
-	Status    int    `json:"status,omitempty"`     // 状态[1:正常, 2:退款, -1:删除]
+	Status    int    `json:"status,omitempty"`     // 状态[1:成功, 2:退款, 3:失败, -1:删除]
 	Creator   string `json:"creator,omitempty"`    // 创建人
 	Updater   string `json:"updater,omitempty"`    // 更新人
 	CreatedAt string `json:"created_at,omitempty"` // 创建时间
