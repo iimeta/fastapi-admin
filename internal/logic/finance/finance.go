@@ -228,6 +228,7 @@ func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealR
 			Id:        result.Id,
 			UserId:    result.UserId,
 			Quota:     result.Quota,
+			Type:      result.Type,
 			Remark:    result.Remark,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTime(result.CreatedAt),

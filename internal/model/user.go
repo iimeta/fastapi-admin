@@ -113,6 +113,7 @@ type UserBatchOperateReq struct {
 	Action         string   `json:"action"`                     // 动作
 	Ids            []string `json:"ids"`                        // 主键Ids
 	Value          any      `json:"value"`                      // 值
+	QuotaType      int      `json:"quota_type"`                 // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
 }
 

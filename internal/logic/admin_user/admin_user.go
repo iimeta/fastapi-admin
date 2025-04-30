@@ -561,6 +561,7 @@ func (s *sAdminUser) BatchOperate(ctx context.Context, params model.UserBatchOpe
 			if err := s.Recharge(ctx, model.UserRechargeReq{
 				UserId:         user.UserId,
 				Quota:          gconv.Int(params.Value),
+				QuotaType:      params.QuotaType,
 				QuotaExpiresAt: quotaExpiresAt,
 			}); err != nil {
 				logger.Error(ctx, err)
