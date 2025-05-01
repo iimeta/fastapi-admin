@@ -45,6 +45,9 @@ type Audio struct {
 	AppId                int                    `json:"app_id,omitempty"`                  // 应用ID
 	Corp                 string                 `json:"corp,omitempty"`                    // 公司
 	CorpName             string                 `json:"corp_name,omitempty"`               // 公司名称
+	GroupId              string                 `json:"group_id,omitempty"`                // 分组ID
+	GroupName            string                 `json:"group_name,omitempty"`              // 分组名称
+	Discount             float64                `json:"discount,omitempty"`                // 分组折扣
 	ModelId              string                 `json:"model_id,omitempty"`                // 模型ID
 	Name                 string                 `json:"name,omitempty"`                    // 模型名称
 	Model                string                 `json:"model,omitempty"`                   // 模型

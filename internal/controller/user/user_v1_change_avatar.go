@@ -9,6 +9,10 @@ import (
 
 func (c *ControllerV1) ChangeAvatar(ctx context.Context, req *v1.ChangeAvatarReq) (res *v1.ChangeAvatarRes, err error) {
 
+	if service.Session().IsResellerRole(ctx) {
+		err = service.Reseller().ChangeAvatar(ctx, req.File)
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		err = service.User().ChangeAvatar(ctx, req.File)
 	}

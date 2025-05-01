@@ -46,6 +46,24 @@ func init() {
 	unique := new(bool)
 	*unique = true
 
+	if _, err = client.Database(DefaultDatabase).Collection("reseller").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"user_id": 1},
+		Options: &options.IndexOptions{
+			Unique: unique,
+		},
+	}); err != nil {
+		panic(err)
+	}
+
+	if _, err = client.Database(DefaultDatabase).Collection("reseller_account").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"account": 1},
+		Options: &options.IndexOptions{
+			Unique: unique,
+		},
+	}); err != nil {
+		panic(err)
+	}
+
 	if _, err = client.Database(DefaultDatabase).Collection("user").Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.M{"user_id": 1},
 		Options: &options.IndexOptions{

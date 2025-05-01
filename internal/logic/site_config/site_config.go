@@ -135,6 +135,19 @@ func (s *sSiteConfig) Update(ctx context.Context, params model.SiteConfigUpdateR
 // 更改站点配置状态
 func (s *sSiteConfig) ChangeStatus(ctx context.Context, params model.SiteConfigChangeStatusReq) error {
 
+	if service.Session().IsResellerRole(ctx) {
+
+		siteConfig, err := dao.SiteConfig.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if siteConfig.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
 	if err := dao.SiteConfig.UpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
 	}); err != nil {
@@ -147,6 +160,19 @@ func (s *sSiteConfig) ChangeStatus(ctx context.Context, params model.SiteConfigC
 
 // 删除站点配置
 func (s *sSiteConfig) Delete(ctx context.Context, id string) error {
+
+	if service.Session().IsResellerRole(ctx) {
+
+		siteConfig, err := dao.SiteConfig.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if siteConfig.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
 
 	if _, err := dao.SiteConfig.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
@@ -163,6 +189,10 @@ func (s *sSiteConfig) Detail(ctx context.Context, params model.SiteConfigDetailR
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	if service.Session().IsResellerRole(ctx) && siteConfig.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.New("Unauthorized")
 	}
 
 	return &model.SiteConfig{
@@ -217,6 +247,10 @@ func (s *sSiteConfig) Page(ctx context.Context, params model.SiteConfigPageReq) 
 	}
 
 	filter := bson.M{}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
 
 	if params.UserId != 0 {
 		filter["user_id"] = params.UserId
@@ -394,4 +428,15 @@ func (s *sSiteConfig) IsDomainExist(ctx context.Context, domain string, id ...st
 	}
 
 	return false
+}
+
+// 根据代理商ID获取站点配置列表
+func (s *sSiteConfig) GetSiteConfigsByRid(ctx context.Context, rid int) []*entity.SiteConfig {
+
+	if rid == 0 {
+		return nil
+	}
+
+	siteConfigs, _ := dao.SiteConfig.Find(ctx, bson.M{"user_id": rid, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	return siteConfigs
 }

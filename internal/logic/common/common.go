@@ -62,6 +62,10 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 			return errors.New("未开启邮箱登录, 请联系管理员")
 		}
 
+		if params.Channel == consts.RESELLER_CHANNEL && !config.Cfg.ResellerLoginRegister.EmailLogin {
+			return errors.New("未开启邮箱登录, 请联系管理员")
+		}
+
 		if params.Channel == consts.ADMIN_CHANNEL && !config.Cfg.AdminLogin.EmailLogin {
 			return errors.New("未开启邮箱登录, 请联系作者")
 		}
@@ -70,13 +74,21 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 			return errors.New("未开启找回密码, 请联系管理员")
 		}
 
+		if params.Channel == consts.RESELLER_CHANNEL && !config.Cfg.ResellerLoginRegister.EmailRetrieve {
+			return errors.New("未开启找回密码, 请联系管理员")
+		}
+
 		if params.Channel == consts.ADMIN_CHANNEL && !config.Cfg.AdminLogin.EmailRetrieve {
 			return errors.New("未开启找回密码, 请联系作者")
 		}
 	case consts.ACTION_REGISTER:
 
-		if !config.Cfg.UserLoginRegister.EmailRegister {
+		if params.Channel == consts.USER_CHANNEL && !config.Cfg.UserLoginRegister.EmailRegister {
 			return errors.New("未开启用户注册, 请联系管理员")
+		}
+
+		if params.Channel == consts.RESELLER_CHANNEL && !config.Cfg.ResellerLoginRegister.EmailRegister {
+			return errors.New("未开启代理商注册, 请联系管理员")
 		}
 
 		if siteConfig != nil {
@@ -100,7 +112,11 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 			}
 		}
 
-		if dao.User.IsAccountExist(ctx, params.Email) {
+		if params.Channel == consts.USER_CHANNEL && dao.User.IsAccountExist(ctx, params.Email) {
+			return errors.New("邮箱已被他人使用")
+		}
+
+		if params.Channel == consts.RESELLER_CHANNEL && dao.Reseller.IsAccountExist(ctx, params.Email) {
 			return errors.New("邮箱已被他人使用")
 		}
 
@@ -120,7 +136,11 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 			}
 		}
 
-		if dao.User.IsAccountExist(ctx, params.Email) {
+		if params.Channel == consts.USER_CHANNEL && dao.User.IsAccountExist(ctx, params.Email) {
+			return errors.New("邮箱已被他人使用")
+		}
+
+		if params.Channel == consts.RESELLER_CHANNEL && dao.Reseller.IsAccountExist(ctx, params.Email) {
 			return errors.New("邮箱已被他人使用")
 		}
 	}

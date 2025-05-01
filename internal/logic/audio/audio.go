@@ -35,6 +35,10 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && result.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
 	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
@@ -51,6 +55,9 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		AppId:       result.AppId,
 		Corp:        result.Corp,
 		CorpName:    corpName,
+		GroupId:     result.GroupId,
+		GroupName:   result.GroupName,
+		Discount:    result.Discount,
 		Model:       result.Model,
 		Type:        result.Type,
 		Input:       result.Input,
@@ -68,16 +75,30 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		Creator:     util.Desensitize(result.Creator),
 	}
 
-	if audio.Status == -1 && service.Session().IsUserRole(ctx) {
+	if audio.Status == -1 {
 
 		audio.ErrMsg = result.ErrMsg
 
+		// 代理商屏蔽错误
+		if service.Session().IsResellerRole(ctx) {
+			if config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
+				for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
+					if gstr.Contains(audio.ErrMsg, shieldError) {
+						audio.ErrMsg = "详细错误信息请联系管理员..."
+						break
+					}
+				}
+			}
+		}
+
 		// 用户屏蔽错误
-		if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
-			for _, shieldError := range config.Cfg.UserShieldError.Errors {
-				if gstr.Contains(audio.ErrMsg, shieldError) {
-					audio.ErrMsg = "详细错误信息请联系管理员..."
-					break
+		if service.Session().IsUserRole(ctx) {
+			if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
+				for _, shieldError := range config.Cfg.UserShieldError.Errors {
+					if gstr.Contains(audio.ErrMsg, shieldError) {
+						audio.ErrMsg = "详细错误信息请联系管理员..."
+						break
+					}
 				}
 			}
 		}
@@ -149,6 +170,11 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 
 	if params.TraceId != "" {
 		filter["trace_id"] = gstr.Trim(params.TraceId)
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+		filter["is_retry"] = bson.M{"$exists": false}
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -253,6 +279,10 @@ func (s *sAudio) CopyField(ctx context.Context, params model.AudioCopyFieldReq) 
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
+	}
+
+	if service.Session().IsResellerRole(ctx) && (params.Field == "key" || result.Rid != service.Session().GetRid(ctx)) {
+		return "", errors.ERR_UNAUTHORIZED
 	}
 
 	if service.Session().IsUserRole(ctx) && (params.Field == "key" || result.UserId != service.Session().GetUserId(ctx)) {

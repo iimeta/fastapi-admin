@@ -27,6 +27,12 @@ type (
 		GetUserByToken(ctx context.Context, token string) (*model.User, error)
 		// 根据Token更新用户信息
 		UpdateUserByToken(ctx context.Context, token string, user *model.User) error
+		// 生成代理商Token
+		GenResellerToken(ctx context.Context, reseller *model.Reseller, isSaveSession bool) (token string, err error)
+		// 根据Token获取代理商信息
+		GetResellerByToken(ctx context.Context, token string) (*model.Reseller, error)
+		// 根据Token更新代理商信息
+		UpdateResellerByToken(ctx context.Context, token string, reseller *model.Reseller) error
 		// 生成管理员Token
 		GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSaveSession bool) (token string, err error)
 		// 根据Token获取管理员信息

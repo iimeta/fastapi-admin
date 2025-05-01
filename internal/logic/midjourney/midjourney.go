@@ -35,6 +35,10 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && result.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
 	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
@@ -51,6 +55,9 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 		AppId:            result.AppId,
 		Corp:             result.Corp,
 		CorpName:         corpName,
+		GroupId:          result.GroupId,
+		GroupName:        result.GroupName,
+		Discount:         result.Discount,
 		Model:            result.Model,
 		Type:             result.Type,
 		Prompt:           result.Prompt,
@@ -65,6 +72,19 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 		Status:           result.Status,
 		Host:             result.Host,
 		Creator:          util.Desensitize(result.Creator),
+	}
+
+	if midjourney.Status == -1 && service.Session().IsResellerRole(ctx) {
+		midjourney.ErrMsg = "详细错误信息请联系管理员..."
+		if config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
+			midjourney.ErrMsg = result.ErrMsg
+			for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
+				if gstr.Contains(result.ErrMsg, shieldError) {
+					midjourney.ErrMsg = "详细错误信息请联系管理员..."
+					break
+				}
+			}
+		}
 	}
 
 	if midjourney.Status == -1 && service.Session().IsUserRole(ctx) {
@@ -146,9 +166,13 @@ func (s *sMidjourney) Page(ctx context.Context, params model.MidjourneyPageReq) 
 		filter["trace_id"] = gstr.Trim(params.TraceId)
 	}
 
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+		filter["is_retry"] = bson.M{"$exists": false}
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
-		filter["is_smart_match"] = bson.M{"$exists": false}
 		filter["is_retry"] = bson.M{"$exists": false}
 	} else if params.UserId != 0 {
 		filter["user_id"] = params.UserId

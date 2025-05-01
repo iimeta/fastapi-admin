@@ -11,7 +11,8 @@ type UserInfoRes struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Role      string `json:"role"`
-	CreatedAt string `json:"created_at"` // 注册时间
+	CreatedAt string `json:"created_at"`    // 注册时间
+	Rid       int    `json:"rid,omitempty"` // 代理商ID
 }
 
 // 用户修改密码接口请求参数
@@ -41,6 +42,7 @@ type UserCreateReq struct {
 	Quota          int      `json:"quota,omitempty"`                              // 额度
 	QuotaType      int      `json:"quota_type,omitempty"`                         // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
+	Groups         []string `json:"groups,omitempty"`                             // 分组权限
 	Models         []string `json:"models,omitempty"`                             // 模型权限
 	Remark         string   `json:"remark,omitempty"`                             // 备注
 }
@@ -129,6 +131,7 @@ type UserRechargeReq struct {
 type UserPermissionsReq struct {
 	UserId int      `json:"user_id,omitempty"`       // 用户ID
 	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
+	Groups []string `json:"groups,omitempty" d:"[]"` // 分组权限
 }
 
 type User struct {
@@ -143,6 +146,8 @@ type User struct {
 	QuotaExpiresAt         string        `json:"quota_expires_at"`                // 额度过期时间
 	Models                 []string      `json:"models,omitempty"`                // 模型权限
 	ModelNames             []string      `json:"model_names,omitempty"`           // 模型名称
+	Groups                 []string      `json:"groups,omitempty"`                // 分组权限
+	GroupNames             []string      `json:"group_names,omitempty"`           // 分组名称
 	Account                string        `json:"account,omitempty"`               // 账号
 	QuotaWarning           bool          `json:"quota_warning,omitempty"`         // 额度预警
 	WarningThreshold       int           `json:"warning_threshold"`               // 预警阈值, 单位: $
@@ -153,6 +158,7 @@ type User struct {
 	ExpireNotice           bool          `json:"expire_notice,omitempty"`         // 额度过期通知
 	Remark                 string        `json:"remark,omitempty"`                // 备注
 	Status                 int           `json:"status,omitempty"`                // 状态[1:正常, 2:禁用, -1:删除]
+	Rid                    int           `json:"rid,omitempty"`                   // 代理商ID
 	LoginIP                string        `json:"login_ip,omitempty"`              // 登录IP
 	LoginTime              string        `json:"login_time,omitempty"`            // 登录时间
 	LoginDomain            string        `json:"login_domain,omitempty"`          // 登录域名

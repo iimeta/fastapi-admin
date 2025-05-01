@@ -102,7 +102,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"updated_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "model_id", "model", "total_tokens", "req_date", "status", "creator", "updated_at"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model_id", "model", "total_tokens", "req_date", "status", "rid", "creator", "updated_at"},
 	}
 
 	results, err := dao.NewMongoDB[entity.StatisticsData](db.DefaultDatabase, collection).FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, findOptions)
@@ -140,6 +140,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 					UserId:   result.UserId,
 					StatDate: result.ReqDate,
 					StatTime: gtime.NewFromStrFormat(result.ReqDate, time.DateOnly).TimestampMilli(),
+					Rid:      result.Rid,
 				}
 			}
 
@@ -189,6 +190,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 					AppId:    result.AppId,
 					StatDate: result.ReqDate,
 					StatTime: gtime.NewFromStrFormat(result.ReqDate, time.DateOnly).TimestampMilli(),
+					Rid:      result.Rid,
 				}
 			}
 
@@ -239,6 +241,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 					AppKey:   result.Creator,
 					StatDate: result.ReqDate,
 					StatTime: gtime.NewFromStrFormat(result.ReqDate, time.DateOnly).TimestampMilli(),
+					Rid:      result.Rid,
 				}
 			}
 
@@ -292,6 +295,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 				Abnormal:       user.Abnormal,
 				AbnormalTokens: user.AbnormalTokens,
 				ModelStats:     modelStats,
+				Rid:            user.Rid,
 				Creator:        user.Creator,
 				CreatedAt:      user.CreatedAt,
 			}
@@ -326,6 +330,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 				Abnormal:       app.Abnormal,
 				AbnormalTokens: app.AbnormalTokens,
 				ModelStats:     modelStats,
+				Rid:            app.Rid,
 				Creator:        app.Creator,
 				CreatedAt:      app.CreatedAt,
 			}
@@ -361,6 +366,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 				Abnormal:       appKey.Abnormal,
 				AbnormalTokens: appKey.AbnormalTokens,
 				ModelStats:     modelStats,
+				Rid:            appKey.Rid,
 				Creator:        appKey.Creator,
 				CreatedAt:      appKey.CreatedAt,
 			}

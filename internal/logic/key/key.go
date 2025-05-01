@@ -141,6 +141,10 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 		return err
 	}
 
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
 		return errors.New("Unauthorized")
 	}
@@ -182,6 +186,19 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 
 // 更改密钥状态
 func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error {
+
+	if service.Session().IsResellerRole(ctx) {
+
+		key, err := dao.Key.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if key.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
 
 	if service.Session().IsUserRole(ctx) {
 
@@ -225,6 +242,19 @@ func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq
 
 // 删除密钥
 func (s *sKey) Delete(ctx context.Context, id string) error {
+
+	if service.Session().IsResellerRole(ctx) {
+
+		key, err := dao.Key.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if key.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
 
 	if service.Session().IsUserRole(ctx) {
 
@@ -271,6 +301,10 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && key.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.New("Unauthorized")
+	}
+
 	if service.Session().IsUserRole(ctx) && key.UserId != service.Session().GetUserId(ctx) {
 		return nil, errors.New("Unauthorized")
 	}
@@ -289,7 +323,6 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 	}
 
 	modelAgentNames := make([]string, 0)
-
 	if len(key.ModelAgents) > 0 {
 
 		modelAgentList, err := dao.ModelAgent.Find(ctx, bson.M{"_id": bson.M{"$in": key.ModelAgents}})
@@ -300,6 +333,16 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 
 		for _, modelAgent := range modelAgentList {
 			modelAgentNames = append(modelAgentNames, modelAgent.Name)
+		}
+	}
+
+	groupName := ""
+	if key.IsBindGroup && key.Group != "" {
+		group, err := dao.Group.FindById(ctx, key.Group)
+		if err != nil {
+			logger.Error(ctx, err)
+		} else {
+			groupName = group.Name
 		}
 	}
 
@@ -324,6 +367,9 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		QuotaExpiresRule:    key.QuotaExpiresRule,
 		QuotaExpiresAt:      util.FormatDateTime(key.QuotaExpiresAt),
 		QuotaExpiresMinutes: key.QuotaExpiresMinutes,
+		IsBindGroup:         key.IsBindGroup,
+		Group:               key.Group,
+		GroupName:           groupName,
 		IpWhitelist:         key.IpWhitelist,
 		IpBlacklist:         key.IpBlacklist,
 		Remark:              key.Remark,
@@ -347,6 +393,10 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 
 	filter := bson.M{
 		"type": params.Type,
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -464,6 +514,8 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			QuotaExpiresRule:    result.QuotaExpiresRule,
 			QuotaExpiresAt:      util.FormatDateTime(result.QuotaExpiresAt),
 			QuotaExpiresMinutes: result.QuotaExpiresMinutes,
+			IsBindGroup:         result.IsBindGroup,
+			Group:               result.Group,
 			IpWhitelist:         result.IpWhitelist,
 			IpBlacklist:         result.IpBlacklist,
 			Remark:              result.Remark,
@@ -701,12 +753,60 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 		return err
 	}
 
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
 		return errors.New("Unauthorized")
 	}
 
 	newData, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"models": params.Models,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	channel := consts.CHANGE_CHANNEL_KEY
+
+	if newData.Type == 1 {
+		channel = consts.CHANGE_CHANNEL_APP_KEY
+	}
+
+	if _, err = redis.Publish(ctx, channel, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 密钥绑定分组
+func (s *sKey) Group(ctx context.Context, params model.KeyGroupReq) error {
+
+	oldData, err := dao.Key.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
+	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
+		return errors.New("Unauthorized")
+	}
+
+	newData, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"is_bind_group": params.IsBindGroup,
+		"group":         params.Group,
 	})
 	if err != nil {
 		logger.Error(ctx, err)

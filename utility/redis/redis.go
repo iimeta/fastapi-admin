@@ -158,6 +158,10 @@ func HSetStr(ctx context.Context, key string, field, value string) (int64, error
 	return HSet(ctx, key, g.MapStrAny{field: value})
 }
 
+func HSetInt(ctx context.Context, key string, field string, value int) (int64, error) {
+	return HSet(ctx, key, g.MapStrAny{field: value})
+}
+
 func HGetStr(ctx context.Context, key, field string) (string, error) {
 	reply, err := HGet(ctx, key, field)
 	if err != nil {
@@ -172,6 +176,10 @@ func HGetInt(ctx context.Context, key, field string) (int, error) {
 		return 0, err
 	}
 	return reply.Int(), nil
+}
+
+func HDel(ctx context.Context, key string, fields ...string) (int64, error) {
+	return master.HDel(ctx, key, fields...)
 }
 
 func HIncrBy(ctx context.Context, key, field string, increment int64) (int64, error) {

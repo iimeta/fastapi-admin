@@ -11,15 +11,27 @@ import (
 )
 
 const (
-	USER_ID_AUTO_INCREMENT_CFG = "core.user_id_auto_increment"
-	USER_ID_AUTO_INCREMENT_KEY = "CORE:USER_ID_AUTO_INCREMENT"
-	APP_ID_AUTO_INCREMENT_CFG  = "core.app_id_auto_increment"
-	APP_ID_AUTO_INCREMENT_KEY  = "CORE:APP_ID_AUTO_INCREMENT"
+	RESELLER_ID_AUTO_INCREMENT_CFG = "core.reseller_id_auto_increment"
+	RESELLER_ID_AUTO_INCREMENT_KEY = "CORE:RESELLER_ID_AUTO_INCREMENT"
+	USER_ID_AUTO_INCREMENT_CFG     = "core.user_id_auto_increment"
+	USER_ID_AUTO_INCREMENT_KEY     = "CORE:USER_ID_AUTO_INCREMENT"
+	APP_ID_AUTO_INCREMENT_CFG      = "core.app_id_auto_increment"
+	APP_ID_AUTO_INCREMENT_KEY      = "CORE:APP_ID_AUTO_INCREMENT"
 )
 
 func init() {
 
 	ctx := gctx.New()
+
+	resellerId := config.GetInt(ctx, RESELLER_ID_AUTO_INCREMENT_CFG, 80000)
+	if resellerId == 80000 {
+		if maxResellerId := getMaxResellerId(ctx); maxResellerId != 0 {
+			resellerId = maxResellerId
+		}
+	}
+
+	// 自增起始resellerId
+	_, _ = redis.SetNX(ctx, RESELLER_ID_AUTO_INCREMENT_KEY, resellerId)
 
 	userId := config.GetInt(ctx, USER_ID_AUTO_INCREMENT_CFG, 10000)
 	if userId == 10000 {
@@ -42,6 +54,17 @@ func init() {
 	_, _ = redis.SetNX(ctx, APP_ID_AUTO_INCREMENT_KEY, appId)
 }
 
+func IncrResellerId(ctx context.Context) int {
+
+	reply, err := redis.Incr(ctx, RESELLER_ID_AUTO_INCREMENT_KEY)
+	if err != nil {
+		logger.Error(ctx, err)
+		return 0
+	}
+
+	return int(reply)
+}
+
 func IncrUserId(ctx context.Context) int {
 
 	reply, err := redis.Incr(ctx, USER_ID_AUTO_INCREMENT_KEY)
@@ -62,6 +85,16 @@ func IncrAppId(ctx context.Context) int {
 	}
 
 	return int(reply)
+}
+
+// 获取最大代理商ID
+func getMaxResellerId(ctx context.Context) int {
+
+	if user, _ := dao.Reseller.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-user_id"}}); user != nil {
+		return user.UserId
+	}
+
+	return 0
 }
 
 // 获取最大用户ID

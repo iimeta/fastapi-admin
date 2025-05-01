@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
+	"github.com/iimeta/fastapi-admin/internal/controller/admin_reseller"
 	"github.com/iimeta/fastapi-admin/internal/controller/admin_user"
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
 	"github.com/iimeta/fastapi-admin/internal/controller/audio"
@@ -16,6 +17,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/corp"
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
 	"github.com/iimeta/fastapi-admin/internal/controller/finance"
+	"github.com/iimeta/fastapi-admin/internal/controller/group"
 	"github.com/iimeta/fastapi-admin/internal/controller/health"
 	"github.com/iimeta/fastapi-admin/internal/controller/image"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
@@ -51,10 +53,12 @@ var (
 
 			s.SetServerRoot("./resource/fastapi-web/")
 
+			s.AddStaticPath("/reseller", "./resource/fastapi-web/")
 			s.AddStaticPath("/login", "./resource/fastapi-web/")
 			s.AddStaticPath("/admin", "./resource/fastapi-web/")
 			s.AddStaticPath("/dashboard/workplace", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/model", "./resource/fastapi-web/")
+			s.AddStaticPath("/my/group", "./resource/fastapi-web/")
 			s.AddStaticPath("/app/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/app/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/app/update", "./resource/fastapi-web/")
@@ -68,18 +72,24 @@ var (
 			s.AddStaticPath("/agent/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/agent/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/agent/update", "./resource/fastapi-web/")
+			s.AddStaticPath("/corp/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/corp/create", "./resource/fastapi-web/")
+			s.AddStaticPath("/corp/update", "./resource/fastapi-web/")
+			s.AddStaticPath("/group/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/group/create", "./resource/fastapi-web/")
+			s.AddStaticPath("/group/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/center", "./resource/fastapi-web/")
-			s.AddStaticPath("/corp/list", "./resource/fastapi-web/")
-			s.AddStaticPath("/corp/create", "./resource/fastapi-web/")
-			s.AddStaticPath("/corp/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/bill_list", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/deal_record", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/chat", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
+			s.AddStaticPath("/sys/reseller/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/sys/reseller/create", "./resource/fastapi-web/")
+			s.AddStaticPath("/sys/reseller/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config/update", "./resource/fastapi-web/")
@@ -124,6 +134,18 @@ var (
 				v1.Group("/user", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						user.NewV1(),
+					)
+				})
+
+				v1.Group("/group", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						group.NewV1(),
+					)
+				})
+
+				v1.Group("/admin/reseller", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						admin_reseller.NewV1(),
 					)
 				})
 
@@ -261,7 +283,24 @@ func authMiddleware(r *ghttp.Request) {
 		return
 	}
 
-	if gstr.HasPrefix(token, consts.USER_TOKEN_PREFIX) {
+	if gstr.HasPrefix(token, consts.RESELLER_TOKEN_PREFIX) {
+
+		reseller, err := service.Auth().GetResellerByToken(r.GetCtx(), token)
+		if err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+		if err = service.Session().SaveReseller(r.GetCtx(), token, reseller); err != nil {
+			r.Response.Header().Set("Content-Type", "application/json")
+			r.Response.WriteStatus(http.StatusUnauthorized, g.Map{"code": 401, "message": "Unauthorized"})
+			r.Exit()
+			return
+		}
+
+	} else if gstr.HasPrefix(token, consts.USER_TOKEN_PREFIX) {
 
 		user, err := service.Auth().GetUserByToken(r.GetCtx(), token)
 		if err != nil {

@@ -13,7 +13,27 @@ import (
 
 func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoRes, err error) {
 
-	if service.Session().IsUserRole(ctx) {
+	if service.Session().IsResellerRole(ctx) {
+
+		reseller := service.Session().GetReseller(ctx)
+		if reseller == nil {
+			return nil, errors.New("Unauthorized")
+		}
+
+		res = &v1.InfoRes{
+			UserInfoRes: &model.UserInfoRes{
+				UserId:    reseller.UserId,
+				Name:      reseller.Name,
+				Avatar:    reseller.Avatar,
+				Email:     reseller.Email,
+				Phone:     reseller.Phone,
+				Account:   reseller.Account,
+				Role:      consts.RESELLER_CHANNEL,
+				CreatedAt: reseller.CreatedAt,
+			},
+		}
+
+	} else if service.Session().IsUserRole(ctx) {
 
 		user := service.Session().GetUser(ctx)
 		if user == nil {
@@ -30,6 +50,7 @@ func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoR
 				Account:   user.Account,
 				Role:      consts.USER_CHANNEL,
 				CreatedAt: user.CreatedAt,
+				Rid:       user.Rid,
 			},
 		}
 

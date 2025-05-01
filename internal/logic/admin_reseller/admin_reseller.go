@@ -1,0 +1,734 @@
+package admin_reseller
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/internal/consts"
+	"github.com/iimeta/fastapi-admin/internal/core"
+	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/do"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
+	"github.com/iimeta/fastapi-admin/internal/service"
+	"github.com/iimeta/fastapi-admin/utility/crypto"
+	"github.com/iimeta/fastapi-admin/utility/db"
+	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/utility/redis"
+	"github.com/iimeta/fastapi-admin/utility/util"
+	"go.mongodb.org/mongo-driver/bson"
+	"regexp"
+	"slices"
+	"time"
+)
+
+type sAdminReseller struct{}
+
+func init() {
+	service.RegisterAdminReseller(New())
+}
+
+func New() service.IAdminReseller {
+	return &sAdminReseller{}
+}
+
+// 新建代理商
+func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreateReq) (err error) {
+
+	if dao.Reseller.IsAccountExist(ctx, params.Account) {
+		return errors.New(params.Account + " 账号已存在")
+	}
+
+	if dao.Reseller.IsAccountExist(ctx, params.Email) {
+		return errors.New(params.Email + " 邮箱已被其它账号使用")
+	}
+
+	if len(params.Groups) == 0 {
+		if params.Groups, err = service.Group().PublicGroups(ctx); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if len(params.Models) == 0 {
+		if params.Models, err = service.Model().PublicModels(ctx); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	var (
+		salt     = grand.Letters(8)
+		id       = util.GenerateId()
+		reseller = &do.Reseller{
+			Id:             id,
+			UserId:         core.IncrResellerId(ctx),
+			Name:           params.Name,
+			Email:          params.Email,
+			Quota:          params.Quota,
+			QuotaExpiresAt: util.ConvExpiresAt(params.QuotaExpiresAt),
+			Models:         params.Models,
+			Groups:         params.Groups,
+			Remark:         params.Remark,
+			Status:         1,
+			Creator:        id,
+		}
+	)
+
+	uid, err := dao.Reseller.Insert(ctx, reseller)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = dao.Reseller.CreateAccount(ctx, &do.ResellerAccount{
+		Uid:      uid,
+		UserId:   reseller.UserId,
+		Account:  params.Account,
+		Password: crypto.EncryptPassword(params.Password + salt),
+		Salt:     salt,
+		Status:   1,
+		Creator:  uid,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if params.Quota != 0 {
+
+		// 交易记录
+		if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
+			UserId: reseller.UserId,
+			Quota:  params.Quota,
+			Type:   params.QuotaType,
+			Status: 1,
+			Rid:    reseller.UserId,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_RESELLER_USAGE_KEY, reseller.UserId), consts.RESELLER_QUOTA_FIELD, int64(params.Quota)); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	newData, err := dao.Reseller.FindById(ctx, uid)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+		Action:  consts.ACTION_CREATE,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更新代理商
+func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdateReq) error {
+
+	oldData, err := dao.Reseller.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"name":                  params.Name,
+		"email":                 params.Email,
+		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"remark":                params.Remark,
+		"status":                params.Status,
+		"expire_warning_notice": false,
+		"expire_notice":         false,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	account, err := dao.Reseller.FindAccountByUserId(ctx, newData.UserId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if account.Account != params.Account {
+		if err = dao.ResellerAccount.UpdateById(ctx, account.Id, bson.M{
+			"account": params.Account,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if params.Password != "" {
+		if err = dao.Reseller.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更改代理商额度过期时间
+func (s *sAdminReseller) ChangeQuotaExpire(ctx context.Context, params model.ResellerChangeQuotaExpireReq) error {
+
+	oldData, err := dao.Reseller.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"expire_warning_notice": false,
+		"expire_notice":         false,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更改代理商状态
+func (s *sAdminReseller) ChangeStatus(ctx context.Context, params model.ResellerChangeStatusReq) error {
+
+	reseller, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err = dao.ResellerAccount.UpdateMany(ctx, bson.M{"user_id": reseller.UserId}, bson.M{
+		"status": params.Status,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: reseller,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 删除代理商
+func (s *sAdminReseller) Delete(ctx context.Context, id string) error {
+
+	reseller, err := dao.Reseller.FindOneAndDeleteById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = dao.ResellerAccount.DeleteMany(ctx, bson.M{"user_id": reseller.UserId}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+		Action:  consts.ACTION_DELETE,
+		OldData: reseller,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 代理商详情
+func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller, error) {
+
+	reseller, err := dao.Reseller.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	account, err := dao.Reseller.FindAccountByUserId(ctx, reseller.UserId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelNames, err := service.Model().ModelNames(ctx, reseller.Models)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	groupNames, err := service.Group().GroupNames(ctx, reseller.Groups)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	users, err := dao.User.Find(ctx, bson.M{"rid": reseller.UserId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	allocatedQuota := 0
+
+	for _, user := range users {
+
+		if user.Quota > 0 {
+			allocatedQuota += user.Quota
+		}
+
+		allocatedQuota += user.UsedQuota
+	}
+
+	toBeAllocated := reseller.Quota + reseller.UsedQuota - allocatedQuota
+
+	return &model.Reseller{
+		Id:                     reseller.Id,
+		UserId:                 reseller.UserId,
+		Account:                account.Account,
+		Name:                   reseller.Name,
+		Phone:                  reseller.Phone,
+		Email:                  reseller.Email,
+		Quota:                  reseller.Quota,
+		UsedQuota:              reseller.UsedQuota,
+		AllocatedQuota:         allocatedQuota,
+		ToBeAllocated:          toBeAllocated,
+		QuotaExpiresAt:         util.FormatDateTime(reseller.QuotaExpiresAt),
+		Models:                 reseller.Models,
+		ModelNames:             modelNames,
+		Groups:                 reseller.Groups,
+		GroupNames:             groupNames,
+		QuotaWarning:           reseller.QuotaWarning,
+		WarningThreshold:       reseller.WarningThreshold / consts.QUOTA_USD_UNIT,
+		ExpireWarningThreshold: reseller.ExpireWarningThreshold,
+		WarningNotice:          reseller.WarningNotice,
+		ExhaustionNotice:       reseller.ExhaustionNotice,
+		ExpireWarningNotice:    reseller.ExpireWarningNotice,
+		ExpireNotice:           reseller.ExpireNotice,
+		Remark:                 reseller.Remark,
+		Status:                 reseller.Status,
+		LoginIP:                account.LoginIP,
+		LoginTime:              util.FormatDateTime(account.LoginTime),
+		LoginDomain:            account.LoginDomain,
+		CreatedAt:              util.FormatDateTime(reseller.CreatedAt),
+		UpdatedAt:              util.FormatDateTime(reseller.UpdatedAt),
+	}, nil
+}
+
+// 代理商分页列表
+func (s *sAdminReseller) Page(ctx context.Context, params model.ResellerPageReq) (*model.ResellerPageRes, error) {
+
+	paging := &db.Paging{
+		Page:     params.Page,
+		PageSize: params.PageSize,
+	}
+
+	filter := bson.M{}
+
+	if params.UserId != 0 {
+		filter["user_id"] = params.UserId
+	}
+
+	if params.Name != "" {
+		filter["$or"] = bson.A{
+			bson.M{"name": bson.M{
+				"$regex": regexp.QuoteMeta(params.Name),
+			}},
+			bson.M{"email": bson.M{
+				"$regex": regexp.QuoteMeta(params.Name),
+			}},
+		}
+	}
+
+	if params.Account != "" && params.UserId == 0 {
+		account, err := dao.ResellerAccount.FindOne(ctx, bson.M{"account": params.Account})
+		if err != nil {
+			return nil, nil
+		}
+		filter["user_id"] = account.UserId
+	}
+
+	if params.Quota != 0 {
+		filter["quota"] = bson.M{
+			"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+		}
+	}
+
+	if params.Status != 0 {
+		filter["status"] = params.Status
+	}
+
+	if len(params.QuotaExpiresAt) > 0 {
+		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		filter["quota_expires_at"] = bson.M{
+			"$gte": gte,
+			"$lte": lte,
+		}
+	}
+
+	results, err := dao.Reseller.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-user_id", "-updated_at"}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	accountMap := make(map[int]*entity.ResellerAccount)
+	if len(results) > 0 {
+
+		accounts, err := dao.ResellerAccount.Find(ctx, bson.M{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		accountMap = util.ToMap(accounts, func(t *entity.ResellerAccount) int {
+			return t.UserId
+		})
+	}
+
+	items := make([]*model.Reseller, 0)
+	for _, result := range results {
+
+		users, err := dao.User.Find(ctx, bson.M{"rid": result.UserId})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		allocatedQuota := 0
+
+		for _, user := range users {
+
+			if user.Quota > 0 {
+				allocatedQuota += user.Quota
+			}
+
+			allocatedQuota += user.UsedQuota
+		}
+
+		toBeAllocated := result.Quota + result.UsedQuota - allocatedQuota
+
+		items = append(items, &model.Reseller{
+			Id:             result.Id,
+			UserId:         result.UserId,
+			Name:           result.Name,
+			Email:          result.Email,
+			Phone:          result.Phone,
+			Quota:          result.Quota,
+			UsedQuota:      result.UsedQuota,
+			AllocatedQuota: allocatedQuota,
+			ToBeAllocated:  toBeAllocated,
+			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
+			Models:         result.Models,
+			Groups:         result.Groups,
+			Account:        accountMap[result.UserId].Account,
+			Remark:         result.Remark,
+			Status:         result.Status,
+			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
+		})
+	}
+
+	return &model.ResellerPageRes{
+		Items: items,
+		Paging: &model.Paging{
+			Page:     paging.Page,
+			PageSize: paging.PageSize,
+			Total:    paging.Total,
+		},
+	}, nil
+}
+
+// 代理商列表
+func (s *sAdminReseller) List(ctx context.Context, params model.ResellerListReq) ([]*model.Reseller, error) {
+
+	filter := bson.M{}
+
+	results, err := dao.Reseller.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	items := make([]*model.Reseller, 0)
+	for _, result := range results {
+		items = append(items, &model.Reseller{
+			Id:        result.Id,
+			UserId:    result.UserId,
+			Name:      result.Name,
+			Email:     result.Email,
+			Phone:     result.Phone,
+			Quota:     result.Quota,
+			UsedQuota: result.UsedQuota,
+			Models:    result.Models,
+			Groups:    result.Groups,
+			Status:    result.Status,
+			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt: util.FormatDateTimeMonth(result.UpdatedAt),
+		})
+	}
+
+	return items, nil
+}
+
+// 代理商充值
+func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRechargeReq) error {
+
+	oldData, err := dao.Reseller.FindOne(ctx, bson.M{"user_id": params.UserId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if params.QuotaType == 2 {
+		params.Quota = -params.Quota
+	}
+
+	newData, err := dao.Reseller.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
+		"$inc": bson.M{
+			"quota": params.Quota,
+		},
+		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"warning_notice":        false,
+		"exhaustion_notice":     false,
+		"expire_warning_notice": false,
+		"expire_notice":         false,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_RESELLER_USAGE_KEY, params.UserId), consts.RESELLER_QUOTA_FIELD, int64(params.Quota)); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	// 交易记录
+	if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
+		UserId: params.UserId,
+		Quota:  params.Quota,
+		Type:   params.QuotaType,
+		Status: 1,
+		Rid:    params.UserId,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 代理商权限
+func (s *sAdminReseller) Permissions(ctx context.Context, params model.ResellerPermissionsReq) error {
+
+	oldData, err := dao.Reseller.FindOne(ctx, bson.M{"user_id": params.UserId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	addModels := make([]string, 0)
+	delModels := make([]string, 0)
+	addGroups := make([]string, 0)
+	delGroups := make([]string, 0)
+
+	for _, m := range params.Models {
+		if !slices.Contains(oldData.Models, m) {
+			addModels = append(addModels, m)
+		}
+	}
+
+	for _, m := range oldData.Models {
+		if !slices.Contains(params.Models, m) {
+			delModels = append(delModels, m)
+		}
+	}
+
+	for _, g := range params.Groups {
+		if !slices.Contains(oldData.Groups, g) {
+			addGroups = append(addGroups, g)
+		}
+	}
+
+	for _, g := range oldData.Groups {
+		if !slices.Contains(params.Groups, g) {
+			delGroups = append(delGroups, g)
+		}
+	}
+
+	newData, err := dao.Reseller.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
+		"models": params.Models,
+		"groups": params.Groups,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	users, err := dao.User.Find(ctx, bson.M{"rid": params.UserId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	for _, user := range users {
+
+		if len(addModels) > 0 {
+			modelSet := gset.NewStrSetFrom(user.Models)
+			modelSet.Add(addModels...)
+			user.Models = modelSet.Slice()
+		}
+
+		if len(addGroups) > 0 {
+			groupSet := gset.NewStrSetFrom(user.Groups)
+			groupSet.Add(addGroups...)
+			user.Groups = groupSet.Slice()
+		}
+
+		models := make([]string, 0)
+		groups := make([]string, 0)
+
+		if len(delModels) > 0 {
+			for _, m := range user.Models {
+				if !slices.Contains(delModels, m) {
+					models = append(models, m)
+				}
+			}
+		} else {
+			models = user.Models
+		}
+
+		if len(delGroups) > 0 {
+			for _, g := range user.Groups {
+				if !slices.Contains(delGroups, g) {
+					groups = append(groups, g)
+				}
+			}
+		} else {
+			groups = user.Groups
+		}
+
+		if err = service.AdminUser().Permissions(ctx, model.UserPermissionsReq{
+			UserId: user.UserId,
+			Models: models,
+			Groups: groups,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// 代理商批量操作
+func (s *sAdminReseller) BatchOperate(ctx context.Context, params model.ResellerBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_RECHARGE:
+
+		resellers, err := dao.Reseller.FindByIds(ctx, params.Ids)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		for _, reseller := range resellers {
+
+			quotaExpiresAt := params.QuotaExpiresAt
+			if quotaExpiresAt == "" {
+				quotaExpiresAt = util.FormatDateTime(reseller.QuotaExpiresAt)
+			}
+
+			if err := s.Recharge(ctx, model.ResellerRechargeReq{
+				UserId:         reseller.UserId,
+				Quota:          gconv.Int(params.Value),
+				QuotaType:      params.QuotaType,
+				QuotaExpiresAt: quotaExpiresAt,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_STATUS:
+		for _, id := range params.Ids {
+			if err := s.ChangeStatus(ctx, model.ResellerChangeStatusReq{
+				Id:     id,
+				Status: gconv.Int(params.Value),
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	case consts.ACTION_DELETE:
+		for _, id := range params.Ids {
+			if err := s.Delete(ctx, id); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}

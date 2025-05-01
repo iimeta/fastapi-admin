@@ -70,6 +70,10 @@ func (s *sFinance) BillPage(ctx context.Context, params model.FinanceBillPageReq
 
 	filter := bson.M{}
 
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
 	} else if params.UserId != 0 {
@@ -124,6 +128,10 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 				"$lte": params.StatDate[1],
 			},
 		}
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -190,6 +198,10 @@ func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealR
 	}
 
 	filter := bson.M{}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)

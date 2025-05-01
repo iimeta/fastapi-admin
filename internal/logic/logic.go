@@ -5,6 +5,7 @@
 package logic
 
 import (
+	_ "github.com/iimeta/fastapi-admin/internal/logic/admin_reseller"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/admin_user"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/app"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/audio"
@@ -14,6 +15,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/corp"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/dashboard"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/finance"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/group"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/image"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/key"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log"
@@ -21,6 +23,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model_agent"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/notice"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/reseller"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/session"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/site_config"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/statistics"

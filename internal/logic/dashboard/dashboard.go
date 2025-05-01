@@ -12,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"math"
+	"time"
 )
 
 type sDashboard struct{}
@@ -29,7 +30,12 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 
 	dashboard = new(model.Dashboard)
 
-	if service.Session().IsUserRole(ctx) {
+	if service.Session().IsResellerRole(ctx) {
+		if dashboard.App, err = dao.App.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	} else if service.Session().IsUserRole(ctx) {
 		if dashboard.App, err = dao.App.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
@@ -41,7 +47,14 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 		}
 	}
 
-	if service.Session().IsUserRole(ctx) {
+	if service.Session().IsResellerRole(ctx) {
+		if models := service.Session().GetReseller(ctx).Models; len(models) > 0 {
+			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+		}
+	} else if service.Session().IsUserRole(ctx) {
 		if models := service.Session().GetUser(ctx).Models; len(models) > 0 {
 			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
 				logger.Error(ctx, err)
@@ -55,13 +68,53 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 		}
 	}
 
-	if service.Session().IsUserRole(ctx) {
+	if service.Session().IsResellerRole(ctx) {
+		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx), "type": 1}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	} else if service.Session().IsUserRole(ctx) {
 		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx), "type": 1}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
 	} else {
 		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 1}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+
+		if dashboard.TodayApp, err = dao.App.CountDocuments(ctx, bson.M{
+			"rid": service.Session().GetRid(ctx),
+			"created_at": bson.M{
+				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx), "type": 2, "status": 1}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if dashboard.User, err = dao.User.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if dashboard.TodayUser, err = dao.User.CountDocuments(ctx, bson.M{
+			"rid": service.Session().GetRid(ctx),
+			"created_at": bson.M{
+				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+			},
+		}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -112,6 +165,11 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 		},
 	}
 
+	if service.Session().IsResellerRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["rid"] = service.Session().GetRid(ctx)
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		match := pipeline[0]["$match"].(bson.M)
 		match["user_id"] = service.Session().GetUserId(ctx)
@@ -154,6 +212,11 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 				"user":     bson.M{"$addToSet": "$user_id"},
 			},
 		},
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["rid"] = service.Session().GetRid(ctx)
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -210,21 +273,77 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 // 费用
 func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
-	user, err := service.User().GetUserByUserId(ctx, service.Session().GetUserId(ctx))
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
+	var (
+		quota                  int
+		usedQuota              int
+		allocatedQuota         int
+		toBeAllocated          int
+		quotaExpiresAt         string
+		quotaWarning           bool
+		warningThreshold       int
+		expireWarningThreshold time.Duration
+	)
+
+	if service.Session().IsResellerRole(ctx) {
+
+		reseller, err := service.Reseller().GetResellerByUserId(ctx, service.Session().GetUserId(ctx))
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		quota = reseller.Quota
+		usedQuota = reseller.UsedQuota
+		quotaExpiresAt = reseller.QuotaExpiresAt
+		quotaWarning = reseller.QuotaWarning
+		warningThreshold = reseller.WarningThreshold
+		expireWarningThreshold = reseller.ExpireWarningThreshold
+
+		users, err := dao.User.Find(ctx, bson.M{"rid": reseller.UserId})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, user := range users {
+
+			if user.Quota > 0 {
+				allocatedQuota += user.Quota
+			}
+
+			allocatedQuota += user.UsedQuota
+		}
+
+		toBeAllocated = quota + usedQuota - allocatedQuota
+	}
+
+	if service.Session().IsUserRole(ctx) {
+
+		user, err := service.User().GetUserByUserId(ctx, service.Session().GetUserId(ctx))
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		quota = user.Quota
+		usedQuota = user.UsedQuota
+		quotaExpiresAt = user.QuotaExpiresAt
+		quotaWarning = user.QuotaWarning
+		warningThreshold = user.WarningThreshold
+		expireWarningThreshold = user.ExpireWarningThreshold
 	}
 
 	return &model.Expense{
-		Quota:                  user.Quota,
-		QuotaUSD:               util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 4),
-		UsedQuota:              user.UsedQuota,
-		UsedQuotaUSD:           util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 4),
-		QuotaExpiresAt:         user.QuotaExpiresAt,
-		QuotaWarning:           user.QuotaWarning,
-		WarningThreshold:       user.WarningThreshold / consts.QUOTA_USD_UNIT,
-		ExpireWarningThreshold: user.ExpireWarningThreshold,
+		Quota:                  quota,
+		QuotaUSD:               util.Round(float64(quota)/consts.QUOTA_USD_UNIT, 4),
+		UsedQuota:              usedQuota,
+		UsedQuotaUSD:           util.Round(float64(usedQuota)/consts.QUOTA_USD_UNIT, 4),
+		AllocatedQuota:         allocatedQuota,
+		ToBeAllocated:          toBeAllocated,
+		QuotaExpiresAt:         quotaExpiresAt,
+		QuotaWarning:           quotaWarning,
+		WarningThreshold:       warningThreshold / consts.QUOTA_USD_UNIT,
+		ExpireWarningThreshold: expireWarningThreshold,
 	}, nil
 }
 
@@ -284,6 +403,11 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 	}
 
 	pipeline = append(pipeline, bson.M{"$sort": bson.M{"tokens": -1}}, bson.M{"$limit": 10})
+
+	if service.Session().IsResellerRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["rid"] = service.Session().GetRid(ctx)
+	}
 
 	if service.Session().IsUserRole(ctx) {
 		match := pipeline[0]["$match"].(bson.M)
@@ -396,6 +520,11 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 		},
 	}
 
+	if service.Session().IsResellerRole(ctx) {
+		match := pipeline[0]["$match"].(bson.M)
+		match["rid"] = service.Session().GetRid(ctx)
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		match := pipeline[0]["$match"].(bson.M)
 		match["user_id"] = service.Session().GetUserId(ctx)
@@ -451,6 +580,10 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 	}
 
 	match := pipeline[0]["$match"].(bson.M)
+
+	if service.Session().IsResellerRole(ctx) {
+		match["rid"] = service.Session().GetRid(ctx)
+	}
 
 	if service.Session().IsUserRole(ctx) {
 		match["user_id"] = service.Session().GetUserId(ctx)
@@ -520,6 +653,10 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 
 	match := pipeline[0]["$match"].(bson.M)
 
+	if service.Session().IsResellerRole(ctx) {
+		match["rid"] = service.Session().GetRid(ctx)
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		match["user_id"] = service.Session().GetUserId(ctx)
 	} else if params.UserId != 0 {
@@ -578,9 +715,18 @@ func (s *sDashboard) QuotaWarning(ctx context.Context, params model.DashboardQuo
 		update["expire_warning_threshold"] = params.ExpireWarningThreshold
 	}
 
-	if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, update); err != nil {
-		logger.Error(ctx, err)
-		return err
+	if service.Session().IsResellerRole(ctx) {
+		if err := dao.Reseller.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, update); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		if err := dao.User.UpdateOne(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}, update); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil

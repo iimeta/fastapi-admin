@@ -6,7 +6,7 @@ import (
 )
 
 type User struct {
-	gmeta.Meta             `role:"user,admin" bson:"-"`
+	gmeta.Meta             `role:"reseller,user,admin" bson:"-"`
 	Id                     string        `bson:"_id,omitempty"`                      // ID
 	UserId                 int           `bson:"user_id,omitempty"`                  // 用户ID
 	Name                   string        `bson:"name,omitempty"`                     // 姓名
@@ -17,6 +17,7 @@ type User struct {
 	UsedQuota              int           `bson:"used_quota,omitempty"`               // 已用额度
 	QuotaExpiresAt         int64         `bson:"quota_expires_at,omitempty"`         // 额度过期时间
 	Models                 []string      `bson:"models,omitempty"`                   // 模型权限
+	Groups                 []string      `bson:"groups,omitempty"`                   // 分组权限
 	QuotaWarning           bool          `bson:"quota_warning,omitempty"`            // 额度预警开关
 	WarningThreshold       int           `bson:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
 	ExpireWarningThreshold time.Duration `bson:"expire_warning_threshold,omitempty"` // 过期预警阈值, 单位: 天
@@ -26,6 +27,7 @@ type User struct {
 	ExpireNotice           bool          `bson:"expire_notice,omitempty"`            // 额度过期通知
 	Remark                 string        `bson:"remark,omitempty"`                   // 备注
 	Status                 int           `bson:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
+	Rid                    int           `bson:"rid,omitempty"`                      // 代理商ID
 	Creator                string        `bson:"creator,omitempty"`                  // 创建人
 	Updater                string        `bson:"updater,omitempty"`                  // 更新人
 	CreatedAt              int64         `bson:"created_at,omitempty"`               // 创建时间
@@ -45,6 +47,7 @@ type Account struct {
 	LoginDomain string `bson:"login_domain,omitempty"` // 登录域名
 	Remark      string `bson:"remark,omitempty"`       // 备注
 	Status      int    `bson:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	Rid         int    `bson:"rid,omitempty"`          // 代理商ID
 	Creator     string `bson:"creator,omitempty"`      // 创建人
 	Updater     string `bson:"updater,omitempty"`      // 更新人
 	CreatedAt   int64  `bson:"created_at,omitempty"`   // 创建时间

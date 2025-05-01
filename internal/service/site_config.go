@@ -34,6 +34,8 @@ type (
 		GetSiteConfigByDomain(ctx context.Context, domain string) *entity.SiteConfig
 		// 站点域名是否存在
 		IsDomainExist(ctx context.Context, domain string, id ...string) bool
+		// 根据代理商ID获取站点配置列表
+		GetSiteConfigsByRid(ctx context.Context, rid int) []*entity.SiteConfig
 	}
 )
 

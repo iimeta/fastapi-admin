@@ -20,6 +20,27 @@ func New() service.ISession {
 	return &sSession{}
 }
 
+// 保存代理商会话信息
+func (s *sSession) SaveReseller(ctx context.Context, token string, reseller *model.Reseller) error {
+
+	if reseller == nil {
+		logger.Error(ctx, "reseller is nil")
+		return errors.New("reseller is nil")
+	}
+
+	r := g.RequestFromCtx(ctx)
+
+	r.SetCtxVar(consts.SESSION_TOKEN, token)
+	r.SetCtxVar(consts.SESSION_UID, reseller.Id)
+	r.SetCtxVar(consts.SESSION_RID, reseller.UserId)
+	r.SetCtxVar(consts.SESSION_USER_ID, reseller.UserId)
+	r.SetCtxVar(consts.SESSION_RESELLER, reseller)
+	r.SetCtxVar(consts.SESSION_ROLE, consts.SESSION_RESELLER)
+	r.SetCtxVar(consts.SESSION_CREATOR, reseller.Id)
+
+	return nil
+}
+
 // 保存用户会话信息
 func (s *sSession) SaveUser(ctx context.Context, token string, user *model.User) error {
 
@@ -32,6 +53,7 @@ func (s *sSession) SaveUser(ctx context.Context, token string, user *model.User)
 
 	r.SetCtxVar(consts.SESSION_TOKEN, token)
 	r.SetCtxVar(consts.SESSION_UID, user.Id)
+	r.SetCtxVar(consts.SESSION_RID, user.Rid)
 	r.SetCtxVar(consts.SESSION_USER_ID, user.UserId)
 	r.SetCtxVar(consts.SESSION_USER, user)
 	r.SetCtxVar(consts.SESSION_ROLE, consts.SESSION_USER)
@@ -83,6 +105,17 @@ func (s *sSession) GetUid(ctx context.Context) string {
 	return uid.(string)
 }
 
+// 获取会话中代理商ID
+func (s *sSession) GetRid(ctx context.Context) int {
+
+	rid := ctx.Value(consts.SESSION_RID)
+	if rid == nil {
+		return 0
+	}
+
+	return rid.(int)
+}
+
 // 获取会话中UserId
 func (s *sSession) GetUserId(ctx context.Context) int {
 
@@ -118,6 +151,18 @@ func (s *sSession) GetCreator(ctx context.Context) string {
 	return creator.(string)
 }
 
+// 获取会话中代理商信息
+func (s *sSession) GetReseller(ctx context.Context) *model.Reseller {
+
+	reseller := ctx.Value(consts.SESSION_RESELLER)
+	if reseller == nil {
+		logger.Error(ctx, "reseller is nil")
+		return nil
+	}
+
+	return reseller.(*model.Reseller)
+}
+
 // 获取会话中用户信息
 func (s *sSession) GetUser(ctx context.Context) *model.User {
 
@@ -142,6 +187,11 @@ func (s *sSession) GetAdmin(ctx context.Context) *model.SysAdmin {
 	return admin.(*model.SysAdmin)
 }
 
+// 判断获取会话中角色是否为代理商
+func (s *sSession) IsResellerRole(ctx context.Context) bool {
+	return s.GetRole(ctx) == consts.SESSION_RESELLER
+}
+
 // 判断获取会话中角色是否为用户
 func (s *sSession) IsUserRole(ctx context.Context) bool {
 	return s.GetRole(ctx) == consts.SESSION_USER
@@ -150,6 +200,11 @@ func (s *sSession) IsUserRole(ctx context.Context) bool {
 // 判断获取会话中角色是否为管理员
 func (s *sSession) IsAdminRole(ctx context.Context) bool {
 	return s.GetRole(ctx) == consts.SESSION_ADMIN
+}
+
+// 更新代理商会话信息
+func (s *sSession) UpdateResellerSession(ctx context.Context, reseller *model.Reseller) error {
+	return service.Auth().UpdateResellerByToken(ctx, s.GetToken(ctx), reseller)
 }
 
 // 更新用户会话信息

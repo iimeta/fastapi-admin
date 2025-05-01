@@ -113,6 +113,10 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{UserLoginRegister: params.UserLoginRegister}
 	case "user_shield_error":
 		sysConfig = &do.SysConfig{UserShieldError: params.UserShieldError}
+	case "reseller_login_register":
+		sysConfig = &do.SysConfig{ResellerLoginRegister: params.ResellerLoginRegister}
+	case "reseller_shield_error":
+		sysConfig = &do.SysConfig{ResellerShieldError: params.ResellerShieldError}
 	case "admin_login":
 		sysConfig = &do.SysConfig{AdminLogin: params.AdminLogin}
 	case "auto_disabled_error":
@@ -171,22 +175,24 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Email:      sysConfig.Email,
 		Statistics: sysConfig.Statistics,
 		Base:       sysConfig.Base,
-		//Midjourney:        sysConfig.Midjourney,
-		Log:               sysConfig.Log,
-		UserLoginRegister: sysConfig.UserLoginRegister,
-		UserShieldError:   sysConfig.UserShieldError,
-		AdminLogin:        sysConfig.AdminLogin,
-		AutoDisabledError: sysConfig.AutoDisabledError,
-		AutoEnableError:   sysConfig.AutoEnableError,
-		NotRetryError:     sysConfig.NotRetryError,
-		NotShieldError:    sysConfig.NotShieldError,
-		Notice:            sysConfig.Notice,
-		QuotaWarning:      sysConfig.QuotaWarning,
-		Debug:             sysConfig.Debug,
-		Creator:           sysConfig.Creator,
-		Updater:           sysConfig.Updater,
-		CreatedAt:         util.FormatDateTime(sysConfig.CreatedAt),
-		UpdatedAt:         util.FormatDateTime(sysConfig.UpdatedAt),
+		//Midjourney:            sysConfig.Midjourney,
+		Log:                   sysConfig.Log,
+		UserLoginRegister:     sysConfig.UserLoginRegister,
+		UserShieldError:       sysConfig.UserShieldError,
+		ResellerLoginRegister: sysConfig.ResellerLoginRegister,
+		ResellerShieldError:   sysConfig.ResellerShieldError,
+		AdminLogin:            sysConfig.AdminLogin,
+		AutoDisabledError:     sysConfig.AutoDisabledError,
+		AutoEnableError:       sysConfig.AutoEnableError,
+		NotRetryError:         sysConfig.NotRetryError,
+		NotShieldError:        sysConfig.NotShieldError,
+		Notice:                sysConfig.Notice,
+		QuotaWarning:          sysConfig.QuotaWarning,
+		Debug:                 sysConfig.Debug,
+		Creator:               sysConfig.Creator,
+		Updater:               sysConfig.Updater,
+		CreatedAt:             util.FormatDateTime(sysConfig.CreatedAt),
+		UpdatedAt:             util.FormatDateTime(sysConfig.UpdatedAt),
 	}, nil
 }
 
@@ -216,6 +222,10 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.UserLoginRegister = s.Default().UserLoginRegister
 	case "user_shield_error":
 		sysConfigUpdateReq.UserShieldError = s.Default().UserShieldError
+	case "reseller_login_register":
+		sysConfigUpdateReq.ResellerLoginRegister = s.Default().ResellerLoginRegister
+	case "reseller_shield_error":
+		sysConfigUpdateReq.ResellerShieldError = s.Default().ResellerShieldError
 	case "admin_login":
 		sysConfigUpdateReq.AdminLogin = s.Default().AdminLogin
 	case "auto_disabled_error":
@@ -277,8 +287,9 @@ func (s *sSysConfig) Config(ctx context.Context) (*model.SysConfig, error) {
 	}
 
 	return &model.SysConfig{
-		UserLoginRegister: sysConfig.UserLoginRegister,
-		AdminLogin:        sysConfig.AdminLogin,
+		UserLoginRegister:     sysConfig.UserLoginRegister,
+		ResellerLoginRegister: sysConfig.ResellerLoginRegister,
+		AdminLogin:            sysConfig.AdminLogin,
 	}, nil
 }
 
@@ -327,6 +338,20 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}
 
+	if sysConfig.ResellerLoginRegister == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "reseller_login_register"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.ResellerShieldError == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "reseller_shield_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
 	return sysConfig, nil
 }
 
@@ -345,7 +370,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Port:     465,
 			UserName: "xxx@xxx.com",
 			Password: "xxx",
-			FromName: "智元 Fast API",
+			FromName: "智元 Fast API Pro",
 		},
 		Statistics: &common.Statistics{
 			Open:        true,
@@ -390,6 +415,26 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		UserShieldError: &common.UserShieldError{
 			Open: true,
 			Errors: []string{
+				"http",
+				"tcp",
+				"No available",
+				"quota",
+				"All key error.",
+				"All model agent error.",
+				"All model agent key error.",
+			},
+		},
+		ResellerLoginRegister: &common.ResellerLoginRegister{
+			AccountLogin:  true,
+			EmailLogin:    true,
+			EmailRegister: false,
+			EmailRetrieve: true,
+			SessionExpire: 3600 * 6,
+		},
+		ResellerShieldError: &common.ResellerShieldError{
+			Open: true,
+			Errors: []string{
+				"TraceId",
 				"http",
 				"tcp",
 				"No available",

@@ -40,19 +40,22 @@ func New() service.IApp {
 func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, error) {
 
 	userId := service.Session().GetUserId(ctx)
+	rid := service.Session().GetRid(ctx)
 
-	if service.Session().IsAdminRole(ctx) {
+	if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
 
 		if params.UserId == 0 {
 			return "", errors.New("请输入用户ID")
 		}
 
-		if _, err := service.User().GetUserByUserId(ctx, params.UserId); err != nil {
+		user, err := service.User().GetUserByUserId(ctx, params.UserId)
+		if err != nil {
 			logger.Error(ctx, err)
 			return "", errors.New("用户ID不存在, 请重新输入")
 		}
 
-		userId = params.UserId
+		userId = user.UserId
+		rid = user.Rid
 	}
 
 	appId := core.IncrAppId(ctx)
@@ -64,11 +67,14 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 		IsLimitQuota:   params.IsLimitQuota,
 		Quota:          params.Quota,
 		QuotaExpiresAt: util.ConvExpiresAt(params.QuotaExpiresAt),
+		IsBindGroup:    params.IsBindGroup,
+		Group:          params.Group,
 		IpWhitelist:    gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
 		IpBlacklist:    gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:         params.Remark,
 		Status:         params.Status,
 		UserId:         userId,
+		Rid:            rid,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return "", err
@@ -102,6 +108,10 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		return err
 	}
 
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
 		return errors.New("Unauthorized")
 	}
@@ -112,6 +122,8 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		IsLimitQuota:   params.IsLimitQuota,
 		Quota:          params.Quota,
 		QuotaExpiresAt: util.ConvExpiresAt(params.QuotaExpiresAt),
+		IsBindGroup:    params.IsBindGroup,
+		Group:          params.Group,
 		IpWhitelist:    gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
 		IpBlacklist:    gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 		Remark:         params.Remark,
@@ -128,7 +140,7 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		fmt.Sprintf(consts.APP_IS_LIMIT_QUOTA_FIELD, app.AppId): app.IsLimitQuota,
 	}
 
-	if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields); err != nil {
+	if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, app.UserId), fields); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -147,6 +159,19 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 
 // 更改应用状态
 func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq) error {
+
+	if service.Session().IsResellerRole(ctx) {
+
+		app, err := dao.App.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if app.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
 
 	if service.Session().IsUserRole(ctx) {
 
@@ -182,6 +207,19 @@ func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq
 
 // 删除应用
 func (s *sApp) Delete(ctx context.Context, id string) error {
+
+	if service.Session().IsResellerRole(ctx) {
+
+		app, err := dao.App.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if app.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
 
 	if service.Session().IsUserRole(ctx) {
 
@@ -243,6 +281,10 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && app.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.New("Unauthorized")
+	}
+
 	if service.Session().IsUserRole(ctx) && app.UserId != service.Session().GetUserId(ctx) {
 		return nil, errors.New("Unauthorized")
 	}
@@ -251,6 +293,16 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	groupName := ""
+	if app.IsBindGroup && app.Group != "" {
+		group, err := dao.Group.FindById(ctx, app.Group)
+		if err != nil {
+			logger.Error(ctx, err)
+		} else {
+			groupName = group.Name
+		}
 	}
 
 	return &model.App{
@@ -263,6 +315,9 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		Quota:          app.Quota,
 		UsedQuota:      app.UsedQuota,
 		QuotaExpiresAt: util.FormatDateTime(app.QuotaExpiresAt),
+		IsBindGroup:    app.IsBindGroup,
+		Group:          app.Group,
+		GroupName:      groupName,
 		IpWhitelist:    app.IpWhitelist,
 		IpBlacklist:    app.IpBlacklist,
 		Remark:         app.Remark,
@@ -293,6 +348,10 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 
 		params.UserId = userId
 		params.AppId = appId
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -366,6 +425,8 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 			Quota:          result.Quota,
 			UsedQuota:      result.UsedQuota,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
+			IsBindGroup:    result.IsBindGroup,
+			Group:          result.Group,
 			Status:         result.Status,
 			UserId:         result.UserId,
 			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
@@ -387,6 +448,10 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App, error) {
 
 	filter := bson.M{}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
@@ -419,7 +484,7 @@ func (s *sApp) CreateKey(ctx context.Context, params model.AppCreateKeyReq) (str
 
 	userId := service.Session().GetUserId(ctx)
 
-	if service.Session().IsAdminRole(ctx) {
+	if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
 
 		if params.UserId == 0 {
 			app, err := dao.App.FindByAppId(ctx, params.AppId)
@@ -466,6 +531,8 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 			QuotaExpiresMinutes: params.QuotaExpiresMinutes,
 			Type:                1,
 			Models:              params.Models,
+			IsBindGroup:         params.IsBindGroup,
+			Group:               params.Group,
 			IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
 			IpBlacklist:         gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 			Remark:              params.Remark,
@@ -473,7 +540,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		}
 	)
 
-	if service.Session().IsAdminRole(ctx) {
+	if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
 
 		if params.UserId == 0 && params.Id == "" {
 			app, err := dao.App.FindByAppId(ctx, params.AppId)
@@ -482,6 +549,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 				return "", err
 			}
 			params.UserId = app.UserId
+			key.Rid = app.Rid
 		}
 
 		key.UserId = params.UserId
@@ -493,6 +561,10 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		if oldData, err = dao.Key.FindById(ctx, params.Id); err != nil {
 			logger.Error(ctx, err)
 			return "", err
+		}
+
+		if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+			return "", errors.New("Unauthorized")
 		}
 
 		if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
@@ -537,10 +609,13 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 			QuotaExpiresMinutes: key.QuotaExpiresMinutes,
 			Type:                key.Type,
 			Models:              key.Models,
+			IsBindGroup:         key.IsBindGroup,
+			Group:               key.Group,
 			IpWhitelist:         key.IpWhitelist,
 			IpBlacklist:         key.IpBlacklist,
 			Remark:              key.Remark,
 			Status:              key.Status,
+			Rid:                 key.Rid,
 		}
 	}
 
@@ -555,7 +630,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 		fmt.Sprintf(consts.KEY_IS_LIMIT_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key): key.IsLimitQuota,
 	}
 
-	if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USAGE_KEY, app.UserId), fields); err != nil {
+	if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, app.UserId), fields); err != nil {
 		logger.Error(ctx, err)
 		return k, err
 	}
@@ -581,12 +656,54 @@ func (s *sApp) Models(ctx context.Context, params model.AppModelsReq) error {
 		return err
 	}
 
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
 		return errors.New("Unauthorized")
 	}
 
 	newData, err := dao.App.FindOneAndUpdate(ctx, bson.M{"app_id": params.AppId}, bson.M{
 		"models": params.Models,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 应用绑定分组
+func (s *sApp) Group(ctx context.Context, params model.AppGroupReq) error {
+
+	oldData, err := dao.App.FindOne(ctx, bson.M{"app_id": params.AppId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
+	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
+		return errors.New("Unauthorized")
+	}
+
+	newData, err := dao.App.FindOneAndUpdate(ctx, bson.M{"app_id": params.AppId}, bson.M{
+		"is_bind_group": params.IsBindGroup,
+		"group":         params.Group,
 	})
 	if err != nil {
 		logger.Error(ctx, err)

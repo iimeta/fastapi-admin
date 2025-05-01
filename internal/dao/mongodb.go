@@ -44,6 +44,23 @@ func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, fi
 	role := gmeta.Get(result, "role").String()
 	if role != "*" {
 
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
+
 		if service.Session().IsUserRole(ctx) {
 
 			if !gstr.Contains(role, consts.SESSION_USER) {
@@ -89,6 +106,23 @@ func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{},
 
 	role := gmeta.Get(result, "role").String()
 	if role != "*" {
+
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
 
 		if service.Session().IsUserRole(ctx) {
 
@@ -146,6 +180,19 @@ func findById(ctx context.Context, database, collection string, id, result inter
 	role := gmeta.Get(result, "role").String()
 	if role != "*" {
 
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
+
 		if service.Session().IsUserRole(ctx) {
 
 			if !gstr.Contains(role, consts.SESSION_USER) {
@@ -189,6 +236,19 @@ func findByIds(ctx context.Context, database, collection string, ids, result int
 	role := gmeta.Get(result, "role").String()
 	if role != "*" {
 
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
+
 		if service.Session().IsUserRole(ctx) {
 
 			if !gstr.Contains(role, consts.SESSION_USER) {
@@ -221,6 +281,23 @@ func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter m
 
 	role := gmeta.Get(result, "role").String()
 	if role != "*" {
+
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
 
 		if service.Session().IsUserRole(ctx) {
 
@@ -287,6 +364,12 @@ func insert(ctx context.Context, database string, document interface{}) (string,
 		value["_id"] = util.GenerateId()
 	}
 
+	if value["rid"] == nil || value["rid"] == 0 {
+		if rid := service.Session().GetRid(ctx); rid != 0 {
+			value["rid"] = rid
+		}
+	}
+
 	if value["creator"] == nil || value["creator"] == "" {
 		value["creator"] = service.Session().GetUid(ctx)
 	}
@@ -341,6 +424,12 @@ func inserts(ctx context.Context, database string, documents []interface{}) ([]s
 			value["_id"] = util.GenerateId()
 		}
 
+		if value["rid"] == nil || value["rid"] == 0 {
+			if rid := service.Session().GetRid(ctx); rid != 0 {
+				value["rid"] = rid
+			}
+		}
+
 		if value["creator"] == nil || value["creator"] == "" {
 			value["creator"] = service.Session().GetUid(ctx)
 		}
@@ -377,6 +466,23 @@ func (m *MongoDB[T]) UpdateOne(ctx context.Context, filter map[string]interface{
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
+
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
 
 		if service.Session().IsUserRole(ctx) {
 
@@ -492,6 +598,23 @@ func (m *MongoDB[T]) UpdateMany(ctx context.Context, filter map[string]interface
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
+
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
 
 		if service.Session().IsUserRole(ctx) {
 
@@ -613,6 +736,23 @@ func (m *MongoDB[T]) FindOneAndUpdate(ctx context.Context, filter map[string]int
 
 	role := gmeta.Get(result, "role").String()
 	if role != "*" {
+
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
 
 		if service.Session().IsUserRole(ctx) {
 
@@ -739,6 +879,23 @@ func (m *MongoDB[T]) DeleteOne(ctx context.Context, filter map[string]interface{
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
 
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return 0, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
+
 		if service.Session().IsUserRole(ctx) {
 
 			if !gstr.Contains(role, consts.SESSION_USER) {
@@ -771,6 +928,23 @@ func (m *MongoDB[T]) DeleteMany(ctx context.Context, filter map[string]interface
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
+
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return 0, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
 
 		if service.Session().IsUserRole(ctx) {
 
@@ -811,6 +985,23 @@ func (m *MongoDB[T]) FindOneAndDelete(ctx context.Context, filter map[string]int
 	role := gmeta.Get(result, "role").String()
 	if role != "*" {
 
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return nil, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
+
 		if service.Session().IsUserRole(ctx) {
 
 			if !gstr.Contains(role, consts.SESSION_USER) {
@@ -847,6 +1038,23 @@ func (m *MongoDB[T]) CountDocuments(ctx context.Context, filter map[string]inter
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
+
+		if service.Session().IsResellerRole(ctx) {
+
+			if !gstr.Contains(role, consts.SESSION_RESELLER) {
+				return 0, errors.ERR_UNAUTHORIZED
+			}
+
+			if filter == nil {
+				filter = bson.M{}
+			}
+
+			if gstr.Contains(role, consts.SESSION_USER) {
+				filter["rid"] = service.Session().GetRid(ctx)
+			} else {
+				filter["creator"] = service.Session().GetCreator(ctx)
+			}
+		}
 
 		if service.Session().IsUserRole(ctx) {
 

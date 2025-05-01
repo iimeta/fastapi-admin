@@ -86,7 +86,7 @@ type PageRes struct {
 
 // 公司列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" method:"get" auth:"true" role:"user,admin" tags:"corp" summary:"公司列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"reseller,user,admin" tags:"corp" summary:"公司列表接口"`
 	model.CorpListReq
 }
 

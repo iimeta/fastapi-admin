@@ -14,7 +14,7 @@ import (
 type (
 	IAdminUser interface {
 		// 新建用户
-		Create(ctx context.Context, params model.UserCreateReq) error
+		Create(ctx context.Context, params model.UserCreateReq) (err error)
 		// 更新用户
 		Update(ctx context.Context, params model.UserUpdateReq) error
 		// 更改用户额度过期时间

@@ -9,6 +9,10 @@ import (
 
 func (c *ControllerV1) ChangeEmail(ctx context.Context, req *v1.ChangeEmailReq) (res *v1.ChangeEmailRes, err error) {
 
+	if service.Session().IsResellerRole(ctx) {
+		err = service.Reseller().ChangeEmail(ctx, req.UserChangeEmailReq)
+	}
+
 	if service.Session().IsUserRole(ctx) {
 		err = service.User().ChangeEmail(ctx, req.UserChangeEmailReq)
 	}

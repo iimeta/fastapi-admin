@@ -99,6 +99,13 @@ type KeyModelsReq struct {
 	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
 }
 
+// 密钥绑定分组接口请求参数
+type KeyGroupReq struct {
+	Id          string `json:"id,omitempty"`            // ID
+	IsBindGroup bool   `json:"is_bind_group,omitempty"` // 是否绑定分组
+	Group       string `json:"group,omitempty"`         // 绑定分组
+}
+
 type Key struct {
 	Id                  string   `json:"id,omitempty"`                    // ID
 	UserId              int      `json:"user_id,omitempty"`               // 用户ID
@@ -120,6 +127,9 @@ type Key struct {
 	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty"`    // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`      // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"` // 额度过期分钟数
+	IsBindGroup         bool     `json:"is_bind_group"`                   // 是否绑定分组
+	Group               string   `json:"group,omitempty"`                 // 绑定分组
+	GroupName           string   `json:"group_name,omitempty"`            // 绑定分组名称
 	IpWhitelist         []string `json:"ip_whitelist,omitempty"`          // IP白名单
 	IpBlacklist         []string `json:"ip_blacklist,omitempty"`          // IP黑名单
 	Remark              string   `json:"remark,omitempty"`                // 备注

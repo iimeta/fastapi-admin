@@ -8,7 +8,7 @@ import (
 
 // 用户信息接口请求参数
 type InfoReq struct {
-	g.Meta `path:"/info" method:"get" auth:"true" role:"user,admin" tags:"user" summary:"用户信息接口"`
+	g.Meta `path:"/info" method:"get" auth:"true" role:"reseller,user,admin" tags:"user" summary:"用户信息接口"`
 }
 
 // 用户信息接口响应参数
@@ -19,7 +19,7 @@ type InfoRes struct {
 
 // 用户修改密码接口请求参数
 type ChangePasswordReq struct {
-	g.Meta `path:"/change/password" method:"post" auth:"true" role:"user,admin" tags:"user" summary:"用户修改密码接口"`
+	g.Meta `path:"/change/password" method:"post" auth:"true" role:"reseller,user,admin" tags:"user" summary:"用户修改密码接口"`
 	model.UserChangePasswordReq
 }
 
@@ -30,7 +30,7 @@ type ChangePasswordRes struct {
 
 // 用户修改邮箱接口请求参数
 type ChangeEmailReq struct {
-	g.Meta `path:"/change/email" method:"post" auth:"true" role:"user,admin" tags:"user" summary:"用户修改邮箱接口"`
+	g.Meta `path:"/change/email" method:"post" auth:"true" role:"reseller,user,admin" tags:"user" summary:"用户修改邮箱接口"`
 	model.UserChangeEmailReq
 }
 
@@ -41,7 +41,7 @@ type ChangeEmailRes struct {
 
 // 用户更新信息接口请求参数
 type UpdateInfoReq struct {
-	g.Meta `path:"/update/info" method:"post" auth:"true" role:"user,admin" tags:"user" summary:"用户更新信息接口"`
+	g.Meta `path:"/update/info" method:"post" auth:"true" role:"reseller,user,admin" tags:"user" summary:"用户更新信息接口"`
 	model.UserUpdateInfoReq
 }
 
@@ -52,7 +52,7 @@ type UpdateInfoRes struct {
 
 // 用户更改头像接口请求参数
 type ChangeAvatarReq struct {
-	g.Meta `path:"/change/avatar" method:"post" auth:"true" role:"user,admin" tags:"user" summary:"用户更改头像接口"`
+	g.Meta `path:"/change/avatar" method:"post" auth:"true" role:"reseller,user,admin" tags:"user" summary:"用户更改头像接口"`
 	File   *ghttp.UploadFile `json:"file" type:"file"`
 }
 

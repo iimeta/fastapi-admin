@@ -21,6 +21,7 @@ type ModelCreateReq struct {
 	MidjourneyQuotas     []common.MidjourneyQuota    `json:"midjourney_quotas,omitempty"`       // Midjourney额度
 	DataFormat           int                         `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                        `json:"is_public,omitempty"`               // 是否公开
+	Groups               []string                    `json:"groups,omitempty"`                  // 分组权限
 	IsEnableModelAgent   bool                        `json:"is_enable_model_agent,omitempty"`   // 是否启用模型代理
 	LbStrategy           int                         `json:"lb_strategy,omitempty" d:"1"`       // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents          []string                    `json:"model_agents,omitempty" d:"[]"`     // 模型代理
@@ -52,6 +53,7 @@ type ModelUpdateReq struct {
 	MidjourneyQuotas     []common.MidjourneyQuota    `json:"midjourney_quotas,omitempty"`       // Midjourney额度
 	DataFormat           int                         `json:"data_format,omitempty"`             // 数据格式[1:统一格式, 2:官方格式]
 	IsPublic             bool                        `json:"is_public,omitempty"`               // 是否公开
+	Groups               []string                    `json:"groups,omitempty"`                  // 分组权限
 	IsEnableModelAgent   bool                        `json:"is_enable_model_agent,omitempty"`   // 是否启用模型代理
 	LbStrategy           int                         `json:"lb_strategy,omitempty" d:"1"`       // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents          []string                    `json:"model_agents,omitempty" d:"[]"`     // 模型代理
@@ -81,6 +83,7 @@ type ModelPageReq struct {
 	Name      string   `json:"name,omitempty"`       // 模型名称
 	Model     string   `json:"model,omitempty"`      // 模型
 	Type      int      `json:"type,omitempty"`       // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Group     string   `json:"group,omitempty"`      // 分组
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
 	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
@@ -196,6 +199,8 @@ type Model struct {
 	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
 	BaseUrl              string                      `json:"base_url,omitempty"`                // 模型地址
 	Path                 string                      `json:"path,omitempty"`                    // 模型路径
+	Groups               []string                    `json:"groups,omitempty"`                  // 分组权限
+	GroupNames           []string                    `json:"group_names,omitempty"`             // 分组名称
 	IsEnablePresetConfig bool                        `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
 	PresetConfig         common.PresetConfig         `json:"preset_config,omitempty"`           // 预设配置
 	TextQuota            common.TextQuota            `json:"text_quota,omitempty"`              // 文本额度

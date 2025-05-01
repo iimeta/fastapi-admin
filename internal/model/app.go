@@ -10,6 +10,8 @@ type AppCreateReq struct {
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
 	IpWhitelist    string   `json:"ip_whitelist,omitempty"`     // IP白名单
 	IpBlacklist    string   `json:"ip_blacklist,omitempty"`     // IP黑名单
+	IsBindGroup    bool     `json:"is_bind_group,omitempty"`    // 是否绑定分组
+	Group          string   `json:"group,omitempty"`            // 绑定分组
 	Remark         string   `json:"remark,omitempty"`           // 备注
 	IsCreateKey    bool     `json:"is_create_key,omitempty"`    // 是否创建密钥
 	Status         int      `json:"status,omitempty" d:"1"`     // 状态[1:正常, 2:禁用, -1:删除]
@@ -23,6 +25,8 @@ type AppUpdateReq struct {
 	IsLimitQuota   bool     `json:"is_limit_quota,omitempty"`   // 是否限制额度
 	Quota          int      `json:"quota,omitempty"`            // 额度
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+	IsBindGroup    bool     `json:"is_bind_group,omitempty"`    // 是否绑定分组
+	Group          string   `json:"group,omitempty"`            // 绑定分组
 	IpWhitelist    string   `json:"ip_whitelist,omitempty"`     // IP白名单
 	IpBlacklist    string   `json:"ip_blacklist,omitempty"`     // IP黑名单
 	Remark         string   `json:"remark,omitempty"`           // 备注
@@ -107,6 +111,8 @@ type AppKeyConfigReq struct {
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
 	Models              []string `json:"models,omitempty"`                   // 模型权限
+	IsBindGroup         bool     `json:"is_bind_group,omitempty"`            // 是否绑定分组
+	Group               string   `json:"group,omitempty"`                    // 绑定分组
 	IpWhitelist         string   `json:"ip_whitelist,omitempty"`             // IP白名单
 	IpBlacklist         string   `json:"ip_blacklist,omitempty"`             // IP黑名单
 	Remark              string   `json:"remark,omitempty"`                   // 备注
@@ -119,6 +125,13 @@ type AppModelsReq struct {
 	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
 }
 
+// 应用绑定分组接口请求参数
+type AppGroupReq struct {
+	AppId       int    `json:"app_id,omitempty"`        // 应用ID
+	IsBindGroup bool   `json:"is_bind_group,omitempty"` // 是否绑定分组
+	Group       string `json:"group,omitempty"`         // 绑定分组
+}
+
 type App struct {
 	Id             string   `json:"id,omitempty"`               // ID
 	AppId          int      `json:"app_id,omitempty"`           // 应用ID
@@ -129,6 +142,9 @@ type App struct {
 	Quota          int      `json:"quota"`                      // 剩余额度
 	UsedQuota      int      `json:"used_quota"`                 // 已用额度
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+	IsBindGroup    bool     `json:"is_bind_group"`              // 是否绑定分组
+	Group          string   `json:"group,omitempty"`            // 绑定分组
+	GroupName      string   `json:"group_name,omitempty"`       // 绑定分组名称
 	IpWhitelist    []string `json:"ip_whitelist,omitempty"`     // IP白名单
 	IpBlacklist    []string `json:"ip_blacklist,omitempty"`     // IP黑名单
 	Remark         string   `json:"remark,omitempty"`           // 备注

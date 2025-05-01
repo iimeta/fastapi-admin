@@ -118,6 +118,8 @@ type Expense struct {
 	QuotaUSD               float64       `json:"quota_usd"`                // 剩余额度美元单位
 	UsedQuota              int           `json:"used_quota"`               // 已用额度
 	UsedQuotaUSD           float64       `json:"used_quota_usd"`           // 已用额度美元单位
+	AllocatedQuota         int           `json:"allocated_quota"`          // 已分配额度
+	ToBeAllocated          int           `json:"to_be_allocated"`          // 待分配额度
 	QuotaExpiresAt         string        `json:"quota_expires_at"`         // 额度过期时间
 	QuotaWarning           bool          `json:"quota_warning"`            // 额度预警开关
 	WarningThreshold       int           `json:"warning_threshold"`        // 预警阈值, 单位: $

@@ -13,6 +13,8 @@ import (
 
 type (
 	ISession interface {
+		// 保存代理商会话信息
+		SaveReseller(ctx context.Context, token string, reseller *model.Reseller) error
 		// 保存用户会话信息
 		SaveUser(ctx context.Context, token string, user *model.User) error
 		// 保存管理员会话信息
@@ -21,20 +23,28 @@ type (
 		GetToken(ctx context.Context) string
 		// 获取会话中用户主键ID
 		GetUid(ctx context.Context) string
+		// 获取会话中代理商ID
+		GetRid(ctx context.Context) int
 		// 获取会话中UserId
 		GetUserId(ctx context.Context) int
 		// 获取会话中角色
 		GetRole(ctx context.Context) string
 		// 获取会话中创建人
 		GetCreator(ctx context.Context) string
+		// 获取会话中代理商信息
+		GetReseller(ctx context.Context) *model.Reseller
 		// 获取会话中用户信息
 		GetUser(ctx context.Context) *model.User
 		// 获取会话中管理员信息
 		GetAdmin(ctx context.Context) *model.SysAdmin
+		// 判断获取会话中角色是否为代理商
+		IsResellerRole(ctx context.Context) bool
 		// 判断获取会话中角色是否为用户
 		IsUserRole(ctx context.Context) bool
 		// 判断获取会话中角色是否为管理员
 		IsAdminRole(ctx context.Context) bool
+		// 更新代理商会话信息
+		UpdateResellerSession(ctx context.Context, reseller *model.Reseller) error
 		// 更新用户会话信息
 		UpdateUserSession(ctx context.Context, user *model.User) error
 		// 更新管理员会话信息

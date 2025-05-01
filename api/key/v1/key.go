@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 更改密钥状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"更改密钥状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"reseller,user,admin" tags:"key" summary:"更改密钥状态接口"`
 	model.KeyChangeStatusReq
 }
 
@@ -40,7 +40,7 @@ type ChangeStatusRes struct {
 
 // 删除密钥接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"删除密钥接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,user,admin" tags:"key" summary:"删除密钥接口"`
 	Id     string `json:"id"`
 }
 
@@ -51,7 +51,7 @@ type DeleteRes struct {
 
 // 密钥详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" method:"get" auth:"true" role:"user,admin" tags:"key" summary:"密钥详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"reseller,user,admin" tags:"key" summary:"密钥详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -63,7 +63,7 @@ type DetailRes struct {
 
 // 密钥分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"密钥分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,user,admin" tags:"key" summary:"密钥分页列表接口"`
 	model.KeyPageReq
 }
 
@@ -87,7 +87,7 @@ type ListRes struct {
 
 // 密钥批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"user,admin" tags:"key" summary:"密钥批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"reseller,user,admin" tags:"key" summary:"密钥批量操作接口"`
 	model.KeyBatchOperateReq
 }
 

@@ -9,6 +9,10 @@ const (
 )
 
 const (
+	RESELLER_TOKEN_PREFIX = "R"
+	RESELLER_SESSION      = "reseller:session:%s"
+	RESELLER_CHANNEL      = "reseller"
+
 	USER_TOKEN_PREFIX = "U"
 	USER_SESSION      = "user:session:%s"
 	USER_CHANNEL      = "user"
@@ -19,14 +23,16 @@ const (
 )
 
 const (
-	SESSION_HOST    = "host"
-	SESSION_TOKEN   = "token"
-	SESSION_UID     = "uid"
-	SESSION_USER_ID = "user_id"
-	SESSION_USER    = "user"
-	SESSION_ADMIN   = "admin"
-	SESSION_ROLE    = "role"
-	SESSION_CREATOR = "creator"
+	SESSION_HOST     = "host"
+	SESSION_TOKEN    = "token"
+	SESSION_UID      = "uid"
+	SESSION_RID      = "rid"
+	SESSION_USER_ID  = "user_id"
+	SESSION_RESELLER = "reseller"
+	SESSION_USER     = "user"
+	SESSION_ADMIN    = "admin"
+	SESSION_ROLE     = "role"
+	SESSION_CREATOR  = "creator"
 )
 
 const (

@@ -35,7 +35,7 @@ func New() service.IAdminUser {
 }
 
 // 新建用户
-func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) error {
+func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (err error) {
 
 	if dao.User.IsAccountExist(ctx, params.Account) {
 		return errors.New(params.Account + " 账号已存在")
@@ -45,15 +45,26 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		return errors.New(params.Email + " 邮箱已被其它账号使用")
 	}
 
-	if len(params.Models) == 0 {
-
-		models, err := service.Model().PublicModels(ctx)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
+	if len(params.Groups) == 0 {
+		if service.Session().IsResellerRole(ctx) {
+			params.Groups = service.Session().GetReseller(ctx).Groups
+		} else {
+			if params.Groups, err = service.Group().PublicGroups(ctx); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
 		}
+	}
 
-		params.Models = models
+	if len(params.Models) == 0 {
+		if service.Session().IsResellerRole(ctx) {
+			params.Models = service.Session().GetReseller(ctx).Models
+		} else {
+			if params.Models, err = service.Model().PublicModels(ctx); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
 	}
 
 	var (
@@ -61,17 +72,43 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 		id   = util.GenerateId()
 		user = &do.User{
 			Id:             id,
-			UserId:         core.IncrUserId(ctx),
 			Name:           params.Name,
 			Email:          params.Email,
 			Quota:          params.Quota,
 			QuotaExpiresAt: util.ConvExpiresAt(params.QuotaExpiresAt),
 			Models:         params.Models,
+			Groups:         params.Groups,
 			Remark:         params.Remark,
 			Status:         1,
 			Creator:        id,
 		}
 	)
+
+	if user.Quota > 0 && service.Session().IsResellerRole(ctx) {
+
+		users, err := dao.User.Find(ctx, bson.M{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		totalQuota := user.Quota
+		for _, user := range users {
+			totalQuota += user.Quota
+		}
+
+		reseller, err := dao.Reseller.FindResellerByUserId(ctx, service.Session().GetUserId(ctx))
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if totalQuota > reseller.Quota {
+			return errors.New("所有用户累计额度已超过账户额度")
+		}
+	}
+
+	user.UserId = core.IncrUserId(ctx)
 
 	uid, err := dao.User.Insert(ctx, user)
 	if err != nil {
@@ -105,7 +142,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) err
 			return err
 		}
 
-		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
+		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
@@ -135,6 +172,10 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
@@ -194,6 +235,10 @@ func (s *sAdminUser) ChangeQuotaExpire(ctx context.Context, params model.UserCha
 		return err
 	}
 
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
 		"expire_warning_notice": false,
@@ -248,6 +293,19 @@ func (s *sAdminUser) ChangeStatus(ctx context.Context, params model.UserChangeSt
 // 删除用户
 func (s *sAdminUser) Delete(ctx context.Context, id string) error {
 
+	if service.Session().IsResellerRole(ctx) {
+
+		oldData, err := dao.User.FindById(ctx, id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if oldData.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
 	user, err := dao.User.FindOneAndDeleteById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -279,6 +337,10 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && user.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.New("Unauthorized")
+	}
+
 	account, err := dao.User.FindAccountByUserId(ctx, user.UserId)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -286,6 +348,12 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 	}
 
 	modelNames, err := service.Model().ModelNames(ctx, user.Models)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	groupNames, err := service.Group().GroupNames(ctx, user.Groups)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -303,6 +371,8 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		QuotaExpiresAt:         util.FormatDateTime(user.QuotaExpiresAt),
 		Models:                 user.Models,
 		ModelNames:             modelNames,
+		Groups:                 user.Groups,
+		GroupNames:             groupNames,
 		QuotaWarning:           user.QuotaWarning,
 		WarningThreshold:       user.WarningThreshold / consts.QUOTA_USD_UNIT,
 		ExpireWarningThreshold: user.ExpireWarningThreshold,
@@ -312,6 +382,7 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		ExpireNotice:           user.ExpireNotice,
 		Remark:                 user.Remark,
 		Status:                 user.Status,
+		Rid:                    user.Rid,
 		LoginIP:                account.LoginIP,
 		LoginTime:              util.FormatDateTime(account.LoginTime),
 		LoginDomain:            account.LoginDomain,
@@ -329,6 +400,10 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 	}
 
 	filter := bson.M{}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
 
 	if params.UserId != 0 {
 		filter["user_id"] = params.UserId
@@ -405,9 +480,11 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			UsedQuota:      result.UsedQuota,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
 			Models:         result.Models,
+			Groups:         result.Groups,
 			Account:        accountMap[result.UserId].Account,
 			Remark:         result.Remark,
 			Status:         result.Status,
+			Rid:            result.Rid,
 			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
 		})
@@ -428,6 +505,10 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 
 	filter := bson.M{}
 
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
+
 	results, err := dao.User.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"status", "-created_at", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -445,6 +526,7 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 			Quota:     result.Quota,
 			UsedQuota: result.UsedQuota,
 			Models:    result.Models,
+			Groups:    result.Groups,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt: util.FormatDateTimeMonth(result.UpdatedAt),
@@ -463,8 +545,40 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		return err
 	}
 
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	if params.QuotaType == 2 {
 		params.Quota = -params.Quota
+	}
+
+	if params.Quota > 0 && oldData.Rid != 0 {
+
+		users, err := dao.User.Find(ctx, bson.M{"rid": oldData.Rid})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		totalQuota := params.Quota
+		for _, user := range users {
+			if user.UserId == oldData.UserId {
+				totalQuota += user.Quota
+			} else if user.Quota > 0 {
+				totalQuota += user.Quota
+			}
+		}
+
+		reseller, err := dao.Reseller.FindResellerByUserId(ctx, oldData.Rid)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if oldData.Quota+params.Quota > 0 && totalQuota > reseller.Quota {
+			return errors.New("所有用户累计额度已超过账户额度")
+		}
 	}
 
 	newData, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
@@ -482,7 +596,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		return err
 	}
 
-	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USAGE_KEY, params.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
+	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, params.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -519,8 +633,13 @@ func (s *sAdminUser) Permissions(ctx context.Context, params model.UserPermissio
 		return err
 	}
 
+	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
+		return errors.New("Unauthorized")
+	}
+
 	newData, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
 		"models": params.Models,
+		"groups": params.Groups,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
