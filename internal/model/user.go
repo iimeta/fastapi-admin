@@ -42,8 +42,8 @@ type UserCreateReq struct {
 	Quota          int      `json:"quota,omitempty"`                              // 额度
 	QuotaType      int      `json:"quota_type,omitempty"`                         // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
-	Groups         []string `json:"groups,omitempty"`                             // 分组权限
-	Models         []string `json:"models,omitempty"`                             // 模型权限
+	Groups         []string `json:"groups,omitempty" d:"[]"`                      // 分组权限
+	Models         []string `json:"models,omitempty" d:"[]"`                      // 模型权限
 	Remark         string   `json:"remark,omitempty"`                             // 备注
 }
 
