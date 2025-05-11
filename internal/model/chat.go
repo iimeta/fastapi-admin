@@ -89,7 +89,6 @@ type Chat struct {
 	Prompt               string                      `json:"prompt,omitempty"`                  // 提示(提问)
 	Completion           string                      `json:"completion,omitempty"`              // 补全(回答)
 	TextQuota            common.TextQuota            `json:"text_quota,omitempty"`              // 文本额度
-	ImageQuotas          []common.ImageQuota         `json:"image_quotas,omitempty"`            // 图像额度
 	MultimodalQuota      common.MultimodalQuota      `json:"multimodal_quota,omitempty"`        // 多模态额度
 	RealtimeQuota        common.RealtimeQuota        `json:"realtime_quota,omitempty"`          // 多模态实时额度
 	MultimodalAudioQuota common.MultimodalAudioQuota `json:"multimodal_audio_quota,omitempty"`  // 多模态语音额度

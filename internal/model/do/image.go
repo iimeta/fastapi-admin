@@ -44,7 +44,7 @@ type Image struct {
 	Style                string                 `bson:"style,omitempty"`                   // 图像样式[vivid, natural]
 	ResponseFormat       string                 `bson:"response_format,omitempty"`         // 图像格式[url, b64_json]
 	ImageData            []common.ImageData     `bson:"image_data,omitempty"`              // 生成图像数据
-	ImageQuotas          []common.ImageQuota    `bson:"image_quotas,omitempty"`            // 图像额度
+	ImageQuota           common.ImageQuota      `bson:"image_quota,omitempty"`             // 图像额度
 	MultimodalQuota      common.MultimodalQuota `bson:"multimodal_quota,omitempty"`        // 多模态额度
 	TotalTokens          int                    `bson:"total_tokens,omitempty"`            // 总令牌数
 	TotalTime            int64                  `bson:"total_time,omitempty"`              // 总时间

@@ -70,7 +70,6 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		Prompt:               result.Prompt,
 		Completion:           result.Completion,
 		TextQuota:            result.TextQuota,
-		ImageQuotas:          result.ImageQuotas,
 		MultimodalQuota:      result.MultimodalQuota,
 		RealtimeQuota:        result.RealtimeQuota,
 		MultimodalAudioQuota: result.MultimodalAudioQuota,

@@ -74,7 +74,7 @@ type Image struct {
 	ResponseFormat       string                 `json:"response_format,omitempty"`         // 图像格式[url, b64_json]
 	Images               []string               `json:"images,omitempty"`                  // 生成图像url
 	ImageData            []common.ImageData     `json:"image_data,omitempty"`              // 生成图像数据
-	ImageQuotas          []common.ImageQuota    `json:"image_quotas,omitempty"`            // 图像额度
+	ImageQuota           common.ImageQuota      `json:"image_quota,omitempty"`             // 图像额度
 	MultimodalQuota      common.MultimodalQuota `json:"multimodal_quota,omitempty"`        // 多模态额度
 	TotalTokens          int                    `json:"total_tokens,omitempty"`            // 总令牌数
 	TotalTime            int64                  `json:"total_time,omitempty"`              // 总时间
