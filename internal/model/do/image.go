@@ -40,7 +40,7 @@ type Image struct {
 	Prompt               string                 `bson:"prompt,omitempty"`                  // 提示(提问)
 	Size                 string                 `bson:"size,omitempty"`                    // 尺寸大小
 	N                    int                    `bson:"n,omitempty"`                       // 图像数
-	Quality              string                 `bson:"quality,omitempty"`                 // 图像质量[hd]
+	Quality              string                 `bson:"quality,omitempty"`                 // 图像质量[high, medium, low, hd, standard]
 	Style                string                 `bson:"style,omitempty"`                   // 图像样式[vivid, natural]
 	ResponseFormat       string                 `bson:"response_format,omitempty"`         // 图像格式[url, b64_json]
 	ImageData            []common.ImageData     `bson:"image_data,omitempty"`              // 生成图像数据
