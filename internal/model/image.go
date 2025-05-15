@@ -75,7 +75,10 @@ type Image struct {
 	Images               []string               `json:"images,omitempty"`                  // 生成图像url
 	ImageData            []common.ImageData     `json:"image_data,omitempty"`              // 生成图像数据
 	ImageQuota           common.ImageQuota      `json:"image_quota,omitempty"`             // 图像额度
-	MultimodalQuota      common.MultimodalQuota `json:"multimodal_quota,omitempty"`        // 多模态额度
+	InputTokens          int                    `json:"input_tokens,omitempty"`            // 输入令牌数
+	OutputTokens         int                    `json:"output_tokens,omitempty"`           // 输出令牌数
+	TextTokens           int                    `json:"text_tokens,omitempty"`             // 文本令牌数
+	ImageTokens          int                    `json:"image_tokens,omitempty"`            // 图像令牌数
 	TotalTokens          int                    `json:"total_tokens,omitempty"`            // 总令牌数
 	TotalTime            int64                  `json:"total_time,omitempty"`              // 总时间
 	InternalTime         int64                  `json:"internal_time,omitempty"`           // 内耗时间
