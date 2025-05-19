@@ -48,19 +48,37 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	}
 
 	if service.Session().IsResellerRole(ctx) {
-		if models := service.Session().GetReseller(ctx).Models; len(models) > 0 {
+
+		models := service.Session().GetReseller(ctx).Models
+		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetReseller(ctx).Groups...); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			models = append(models, groupModels...)
+		}
+
+		if len(models) > 0 {
 			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
 				logger.Error(ctx, err)
 				return nil, err
 			}
 		}
+
 	} else if service.Session().IsUserRole(ctx) {
-		if models := service.Session().GetUser(ctx).Models; len(models) > 0 {
+
+		models := service.Session().GetUser(ctx).Models
+		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetUser(ctx).Groups...); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			models = append(models, groupModels...)
+		}
+
+		if len(models) > 0 {
 			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
 				logger.Error(ctx, err)
 				return nil, err
 			}
 		}
+
 	} else {
 		if dashboard.Model, err = dao.Model.EstimatedDocumentCount(ctx); err != nil {
 			logger.Error(ctx, err)
@@ -98,9 +116,11 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 			return nil, err
 		}
 
-		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx), "type": 2, "status": 1}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
+		if groups := service.Session().GetUser(ctx).Groups; len(groups) > 0 {
+			if dashboard.Group, err = dao.Group.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": groups}}); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
 		}
 
 		if dashboard.User, err = dao.User.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
