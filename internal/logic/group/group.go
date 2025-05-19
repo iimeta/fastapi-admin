@@ -1111,6 +1111,10 @@ func (s *sGroup) GroupNames(ctx context.Context, groups []string) ([]string, err
 // 根据分组Ids获取模型Ids
 func (s *sGroup) GetModelsByGroups(ctx context.Context, groups ...string) ([]string, error) {
 
+	if groups == nil || len(groups) == 0 {
+		return nil, nil
+	}
+
 	filter := bson.M{
 		"_id": bson.M{"$in": groups},
 	}

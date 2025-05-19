@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -26,152 +27,7 @@ func New() service.IDashboard {
 }
 
 // 基础数据
-func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, err error) {
-
-	dashboard = new(model.Dashboard)
-
-	if service.Session().IsResellerRole(ctx) {
-		if dashboard.App, err = dao.App.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	} else if service.Session().IsUserRole(ctx) {
-		if dashboard.App, err = dao.App.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	} else {
-		if dashboard.App, err = dao.App.EstimatedDocumentCount(ctx); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if service.Session().IsResellerRole(ctx) {
-
-		models := service.Session().GetReseller(ctx).Models
-		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetReseller(ctx).Groups...); err != nil {
-			logger.Error(ctx, err)
-		} else {
-			models = append(models, groupModels...)
-		}
-
-		if len(models) > 0 {
-			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
-				logger.Error(ctx, err)
-				return nil, err
-			}
-		}
-
-	} else if service.Session().IsUserRole(ctx) {
-
-		models := service.Session().GetUser(ctx).Models
-		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetUser(ctx).Groups...); err != nil {
-			logger.Error(ctx, err)
-		} else {
-			models = append(models, groupModels...)
-		}
-
-		if len(models) > 0 {
-			if dashboard.Model, err = dao.Model.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": models}}); err != nil {
-				logger.Error(ctx, err)
-				return nil, err
-			}
-		}
-
-	} else {
-		if dashboard.Model, err = dao.Model.EstimatedDocumentCount(ctx); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if service.Session().IsResellerRole(ctx) {
-		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx), "type": 1}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	} else if service.Session().IsUserRole(ctx) {
-		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx), "type": 1}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	} else {
-		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 1}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if service.Session().IsResellerRole(ctx) {
-
-		if dashboard.TodayApp, err = dao.App.CountDocuments(ctx, bson.M{
-			"rid": service.Session().GetRid(ctx),
-			"created_at": bson.M{
-				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
-				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		if groups := service.Session().GetUser(ctx).Groups; len(groups) > 0 {
-			if dashboard.Group, err = dao.Group.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": groups}}); err != nil {
-				logger.Error(ctx, err)
-				return nil, err
-			}
-		}
-
-		if dashboard.User, err = dao.User.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		if dashboard.TodayUser, err = dao.User.CountDocuments(ctx, bson.M{
-			"rid": service.Session().GetRid(ctx),
-			"created_at": bson.M{
-				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
-				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
-
-	if service.Session().IsAdminRole(ctx) {
-
-		if dashboard.TodayApp, err = dao.App.CountDocuments(ctx, bson.M{
-			"created_at": bson.M{
-				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
-				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 2, "status": 1}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		if dashboard.User, err = dao.User.EstimatedDocumentCount(ctx); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		if dashboard.TodayUser, err = dao.User.CountDocuments(ctx, bson.M{
-			"created_at": bson.M{
-				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
-				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-	}
+func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, err error) {
 
 	pipeline := []bson.M{
 		{
@@ -198,11 +54,132 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard *model.Dashboard, 
 	result := make([]map[string]interface{}, 0)
 	if err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
-		return nil, err
+		return dashboard, err
 	}
 
 	if len(result) > 0 {
 		dashboard.Call = gconv.Int(result[0]["call"])
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+
+		if dashboard.App, err = dao.App.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.TodayApp, err = dao.App.CountDocuments(ctx, bson.M{
+			"rid": service.Session().GetRid(ctx),
+			"created_at": bson.M{
+				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx), "type": 1}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.User, err = dao.User.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.TodayUser, err = dao.User.CountDocuments(ctx, bson.M{
+			"rid": service.Session().GetRid(ctx),
+			"created_at": bson.M{
+				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		modelSet := gset.NewStrSetFrom(service.Session().GetReseller(ctx).Models)
+		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetReseller(ctx).Groups...); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			modelSet.Add(groupModels...)
+		}
+
+		dashboard.Model = int64(modelSet.Size())
+		dashboard.Group = len(service.Session().GetReseller(ctx).Groups)
+	}
+
+	if service.Session().IsUserRole(ctx) {
+
+		if dashboard.App, err = dao.App.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx), "type": 1}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		modelSet := gset.NewStrSetFrom(service.Session().GetUser(ctx).Models)
+		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetUser(ctx).Groups...); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			modelSet.Add(groupModels...)
+		}
+
+		dashboard.Model = int64(modelSet.Size())
+		dashboard.Group = len(service.Session().GetUser(ctx).Groups)
+	}
+
+	if service.Session().IsAdminRole(ctx) {
+
+		if dashboard.App, err = dao.App.EstimatedDocumentCount(ctx); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.TodayApp, err = dao.App.CountDocuments(ctx, bson.M{
+			"created_at": bson.M{
+				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 1}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.User, err = dao.User.EstimatedDocumentCount(ctx); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.TodayUser, err = dao.User.CountDocuments(ctx, bson.M{
+			"created_at": bson.M{
+				"$gte": gtime.Now().StartOfDay().TimestampMilli(),
+				"$lte": gtime.Now().EndOfDay(true).TimestampMilli(),
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.Model, err = dao.Model.EstimatedDocumentCount(ctx); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
+
+		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 2, "status": 1}); err != nil {
+			logger.Error(ctx, err)
+			return dashboard, err
+		}
 	}
 
 	return dashboard, nil

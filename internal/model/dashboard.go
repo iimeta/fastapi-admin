@@ -4,7 +4,7 @@ import "time"
 
 // 仪表盘基础数据接口响应参数
 type DashboardBaseDataRes struct {
-	*Dashboard
+	Dashboard
 }
 
 // 仪表盘调用数据接口请求参数
@@ -99,7 +99,7 @@ type Dashboard struct {
 	User      int64 `json:"user"`       // 用户数
 	TodayUser int64 `json:"today_user"` // 今日新增用户数
 	Call      int   `json:"call"`       // 调用数
-	Group     int64 `json:"group"`      // 分组数
+	Group     int   `json:"group"`      // 分组数
 }
 
 // 调用数据
