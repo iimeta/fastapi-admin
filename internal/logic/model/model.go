@@ -1773,29 +1773,23 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 	for _, data := range result.Data {
 
-		name := data.FastAPI.Corp
-		code := data.FastAPI.Code
-		if params.IsConfigModelAgent {
-			code += "2FastAPI"
-		}
-
-		corp := corpNameMap[name]
+		corp := corpNameMap[data.FastAPI.Corp]
 		if corp == "" {
-			corp = corpCodeMap[code]
+			corp = corpCodeMap[data.FastAPI.Code]
 		}
 
 		if corp == "" {
 			if corp, err = service.Corp().Create(ctx, model.CorpCreateReq{
-				Name:     name,
-				Code:     code,
+				Name:     data.FastAPI.Corp,
+				Code:     data.FastAPI.Code,
 				IsPublic: true,
 				Status:   1,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
-			corpNameMap[name] = corp
-			corpCodeMap[code] = corp
+			corpNameMap[data.FastAPI.Corp] = corp
+			corpCodeMap[data.FastAPI.Code] = corp
 		}
 
 		if modelMap[data.Id] != "" {
