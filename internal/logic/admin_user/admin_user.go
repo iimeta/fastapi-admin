@@ -162,6 +162,16 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 		return err
 	}
 
+	// 创建默认应用
+	if _, err = service.App().Create(ctx, model.AppCreateReq{
+		UserId:      user.UserId,
+		Name:        "默认应用",
+		IsCreateKey: true,
+		Status:      1,
+	}); err != nil {
+		logger.Error(ctx, err)
+	}
+
 	return nil
 }
 

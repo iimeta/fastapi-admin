@@ -195,6 +195,18 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			}
 		}
 
+		r := g.RequestFromCtx(ctx)
+		r.SetCtxVar(consts.SESSION_USER_ID, user.UserId)
+
+		// 创建默认应用
+		if _, err = service.App().Create(r.GetCtx(), model.AppCreateReq{
+			Name:        "默认应用",
+			IsCreateKey: true,
+			Status:      1,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+
 	} else if params.Channel == consts.RESELLER_CHANNEL {
 
 		salt := grand.Letters(8)
