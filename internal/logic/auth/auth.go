@@ -197,6 +197,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 
 		r := g.RequestFromCtx(ctx)
 		r.SetCtxVar(consts.SESSION_USER_ID, user.UserId)
+		r.SetCtxVar(consts.SESSION_RID, user.Rid)
 
 		// 创建默认应用
 		if _, err = service.App().Create(r.GetCtx(), model.AppCreateReq{
