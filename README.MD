@@ -163,6 +163,6 @@
 
 ## 交流群
 
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250525" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250602" width="320" alt="交流群"/>
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
