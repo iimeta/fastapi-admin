@@ -120,3 +120,15 @@ type KeyConfigRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	Key    string `json:"key,omitempty"` // 密钥
 }
+
+// 应用密钥批量创建接口请求参数
+type BatchCreateKeyReq struct {
+	g.Meta `path:"/batch/create/key" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用密钥批量创建接口"`
+	model.AppBatchCreateKeyReq
+}
+
+// 应用密钥批量创建接口响应参数
+type BatchCreateKeyRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	Keys   string `json:"keys,omitempty"` // 密钥
+}

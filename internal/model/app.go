@@ -119,6 +119,25 @@ type AppKeyConfigReq struct {
 	Status              int      `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 应用密钥批量创建接口请求参数
+type AppBatchCreateKeyReq struct {
+	UserId              int      `json:"user_id,omitempty"`                  // 用户ID
+	AppId               int      `json:"app_id,omitempty"`                   // 应用ID
+	N                   int      `json:"n,omitempty"`                        // 创建数量
+	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`           // 是否限制额度
+	Quota               int      `json:"quota,omitempty"`                    // 额度
+	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty" d:"1"` // 额度过期规则[1:固定, 2:时长]
+	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`         // 额度过期时间
+	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
+	Models              []string `json:"models,omitempty"`                   // 模型权限
+	IsBindGroup         bool     `json:"is_bind_group,omitempty"`            // 是否绑定分组
+	Group               string   `json:"group,omitempty"`                    // 绑定分组
+	IpWhitelist         string   `json:"ip_whitelist,omitempty"`             // IP白名单
+	IpBlacklist         string   `json:"ip_blacklist,omitempty"`             // IP黑名单
+	Remark              string   `json:"remark,omitempty"`                   // 备注
+	Status              int      `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
+}
+
 // 应用模型权限接口请求参数
 type AppModelsReq struct {
 	AppId  int      `json:"app_id,omitempty"`        // 应用ID

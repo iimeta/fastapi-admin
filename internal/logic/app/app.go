@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -746,4 +748,105 @@ func (s *sApp) BatchOperate(ctx context.Context, params model.AppBatchOperateReq
 	}
 
 	return nil
+}
+
+// 应用密钥批量创建
+func (s *sApp) BatchCreateKey(ctx context.Context, params model.AppBatchCreateKeyReq) (keys string, err error) {
+
+	app, err := dao.App.FindByAppId(ctx, params.AppId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	userId := service.Session().GetUserId(ctx)
+
+	if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
+		if params.UserId == 0 {
+			params.UserId = app.UserId
+		}
+		userId = params.UserId
+	}
+
+	for i := 0; i < params.N; i++ {
+
+		createKey, err := s.CreateKey(ctx, model.AppCreateKeyReq{UserId: userId, AppId: params.AppId})
+		if err != nil {
+			logger.Error(ctx, err)
+			return keys, err
+		}
+
+		key := &do.Key{
+			UserId:              userId,
+			AppId:               params.AppId,
+			Key:                 createKey,
+			IsLimitQuota:        params.IsLimitQuota,
+			Quota:               params.Quota,
+			QuotaExpiresRule:    params.QuotaExpiresRule,
+			QuotaExpiresAt:      util.ConvExpiresAt(params.QuotaExpiresAt),
+			QuotaExpiresMinutes: params.QuotaExpiresMinutes,
+			Type:                1,
+			Models:              params.Models,
+			IsBindGroup:         params.IsBindGroup,
+			Group:               params.Group,
+			IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+			IpBlacklist:         gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
+			Remark:              params.Remark,
+			Status:              params.Status,
+		}
+
+		id, err := dao.Key.Insert(ctx, key)
+		if err != nil {
+			logger.Error(ctx, err)
+			return keys, err
+		}
+
+		keys += key.Key + "\n"
+
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			keyInfo := &entity.Key{
+				Id:                  id,
+				UserId:              key.UserId,
+				AppId:               key.AppId,
+				Key:                 key.Key,
+				IsLimitQuota:        key.IsLimitQuota,
+				Quota:               key.Quota,
+				UsedQuota:           key.UsedQuota,
+				QuotaExpiresRule:    key.QuotaExpiresRule,
+				QuotaExpiresAt:      key.QuotaExpiresAt,
+				QuotaExpiresMinutes: key.QuotaExpiresMinutes,
+				Type:                key.Type,
+				Models:              key.Models,
+				IsBindGroup:         key.IsBindGroup,
+				Group:               key.Group,
+				IpWhitelist:         key.IpWhitelist,
+				IpBlacklist:         key.IpBlacklist,
+				Remark:              key.Remark,
+				Status:              key.Status,
+				Rid:                 key.Rid,
+			}
+
+			fields := g.Map{
+				fmt.Sprintf(consts.KEY_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key):          key.Quota,
+				fmt.Sprintf(consts.KEY_IS_LIMIT_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key): key.IsLimitQuota,
+			}
+
+			if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, app.UserId), fields); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP_KEY, model.PubMessage{
+				Action:  consts.ACTION_CREATE,
+				NewData: keyInfo,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	return keys, err
 }

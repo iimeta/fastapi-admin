@@ -37,6 +37,8 @@ type (
 		Group(ctx context.Context, params model.AppGroupReq) error
 		// 应用批量操作
 		BatchOperate(ctx context.Context, params model.AppBatchOperateReq) error
+		// 应用密钥批量创建
+		BatchCreateKey(ctx context.Context, params model.AppBatchCreateKeyReq) (keys string, err error)
 	}
 )
 
