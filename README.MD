@@ -71,6 +71,7 @@
 ## 项目预览
 
 - 用户端: <https://demo.fastapi.ai/login>
+- 代理商: <https://demo.fastapi.ai/reseller>
 - 管理端: <https://demo.fastapi.ai/admin>
 - 账号/密码均是: demo/123456
 
@@ -95,16 +96,17 @@
 
 ### 社区版
 
-- API接口: <https://api.free.fastapi.ai>
 - 用户端: <https://free.fastapi.ai/login>
+- 代理商: <https://free.fastapi.ai/reseller>
+- API接口: <https://api.free.fastapi.ai>
 
 ### 专业版
 
-- API接口: <https://api.free.fastapi.pro>
 - 用户端: <https://free.fastapi.pro/login>
 - 代理商: <https://free.fastapi.pro/reseller>
+- API接口: <https://api.free.fastapi.pro>
 
-#### 社区版和专业版数据互通, 可以根据自己喜好选择, 社区版用户注册送1000万额度, 专业版用户注册送2500万额度, 专业版支持注册代理商
+#### 社区版和专业版数据互通, 可根据自己喜好选择, 支持注册代理商, 社区版用户注册送10万刀额度, 专业版用户注册送100万刀额度
 
 ## 项目截图
 
@@ -163,6 +165,6 @@
 
 ## 交流群
 
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250602" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250608" width="320" alt="交流群"/>
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
