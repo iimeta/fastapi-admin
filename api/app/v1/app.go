@@ -121,14 +121,14 @@ type KeyConfigRes struct {
 	Key    string `json:"key,omitempty"` // 密钥
 }
 
-// 应用密钥批量创建接口请求参数
-type BatchCreateKeyReq struct {
-	g.Meta `path:"/batch/create/key" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用密钥批量创建接口"`
-	model.AppBatchCreateKeyReq
+// 应用密钥批量操作接口请求参数
+type KeyBatchOperateReq struct {
+	g.Meta `path:"/key/batch/operate" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用密钥批量操作接口"`
+	model.AppKeyBatchOperateReq
 }
 
-// 应用密钥批量创建接口响应参数
-type BatchCreateKeyRes struct {
+// 应用密钥批量操作接口响应参数
+type KeyBatchOperateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	Keys   string `json:"keys,omitempty"` // 密钥
 }

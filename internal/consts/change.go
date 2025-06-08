@@ -30,6 +30,7 @@ const (
 	ACTION_APP        = "app"
 	ACTION_KEY        = "key"
 	ACTION_GROUP      = "group"
+	ACTION_ALL_UPDATE = "all-update"
 	ACTION_ALL_DELETE = "all-delete"
 	ACTION_ALL_STATUS = "all-status"
 	ACTION_CACHE      = "cache"

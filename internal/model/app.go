@@ -105,12 +105,12 @@ type AppKeyConfigReq struct {
 	UserId              int      `json:"user_id,omitempty"`                  // 用户ID
 	AppId               int      `json:"app_id,omitempty"`                   // 应用ID
 	Key                 string   `json:"key,omitempty"`                      // 密钥
+	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`           // 是否限制额度
 	Quota               int      `json:"quota,omitempty"`                    // 额度
 	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty" d:"1"` // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
-	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsBindGroup         bool     `json:"is_bind_group,omitempty"`            // 是否绑定分组
 	Group               string   `json:"group,omitempty"`                    // 绑定分组
 	IpWhitelist         string   `json:"ip_whitelist,omitempty"`             // IP白名单
@@ -119,23 +119,28 @@ type AppKeyConfigReq struct {
 	Status              int      `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
 }
 
-// 应用密钥批量创建接口请求参数
-type AppBatchCreateKeyReq struct {
+// 应用密钥批量操作接口请求参数
+type AppKeyBatchOperateReq struct {
+	Action              string   `json:"action"`                             // 动作
+	Ids                 []string `json:"ids"`                                // 主键Ids
+	Value               any      `json:"value"`                              // 值
 	UserId              int      `json:"user_id,omitempty"`                  // 用户ID
 	AppId               int      `json:"app_id,omitempty"`                   // 应用ID
+	Key                 string   `json:"key,omitempty"`                      // 密钥
 	N                   int      `json:"n,omitempty"`                        // 创建数量
+	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`           // 是否限制额度
 	Quota               int      `json:"quota,omitempty"`                    // 额度
 	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty" d:"1"` // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
-	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsBindGroup         bool     `json:"is_bind_group,omitempty"`            // 是否绑定分组
 	Group               string   `json:"group,omitempty"`                    // 绑定分组
 	IpWhitelist         string   `json:"ip_whitelist,omitempty"`             // IP白名单
 	IpBlacklist         string   `json:"ip_blacklist,omitempty"`             // IP黑名单
 	Remark              string   `json:"remark,omitempty"`                   // 备注
 	Status              int      `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
+	ExpiresAt           []string `json:"expires_at,omitempty"`               // 过期时间
 }
 
 // 应用模型权限接口请求参数

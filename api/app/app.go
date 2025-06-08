@@ -21,5 +21,5 @@ type IAppV1 interface {
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
 	CreateKey(ctx context.Context, req *v1.CreateKeyReq) (res *v1.CreateKeyRes, err error)
 	KeyConfig(ctx context.Context, req *v1.KeyConfigReq) (res *v1.KeyConfigRes, err error)
-	BatchCreateKey(ctx context.Context, req *v1.BatchCreateKeyReq) (res *v1.BatchCreateKeyRes, err error)
+	KeyBatchOperate(ctx context.Context, req *v1.KeyBatchOperateReq) (res *v1.KeyBatchOperateRes, err error)
 }

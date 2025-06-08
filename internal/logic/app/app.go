@@ -526,13 +526,13 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 			UserId:              service.Session().GetUserId(ctx),
 			AppId:               params.AppId,
 			Key:                 params.Key,
+			Models:              params.Models,
 			IsLimitQuota:        params.IsLimitQuota,
 			Quota:               params.Quota,
 			QuotaExpiresRule:    params.QuotaExpiresRule,
 			QuotaExpiresAt:      util.ConvExpiresAt(params.QuotaExpiresAt),
 			QuotaExpiresMinutes: params.QuotaExpiresMinutes,
 			Type:                1,
-			Models:              params.Models,
 			IsBindGroup:         params.IsBindGroup,
 			Group:               params.Group,
 			IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -603,6 +603,7 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 			UserId:              key.UserId,
 			AppId:               key.AppId,
 			Key:                 key.Key,
+			Models:              key.Models,
 			IsLimitQuota:        key.IsLimitQuota,
 			Quota:               key.Quota,
 			UsedQuota:           key.UsedQuota,
@@ -610,7 +611,6 @@ func (s *sApp) KeyConfig(ctx context.Context, params model.AppKeyConfigReq) (k s
 			QuotaExpiresAt:      key.QuotaExpiresAt,
 			QuotaExpiresMinutes: key.QuotaExpiresMinutes,
 			Type:                key.Type,
-			Models:              key.Models,
 			IsBindGroup:         key.IsBindGroup,
 			Group:               key.Group,
 			IpWhitelist:         key.IpWhitelist,
@@ -750,8 +750,8 @@ func (s *sApp) BatchOperate(ctx context.Context, params model.AppBatchOperateReq
 	return nil
 }
 
-// 应用密钥批量创建
-func (s *sApp) BatchCreateKey(ctx context.Context, params model.AppBatchCreateKeyReq) (keys string, err error) {
+// 应用密钥批量操作
+func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOperateReq) (keys string, err error) {
 
 	app, err := dao.App.FindByAppId(ctx, params.AppId)
 	if err != nil {
@@ -768,83 +768,242 @@ func (s *sApp) BatchCreateKey(ctx context.Context, params model.AppBatchCreateKe
 		userId = params.UserId
 	}
 
-	for i := 0; i < params.N; i++ {
+	switch params.Action {
+	case consts.ACTION_CREATE:
 
-		createKey, err := s.CreateKey(ctx, model.AppCreateKeyReq{UserId: userId, AppId: params.AppId})
-		if err != nil {
-			logger.Error(ctx, err)
-			return keys, err
-		}
+		for i := 0; i < params.N; i++ {
 
-		key := &do.Key{
-			UserId:              userId,
-			AppId:               params.AppId,
-			Key:                 createKey,
-			IsLimitQuota:        params.IsLimitQuota,
-			Quota:               params.Quota,
-			QuotaExpiresRule:    params.QuotaExpiresRule,
-			QuotaExpiresAt:      util.ConvExpiresAt(params.QuotaExpiresAt),
-			QuotaExpiresMinutes: params.QuotaExpiresMinutes,
-			Type:                1,
-			Models:              params.Models,
-			IsBindGroup:         params.IsBindGroup,
-			Group:               params.Group,
-			IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
-			IpBlacklist:         gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
-			Remark:              params.Remark,
-			Status:              params.Status,
-		}
-
-		id, err := dao.Key.Insert(ctx, key)
-		if err != nil {
-			logger.Error(ctx, err)
-			return keys, err
-		}
-
-		keys += key.Key + "\n"
-
-		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-
-			keyInfo := &entity.Key{
-				Id:                  id,
-				UserId:              key.UserId,
-				AppId:               key.AppId,
-				Key:                 key.Key,
-				IsLimitQuota:        key.IsLimitQuota,
-				Quota:               key.Quota,
-				UsedQuota:           key.UsedQuota,
-				QuotaExpiresRule:    key.QuotaExpiresRule,
-				QuotaExpiresAt:      key.QuotaExpiresAt,
-				QuotaExpiresMinutes: key.QuotaExpiresMinutes,
-				Type:                key.Type,
-				Models:              key.Models,
-				IsBindGroup:         key.IsBindGroup,
-				Group:               key.Group,
-				IpWhitelist:         key.IpWhitelist,
-				IpBlacklist:         key.IpBlacklist,
-				Remark:              key.Remark,
-				Status:              key.Status,
-				Rid:                 key.Rid,
+			createKey, err := s.CreateKey(ctx, model.AppCreateKeyReq{UserId: userId, AppId: params.AppId})
+			if err != nil {
+				logger.Error(ctx, err)
+				return keys, err
 			}
 
-			fields := g.Map{
-				fmt.Sprintf(consts.KEY_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key):          key.Quota,
-				fmt.Sprintf(consts.KEY_IS_LIMIT_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key): key.IsLimitQuota,
+			key := &do.Key{
+				UserId:              userId,
+				AppId:               params.AppId,
+				Key:                 createKey,
+				Models:              params.Models,
+				IsLimitQuota:        params.IsLimitQuota,
+				Quota:               params.Quota,
+				QuotaExpiresRule:    params.QuotaExpiresRule,
+				QuotaExpiresAt:      util.ConvExpiresAt(params.QuotaExpiresAt),
+				QuotaExpiresMinutes: params.QuotaExpiresMinutes,
+				Type:                1,
+				IsBindGroup:         params.IsBindGroup,
+				Group:               params.Group,
+				IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
+				IpBlacklist:         gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
+				Remark:              params.Remark,
+				Status:              params.Status,
 			}
 
-			if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, app.UserId), fields); err != nil {
+			id, err := dao.Key.Insert(ctx, key)
+			if err != nil {
+				logger.Error(ctx, err)
+				return keys, err
+			}
+
+			keys += key.Key + "\n"
+
+			if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+				keyInfo := &entity.Key{
+					Id:                  id,
+					UserId:              key.UserId,
+					AppId:               key.AppId,
+					Key:                 key.Key,
+					IsLimitQuota:        key.IsLimitQuota,
+					Quota:               key.Quota,
+					UsedQuota:           key.UsedQuota,
+					QuotaExpiresRule:    key.QuotaExpiresRule,
+					QuotaExpiresAt:      key.QuotaExpiresAt,
+					QuotaExpiresMinutes: key.QuotaExpiresMinutes,
+					Type:                key.Type,
+					Models:              key.Models,
+					IsBindGroup:         key.IsBindGroup,
+					Group:               key.Group,
+					IpWhitelist:         key.IpWhitelist,
+					IpBlacklist:         key.IpBlacklist,
+					Remark:              key.Remark,
+					Status:              key.Status,
+					Rid:                 key.Rid,
+				}
+
+				fields := g.Map{
+					fmt.Sprintf(consts.KEY_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key):          key.Quota,
+					fmt.Sprintf(consts.KEY_IS_LIMIT_QUOTA_FIELD, keyInfo.AppId, keyInfo.Key): key.IsLimitQuota,
+				}
+
+				if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, app.UserId), fields); err != nil {
+					logger.Error(ctx, err)
+				}
+
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP_KEY, model.PubMessage{
+					Action:  consts.ACTION_CREATE,
+					NewData: keyInfo,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+
+			}, nil); err != nil {
 				logger.Error(ctx, err)
 			}
+		}
 
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP_KEY, model.PubMessage{
-				Action:  consts.ACTION_CREATE,
-				NewData: keyInfo,
-			}); err != nil {
+	case consts.ACTION_UPDATE:
+
+		for _, id := range params.Ids {
+			if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+				if _, err := s.KeyConfig(ctx, model.AppKeyConfigReq{
+					Id:                  id,
+					UserId:              userId,
+					Models:              params.Models,
+					IsLimitQuota:        params.IsLimitQuota,
+					Quota:               params.Quota,
+					QuotaExpiresRule:    params.QuotaExpiresRule,
+					QuotaExpiresAt:      params.QuotaExpiresAt,
+					QuotaExpiresMinutes: params.QuotaExpiresMinutes,
+					IsBindGroup:         params.IsBindGroup,
+					Group:               params.Group,
+					IpWhitelist:         params.IpWhitelist,
+					IpBlacklist:         params.IpBlacklist,
+					Remark:              params.Remark,
+					Status:              params.Status,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+
+			}, nil); err != nil {
 				logger.Error(ctx, err)
 			}
+		}
 
-		}, nil); err != nil {
+	case consts.ACTION_ALL_UPDATE, consts.ACTION_ALL_STATUS, consts.ACTION_ALL_DELETE:
+
+		filter := bson.M{
+			"type": 1,
+		}
+
+		if service.Session().IsResellerRole(ctx) {
+			filter["rid"] = service.Session().GetRid(ctx)
+		}
+
+		if service.Session().IsUserRole(ctx) {
+			filter["user_id"] = service.Session().GetUserId(ctx)
+		} else if params.UserId != 0 {
+			filter["user_id"] = params.UserId
+		}
+
+		if params.AppId != 0 {
+			filter["app_id"] = params.AppId
+		}
+
+		if params.Key != "" {
+			filter["key"] = bson.M{
+				"$regex": regexp.QuoteMeta(params.Key),
+			}
+		}
+
+		if len(params.Models) > 0 {
+			filter["models"] = bson.M{
+				"$in": params.Models,
+			}
+		}
+
+		if params.Status != 0 {
+			filter["status"] = params.Status
+		}
+
+		if params.Quota != 0 {
+			filter["is_limit_quota"] = true
+			filter["quota"] = bson.M{
+				"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+			}
+		}
+
+		if len(params.ExpiresAt) > 0 {
+			gte := gtime.NewFromStrFormat(params.ExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+			lte := gtime.NewFromStrLayout(params.ExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+			filter["quota_expires_at"] = bson.M{
+				"$gte": gte,
+				"$lte": lte,
+			}
+		}
+
+		if params.Remark != "" {
+			filter["remark"] = bson.M{
+				"$regex": regexp.QuoteMeta(params.Remark),
+			}
+		}
+
+		keys, err := dao.Key.Find(ctx, filter)
+		if err != nil {
 			logger.Error(ctx, err)
+			return "", err
+		}
+
+		switch params.Action {
+		case consts.ACTION_ALL_UPDATE:
+
+			for _, key := range keys {
+				if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+					if _, err := s.KeyConfig(ctx, model.AppKeyConfigReq{
+						Id:                  key.Id,
+						UserId:              userId,
+						Models:              params.Models,
+						IsLimitQuota:        params.IsLimitQuota,
+						Quota:               params.Quota,
+						QuotaExpiresRule:    params.QuotaExpiresRule,
+						QuotaExpiresAt:      params.QuotaExpiresAt,
+						QuotaExpiresMinutes: params.QuotaExpiresMinutes,
+						IsBindGroup:         params.IsBindGroup,
+						Group:               params.Group,
+						IpWhitelist:         params.IpWhitelist,
+						IpBlacklist:         params.IpBlacklist,
+						Remark:              params.Remark,
+						Status:              params.Status,
+					}); err != nil {
+						logger.Error(ctx, err)
+					}
+
+				}, nil); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+		case consts.ACTION_ALL_STATUS:
+
+			for _, key := range keys {
+				if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+					if err = service.Key().ChangeStatus(ctx, model.KeyChangeStatusReq{
+						Id:     key.Id,
+						Status: gconv.Int(params.Value),
+					}); err != nil {
+						logger.Error(ctx, err)
+					}
+
+				}, nil); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+		case consts.ACTION_ALL_DELETE:
+
+			for _, key := range keys {
+				if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+					if err = service.Key().Delete(ctx, key.Id); err != nil {
+						logger.Error(ctx, err)
+					}
+
+				}, nil); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
 		}
 	}
 
