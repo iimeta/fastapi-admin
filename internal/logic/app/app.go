@@ -753,23 +753,35 @@ func (s *sApp) BatchOperate(ctx context.Context, params model.AppBatchOperateReq
 // 应用密钥批量操作
 func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOperateReq) (keys string, err error) {
 
-	app, err := dao.App.FindByAppId(ctx, params.AppId)
-	if err != nil {
-		logger.Error(ctx, err)
-		return "", err
-	}
-
 	userId := service.Session().GetUserId(ctx)
-
-	if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
-		if params.UserId == 0 {
-			params.UserId = app.UserId
-		}
-		userId = params.UserId
-	}
 
 	switch params.Action {
 	case consts.ACTION_CREATE:
+
+		app, err := dao.App.FindByAppId(ctx, params.AppId)
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", errors.New("应用ID不存在, 请重新输入")
+		}
+
+		if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
+
+			if params.UserId == 0 {
+				params.UserId = app.UserId
+			}
+
+			userId = params.UserId
+
+			user, err := service.User().GetUserByUserId(ctx, userId)
+			if err != nil {
+				logger.Error(ctx, err)
+				return "", errors.New("用户ID不存在, 请重新输入")
+			}
+
+			if user.UserId != app.UserId {
+				return "", errors.New("用户ID与应用ID不匹配, 请核对后重新输入")
+			}
+		}
 
 		for i := 0; i < params.N; i++ {
 
@@ -795,18 +807,18 @@ func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOper
 				IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
 				IpBlacklist:         gstr.Split(gstr.Trim(params.IpBlacklist), "\n"),
 				Remark:              params.Remark,
-				Status:              params.Status,
-			}
-
-			id, err := dao.Key.Insert(ctx, key)
-			if err != nil {
-				logger.Error(ctx, err)
-				return keys, err
+				Status:              1,
 			}
 
 			keys += key.Key + "\n"
 
 			if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+				id, err := dao.Key.Insert(ctx, key)
+				if err != nil {
+					logger.Error(ctx, err)
+					return
+				}
 
 				keyInfo := &entity.Key{
 					Id:                  id,
@@ -849,6 +861,10 @@ func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOper
 			}, nil); err != nil {
 				logger.Error(ctx, err)
 			}
+		}
+
+		if len(keys) > 0 {
+			keys = keys[:len(keys)-1]
 		}
 
 	case consts.ACTION_UPDATE:

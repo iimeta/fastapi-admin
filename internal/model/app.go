@@ -127,7 +127,7 @@ type AppKeyBatchOperateReq struct {
 	UserId              int      `json:"user_id,omitempty"`                  // 用户ID
 	AppId               int      `json:"app_id,omitempty"`                   // 应用ID
 	Key                 string   `json:"key,omitempty"`                      // 密钥
-	N                   int      `json:"n,omitempty"`                        // 创建数量
+	N                   int      `json:"n,omitempty"`                        // 数量
 	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`           // 是否限制额度
 	Quota               int      `json:"quota,omitempty"`                    // 额度
@@ -139,7 +139,7 @@ type AppKeyBatchOperateReq struct {
 	IpWhitelist         string   `json:"ip_whitelist,omitempty"`             // IP白名单
 	IpBlacklist         string   `json:"ip_blacklist,omitempty"`             // IP黑名单
 	Remark              string   `json:"remark,omitempty"`                   // 备注
-	Status              int      `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
+	Status              int      `json:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
 	ExpiresAt           []string `json:"expires_at,omitempty"`               // 过期时间
 }
 
