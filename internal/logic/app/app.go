@@ -976,7 +976,8 @@ func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOper
 
 					if _, err := s.KeyConfig(ctx, model.AppKeyConfigReq{
 						Id:                  key.Id,
-						UserId:              userId,
+						UserId:              key.UserId,
+						AppId:               key.AppId,
 						Models:              params.Models,
 						IsLimitQuota:        params.IsLimitQuota,
 						Quota:               params.Quota,
