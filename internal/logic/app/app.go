@@ -457,9 +457,17 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else {
+		if params.UserId != 0 {
+			filter["user_id"] = params.UserId
+		}
 	}
 
-	results, err := dao.App.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	if params.AppId != 0 {
+		filter["app_id"] = params.AppId
+	}
+
+	results, err := dao.App.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -1024,4 +1032,95 @@ func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOper
 	}
 
 	return keys, err
+}
+
+// 应用密钥导出
+func (s *sApp) KeyExport(ctx context.Context, params model.AppKeyExportReq) (string, error) {
+
+	filter := bson.M{
+		"type": 1,
+	}
+
+	if len(params.Ids) > 0 {
+		filter = bson.M{"_id": bson.M{"$in": params.Ids}}
+	} else {
+		if params.AppId != 0 {
+			filter["app_id"] = params.AppId
+		}
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		filter["user_id"] = service.Session().GetUserId(ctx)
+	} else {
+		if params.UserId != 0 {
+			filter["user_id"] = params.UserId
+		}
+	}
+
+	results, err := dao.Key.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	apps, err := s.List(ctx, model.AppListReq{UserId: params.UserId, AppId: params.AppId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	appMap := util.ToMap(apps, func(t *model.App) int {
+		return t.AppId
+	})
+
+	colFieldMap := make(map[string]string)
+	colFieldMap["应用ID"] = "AppId"
+	colFieldMap["应用名称"] = "AppName"
+	colFieldMap["应用密钥"] = "Key"
+	colFieldMap["额度($)"] = "Quota"
+	colFieldMap["额度过期时间"] = "QuotaExpiresAt"
+	colFieldMap["备注"] = "Remark"
+
+	var titleCols []string
+	if service.Session().IsUserRole(ctx) {
+		titleCols = append(titleCols, "应用ID", "应用名称", "应用密钥", "额度($)", "额度过期时间", "备注")
+	} else {
+		titleCols = append(titleCols, "用户ID", "应用ID", "应用名称", "应用密钥", "额度($)", "额度过期时间", "备注")
+		colFieldMap["用户ID"] = "UserId"
+	}
+
+	filePath := fmt.Sprintf("./resource/export/app_key_%d.xlsx", gtime.TimestampMilli())
+
+	values := make([]interface{}, 0)
+	for _, result := range results {
+
+		appKeyExport := &model.AppKeyExport{
+			UserId:         result.UserId,
+			AppId:          result.AppId,
+			Key:            result.Key,
+			Quota:          "不限",
+			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
+			Remark:         result.Remark,
+		}
+
+		if result.Quota > 0 {
+			appKeyExport.Quota = gconv.String(util.QuotaConv(result.Quota))
+		}
+
+		if app, ok := appMap[result.AppId]; ok {
+			appKeyExport.AppName = app.Name
+		}
+
+		values = append(values, appKeyExport)
+	}
+
+	if err = util.ExcelExport("应用密钥", titleCols, colFieldMap, values, filePath); err != nil {
+		return "", err
+	}
+
+	return filePath, nil
 }

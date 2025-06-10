@@ -132,3 +132,14 @@ type KeyBatchOperateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	Keys   string `json:"keys,omitempty"` // 密钥
 }
+
+// 应用密钥导出接口请求参数
+type KeyExportReq struct {
+	g.Meta `path:"/key/export" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用密钥导出接口"`
+	model.AppKeyExportReq
+}
+
+// 应用密钥导出接口响应参数
+type KeyExportRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

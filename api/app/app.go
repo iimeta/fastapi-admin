@@ -22,4 +22,5 @@ type IAppV1 interface {
 	CreateKey(ctx context.Context, req *v1.CreateKeyReq) (res *v1.CreateKeyRes, err error)
 	KeyConfig(ctx context.Context, req *v1.KeyConfigReq) (res *v1.KeyConfigRes, err error)
 	KeyBatchOperate(ctx context.Context, req *v1.KeyBatchOperateReq) (res *v1.KeyBatchOperateRes, err error)
+	KeyExport(ctx context.Context, req *v1.KeyExportReq) (res *v1.KeyExportRes, err error)
 }

@@ -126,7 +126,7 @@ type AppKeyBatchOperateReq struct {
 	Value               any      `json:"value"`                              // 值
 	UserId              int      `json:"user_id,omitempty"`                  // 用户ID
 	AppId               int      `json:"app_id,omitempty"`                   // 应用ID
-	Key                 string   `json:"key,omitempty"`                      // 密钥
+	Key                 string   `json:"key,omitempty"`                      // 应用密钥
 	N                   int      `json:"n,omitempty"`                        // 数量
 	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`           // 是否限制额度
@@ -141,6 +141,24 @@ type AppKeyBatchOperateReq struct {
 	Remark              string   `json:"remark,omitempty"`                   // 备注
 	Status              int      `json:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
 	ExpiresAt           []string `json:"expires_at,omitempty"`               // 过期时间
+}
+
+// 应用密钥导出接口请求参数
+type AppKeyExportReq struct {
+	Ids    []string `json:"ids"`               // 主键Ids
+	UserId int      `json:"user_id,omitempty"` // 用户ID
+	AppId  int      `json:"app_id,omitempty"`  // 应用ID
+}
+
+// 应用密钥导出
+type AppKeyExport struct {
+	UserId         int    `json:"user_id,omitempty"`          // 用户ID
+	AppId          int    `json:"app_id,omitempty"`           // 应用ID
+	AppName        string `json:"app_name,omitempty"`         // 应用名称
+	Key            string `json:"key,omitempty"`              // 应用密钥
+	Quota          string `json:"quota,omitempty"`            // 额度
+	QuotaExpiresAt string `json:"quota_expires_at,omitempty"` // 额度过期时间
+	Remark         string `json:"remark,omitempty"`           // 备注
 }
 
 // 应用模型权限接口请求参数

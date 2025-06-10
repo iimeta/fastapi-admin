@@ -39,6 +39,8 @@ type (
 		BatchOperate(ctx context.Context, params model.AppBatchOperateReq) error
 		// 应用密钥批量操作
 		KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOperateReq) (keys string, err error)
+		// 应用密钥导出
+		KeyExport(ctx context.Context, params model.AppKeyExportReq) (string, error)
 	}
 )
 
