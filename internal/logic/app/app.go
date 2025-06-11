@@ -882,7 +882,6 @@ func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOper
 
 				if _, err := s.KeyConfig(ctx, model.AppKeyConfigReq{
 					Id:                  id,
-					UserId:              userId,
 					Models:              params.Models,
 					IsLimitQuota:        params.IsLimitQuota,
 					Quota:               params.Quota,
@@ -916,49 +915,49 @@ func (s *sApp) KeyBatchOperate(ctx context.Context, params model.AppKeyBatchOper
 
 		if service.Session().IsUserRole(ctx) {
 			filter["user_id"] = service.Session().GetUserId(ctx)
-		} else if params.UserId != 0 {
-			filter["user_id"] = params.UserId
+		} else if params.QueryParams.UserId != 0 {
+			filter["user_id"] = params.QueryParams.UserId
 		}
 
-		if params.AppId != 0 {
-			filter["app_id"] = params.AppId
+		if params.QueryParams.AppId != 0 {
+			filter["app_id"] = params.QueryParams.AppId
 		}
 
-		if params.Key != "" {
+		if params.QueryParams.Key != "" {
 			filter["key"] = bson.M{
-				"$regex": regexp.QuoteMeta(params.Key),
+				"$regex": regexp.QuoteMeta(params.QueryParams.Key),
 			}
 		}
 
-		if len(params.Models) > 0 {
+		if len(params.QueryParams.Models) > 0 {
 			filter["models"] = bson.M{
-				"$in": params.Models,
+				"$in": params.QueryParams.Models,
 			}
 		}
 
-		if params.Status != 0 {
-			filter["status"] = params.Status
+		if params.QueryParams.Status != 0 {
+			filter["status"] = params.QueryParams.Status
 		}
 
-		if params.Quota != 0 {
+		if params.QueryParams.Quota != 0 {
 			filter["is_limit_quota"] = true
 			filter["quota"] = bson.M{
-				"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+				"$lte": params.QueryParams.Quota * consts.QUOTA_USD_UNIT,
 			}
 		}
 
-		if len(params.ExpiresAt) > 0 {
-			gte := gtime.NewFromStrFormat(params.ExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
-			lte := gtime.NewFromStrLayout(params.ExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		if len(params.QueryParams.QuotaExpiresAt) > 0 {
+			gte := gtime.NewFromStrFormat(params.QueryParams.QuotaExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
+			lte := gtime.NewFromStrLayout(params.QueryParams.QuotaExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
 			filter["quota_expires_at"] = bson.M{
 				"$gte": gte,
 				"$lte": lte,
 			}
 		}
 
-		if params.Remark != "" {
+		if params.QueryParams.Remark != "" {
 			filter["remark"] = bson.M{
-				"$regex": regexp.QuoteMeta(params.Remark),
+				"$regex": regexp.QuoteMeta(params.QueryParams.Remark),
 			}
 		}
 
