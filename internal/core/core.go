@@ -62,6 +62,24 @@ func IncrResellerId(ctx context.Context) int {
 		return 0
 	}
 
+	if reply == 1 {
+
+		resellerId := config.GetInt(ctx, RESELLER_ID_AUTO_INCREMENT_CFG, 80000)
+		if resellerId == 80000 {
+			if maxResellerId := getMaxResellerId(ctx); maxResellerId != 0 {
+				resellerId = maxResellerId
+			}
+		}
+
+		// 自增起始resellerId
+		_, _ = redis.Set(ctx, RESELLER_ID_AUTO_INCREMENT_KEY, resellerId)
+
+		if reply, err = redis.Incr(ctx, RESELLER_ID_AUTO_INCREMENT_KEY); err != nil {
+			logger.Error(ctx, err)
+			return 0
+		}
+	}
+
 	return int(reply)
 }
 
@@ -73,6 +91,24 @@ func IncrUserId(ctx context.Context) int {
 		return 0
 	}
 
+	if reply == 1 {
+
+		userId := config.GetInt(ctx, USER_ID_AUTO_INCREMENT_CFG, 10000)
+		if userId == 10000 {
+			if maxUserId := getMaxUserId(ctx); maxUserId != 0 {
+				userId = maxUserId
+			}
+		}
+
+		// 自增起始userId
+		_, _ = redis.Set(ctx, USER_ID_AUTO_INCREMENT_KEY, userId)
+
+		if reply, err = redis.Incr(ctx, USER_ID_AUTO_INCREMENT_KEY); err != nil {
+			logger.Error(ctx, err)
+			return 0
+		}
+	}
+
 	return int(reply)
 }
 
@@ -82,6 +118,24 @@ func IncrAppId(ctx context.Context) int {
 	if err != nil {
 		logger.Error(ctx, err)
 		return 0
+	}
+
+	if reply == 1 {
+
+		appId := config.GetInt(ctx, APP_ID_AUTO_INCREMENT_CFG, 10000)
+		if appId == 10000 {
+			if maxAppId := getMaxAppId(ctx); maxAppId != 0 {
+				appId = maxAppId
+			}
+		}
+
+		// 自增起始appId
+		_, _ = redis.Set(ctx, APP_ID_AUTO_INCREMENT_KEY, appId)
+
+		if reply, err = redis.Incr(ctx, APP_ID_AUTO_INCREMENT_KEY); err != nil {
+			logger.Error(ctx, err)
+			return 0
+		}
 	}
 
 	return int(reply)
