@@ -22,7 +22,7 @@ type (
 		// 更改用户状态
 		ChangeStatus(ctx context.Context, params model.UserChangeStatusReq) error
 		// 删除用户
-		Delete(ctx context.Context, id string) error
+		Delete(ctx context.Context, params model.UserDeleteReq) error
 		// 用户详情
 		Detail(ctx context.Context, id string) (*model.User, error)
 		// 用户分页列表

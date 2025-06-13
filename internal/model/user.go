@@ -71,6 +71,12 @@ type UserChangeStatusReq struct {
 	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 删除用户接口请求参数
+type UserDeleteReq struct {
+	Id   string `json:"id,omitempty"`   // ID
+	Data []int  `json:"data,omitempty"` // 删除数据
+}
+
 // 用户详情接口响应参数
 type UserDetailRes struct {
 	*User
@@ -117,6 +123,7 @@ type UserBatchOperateReq struct {
 	Value          any      `json:"value"`                      // 值
 	QuotaType      int      `json:"quota_type"`                 // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+	Data           []int    `json:"data,omitempty"`             // 删除数据
 }
 
 // 用户充值接口请求参数

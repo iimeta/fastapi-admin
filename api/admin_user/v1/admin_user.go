@@ -52,7 +52,7 @@ type ChangeStatusRes struct {
 // 删除用户接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,admin" tags:"admin_user" summary:"删除用户接口"`
-	Id     string `json:"id"`
+	model.UserDeleteReq
 }
 
 // 删除用户接口响应参数

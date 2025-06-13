@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
@@ -21,6 +23,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"regexp"
+	"slices"
 	"time"
 )
 
@@ -301,11 +304,11 @@ func (s *sAdminUser) ChangeStatus(ctx context.Context, params model.UserChangeSt
 }
 
 // 删除用户
-func (s *sAdminUser) Delete(ctx context.Context, id string) error {
+func (s *sAdminUser) Delete(ctx context.Context, params model.UserDeleteReq) error {
 
 	if service.Session().IsResellerRole(ctx) {
 
-		oldData, err := dao.User.FindById(ctx, id)
+		oldData, err := dao.User.FindById(ctx, params.Id)
 		if err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -316,7 +319,7 @@ func (s *sAdminUser) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	user, err := dao.User.FindOneAndDeleteById(ctx, id)
+	user, err := dao.User.FindOneAndDeleteById(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -333,6 +336,75 @@ func (s *sAdminUser) Delete(ctx context.Context, id string) error {
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	// 删除应用数据
+	if slices.Contains(params.Data, 2) {
+
+		if apps, err := service.App().List(ctx, model.AppListReq{UserId: user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			for _, app := range apps {
+				if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+					if err = service.App().Delete(ctx, app.Id); err != nil {
+						logger.Error(ctx, err)
+					}
+
+				}, nil); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+	}
+
+	// 删除交易记录
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+		if _, err := dao.DealRecord.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+	}
+
+	// 删除账单明细
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+		if _, err := dao.StatisticsUser.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if _, err := dao.StatisticsApp.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if _, err := dao.StatisticsAppKey.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+	}
+
+	// 删除日志数据
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+		if _, err := dao.Chat.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if _, err := dao.Image.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if _, err := dao.Audio.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+	}, nil); err != nil {
+		logger.Error(ctx, err)
 	}
 
 	return nil
@@ -709,7 +781,7 @@ func (s *sAdminUser) BatchOperate(ctx context.Context, params model.UserBatchOpe
 		}
 	case consts.ACTION_DELETE:
 		for _, id := range params.Ids {
-			if err := s.Delete(ctx, id); err != nil {
+			if err := s.Delete(ctx, model.UserDeleteReq{Id: id, Data: params.Data}); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
