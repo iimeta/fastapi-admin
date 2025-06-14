@@ -52,7 +52,7 @@ type ChangeStatusRes struct {
 // 删除代理商接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" method:"post" auth:"true" role:"admin" tags:"admin_reseller" summary:"删除代理商接口"`
-	Id     string `json:"id"`
+	model.ResellerDeleteReq
 }
 
 // 删除代理商接口响应参数

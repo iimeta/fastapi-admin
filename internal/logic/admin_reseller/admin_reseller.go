@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
@@ -253,9 +255,9 @@ func (s *sAdminReseller) ChangeStatus(ctx context.Context, params model.Reseller
 }
 
 // 删除代理商
-func (s *sAdminReseller) Delete(ctx context.Context, id string) error {
+func (s *sAdminReseller) Delete(ctx context.Context, params model.ResellerDeleteReq) error {
 
-	reseller, err := dao.Reseller.FindOneAndDeleteById(ctx, id)
+	reseller, err := dao.Reseller.FindOneAndDeleteById(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -272,6 +274,128 @@ func (s *sAdminReseller) Delete(ctx context.Context, id string) error {
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	// 删除用户数据
+	if slices.Contains(params.Data, 1) {
+
+		if users, err := dao.User.Find(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+			logger.Error(ctx, err)
+		} else {
+
+			if _, err = dao.User.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err = dao.Account.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			for _, user := range users {
+				if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+					if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+						Action:  consts.ACTION_DELETE,
+						OldData: user,
+					}); err != nil {
+						logger.Error(ctx, err)
+					}
+
+				}, nil); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+	}
+
+	// 删除应用数据
+	if slices.Contains(params.Data, 2) {
+		if apps, err := dao.App.Find(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			for _, app := range apps {
+				if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+					if err = service.App().Delete(ctx, app.Id); err != nil {
+						logger.Error(ctx, err)
+					}
+
+				}, nil); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+	}
+
+	// 删除交易记录
+	if slices.Contains(params.Data, 3) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			if _, err := dao.DealRecord.DeleteMany(ctx, bson.M{"user_id": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.DealRecord.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	// 删除账单明细
+	if slices.Contains(params.Data, 4) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			if _, err := dao.StatisticsUser.DeleteMany(ctx, bson.M{"user_id": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.StatisticsApp.DeleteMany(ctx, bson.M{"user_id": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.StatisticsAppKey.DeleteMany(ctx, bson.M{"user_id": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.StatisticsUser.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.StatisticsApp.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.StatisticsAppKey.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	// 删除日志数据
+	if slices.Contains(params.Data, 5) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			if _, err := dao.Chat.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.Image.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.Audio.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 
 	return nil
@@ -723,7 +847,7 @@ func (s *sAdminReseller) BatchOperate(ctx context.Context, params model.Reseller
 		}
 	case consts.ACTION_DELETE:
 		for _, id := range params.Ids {
-			if err := s.Delete(ctx, id); err != nil {
+			if err := s.Delete(ctx, model.ResellerDeleteReq{Id: id, Data: params.Data}); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}

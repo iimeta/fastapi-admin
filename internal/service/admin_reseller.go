@@ -22,7 +22,7 @@ type (
 		// 更改代理商状态
 		ChangeStatus(ctx context.Context, params model.ResellerChangeStatusReq) error
 		// 删除代理商
-		Delete(ctx context.Context, id string) error
+		Delete(ctx context.Context, params model.ResellerDeleteReq) error
 		// 代理商详情
 		Detail(ctx context.Context, id string) (*model.Reseller, error)
 		// 代理商分页列表

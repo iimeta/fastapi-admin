@@ -59,6 +59,12 @@ type ResellerChangeStatusReq struct {
 	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 删除代理商接口请求参数
+type ResellerDeleteReq struct {
+	Id   string `json:"id,omitempty"`   // ID
+	Data []int  `json:"data,omitempty"` // 删除数据[1:用户数据, 2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据]
+}
+
 // 代理商详情接口响应参数
 type ResellerDetailRes struct {
 	*Reseller
@@ -105,6 +111,7 @@ type ResellerBatchOperateReq struct {
 	Value          any      `json:"value"`                      // 值
 	QuotaType      int      `json:"quota_type"`                 // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+	Data           []int    `json:"data,omitempty"`             // 删除数据[1:用户数据, 2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据]
 }
 
 // 代理商充值接口请求参数

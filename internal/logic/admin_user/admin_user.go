@@ -340,7 +340,6 @@ func (s *sAdminUser) Delete(ctx context.Context, params model.UserDeleteReq) err
 
 	// 删除应用数据
 	if slices.Contains(params.Data, 2) {
-
 		if apps, err := service.App().List(ctx, model.AppListReq{UserId: user.UserId}); err != nil {
 			logger.Error(ctx, err)
 		} else {
@@ -359,52 +358,58 @@ func (s *sAdminUser) Delete(ctx context.Context, params model.UserDeleteReq) err
 	}
 
 	// 删除交易记录
-	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+	if slices.Contains(params.Data, 3) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-		if _, err := dao.DealRecord.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			if _, err := dao.DealRecord.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
 			logger.Error(ctx, err)
 		}
-
-	}, nil); err != nil {
-		logger.Error(ctx, err)
 	}
 
 	// 删除账单明细
-	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+	if slices.Contains(params.Data, 4) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-		if _, err := dao.StatisticsUser.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			if _, err := dao.StatisticsUser.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.StatisticsApp.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.StatisticsAppKey.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
 			logger.Error(ctx, err)
 		}
-
-		if _, err := dao.StatisticsApp.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
-			logger.Error(ctx, err)
-		}
-
-		if _, err := dao.StatisticsAppKey.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
-			logger.Error(ctx, err)
-		}
-
-	}, nil); err != nil {
-		logger.Error(ctx, err)
 	}
 
 	// 删除日志数据
-	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+	if slices.Contains(params.Data, 5) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-		if _, err := dao.Chat.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			if _, err := dao.Chat.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.Image.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.Audio.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
 			logger.Error(ctx, err)
 		}
-
-		if _, err := dao.Image.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
-			logger.Error(ctx, err)
-		}
-
-		if _, err := dao.Audio.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
-			logger.Error(ctx, err)
-		}
-
-	}, nil); err != nil {
-		logger.Error(ctx, err)
 	}
 
 	return nil
