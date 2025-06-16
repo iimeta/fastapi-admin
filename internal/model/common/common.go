@@ -7,6 +7,7 @@ type PresetConfig struct {
 	SystemRolePrompt    string `bson:"system_role_prompt"     json:"system_role_prompt,omitempty"`     // system角色预设提示词
 	MinTokens           int    `bson:"min_tokens"             json:"min_tokens,omitempty"`             // max_tokens取值的最小值
 	MaxTokens           int    `bson:"max_tokens"             json:"max_tokens,omitempty"`             // max_tokens取值的最大值
+	IsSupportStream     bool   `bson:"is_support_stream"      json:"is_support_stream,omitempty"`      // 是否支持流式
 }
 
 type TextQuota struct {
