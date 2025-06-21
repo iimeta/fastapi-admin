@@ -1726,9 +1726,9 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 		return err
 	}
 
-	modelMap := make(map[string]string)
+	modelMap := make(map[string]*entity.Model)
 	for _, model := range models {
-		modelMap[model.Name] = model.Name
+		modelMap[model.Name] = model
 	}
 
 	modelAgentId := ""
@@ -1792,43 +1792,88 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 			corpCodeMap[data.FastAPI.Code] = corp
 		}
 
-		if modelMap[data.Id] != "" {
-			continue
-		}
+		if modelMap[data.Id] == nil {
 
-		modelCreateReq := model.ModelCreateReq{
-			Corp:                 corp,
-			Name:                 data.Id,
-			Model:                data.FastAPI.Model,
-			Type:                 data.FastAPI.Type,
-			BaseUrl:              data.FastAPI.BaseUrl,
-			Path:                 data.FastAPI.Path,
-			TextQuota:            data.FastAPI.TextQuota,
-			ImageQuota:           data.FastAPI.ImageQuota,
-			AudioQuota:           data.FastAPI.AudioQuota,
-			MultimodalQuota:      data.FastAPI.MultimodalQuota,
-			RealtimeQuota:        data.FastAPI.RealtimeQuota,
-			MultimodalAudioQuota: data.FastAPI.MultimodalAudioQuota,
-			MidjourneyQuotas:     data.FastAPI.MidjourneyQuotas,
-			DataFormat:           1,
-			IsPublic:             true,
-			ModelAgents:          []string{},
-			Remark:               data.FastAPI.Remark,
-			Status:               1,
-		}
+			modelCreateReq := model.ModelCreateReq{
+				Corp:                 corp,
+				Name:                 data.Id,
+				Model:                data.FastAPI.Model,
+				Type:                 data.FastAPI.Type,
+				TextQuota:            data.FastAPI.TextQuota,
+				ImageQuota:           data.FastAPI.ImageQuota,
+				AudioQuota:           data.FastAPI.AudioQuota,
+				MultimodalQuota:      data.FastAPI.MultimodalQuota,
+				RealtimeQuota:        data.FastAPI.RealtimeQuota,
+				MultimodalAudioQuota: data.FastAPI.MultimodalAudioQuota,
+				MidjourneyQuotas:     data.FastAPI.MidjourneyQuotas,
+				DataFormat:           1,
+				IsPublic:             true,
+				ModelAgents:          []string{},
+				Remark:               data.FastAPI.Remark,
+				Status:               1,
+			}
 
-		if params.IsConfigModelAgent && modelAgentId != "" {
-			modelCreateReq.IsEnableModelAgent = true
-			modelCreateReq.LbStrategy = 1
-			modelCreateReq.ModelAgents = append(modelCreateReq.ModelAgents, modelAgentId)
-		}
+			if params.IsConfigModelAgent && modelAgentId != "" {
+				modelCreateReq.IsEnableModelAgent = true
+				modelCreateReq.LbStrategy = 1
+				modelCreateReq.ModelAgents = append(modelCreateReq.ModelAgents, modelAgentId)
+			}
 
-		if err = s.Create(ctx, modelCreateReq); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
+			if err = s.Create(ctx, modelCreateReq); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
 
-		modelMap[data.Id] = data.Id
+			modelMap[data.Id] = &entity.Model{Name: data.Id, Model: data.FastAPI.Model}
+
+		} else if params.IsCoverPrice && modelMap[data.Id].Id != "" {
+
+			detail, err := s.Detail(ctx, modelMap[data.Id].Id)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			modelUpdateReq := model.ModelUpdateReq{
+				Id:                   detail.Id,
+				Corp:                 detail.Corp,
+				Name:                 detail.Name,
+				Model:                detail.Model,
+				Type:                 detail.Type,
+				BaseUrl:              detail.BaseUrl,
+				Path:                 detail.Path,
+				IsEnablePresetConfig: detail.IsEnablePresetConfig,
+				PresetConfig:         detail.PresetConfig,
+				TextQuota:            data.FastAPI.TextQuota,
+				ImageQuota:           data.FastAPI.ImageQuota,
+				AudioQuota:           data.FastAPI.AudioQuota,
+				MultimodalQuota:      data.FastAPI.MultimodalQuota,
+				RealtimeQuota:        data.FastAPI.RealtimeQuota,
+				MultimodalAudioQuota: data.FastAPI.MultimodalAudioQuota,
+				MidjourneyQuotas:     data.FastAPI.MidjourneyQuotas,
+				DataFormat:           detail.DataFormat,
+				IsPublic:             detail.IsPublic,
+				Groups:               detail.Groups,
+				IsEnableModelAgent:   detail.IsEnableModelAgent,
+				LbStrategy:           detail.LbStrategy,
+				ModelAgents:          detail.ModelAgents,
+				IsEnableForward:      detail.IsEnableForward,
+				ForwardConfig:        detail.ForwardConfig,
+				IsEnableFallback:     detail.IsEnableFallback,
+				FallbackConfig:       detail.FallbackConfig,
+				Remark:               detail.Remark,
+				Status:               detail.Status,
+			}
+
+			if params.IsConfigModelAgent && modelAgentId != "" && !slices.Contains(modelUpdateReq.ModelAgents, modelAgentId) {
+				modelUpdateReq.ModelAgents = append(modelUpdateReq.ModelAgents, modelAgentId)
+			}
+
+			if err = s.Update(ctx, modelUpdateReq); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
 	}
 
 	return nil

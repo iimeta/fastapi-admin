@@ -156,6 +156,7 @@ type ModelInitSyncReq struct {
 	Url                string `json:"url"`                   // Fast API 模型接口
 	Key                string `json:"key"`                   // Fast API 应用密钥
 	IsConfigModelAgent bool   `json:"is_config_model_agent"` // 是否配置模型代理
+	IsCoverPrice       bool   `json:"is_cover_price"`        // 是否覆盖价格
 }
 
 // Models接口响应参数
