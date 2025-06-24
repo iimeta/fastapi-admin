@@ -53,7 +53,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
 		Weight:             params.Weight,
-		ExpiresAt:          util.ConvExpiresAt(params.ExpiresAt),
+		ExpiresAt:          util.ConvTimestampMilli(params.ExpiresAt),
 		Remark:             params.Remark,
 		Status:             params.Status,
 	})
@@ -200,7 +200,7 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
 		Weight:             params.Weight,
-		ExpiresAt:          util.ConvExpiresAt(params.ExpiresAt),
+		ExpiresAt:          util.ConvTimestampMilli(params.ExpiresAt),
 		Remark:             params.Remark,
 		Status:             params.Status,
 	}
@@ -400,7 +400,7 @@ func (s *sGroup) ChangeExpire(ctx context.Context, params model.GroupChangeExpir
 	}
 
 	newData, err := dao.Group.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"expires_at": util.ConvExpiresAt(params.ExpiresAt),
+		"expires_at": util.ConvTimestampMilli(params.ExpiresAt),
 	})
 	if err != nil {
 		logger.Error(ctx, err)

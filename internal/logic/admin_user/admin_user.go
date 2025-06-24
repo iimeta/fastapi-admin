@@ -78,7 +78,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 			Name:           params.Name,
 			Email:          params.Email,
 			Quota:          params.Quota,
-			QuotaExpiresAt: util.ConvExpiresAt(params.QuotaExpiresAt),
+			QuotaExpiresAt: util.ConvTimestampMilli(params.QuotaExpiresAt),
 			Models:         params.Models,
 			Groups:         params.Groups,
 			Remark:         params.Remark,
@@ -194,7 +194,7 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"name":                  params.Name,
 		"email":                 params.Email,
-		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"remark":                params.Remark,
 		"status":                params.Status,
 		"expire_warning_notice": false,
@@ -253,7 +253,7 @@ func (s *sAdminUser) ChangeQuotaExpire(ctx context.Context, params model.UserCha
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"expire_warning_notice": false,
 		"expire_notice":         false,
 	})
@@ -672,7 +672,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
-		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"warning_notice":        false,
 		"exhaustion_notice":     false,
 		"expire_warning_notice": false,

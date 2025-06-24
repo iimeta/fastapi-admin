@@ -72,7 +72,7 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 			Name:           params.Name,
 			Email:          params.Email,
 			Quota:          params.Quota,
-			QuotaExpiresAt: util.ConvExpiresAt(params.QuotaExpiresAt),
+			QuotaExpiresAt: util.ConvTimestampMilli(params.QuotaExpiresAt),
 			Models:         params.Models,
 			Groups:         params.Groups,
 			Remark:         params.Remark,
@@ -149,7 +149,7 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"name":                  params.Name,
 		"email":                 params.Email,
-		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"remark":                params.Remark,
 		"status":                params.Status,
 		"expire_warning_notice": false,
@@ -204,7 +204,7 @@ func (s *sAdminReseller) ChangeQuotaExpire(ctx context.Context, params model.Res
 	}
 
 	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"expire_warning_notice": false,
 		"expire_notice":         false,
 	})
@@ -654,7 +654,7 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
-		"quota_expires_at":      util.ConvExpiresAt(params.QuotaExpiresAt),
+		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"warning_notice":        false,
 		"exhaustion_notice":     false,
 		"expire_warning_notice": false,
