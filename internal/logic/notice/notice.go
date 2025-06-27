@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -35,6 +36,10 @@ func New() service.INotice {
 
 // 新建通知公告
 func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (string, error) {
+
+	if params.Content == "" || params.Content == "<p></p>" {
+		return "", errors.New("请输入内容")
+	}
 
 	id, err := dao.Notice.Insert(ctx, &do.Notice{
 		Title:         params.Title,
