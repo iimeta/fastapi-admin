@@ -154,6 +154,10 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 		}
 	}
 
+	if params.Category != 0 {
+		filter["category"] = params.Category
+	}
+
 	if params.Remark != "" {
 		filter["remark"] = bson.M{
 			"$regex": regexp.QuoteMeta(params.Remark),

@@ -45,6 +45,7 @@ type NoticePageReq struct {
 	Paging
 	Title     string   `json:"title,omitempty"`      // 标题
 	Content   string   `json:"content,omitempty"`    // 内容
+	Category  int      `json:"category,omitempty"`   // 分类[1:系统公告, 2:活动通知, 3:维护通知]
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 	UpdatedAt []string `json:"updated_at,omitempty"` // 更新时间
