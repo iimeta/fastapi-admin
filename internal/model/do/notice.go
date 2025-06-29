@@ -24,6 +24,7 @@ type Notice struct {
 	Remark        string        `bson:"remark"`               // 备注
 	Status        int           `bson:"status,omitempty"`     // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 	Reads         []common.Read `bson:"reads,omitempty"`      // 已读
+	UserId        int           `bson:"user_id,omitempty"`    // 用户ID
 	Rid           int           `bson:"rid,omitempty"`        // 代理商ID
 	Creator       string        `bson:"creator,omitempty"`    // 创建人
 	Updater       string        `bson:"updater,omitempty"`    // 更新人

@@ -54,6 +54,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		ScheduledTime: util.ConvTimestampMilli(params.ScheduledTime),
 		Remark:        params.Remark,
 		Status:        params.Status,
+		UserId:        service.Session().GetUserId(ctx),
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -122,6 +123,7 @@ func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) 
 		Remark:        notice.Remark,
 		Status:        notice.Status,
 		Reads:         notice.Reads,
+		UserId:        notice.UserId,
 		Rid:           notice.Rid,
 		Creator:       notice.Creator,
 		Updater:       notice.Updater,
@@ -194,6 +196,7 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 			Remark:        result.Remark,
 			Status:        result.Status,
 			Reads:         result.Reads,
+			UserId:        result.UserId,
 			Rid:           result.Rid,
 			CreatedAt:     util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:     util.FormatDateTimeMonth(result.UpdatedAt),
