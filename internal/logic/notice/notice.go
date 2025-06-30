@@ -41,7 +41,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		return "", errors.New("请输入内容")
 	}
 
-	id, err := dao.Notice.Insert(ctx, &do.Notice{
+	notice := &do.Notice{
 		Title:         params.Title,
 		Content:       params.Content,
 		Category:      params.Category,
@@ -55,7 +55,13 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		Remark:        params.Remark,
 		Status:        params.Status,
 		UserId:        service.Session().GetUserId(ctx),
-	})
+	}
+
+	if notice.Status == 1 {
+		notice.PublishTime = gtime.TimestampMilli()
+	}
+
+	id, err := dao.Notice.Insert(ctx, notice)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
