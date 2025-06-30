@@ -67,6 +67,10 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 // 更新通知公告
 func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) error {
 
+	if params.Content == "" || params.Content == "<p></p>" {
+		return errors.New("请输入内容")
+	}
+
 	if err := dao.Notice.UpdateById(ctx, params.Id, &do.Notice{
 		Title:         params.Title,
 		Content:       params.Content,
@@ -124,6 +128,7 @@ func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) 
 		Status:        notice.Status,
 		Reads:         notice.Reads,
 		UserId:        notice.UserId,
+		PublishTime:   util.FormatDateTime(notice.PublishTime),
 		Rid:           notice.Rid,
 		Creator:       notice.Creator,
 		Updater:       notice.Updater,
@@ -168,10 +173,10 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 		filter["status"] = params.Status
 	}
 
-	if len(params.UpdatedAt) > 0 {
-		gte := gtime.NewFromStrFormat(params.UpdatedAt[0], time.DateOnly).StartOfDay().TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.UpdatedAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
-		filter["updated_at"] = bson.M{
+	if len(params.PublishTime) > 0 {
+		gte := gtime.NewFromStrFormat(params.PublishTime[0], time.DateOnly).StartOfDay().TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.PublishTime[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		filter["publish_time"] = bson.M{
 			"$gte": gte,
 			"$lte": lte,
 		}
@@ -188,7 +193,6 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 		items = append(items, &model.Notice{
 			Id:            result.Id,
 			Title:         result.Title,
-			Content:       result.Content,
 			Category:      result.Category,
 			Scope:         result.Scope,
 			Users:         result.Users,
@@ -201,6 +205,7 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 			Status:        result.Status,
 			Reads:         result.Reads,
 			UserId:        result.UserId,
+			PublishTime:   util.FormatDateTime(result.PublishTime),
 			Rid:           result.Rid,
 			CreatedAt:     util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:     util.FormatDateTimeMonth(result.UpdatedAt),
