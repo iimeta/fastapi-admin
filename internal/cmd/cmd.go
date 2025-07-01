@@ -83,6 +83,9 @@ var (
 			s.AddStaticPath("/user/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/center", "./resource/fastapi-web/")
+			s.AddStaticPath("/notice/list", "./resource/fastapi-web/")
+			s.AddStaticPath("/notice/create", "./resource/fastapi-web/")
+			s.AddStaticPath("/notice/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/bill_list", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/deal_record", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/chat", "./resource/fastapi-web/")
@@ -91,9 +94,6 @@ var (
 			s.AddStaticPath("/sys/reseller/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/reseller/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/reseller/update", "./resource/fastapi-web/")
-			s.AddStaticPath("/sys/notice/list", "./resource/fastapi-web/")
-			s.AddStaticPath("/sys/notice/create", "./resource/fastapi-web/")
-			s.AddStaticPath("/sys/notice/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/site/config/update", "./resource/fastapi-web/")
@@ -195,6 +195,12 @@ var (
 					)
 				})
 
+				v1.Group("/notice", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						notice.NewV1(),
+					)
+				})
+
 				v1.Group("/finance", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						finance.NewV1(),
@@ -234,12 +240,6 @@ var (
 				v1.Group("/sys/admin", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						sys_admin.NewV1(),
-					)
-				})
-
-				v1.Group("/sys/notice", func(g *ghttp.RouterGroup) {
-					g.Bind(
-						notice.NewV1(),
 					)
 				})
 
