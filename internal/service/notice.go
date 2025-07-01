@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 )
 
 type (
@@ -25,6 +26,8 @@ type (
 		Page(ctx context.Context, params model.NoticePageReq) (*model.NoticePageRes, error)
 		// 通知公告列表
 		List(ctx context.Context, params model.NoticeListReq) ([]*model.Notice, error)
+		// 发送通知公告邮件
+		SendMail(ctx context.Context, notice *entity.Notice) (err error)
 		// 通知公告批量操作
 		BatchOperate(ctx context.Context, params model.NoticeBatchOperateReq) error
 		// 额度预警任务

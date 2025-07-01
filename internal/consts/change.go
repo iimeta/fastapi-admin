@@ -35,4 +35,5 @@ const (
 	ACTION_ALL_STATUS = "all-status"
 	ACTION_CACHE      = "cache"
 	ACTION_RECHARGE   = "recharge"
+	ACTION_NOTICE     = "notice"
 )
