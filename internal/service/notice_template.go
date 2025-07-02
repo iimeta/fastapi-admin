@@ -1,0 +1,46 @@
+// ================================================================================
+// Code generated and maintained by GoFrame CLI tool. DO NOT EDIT.
+// You can delete these comments if you wish manually maintain this interface file.
+// ================================================================================
+
+package service
+
+import (
+	"context"
+
+	"github.com/iimeta/fastapi-admin/internal/model"
+)
+
+type (
+	INoticeTemplate interface {
+		// 新建通知公告模板
+		Create(ctx context.Context, params model.NoticeTemplateCreateReq) (string, error)
+		// 更新通知公告模板
+		Update(ctx context.Context, params model.NoticeTemplateUpdateReq) error
+		// 删除通知公告模板
+		Delete(ctx context.Context, id string) error
+		// 通知公告模板详情
+		Detail(ctx context.Context, id string) (*model.NoticeTemplate, error)
+		// 通知公告模板分页列表
+		Page(ctx context.Context, params model.NoticeTemplatePageReq) (*model.NoticeTemplatePageRes, error)
+		// 通知公告模板列表
+		List(ctx context.Context, params model.NoticeTemplateListReq) ([]*model.NoticeTemplate, error)
+		// 通知公告模板批量操作
+		BatchOperate(ctx context.Context, params model.NoticeTemplateBatchOperateReq) error
+	}
+)
+
+var (
+	localNoticeTemplate INoticeTemplate
+)
+
+func NoticeTemplate() INoticeTemplate {
+	if localNoticeTemplate == nil {
+		panic("implement not found for interface INoticeTemplate, forgot register?")
+	}
+	return localNoticeTemplate
+}
+
+func RegisterNoticeTemplate(i INoticeTemplate) {
+	localNoticeTemplate = i
+}

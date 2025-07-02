@@ -23,6 +23,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model_agent"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/notice"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/notice_template"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/reseller"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/session"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/site_config"
