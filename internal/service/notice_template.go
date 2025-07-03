@@ -13,19 +13,21 @@ import (
 
 type (
 	INoticeTemplate interface {
-		// 新建通知公告模板
+		// 新建通知模板
 		Create(ctx context.Context, params model.NoticeTemplateCreateReq) (string, error)
-		// 更新通知公告模板
+		// 更新通知模板
 		Update(ctx context.Context, params model.NoticeTemplateUpdateReq) error
-		// 删除通知公告模板
+		// 删除通知模板
 		Delete(ctx context.Context, id string) error
-		// 通知公告模板详情
+		// 通知模板详情
 		Detail(ctx context.Context, id string) (*model.NoticeTemplate, error)
-		// 通知公告模板分页列表
+		// 通知模板分页列表
 		Page(ctx context.Context, params model.NoticeTemplatePageReq) (*model.NoticeTemplatePageRes, error)
-		// 通知公告模板列表
+		// 通知模板列表
 		List(ctx context.Context, params model.NoticeTemplateListReq) ([]*model.NoticeTemplate, error)
-		// 通知公告模板批量操作
+		// 根据使用场景获取通知模板
+		GetNoticeTemplateByScene(ctx context.Context, scene string) (*model.NoticeTemplate, error)
+		// 通知模板批量操作
 		BatchOperate(ctx context.Context, params model.NoticeTemplateBatchOperateReq) error
 	}
 )

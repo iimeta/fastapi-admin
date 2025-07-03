@@ -4,35 +4,35 @@ import "github.com/iimeta/fastapi-admin/internal/model/common"
 
 // 新建通知公告接口请求参数
 type NoticeCreateReq struct {
-	Title         string `json:"title,omitempty"`           // 标题
-	Content       string `json:"content,omitempty"`         // 内容
-	Category      int    `json:"category,omitempty"`        // 分类[1:系统公告, 2:活动通知, 3:维护通知]
-	Scope         int    `json:"scope,omitempty"`           // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
-	Users         []int  `json:"users,omitempty"`           // 通知用户
-	Resellers     []int  `json:"resellers,omitempty"`       // 通知代理商
-	Methods       []int  `json:"methods,omitempty"`         // 通知方式[1:站内信, 2:邮件]
-	Priority      int    `json:"priority,omitempty" d:"20"` // 优先级
-	ExpiresAt     string `json:"expires_at,omitempty"`      // 过期时间
-	ScheduledTime string `json:"scheduled_time,omitempty"`  // 定时发布时间
-	Remark        string `json:"remark,omitempty"`          // 备注
-	Status        int    `json:"status,omitempty"`          // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
+	Title         string   `json:"title,omitempty"`           // 标题
+	Content       string   `json:"content,omitempty"`         // 内容
+	Category      int      `json:"category,omitempty"`        // 分类[1:系统公告, 2:活动通知, 3:维护通知]
+	Scope         int      `json:"scope,omitempty"`           // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
+	Users         []int    `json:"users,omitempty"`           // 通知用户
+	Resellers     []int    `json:"resellers,omitempty"`       // 通知代理商
+	Channels      []string `json:"channels,omitempty"`        // 发送渠道[web:站内信, email:邮件]
+	Priority      int      `json:"priority,omitempty" d:"20"` // 优先级
+	ExpiresAt     string   `json:"expires_at,omitempty"`      // 过期时间
+	ScheduledTime string   `json:"scheduled_time,omitempty"`  // 定时发布时间
+	Remark        string   `json:"remark,omitempty"`          // 备注
+	Status        int      `json:"status,omitempty"`          // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 }
 
 // 更新通知公告接口请求参数
 type NoticeUpdateReq struct {
-	Id            string `json:"id" v:"required"`          // ID
-	Title         string `json:"title,omitempty"`          // 标题
-	Content       string `json:"content,omitempty"`        // 内容
-	Category      int    `json:"category,omitempty"`       // 分类[1:系统公告, 2:活动通知, 3:维护通知]
-	Scope         int    `json:"scope,omitempty"`          // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
-	Users         []int  `json:"users,omitempty"`          // 通知用户
-	Resellers     []int  `json:"resellers,omitempty"`      // 通知代理商
-	Methods       []int  `json:"methods,omitempty"`        // 通知方式[1:站内信, 2:邮件]
-	Priority      int    `json:"priority,omitempty"`       // 优先级
-	ExpiresAt     string `json:"expires_at,omitempty"`     // 过期时间
-	ScheduledTime string `json:"scheduled_time,omitempty"` // 定时发布时间
-	Remark        string `json:"remark,omitempty"`         // 备注
-	Status        int    `json:"status,omitempty"`         // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
+	Id            string   `json:"id" v:"required"`          // ID
+	Title         string   `json:"title,omitempty"`          // 标题
+	Content       string   `json:"content,omitempty"`        // 内容
+	Category      int      `json:"category,omitempty"`       // 分类[1:系统公告, 2:活动通知, 3:维护通知]
+	Scope         int      `json:"scope,omitempty"`          // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
+	Users         []int    `json:"users,omitempty"`          // 通知用户
+	Resellers     []int    `json:"resellers,omitempty"`      // 通知代理商
+	Channels      []string `json:"channels,omitempty"`       // 发送渠道[web:站内信, email:邮件]
+	Priority      int      `json:"priority,omitempty"`       // 优先级
+	ExpiresAt     string   `json:"expires_at,omitempty"`     // 过期时间
+	ScheduledTime string   `json:"scheduled_time,omitempty"` // 定时发布时间
+	Remark        string   `json:"remark,omitempty"`         // 备注
+	Status        int      `json:"status,omitempty"`         // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 }
 
 // 通知公告详情接口响应参数
@@ -82,7 +82,7 @@ type Notice struct {
 	Scope         int           `json:"scope,omitempty"`          // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
 	Users         []int         `json:"users,omitempty"`          // 通知用户
 	Resellers     []int         `json:"resellers,omitempty"`      // 通知代理商
-	Methods       []int         `json:"methods,omitempty"`        // 通知方式[1:站内信, 2:邮件]
+	Channels      []string      `json:"channels,omitempty"`       // 发送渠道[web:站内信, email:邮件]
 	Priority      int           `json:"priority,omitempty"`       // 优先级
 	ExpiresAt     string        `json:"expires_at,omitempty"`     // 过期时间
 	ScheduledTime string        `json:"scheduled_time,omitempty"` // 定时发布时间

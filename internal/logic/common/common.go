@@ -154,7 +154,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 
 	logger.Infof(ctx, "正在发送邮件验证码, 操作: %s, 收件人: %s, 验证码: %s", consts.ACTION_MAP[params.Action], params.Email, code)
 
-	data := make(map[string]string)
+	data := make(map[string]any)
 	data["service_name"] = consts.ACTION_MAP[params.Action]
 	data["code"] = code
 
@@ -170,13 +170,19 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		}
 	}
 
-	template, err := util.RenderTemplate(data, "verify_code")
+	noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_CODE)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	message := email.NewMessage([]string{params.Email}, consts.ACTION_MAP[params.Action], template)
+	template, err := util.RenderTemplate(noticeTemplate.Name, noticeTemplate.Content, data)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	message := email.NewMessage([]string{params.Email}, noticeTemplate.Title, template)
 
 	// 发送邮件验证码
 	if err = email.SendMail(message, dialer); err != nil {

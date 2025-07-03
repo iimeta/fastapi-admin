@@ -54,7 +54,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		Scope:         params.Scope,
 		Users:         params.Users,
 		Resellers:     params.Resellers,
-		Methods:       params.Methods,
+		Channels:      params.Channels,
 		Priority:      params.Priority,
 		ExpiresAt:     util.ConvTimestampMilli(params.ExpiresAt),
 		ScheduledTime: util.ConvTimestampMilli(params.ScheduledTime),
@@ -73,7 +73,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		return "", err
 	}
 
-	if notice.Status == 1 && slices.Contains(notice.Methods, 2) {
+	if notice.Status == 1 && slices.Contains(notice.Channels, "email") {
 
 		newData, err := dao.Notice.FindById(ctx, id)
 		if err != nil {
@@ -108,7 +108,7 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 		Scope:         params.Scope,
 		Users:         params.Users,
 		Resellers:     params.Resellers,
-		Methods:       params.Methods,
+		Channels:      params.Channels,
 		Priority:      params.Priority,
 		ExpiresAt:     util.ConvTimestampMilli(params.ExpiresAt),
 		ScheduledTime: util.ConvTimestampMilli(params.ScheduledTime),
@@ -122,7 +122,7 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 		return err
 	}
 
-	if newData.Status == 1 && newData.PublishTime == 0 && slices.Contains(newData.Methods, 2) {
+	if newData.Status == 1 && newData.PublishTime == 0 && slices.Contains(newData.Channels, "email") {
 
 		if err = dao.Notice.UpdateById(ctx, params.Id, bson.M{"publish_time": gtime.TimestampMilli()}); err != nil {
 			logger.Error(ctx, err)
@@ -170,7 +170,7 @@ func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) 
 		Scope:         notice.Scope,
 		Users:         notice.Users,
 		Resellers:     notice.Resellers,
-		Methods:       notice.Methods,
+		Channels:      notice.Channels,
 		Priority:      notice.Priority,
 		ExpiresAt:     util.FormatDateTime(notice.ExpiresAt),
 		ScheduledTime: util.FormatDateTime(notice.ScheduledTime),
@@ -247,7 +247,7 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 			Scope:         result.Scope,
 			Users:         result.Users,
 			Resellers:     result.Resellers,
-			Methods:       result.Methods,
+			Channels:      result.Channels,
 			Priority:      result.Priority,
 			ExpiresAt:     util.FormatDateTime(result.ExpiresAt),
 			ScheduledTime: util.FormatDateTime(result.ScheduledTime),

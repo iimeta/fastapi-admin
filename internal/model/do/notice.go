@@ -17,7 +17,7 @@ type Notice struct {
 	Scope         int           `bson:"scope,omitempty"`        // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
 	Users         []int         `bson:"users"`                  // 通知用户
 	Resellers     []int         `bson:"resellers"`              // 通知代理商
-	Methods       []int         `bson:"methods,omitempty"`      // 通知方式[1:站内信, 2:邮件]
+	Channels      []string      `bson:"channels,omitempty"`     // 发送渠道[web:站内信, email:邮件]
 	Priority      int           `bson:"priority,omitempty"`     // 优先级
 	ExpiresAt     int64         `bson:"expires_at,omitempty"`   // 过期时间
 	ScheduledTime int64         `bson:"scheduled_time"`         // 定时发布时间

@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
-	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
@@ -17,7 +16,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"regexp"
-	"time"
 )
 
 type sNoticeTemplate struct {
@@ -34,7 +32,7 @@ func New() service.INoticeTemplate {
 	}
 }
 
-// 新建通知公告模板
+// 新建通知模板
 func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplateCreateReq) (string, error) {
 
 	if params.Content == "" || params.Content == "<p></p>" {
@@ -42,14 +40,16 @@ func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplat
 	}
 
 	notice := &do.NoticeTemplate{
-		Name:     params.Name,
-		Action:   params.Action,
-		Content:  params.Content,
-		Category: params.Category,
-		IsPublic: params.IsPublic,
-		Remark:   params.Remark,
-		Status:   params.Status,
-		UserId:   service.Session().GetUserId(ctx),
+		Name:      params.Name,
+		Scenes:    params.Scenes,
+		Title:     params.Title,
+		Content:   params.Content,
+		Channels:  params.Channels,
+		Variables: params.Variables,
+		IsPublic:  params.IsPublic,
+		Remark:    params.Remark,
+		Status:    params.Status,
+		UserId:    service.Session().GetUserId(ctx),
 	}
 
 	id, err := dao.NoticeTemplate.Insert(ctx, notice)
@@ -61,7 +61,7 @@ func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplat
 	return id, nil
 }
 
-// 更新通知公告模板
+// 更新通知模板
 func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplateUpdateReq) error {
 
 	if params.Content == "" || params.Content == "<p></p>" {
@@ -69,13 +69,15 @@ func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplat
 	}
 
 	notice := &do.NoticeTemplate{
-		Name:     params.Name,
-		Action:   params.Action,
-		Content:  params.Content,
-		Category: params.Category,
-		IsPublic: params.IsPublic,
-		Remark:   params.Remark,
-		Status:   params.Status,
+		Name:      params.Name,
+		Scenes:    params.Scenes,
+		Title:     params.Title,
+		Content:   params.Content,
+		Channels:  params.Channels,
+		Variables: params.Variables,
+		IsPublic:  params.IsPublic,
+		Remark:    params.Remark,
+		Status:    params.Status,
 	}
 
 	if err := dao.NoticeTemplate.UpdateById(ctx, params.Id, notice); err != nil {
@@ -86,7 +88,7 @@ func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplat
 	return nil
 }
 
-// 删除通知公告模板
+// 删除通知模板
 func (s *sNoticeTemplate) Delete(ctx context.Context, id string) error {
 
 	if _, err := dao.NoticeTemplate.DeleteById(ctx, id); err != nil {
@@ -97,7 +99,7 @@ func (s *sNoticeTemplate) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// 通知公告模板详情
+// 通知模板详情
 func (s *sNoticeTemplate) Detail(ctx context.Context, id string) (*model.NoticeTemplate, error) {
 
 	notice, err := dao.NoticeTemplate.FindById(ctx, id)
@@ -109,9 +111,11 @@ func (s *sNoticeTemplate) Detail(ctx context.Context, id string) (*model.NoticeT
 	return &model.NoticeTemplate{
 		Id:        notice.Id,
 		Name:      notice.Name,
-		Action:    notice.Action,
+		Scenes:    notice.Scenes,
+		Title:     notice.Title,
 		Content:   notice.Content,
-		Category:  notice.Category,
+		Channels:  notice.Channels,
+		Variables: notice.Variables,
 		IsPublic:  notice.IsPublic,
 		Remark:    notice.Remark,
 		Status:    notice.Status,
@@ -124,7 +128,7 @@ func (s *sNoticeTemplate) Detail(ctx context.Context, id string) (*model.NoticeT
 	}, nil
 }
 
-// 通知公告模板分页列表
+// 通知模板分页列表
 func (s *sNoticeTemplate) Page(ctx context.Context, params model.NoticeTemplatePageReq) (*model.NoticeTemplatePageRes, error) {
 
 	paging := &db.Paging{
@@ -140,32 +144,33 @@ func (s *sNoticeTemplate) Page(ctx context.Context, params model.NoticeTemplateP
 		}
 	}
 
+	if len(params.Scenes) > 0 {
+		filter["scenes"] = bson.M{
+			"$in": params.Scenes,
+		}
+	}
+
+	if params.Title != "" {
+		filter["title"] = bson.M{
+			"$regex": regexp.QuoteMeta(params.Title),
+		}
+	}
+
 	if params.Content != "" {
 		filter["content"] = bson.M{
 			"$regex": regexp.QuoteMeta(params.Content),
 		}
 	}
 
-	if params.Category != 0 {
-		filter["category"] = params.Category
+	if len(params.Channels) > 0 {
+		filter["channels"] = bson.M{
+			"$in": params.Channels,
+		}
 	}
 
 	if params.Remark != "" {
 		filter["remark"] = bson.M{
 			"$regex": regexp.QuoteMeta(params.Remark),
-		}
-	}
-
-	if params.Status != 0 {
-		filter["status"] = params.Status
-	}
-
-	if len(params.PublishTime) > 0 {
-		gte := gtime.NewFromStrFormat(params.PublishTime[0], time.DateOnly).StartOfDay().TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.PublishTime[1], time.DateOnly).EndOfDay(true).TimestampMilli()
-		filter["publish_time"] = bson.M{
-			"$gte": gte,
-			"$lte": lte,
 		}
 	}
 
@@ -180,8 +185,9 @@ func (s *sNoticeTemplate) Page(ctx context.Context, params model.NoticeTemplateP
 		items = append(items, &model.NoticeTemplate{
 			Id:        result.Id,
 			Name:      result.Name,
-			Action:    result.Action,
-			Category:  result.Category,
+			Scenes:    result.Scenes,
+			Title:     result.Title,
+			Channels:  result.Channels,
 			IsPublic:  result.IsPublic,
 			Remark:    result.Remark,
 			Status:    result.Status,
@@ -202,7 +208,7 @@ func (s *sNoticeTemplate) Page(ctx context.Context, params model.NoticeTemplateP
 	}, nil
 }
 
-// 通知公告模板列表
+// 通知模板列表
 func (s *sNoticeTemplate) List(ctx context.Context, params model.NoticeTemplateListReq) ([]*model.NoticeTemplate, error) {
 
 	filter := bson.M{}
@@ -223,7 +229,36 @@ func (s *sNoticeTemplate) List(ctx context.Context, params model.NoticeTemplateL
 	return items, nil
 }
 
-// 通知公告模板批量操作
+// 根据使用场景获取通知模板
+func (s *sNoticeTemplate) GetNoticeTemplateByScene(ctx context.Context, scene string) (*model.NoticeTemplate, error) {
+
+	notice, err := dao.NoticeTemplate.FindOne(ctx, bson.M{"scenes": bson.M{"$in": []string{scene}}, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return &model.NoticeTemplate{
+		Id:        notice.Id,
+		Name:      notice.Name,
+		Scenes:    notice.Scenes,
+		Title:     notice.Title,
+		Content:   notice.Content,
+		Channels:  notice.Channels,
+		Variables: notice.Variables,
+		IsPublic:  notice.IsPublic,
+		Remark:    notice.Remark,
+		Status:    notice.Status,
+		UserId:    notice.UserId,
+		Rid:       notice.Rid,
+		Creator:   notice.Creator,
+		Updater:   notice.Updater,
+		CreatedAt: util.FormatDateTime(notice.CreatedAt),
+		UpdatedAt: util.FormatDateTime(notice.UpdatedAt),
+	}, nil
+}
+
+// 通知模板批量操作
 func (s *sNoticeTemplate) BatchOperate(ctx context.Context, params model.NoticeTemplateBatchOperateReq) error {
 
 	switch params.Action {

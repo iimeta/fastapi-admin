@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/email"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -57,8 +58,9 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			var (
-				action   string
-				template string
+				scene          string
+				content        string
+				noticeTemplate *model.NoticeTemplate
 			)
 
 			if user.WarningThreshold == 0 {
@@ -70,16 +72,16 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			if !user.WarningNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= user.WarningThreshold {
-				action = consts.ACTION_WARNING_NOTICE
+				scene = consts.SCENE_QUOTA_WARNING
 			} else if config.Cfg.QuotaWarning.ExhaustionNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= 0 {
-				action = consts.ACTION_EXHAUSTION_NOTICE
+				scene = consts.SCENE_QUOTA_EXHAUSTION
 			} else if config.Cfg.QuotaWarning.ExpireWarning && !user.ExpireWarningNotice && user.Quota > 0 && user.QuotaExpiresAt > 0 && gtime.TimestampMilli() > user.QuotaExpiresAt-(user.ExpireWarningThreshold*gtime.D).Milliseconds() {
-				action = consts.ACTION_EXPIRE_WARNING_NOTICE
+				scene = consts.SCENE_QUOTA_EXPIRE_WARNING
 			} else if config.Cfg.QuotaWarning.ExpireNotice && !user.ExpireNotice && user.Quota > 0 && user.QuotaExpiresAt > 0 && gtime.TimestampMilli() > user.QuotaExpiresAt {
-				action = consts.ACTION_EXPIRE_NOTICE
+				scene = consts.SCENE_QUOTA_EXPIRE
 			}
 
-			if action == "" {
+			if scene == "" {
 				continue
 			}
 
@@ -91,13 +93,18 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				data["quota"] = fmt.Sprintf("$%f", quota)
 			}
 
-			if action == consts.ACTION_WARNING_NOTICE {
+			if scene == consts.SCENE_QUOTA_WARNING {
 				data["warning_threshold"] = user.WarningThreshold / consts.QUOTA_USD_UNIT
-			} else if action == consts.ACTION_EXPIRE_WARNING_NOTICE || action == consts.ACTION_EXPIRE_NOTICE {
+			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
 			}
 
-			if template, err = util.RenderTemplate(data, action); err != nil {
+			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene); err != nil {
+				logger.Error(ctx, err)
+				continue
+			}
+
+			if content, err = util.RenderTemplate(noticeTemplate.Name, noticeTemplate.Content, data); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}
@@ -152,15 +159,15 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				}
 			}
 
-			if err = email.SendMail(email.NewMessage([]string{user.Email}, consts.ACTION_MAP[action], template), dialer); err != nil {
-				logger.Errorf(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, consts.ACTION_MAP[action], err)
+			if err = email.SendMail(email.NewMessage([]string{user.Email}, noticeTemplate.Title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, noticeTemplate.Title, err)
 				continue
 			}
 
-			logger.Infof(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s success", user.UserId, user.Email, consts.ACTION_MAP[action])
+			logger.Infof(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s success", user.UserId, user.Email, noticeTemplate.Title)
 
 			if err = dao.User.UpdateById(ctx, user.Id, bson.M{
-				action: true,
+				consts.NOTICE_MAP[scene]: true,
 			}); err != nil {
 				logger.Error(ctx, err)
 			}
@@ -184,8 +191,9 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			var (
-				action   string
-				template string
+				scene          string
+				content        string
+				noticeTemplate *model.NoticeTemplate
 			)
 
 			if reseller.WarningThreshold == 0 {
@@ -197,16 +205,16 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			if !reseller.WarningNotice && !reseller.ExhaustionNotice && reseller.UsedQuota != 0 && reseller.Quota <= reseller.WarningThreshold {
-				action = consts.ACTION_WARNING_NOTICE
+				scene = consts.SCENE_QUOTA_WARNING
 			} else if config.Cfg.QuotaWarning.ExhaustionNotice && !reseller.ExhaustionNotice && reseller.UsedQuota != 0 && reseller.Quota <= 0 {
-				action = consts.ACTION_EXHAUSTION_NOTICE
+				scene = consts.SCENE_QUOTA_EXHAUSTION
 			} else if config.Cfg.QuotaWarning.ExpireWarning && !reseller.ExpireWarningNotice && reseller.Quota > 0 && reseller.QuotaExpiresAt > 0 && gtime.TimestampMilli() > reseller.QuotaExpiresAt-(reseller.ExpireWarningThreshold*gtime.D).Milliseconds() {
-				action = consts.ACTION_EXPIRE_WARNING_NOTICE
+				scene = consts.SCENE_QUOTA_EXPIRE_WARNING
 			} else if config.Cfg.QuotaWarning.ExpireNotice && !reseller.ExpireNotice && reseller.Quota > 0 && reseller.QuotaExpiresAt > 0 && gtime.TimestampMilli() > reseller.QuotaExpiresAt {
-				action = consts.ACTION_EXPIRE_NOTICE
+				scene = consts.SCENE_QUOTA_EXPIRE
 			}
 
-			if action == "" {
+			if scene == "" {
 				continue
 			}
 
@@ -218,13 +226,18 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				data["quota"] = fmt.Sprintf("$%f", quota)
 			}
 
-			if action == consts.ACTION_WARNING_NOTICE {
+			if scene == consts.SCENE_QUOTA_WARNING {
 				data["warning_threshold"] = reseller.WarningThreshold / consts.QUOTA_USD_UNIT
-			} else if action == consts.ACTION_EXPIRE_WARNING_NOTICE || action == consts.ACTION_EXPIRE_NOTICE {
+			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
 			}
 
-			if template, err = util.RenderTemplate(data, action); err != nil {
+			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene); err != nil {
+				logger.Error(ctx, err)
+				continue
+			}
+
+			if content, err = util.RenderTemplate(noticeTemplate.Name, noticeTemplate.Content, data); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}
@@ -251,15 +264,15 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				}
 			}
 
-			if err = email.SendMail(email.NewMessage([]string{reseller.Email}, consts.ACTION_MAP[action], template), dialer); err != nil {
-				logger.Errorf(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, consts.ACTION_MAP[action], err)
+			if err = email.SendMail(email.NewMessage([]string{reseller.Email}, noticeTemplate.Title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, noticeTemplate.Title, err)
 				continue
 			}
 
-			logger.Infof(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s success", reseller.UserId, reseller.Email, consts.ACTION_MAP[action])
+			logger.Infof(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s success", reseller.UserId, reseller.Email, noticeTemplate.Title)
 
 			if err = dao.Reseller.UpdateById(ctx, reseller.Id, bson.M{
-				action: true,
+				consts.NOTICE_MAP[scene]: true,
 			}); err != nil {
 				logger.Error(ctx, err)
 			}
