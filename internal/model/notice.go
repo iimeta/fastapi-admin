@@ -88,6 +88,7 @@ type Notice struct {
 	ScheduledTime string        `json:"scheduled_time,omitempty"` // 定时发布时间
 	Remark        string        `json:"remark,omitempty"`         // 备注
 	Status        int           `json:"status,omitempty"`         // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
+	Variables     []string      `json:"variables,omitempty"`      // 变量
 	Reads         []common.Read `json:"reads,omitempty"`          // 已读
 	UserId        int           `json:"user_id,omitempty"`        // 用户ID
 	PublishTime   string        `json:"publish_time,omitempty"`   // 发布时间

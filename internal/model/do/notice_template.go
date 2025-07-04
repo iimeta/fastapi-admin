@@ -15,10 +15,10 @@ type NoticeTemplate struct {
 	Title      string   `bson:"title,omitempty"`      // 标题
 	Content    string   `bson:"content,omitempty"`    // 内容
 	Channels   []string `bson:"channels,omitempty"`   // 适用渠道[web:站内信, email:邮件]
-	Variables  []string `bson:"variables"`            // 变量
 	IsPublic   bool     `bson:"is_public"`            // 是否公开
 	Remark     string   `bson:"remark"`               // 备注
 	Status     int      `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
+	Variables  []string `bson:"variables"`            // 变量
 	UserId     int      `bson:"user_id,omitempty"`    // 用户ID
 	Rid        int      `bson:"rid,omitempty"`        // 代理商ID
 	Creator    string   `bson:"creator,omitempty"`    // 创建人

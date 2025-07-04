@@ -59,6 +59,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 
 			var (
 				scene          string
+				title          string
 				content        string
 				noticeTemplate *model.NoticeTemplate
 			)
@@ -104,7 +105,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				continue
 			}
 
-			if content, err = util.RenderTemplate(noticeTemplate.Name, noticeTemplate.Content, data); err != nil {
+			if title, content, err = util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}
@@ -159,12 +160,12 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				}
 			}
 
-			if err = email.SendMail(email.NewMessage([]string{user.Email}, noticeTemplate.Title, content), dialer); err != nil {
-				logger.Errorf(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, noticeTemplate.Title, err)
+			if err = email.SendMail(email.NewMessage([]string{user.Email}, title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, title, err)
 				continue
 			}
 
-			logger.Infof(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s success", user.UserId, user.Email, noticeTemplate.Title)
+			logger.Infof(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s success", user.UserId, user.Email, title)
 
 			if err = dao.User.UpdateById(ctx, user.Id, bson.M{
 				consts.NOTICE_MAP[scene]: true,
@@ -192,6 +193,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 
 			var (
 				scene          string
+				title          string
 				content        string
 				noticeTemplate *model.NoticeTemplate
 			)
@@ -237,7 +239,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				continue
 			}
 
-			if content, err = util.RenderTemplate(noticeTemplate.Name, noticeTemplate.Content, data); err != nil {
+			if title, content, err = util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}
@@ -264,12 +266,12 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				}
 			}
 
-			if err = email.SendMail(email.NewMessage([]string{reseller.Email}, noticeTemplate.Title, content), dialer); err != nil {
-				logger.Errorf(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, noticeTemplate.Title, err)
+			if err = email.SendMail(email.NewMessage([]string{reseller.Email}, title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, title, err)
 				continue
 			}
 
-			logger.Infof(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s success", reseller.UserId, reseller.Email, noticeTemplate.Title)
+			logger.Infof(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s success", reseller.UserId, reseller.Email, title)
 
 			if err = dao.Reseller.UpdateById(ctx, reseller.Id, bson.M{
 				consts.NOTICE_MAP[scene]: true,

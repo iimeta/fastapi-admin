@@ -60,6 +60,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		ScheduledTime: util.ConvTimestampMilli(params.ScheduledTime),
 		Remark:        params.Remark,
 		Status:        params.Status,
+		Variables:     util.GetTemplateVariables(params.Title, params.Content),
 		UserId:        service.Session().GetUserId(ctx),
 	}
 
@@ -114,6 +115,7 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 		ScheduledTime: util.ConvTimestampMilli(params.ScheduledTime),
 		Remark:        params.Remark,
 		Status:        params.Status,
+		Variables:     util.GetTemplateVariables(params.Title, params.Content),
 	}
 
 	newData, err := dao.Notice.FindOneAndUpdateById(ctx, params.Id, notice)
@@ -176,6 +178,7 @@ func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) 
 		ScheduledTime: util.FormatDateTime(notice.ScheduledTime),
 		Remark:        notice.Remark,
 		Status:        notice.Status,
+		Variables:     notice.Variables,
 		Reads:         notice.Reads,
 		UserId:        notice.UserId,
 		PublishTime:   util.FormatDateTime(notice.PublishTime),

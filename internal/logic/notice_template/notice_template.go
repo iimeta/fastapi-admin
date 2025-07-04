@@ -45,10 +45,10 @@ func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplat
 		Title:     params.Title,
 		Content:   params.Content,
 		Channels:  params.Channels,
-		Variables: params.Variables,
 		IsPublic:  params.IsPublic,
 		Remark:    params.Remark,
 		Status:    params.Status,
+		Variables: util.GetTemplateVariables(params.Title, params.Content),
 		UserId:    service.Session().GetUserId(ctx),
 	}
 
@@ -74,10 +74,10 @@ func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplat
 		Title:     params.Title,
 		Content:   params.Content,
 		Channels:  params.Channels,
-		Variables: params.Variables,
 		IsPublic:  params.IsPublic,
 		Remark:    params.Remark,
 		Status:    params.Status,
+		Variables: util.GetTemplateVariables(params.Title, params.Content),
 	}
 
 	if err := dao.NoticeTemplate.UpdateById(ctx, params.Id, notice); err != nil {

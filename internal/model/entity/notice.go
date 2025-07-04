@@ -20,6 +20,7 @@ type Notice struct {
 	ScheduledTime int64         `bson:"scheduled_time,omitempty"` // 定时发布时间
 	Remark        string        `bson:"remark,omitempty"`         // 备注
 	Status        int           `bson:"status,omitempty"`         // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
+	Variables     []string      `bson:"variables,omitempty"`      // 变量
 	Reads         []common.Read `bson:"reads,omitempty"`          // 已读
 	UserId        int           `bson:"user_id,omitempty"`        // 用户ID
 	PublishTime   int64         `bson:"publish_time,omitempty"`   // 发布时间

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/crypto/gmd5"
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -13,11 +14,13 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/email"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
+	"math"
 	"strings"
 	"time"
 )
@@ -176,13 +179,13 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		return err
 	}
 
-	template, err := util.RenderTemplate(noticeTemplate.Name, noticeTemplate.Content, data)
+	title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	message := email.NewMessage([]string{params.Email}, noticeTemplate.Title, template)
+	message := email.NewMessage([]string{params.Email}, title, content)
 
 	// 发送邮件验证码
 	if err = email.SendMail(message, dialer); err != nil {
@@ -319,4 +322,98 @@ func ParseSecretKey(ctx context.Context, secretKey string) (int, int, error) {
 	}
 
 	return gconv.Int(userId), gconv.Int(appId), nil
+}
+
+// 获取变量数据
+func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Reseller, siteConfig *entity.SiteConfig, variables []string) map[string]any {
+
+	data := make(map[string]any)
+
+	for _, variable := range variables {
+
+		parts := gstr.Split(variable, ".")
+		if len(parts) < 2 {
+			continue
+		}
+
+		// 用户
+		if parts[0] == consts.ATTRIBUTE_USER && user != nil {
+			switch parts[1] {
+			case consts.ATTRIBUTE_USER_ID:
+				data[variable] = user.UserId
+			case consts.ATTRIBUTE_NAME:
+				data[variable] = user.Name
+			case consts.ATTRIBUTE_EMAIL:
+				data[variable] = user.Email
+			case consts.ATTRIBUTE_PHONE:
+				data[variable] = user.Phone
+			case consts.ATTRIBUTE_QUOTA:
+				if quota := util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6); quota < 0 {
+					data[variable] = fmt.Sprintf("-$%f", math.Abs(quota))
+				} else {
+					data[variable] = fmt.Sprintf("$%f", quota)
+				}
+			case consts.ATTRIBUTE_USED_QUOTA:
+				data[variable] = fmt.Sprintf("$%f", util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
+			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
+				data[variable] = util.FormatDateTime(user.QuotaExpiresAt)
+			case consts.ATTRIBUTE_WARNING_THRESHOLD:
+				data[variable] = fmt.Sprintf("$%f", util.Round(float64(user.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
+			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
+				data[variable] = user.ExpireWarningThreshold
+			}
+		}
+
+		// 代理商
+		if parts[0] == consts.ATTRIBUTE_RESELLER && reseller != nil {
+			switch parts[1] {
+			case consts.ATTRIBUTE_USER_ID:
+				data[variable] = reseller.UserId
+			case consts.ATTRIBUTE_NAME:
+				data[variable] = reseller.Name
+			case consts.ATTRIBUTE_EMAIL:
+				data[variable] = reseller.Email
+			case consts.ATTRIBUTE_PHONE:
+				data[variable] = reseller.Phone
+			case consts.ATTRIBUTE_QUOTA:
+				if quota := util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6); quota < 0 {
+					data[variable] = fmt.Sprintf("-$%f", math.Abs(quota))
+				} else {
+					data[variable] = fmt.Sprintf("$%f", quota)
+				}
+			case consts.ATTRIBUTE_USED_QUOTA:
+				data[variable] = fmt.Sprintf("$%f", util.Round(float64(reseller.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
+			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
+				data[variable] = util.FormatDateTime(reseller.QuotaExpiresAt)
+			case consts.ATTRIBUTE_WARNING_THRESHOLD:
+				data[variable] = fmt.Sprintf("$%f", util.Round(float64(reseller.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
+			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
+				data[variable] = reseller.ExpireWarningThreshold
+			}
+		}
+
+		// 站点
+		if parts[0] == consts.ATTRIBUTE_SITE && siteConfig != nil {
+			switch parts[1] {
+			case consts.ATTRIBUTE_DOMAIN:
+				data[variable] = siteConfig.Domain
+			case consts.ATTRIBUTE_TITLE:
+				data[variable] = siteConfig.Title
+			case consts.ATTRIBUTE_LOGO:
+				data[variable] = siteConfig.Logo
+			case consts.ATTRIBUTE_COPYRIGHT:
+				data[variable] = siteConfig.Copyright
+			case consts.ATTRIBUTE_JUMP_URL:
+				data[variable] = siteConfig.JumpUrl
+			case consts.ATTRIBUTE_ICP_BEIAN:
+				data[variable] = siteConfig.IcpBeian
+			case consts.ATTRIBUTE_GA_BEIAN:
+				data[variable] = siteConfig.GaBeian
+			}
+		}
+	}
+
+	logger.Infof(ctx, "GetVariableData user: %s, reseller: %s, siteConfig: %s, variables: %s, data: %s", gjson.MustEncodeString(user), gjson.MustEncodeString(reseller), gjson.MustEncodeString(siteConfig), variables, gjson.MustEncodeString(data))
+
+	return data
 }

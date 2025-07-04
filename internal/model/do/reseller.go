@@ -21,7 +21,6 @@ type Reseller struct {
 	Quota                  int           `bson:"quota"`                              // 剩余额度
 	UsedQuota              int           `bson:"used_quota,omitempty"`               // 已用额度
 	QuotaExpiresAt         int64         `bson:"quota_expires_at"`                   // 额度过期时间
-	VipLevel               string        `bson:"vip_level"`                          // 会员等级
 	Groups                 []string      `bson:"groups"`                             // 分组权限
 	Models                 []string      `bson:"models"`                             // 模型权限
 	QuotaWarning           bool          `bson:"quota_warning"`                      // 额度预警开关
