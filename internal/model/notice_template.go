@@ -7,6 +7,7 @@ type NoticeTemplateCreateReq struct {
 	Title    string   `json:"title,omitempty"`        // 标题
 	Content  string   `json:"content,omitempty"`      // 内容
 	Channels []string `json:"channels,omitempty"`     // 适用渠道[web:站内信, email:邮件]
+	IsPopup  bool     `json:"is_popup,omitempty"`     // 是否弹窗
 	IsPublic bool     `json:"is_public,omitempty"`    // 是否公开
 	Remark   string   `json:"remark,omitempty"`       // 备注
 	Status   int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
@@ -20,6 +21,7 @@ type NoticeTemplateUpdateReq struct {
 	Title    string   `json:"title,omitempty"`        // 标题
 	Content  string   `json:"content,omitempty"`      // 内容
 	Channels []string `json:"channels,omitempty"`     // 适用渠道[web:站内信, email:邮件]
+	IsPopup  bool     `json:"is_popup,omitempty"`     // 是否弹窗
 	IsPublic bool     `json:"is_public,omitempty"`    // 是否公开
 	Remark   string   `json:"remark,omitempty"`       // 备注
 	Status   int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
@@ -71,10 +73,11 @@ type NoticeTemplate struct {
 	Title     string   `json:"title,omitempty"`      // 标题
 	Content   string   `json:"content,omitempty"`    // 内容
 	Channels  []string `json:"channels,omitempty"`   // 适用渠道[web:站内信, email:邮件]
-	Variables []string `json:"variables,omitempty"`  // 变量
+	IsPopup   bool     `json:"is_popup,omitempty"`   // 是否弹窗
 	IsPublic  bool     `json:"is_public,omitempty"`  // 是否公开
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
+	Variables []string `json:"variables,omitempty"`  // 变量
 	UserId    int      `json:"user_id,omitempty"`    // 用户ID
 	Rid       int      `json:"rid,omitempty"`        // 代理商ID
 	Creator   string   `json:"creator,omitempty"`    // 创建人

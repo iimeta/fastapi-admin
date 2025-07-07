@@ -11,6 +11,7 @@ type NoticeCreateReq struct {
 	Users         []int    `json:"users,omitempty"`           // 通知用户
 	Resellers     []int    `json:"resellers,omitempty"`       // 通知代理商
 	Channels      []string `json:"channels,omitempty"`        // 发送渠道[web:站内信, email:邮件]
+	IsPopup       bool     `json:"is_popup,omitempty"`        // 是否弹窗
 	Priority      int      `json:"priority,omitempty" d:"20"` // 优先级
 	ExpiresAt     string   `json:"expires_at,omitempty"`      // 过期时间
 	ScheduledTime string   `json:"scheduled_time,omitempty"`  // 定时发布时间
@@ -28,6 +29,7 @@ type NoticeUpdateReq struct {
 	Users         []int    `json:"users,omitempty"`          // 通知用户
 	Resellers     []int    `json:"resellers,omitempty"`      // 通知代理商
 	Channels      []string `json:"channels,omitempty"`       // 发送渠道[web:站内信, email:邮件]
+	IsPopup       bool     `json:"is_popup,omitempty"`       // 是否弹窗
 	Priority      int      `json:"priority,omitempty"`       // 优先级
 	ExpiresAt     string   `json:"expires_at,omitempty"`     // 过期时间
 	ScheduledTime string   `json:"scheduled_time,omitempty"` // 定时发布时间
@@ -83,6 +85,7 @@ type Notice struct {
 	Users         []int         `json:"users,omitempty"`          // 通知用户
 	Resellers     []int         `json:"resellers,omitempty"`      // 通知代理商
 	Channels      []string      `json:"channels,omitempty"`       // 发送渠道[web:站内信, email:邮件]
+	IsPopup       bool          `json:"is_popup,omitempty"`       // 是否弹窗
 	Priority      int           `json:"priority,omitempty"`       // 优先级
 	ExpiresAt     string        `json:"expires_at,omitempty"`     // 过期时间
 	ScheduledTime string        `json:"scheduled_time,omitempty"` // 定时发布时间

@@ -12,6 +12,7 @@ type NoticeTemplate struct {
 	Title      string   `bson:"title,omitempty"`      // 标题
 	Content    string   `bson:"content,omitempty"`    // 内容
 	Channels   []string `bson:"channels,omitempty"`   // 适用渠道[web:站内信, email:邮件]
+	IsPopup    bool     `bson:"is_popup,omitempty"`   // 是否弹窗
 	IsPublic   bool     `bson:"is_public,omitempty"`  // 是否公开
 	Remark     string   `bson:"remark,omitempty"`     // 备注
 	Status     int      `bson:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]

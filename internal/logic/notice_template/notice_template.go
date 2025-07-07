@@ -45,6 +45,7 @@ func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplat
 		Title:     params.Title,
 		Content:   params.Content,
 		Channels:  params.Channels,
+		IsPopup:   params.IsPopup,
 		IsPublic:  params.IsPublic,
 		Remark:    params.Remark,
 		Status:    params.Status,
@@ -74,6 +75,7 @@ func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplat
 		Title:     params.Title,
 		Content:   params.Content,
 		Channels:  params.Channels,
+		IsPopup:   params.IsPopup,
 		IsPublic:  params.IsPublic,
 		Remark:    params.Remark,
 		Status:    params.Status,
@@ -115,10 +117,11 @@ func (s *sNoticeTemplate) Detail(ctx context.Context, id string) (*model.NoticeT
 		Title:     notice.Title,
 		Content:   notice.Content,
 		Channels:  notice.Channels,
-		Variables: notice.Variables,
+		IsPopup:   notice.IsPopup,
 		IsPublic:  notice.IsPublic,
 		Remark:    notice.Remark,
 		Status:    notice.Status,
+		Variables: notice.Variables,
 		UserId:    notice.UserId,
 		Rid:       notice.Rid,
 		Creator:   notice.Creator,
@@ -222,7 +225,8 @@ func (s *sNoticeTemplate) List(ctx context.Context, params model.NoticeTemplateL
 	items := make([]*model.NoticeTemplate, 0)
 	for _, result := range results {
 		items = append(items, &model.NoticeTemplate{
-			Id: result.Id,
+			Id:   result.Id,
+			Name: result.Name,
 		})
 	}
 
@@ -245,10 +249,11 @@ func (s *sNoticeTemplate) GetNoticeTemplateByScene(ctx context.Context, scene st
 		Title:     notice.Title,
 		Content:   notice.Content,
 		Channels:  notice.Channels,
-		Variables: notice.Variables,
+		IsPopup:   notice.IsPopup,
 		IsPublic:  notice.IsPublic,
 		Remark:    notice.Remark,
 		Status:    notice.Status,
+		Variables: notice.Variables,
 		UserId:    notice.UserId,
 		Rid:       notice.Rid,
 		Creator:   notice.Creator,

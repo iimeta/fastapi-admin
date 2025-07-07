@@ -55,6 +55,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		Users:         params.Users,
 		Resellers:     params.Resellers,
 		Channels:      params.Channels,
+		IsPopup:       params.IsPopup,
 		Priority:      params.Priority,
 		ExpiresAt:     util.ConvTimestampMilli(params.ExpiresAt),
 		ScheduledTime: util.ConvTimestampMilli(params.ScheduledTime),
@@ -110,6 +111,7 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 		Users:         params.Users,
 		Resellers:     params.Resellers,
 		Channels:      params.Channels,
+		IsPopup:       params.IsPopup,
 		Priority:      params.Priority,
 		ExpiresAt:     util.ConvTimestampMilli(params.ExpiresAt),
 		ScheduledTime: util.ConvTimestampMilli(params.ScheduledTime),
@@ -173,6 +175,7 @@ func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) 
 		Users:         notice.Users,
 		Resellers:     notice.Resellers,
 		Channels:      notice.Channels,
+		IsPopup:       notice.IsPopup,
 		Priority:      notice.Priority,
 		ExpiresAt:     util.FormatDateTime(notice.ExpiresAt),
 		ScheduledTime: util.FormatDateTime(notice.ScheduledTime),
@@ -251,6 +254,7 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 			Users:         result.Users,
 			Resellers:     result.Resellers,
 			Channels:      result.Channels,
+			IsPopup:       result.IsPopup,
 			Priority:      result.Priority,
 			ExpiresAt:     util.FormatDateTime(result.ExpiresAt),
 			ScheduledTime: util.FormatDateTime(result.ScheduledTime),
@@ -289,7 +293,8 @@ func (s *sNotice) List(ctx context.Context, params model.NoticeListReq) ([]*mode
 	items := make([]*model.Notice, 0)
 	for _, result := range results {
 		items = append(items, &model.Notice{
-			Id: result.Id,
+			Id:    result.Id,
+			Title: result.Title,
 		})
 	}
 
