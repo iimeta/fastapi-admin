@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
@@ -83,6 +84,32 @@ func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplat
 	}
 
 	if err := dao.NoticeTemplate.UpdateById(ctx, params.Id, notice); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更改通知模板公开状态
+func (s *sNoticeTemplate) ChangePublic(ctx context.Context, params model.NoticeTemplateChangePublicReq) error {
+
+	if err := dao.NoticeTemplate.UpdateById(ctx, params.Id, bson.M{
+		"is_public": params.IsPublic,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 更改通知模板状态
+func (s *sNoticeTemplate) ChangeStatus(ctx context.Context, params model.NoticeTemplateChangeStatusReq) error {
+
+	if err := dao.NoticeTemplate.UpdateById(ctx, params.Id, bson.M{
+		"status": params.Status,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -267,6 +294,16 @@ func (s *sNoticeTemplate) GetNoticeTemplateByScene(ctx context.Context, scene st
 func (s *sNoticeTemplate) BatchOperate(ctx context.Context, params model.NoticeTemplateBatchOperateReq) error {
 
 	switch params.Action {
+	case consts.ACTION_STATUS:
+		for _, id := range params.Ids {
+			if err := s.ChangeStatus(ctx, model.NoticeTemplateChangeStatusReq{
+				Id:     id,
+				Status: gconv.Int(params.Value),
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
 	case consts.ACTION_DELETE:
 		for _, id := range params.Ids {
 			if err := s.Delete(ctx, id); err != nil {

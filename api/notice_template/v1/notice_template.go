@@ -27,6 +27,28 @@ type UpdateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 更改通知模板公开状态接口请求参数
+type ChangePublicReq struct {
+	g.Meta `path:"/change/public" method:"post" auth:"true" role:"admin" tags:"group" summary:"更改通知模板公开状态接口"`
+	model.NoticeTemplateChangePublicReq
+}
+
+// 更改通知模板公开状态接口响应参数
+type ChangePublicRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
+// 更改通知模板状态接口请求参数
+type ChangeStatusReq struct {
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"reseller,admin" tags:"group" summary:"更改通知模板状态接口"`
+	model.NoticeTemplateChangeStatusReq
+}
+
+// 更改通知模板状态接口响应参数
+type ChangeStatusRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 删除通知模板接口请求参数
 type DeleteReq struct {
 	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"删除通知模板接口"`

@@ -17,6 +17,10 @@ type (
 		Create(ctx context.Context, params model.NoticeTemplateCreateReq) (string, error)
 		// 更新通知模板
 		Update(ctx context.Context, params model.NoticeTemplateUpdateReq) error
+		// 更改通知模板公开状态
+		ChangePublic(ctx context.Context, params model.NoticeTemplateChangePublicReq) error
+		// 更改通知模板状态
+		ChangeStatus(ctx context.Context, params model.NoticeTemplateChangeStatusReq) error
 		// 删除通知模板
 		Delete(ctx context.Context, id string) error
 		// 通知模板详情

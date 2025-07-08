@@ -27,6 +27,18 @@ type NoticeTemplateUpdateReq struct {
 	Status   int      `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 更改通知模板公开状态接口请求参数
+type NoticeTemplateChangePublicReq struct {
+	Id       string `json:"id" v:"required"`     // ID
+	IsPublic bool   `json:"is_public,omitempty"` // 是否公开
+}
+
+// 更改通知模板状态接口请求参数
+type NoticeTemplateChangeStatusReq struct {
+	Id     string `json:"id,omitempty"`           // ID
+	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+}
+
 // 通知模板详情接口响应参数
 type NoticeTemplateDetailRes struct {
 	*NoticeTemplate
