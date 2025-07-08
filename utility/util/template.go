@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-var templateVarRegex = regexp.MustCompile(`{{\s*\.\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*\s*}}`)
+var templateVarRegex = regexp.MustCompile(`{{\s*\.\s*([a-zA-Z_][a-zA-Z0-9_]*(?:\s*\.\s*[a-zA-Z_][a-zA-Z0-9_]*)*)\s*}}`)
 
 func GetTemplateVariables(title, content string) []string {
 

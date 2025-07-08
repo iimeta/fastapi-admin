@@ -157,27 +157,25 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 
 	logger.Infof(ctx, "正在发送邮件验证码, 操作: %s, 收件人: %s, 验证码: %s", consts.ACTION_MAP[params.Action], params.Email, code)
 
-	data := make(map[string]any)
-	data["service_name"] = consts.ACTION_MAP[params.Action]
-	data["code"] = code
+	noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_CODE)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
 
+	data := make(map[string]any)
 	dialer := email.NewDefaultDialer()
 
 	if siteConfig != nil {
 
-		data["copyright"] = siteConfig.Copyright
-		data["jump_url"] = siteConfig.JumpUrl
+		data = GetVariableData(ctx, nil, nil, siteConfig, noticeTemplate.Variables)
 
 		if siteConfig.Host != "" {
 			dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
 		}
 	}
 
-	noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_CODE)
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
+	data["code"] = code
 
 	title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data)
 	if err != nil {
@@ -328,6 +326,9 @@ func ParseSecretKey(ctx context.Context, secretKey string) (int, int, error) {
 func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Reseller, siteConfig *entity.SiteConfig, variables []string) map[string]any {
 
 	data := make(map[string]any)
+	userAttribute := make(map[string]any)
+	resellerAttribute := make(map[string]any)
+	siteAttribute := make(map[string]any)
 
 	for _, variable := range variables {
 
@@ -338,78 +339,93 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 
 		// 用户
 		if parts[0] == consts.ATTRIBUTE_USER && user != nil {
+
 			switch parts[1] {
 			case consts.ATTRIBUTE_USER_ID:
-				data[variable] = user.UserId
+				userAttribute[parts[1]] = user.UserId
 			case consts.ATTRIBUTE_NAME:
-				data[variable] = user.Name
+				userAttribute[parts[1]] = user.Name
 			case consts.ATTRIBUTE_EMAIL:
-				data[variable] = user.Email
+				userAttribute[parts[1]] = user.Email
 			case consts.ATTRIBUTE_PHONE:
-				data[variable] = user.Phone
+				userAttribute[parts[1]] = user.Phone
 			case consts.ATTRIBUTE_QUOTA:
 				if quota := util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6); quota < 0 {
-					data[variable] = fmt.Sprintf("-$%f", math.Abs(quota))
+					userAttribute[parts[1]] = fmt.Sprintf("-$%f", math.Abs(quota))
 				} else {
-					data[variable] = fmt.Sprintf("$%f", quota)
+					userAttribute[parts[1]] = fmt.Sprintf("$%f", quota)
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
-				data[variable] = fmt.Sprintf("$%f", util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
+				userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
-				data[variable] = util.FormatDateTime(user.QuotaExpiresAt)
+				userAttribute[parts[1]] = util.FormatDateTime(user.QuotaExpiresAt)
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
-				data[variable] = fmt.Sprintf("$%f", util.Round(float64(user.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
+				userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
-				data[variable] = user.ExpireWarningThreshold
+				userAttribute[parts[1]] = user.ExpireWarningThreshold
+			default:
+				userAttribute[parts[1]] = ""
 			}
+
+			data[parts[0]] = userAttribute
 		}
 
 		// 代理商
 		if parts[0] == consts.ATTRIBUTE_RESELLER && reseller != nil {
+
 			switch parts[1] {
 			case consts.ATTRIBUTE_USER_ID:
-				data[variable] = reseller.UserId
+				resellerAttribute[parts[1]] = reseller.UserId
 			case consts.ATTRIBUTE_NAME:
-				data[variable] = reseller.Name
+				resellerAttribute[parts[1]] = reseller.Name
 			case consts.ATTRIBUTE_EMAIL:
-				data[variable] = reseller.Email
+				resellerAttribute[parts[1]] = reseller.Email
 			case consts.ATTRIBUTE_PHONE:
-				data[variable] = reseller.Phone
+				resellerAttribute[parts[1]] = reseller.Phone
 			case consts.ATTRIBUTE_QUOTA:
 				if quota := util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6); quota < 0 {
-					data[variable] = fmt.Sprintf("-$%f", math.Abs(quota))
+					resellerAttribute[parts[1]] = fmt.Sprintf("-$%f", math.Abs(quota))
 				} else {
-					data[variable] = fmt.Sprintf("$%f", quota)
+					resellerAttribute[parts[1]] = fmt.Sprintf("$%f", quota)
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
-				data[variable] = fmt.Sprintf("$%f", util.Round(float64(reseller.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
+				resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
-				data[variable] = util.FormatDateTime(reseller.QuotaExpiresAt)
+				resellerAttribute[parts[1]] = util.FormatDateTime(reseller.QuotaExpiresAt)
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
-				data[variable] = fmt.Sprintf("$%f", util.Round(float64(reseller.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
+				resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
-				data[variable] = reseller.ExpireWarningThreshold
+				resellerAttribute[parts[1]] = reseller.ExpireWarningThreshold
+			default:
+				resellerAttribute[parts[1]] = ""
 			}
+
+			data[parts[0]] = resellerAttribute
 		}
 
 		// 站点
 		if parts[0] == consts.ATTRIBUTE_SITE && siteConfig != nil {
+
 			switch parts[1] {
 			case consts.ATTRIBUTE_DOMAIN:
-				data[variable] = siteConfig.Domain
+				siteAttribute[parts[1]] = siteConfig.Domain
 			case consts.ATTRIBUTE_TITLE:
-				data[variable] = siteConfig.Title
+				siteAttribute[parts[1]] = siteConfig.Title
 			case consts.ATTRIBUTE_LOGO:
-				data[variable] = siteConfig.Logo
+				siteAttribute[parts[1]] = siteConfig.Logo
 			case consts.ATTRIBUTE_COPYRIGHT:
-				data[variable] = siteConfig.Copyright
+				siteAttribute[parts[1]] = siteConfig.Copyright
 			case consts.ATTRIBUTE_JUMP_URL:
-				data[variable] = siteConfig.JumpUrl
+				siteAttribute[parts[1]] = siteConfig.JumpUrl
 			case consts.ATTRIBUTE_ICP_BEIAN:
-				data[variable] = siteConfig.IcpBeian
+				siteAttribute[parts[1]] = siteConfig.IcpBeian
 			case consts.ATTRIBUTE_GA_BEIAN:
-				data[variable] = siteConfig.GaBeian
+				siteAttribute[parts[1]] = siteConfig.GaBeian
+			default:
+				siteAttribute[parts[1]] = ""
 			}
+
+			data[parts[0]] = siteAttribute
 		}
 	}
 
