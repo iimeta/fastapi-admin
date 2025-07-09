@@ -261,9 +261,18 @@ func (s *sNoticeTemplate) List(ctx context.Context, params model.NoticeTemplateL
 }
 
 // 根据使用场景获取通知模板
-func (s *sNoticeTemplate) GetNoticeTemplateByScene(ctx context.Context, scene string) (*model.NoticeTemplate, error) {
+func (s *sNoticeTemplate) GetNoticeTemplateByScene(ctx context.Context, scene string, channels []string) (*model.NoticeTemplate, error) {
 
-	notice, err := dao.NoticeTemplate.FindOne(ctx, bson.M{"scenes": bson.M{"$in": []string{scene}}, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	filter := bson.M{
+		"scenes": bson.M{"$in": []string{scene}},
+		"status": 1,
+	}
+
+	if len(channels) > 0 {
+		filter["channels"] = bson.M{"$in": channels}
+	}
+
+	notice, err := dao.NoticeTemplate.FindOne(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err

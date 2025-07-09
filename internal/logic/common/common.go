@@ -20,6 +20,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
+	"go.mongodb.org/mongo-driver/mongo"
 	"math"
 	"strings"
 	"time"
@@ -60,7 +61,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 	}
 
 	switch params.Action {
-	case consts.ACTION_LOGIN:
+	case consts.SCENE_LOGIN:
 		if params.Channel == consts.USER_CHANNEL && !config.Cfg.UserLoginRegister.EmailLogin {
 			return errors.New("未开启邮箱登录, 请联系管理员")
 		}
@@ -72,7 +73,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		if params.Channel == consts.ADMIN_CHANNEL && !config.Cfg.AdminLogin.EmailLogin {
 			return errors.New("未开启邮箱登录, 请联系作者")
 		}
-	case consts.ACTION_FORGET_ACCOUNT:
+	case consts.SCENE_FORGET_PASSWORD:
 		if params.Channel == consts.USER_CHANNEL && !config.Cfg.UserLoginRegister.EmailRetrieve {
 			return errors.New("未开启找回密码, 请联系管理员")
 		}
@@ -84,7 +85,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		if params.Channel == consts.ADMIN_CHANNEL && !config.Cfg.AdminLogin.EmailRetrieve {
 			return errors.New("未开启找回密码, 请联系作者")
 		}
-	case consts.ACTION_REGISTER:
+	case consts.SCENE_REGISTER:
 
 		if params.Channel == consts.USER_CHANNEL && !config.Cfg.UserLoginRegister.EmailRegister {
 			return errors.New("未开启用户注册, 请联系管理员")
@@ -123,7 +124,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 			return errors.New("邮箱已被他人使用")
 		}
 
-	case consts.ACTION_CHANGE_EMAIL:
+	case consts.SCENE_CHANGE_EMAIL:
 
 		if siteConfig != nil && len(siteConfig.SupportEmailSuffix) > 0 {
 
@@ -155,12 +156,19 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		return err
 	}
 
-	logger.Infof(ctx, "正在发送邮件验证码, 操作: %s, 收件人: %s, 验证码: %s", consts.ACTION_MAP[params.Action], params.Email, code)
+	logger.Infof(ctx, "正在发送邮件验证码, 操作: %s, 收件人: %s, 验证码: %s", params.Action, params.Email, code)
 
-	noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_CODE)
+	noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, params.Action, []string{consts.NOTICE_CHANNEL_EMAIL})
 	if err != nil {
-		logger.Error(ctx, err)
-		return err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_CODE, []string{consts.NOTICE_CHANNEL_EMAIL}); err != nil {
+				logger.Error(ctx, err)
+				return errors.New("获取通知模板出错, 请联系管理员")
+			}
+		} else {
+			logger.Error(ctx, err)
+			return errors.New("获取通知模板出错, 请联系管理员")
+		}
 	}
 
 	data := make(map[string]any)
@@ -208,31 +216,23 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) error {
 	}
 
 	switch params.Action {
-	// 需要判断账号是否存在
-	case consts.ACTION_LOGIN, consts.ACTION_FORGET_ACCOUNT:
+	case consts.SCENE_LOGIN, consts.SCENE_FORGET_PASSWORD:
 		if !dao.User.IsAccountExist(ctx, params.Phone) {
 			return errors.New("账号不存在或密码错误")
 		}
-
-	// 需要判断账号是否存在
-	case consts.ACTION_REGISTER, consts.ACTION_CHANGE_MOBILE:
+	case consts.SCENE_REGISTER, consts.SCENE_CHANGE_PHONE:
 		if dao.User.IsAccountExist(ctx, params.Phone) {
 			return errors.New("手机号已被他人使用")
 		}
-
-	default:
-		return errors.New("发送异常")
 	}
 
 	code := grand.Digits(6)
 
-	// 添加发送记录
 	if err := s.SetCode(ctx, params.Action, params.Phone, code, 15*time.Minute); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	// 发送短信验证码
 	// TODO ... 请求第三方短信接口
 	logger.Debugf(ctx, "正在发送短信验证码: %s", code)
 

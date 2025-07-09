@@ -100,7 +100,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
 			}
 
-			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene); err != nil {
+			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}
@@ -234,7 +234,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
 			}
 
-			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene); err != nil {
+			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}

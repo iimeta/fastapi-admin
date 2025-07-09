@@ -75,7 +75,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		return "", err
 	}
 
-	if notice.Status == 1 && slices.Contains(notice.Channels, "email") {
+	if notice.Status == 1 && slices.Contains(notice.Channels, consts.NOTICE_CHANNEL_EMAIL) {
 
 		newData, err := dao.Notice.FindById(ctx, id)
 		if err != nil {
@@ -126,7 +126,7 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 		return err
 	}
 
-	if newData.Status == 1 && newData.PublishTime == 0 && slices.Contains(newData.Channels, "email") {
+	if newData.Status == 1 && newData.PublishTime == 0 && slices.Contains(newData.Channels, consts.NOTICE_CHANNEL_EMAIL) {
 
 		if err = dao.Notice.UpdateById(ctx, params.Id, bson.M{"publish_time": gtime.TimestampMilli()}); err != nil {
 			logger.Error(ctx, err)

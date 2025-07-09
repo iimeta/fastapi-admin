@@ -47,7 +47,7 @@ func New() service.IAuth {
 func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel ...string) error {
 
 	if len(channel) == 0 {
-		channel = []string{consts.ACTION_REGISTER}
+		channel = []string{consts.SCENE_REGISTER}
 	}
 
 	// 验证验证码是否正确
@@ -173,7 +173,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			return err
 		}
 
-		_ = service.Common().DelCode(ctx, consts.ACTION_REGISTER, params.Account)
+		_ = service.Common().DelCode(ctx, consts.SCENE_REGISTER, params.Account)
 
 		if user.Quota != 0 {
 
@@ -250,7 +250,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			return err
 		}
 
-		_ = service.Common().DelCode(ctx, consts.ACTION_REGISTER, params.Account)
+		_ = service.Common().DelCode(ctx, consts.SCENE_REGISTER, params.Account)
 
 		if reseller.Quota != 0 {
 
@@ -296,7 +296,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 	if params.Method == consts.METHOD_CODE {
 
 		// 验证验证码是否正确
-		if !service.Common().VerifyCode(ctx, consts.ACTION_LOGIN, params.Account, params.Code) {
+		if !service.Common().VerifyCode(ctx, consts.SCENE_LOGIN, params.Account, params.Code) {
 			return nil, errors.New("验证码填写错误")
 		}
 
@@ -364,7 +364,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						Channel:  params.Channel,
 						Code:     params.Code,
 						Domain:   params.Domain,
-					}, consts.ACTION_LOGIN); err != nil {
+					}, consts.SCENE_LOGIN); err != nil {
 						logger.Error(ctx, err)
 						return nil, err
 					}
@@ -461,7 +461,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						Channel:  params.Channel,
 						Code:     params.Code,
 						Domain:   params.Domain,
-					}, consts.ACTION_LOGIN); err != nil {
+					}, consts.SCENE_LOGIN); err != nil {
 						logger.Error(ctx, err)
 						return nil, err
 					}
@@ -652,7 +652,7 @@ func (s *sAuth) Logout(ctx context.Context) error {
 func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 
 	// 验证验证码是否正确
-	if !service.Common().VerifyCode(ctx, consts.ACTION_FORGET_ACCOUNT, params.Account, params.Code) {
+	if !service.Common().VerifyCode(ctx, consts.SCENE_FORGET_PASSWORD, params.Account, params.Code) {
 		return errors.New("验证码填写错误")
 	}
 
@@ -707,7 +707,7 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 		}
 	}
 
-	_ = service.Common().DelCode(ctx, consts.ACTION_FORGET_ACCOUNT, params.Account)
+	_ = service.Common().DelCode(ctx, consts.SCENE_FORGET_PASSWORD, params.Account)
 
 	return nil
 }

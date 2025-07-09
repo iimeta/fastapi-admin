@@ -30,7 +30,7 @@ type (
 		// 通知模板列表
 		List(ctx context.Context, params model.NoticeTemplateListReq) ([]*model.NoticeTemplate, error)
 		// 根据使用场景获取通知模板
-		GetNoticeTemplateByScene(ctx context.Context, scene string) (*model.NoticeTemplate, error)
+		GetNoticeTemplateByScene(ctx context.Context, scene string, channels []string) (*model.NoticeTemplate, error)
 		// 通知模板批量操作
 		BatchOperate(ctx context.Context, params model.NoticeTemplateBatchOperateReq) error
 	}

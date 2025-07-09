@@ -10,15 +10,15 @@ const (
 
 const (
 	RESELLER_TOKEN_PREFIX = "R"
-	RESELLER_SESSION      = "reseller:session:%s"
+	RESELLER_SESSION      = "session:reseller:%s"
 	RESELLER_CHANNEL      = "reseller"
 
 	USER_TOKEN_PREFIX = "U"
-	USER_SESSION      = "user:session:%s"
+	USER_SESSION      = "session:user:%s"
 	USER_CHANNEL      = "user"
 
 	ADMIN_TOKEN_PREFIX = "A"
-	ADMIN_SESSION      = "admin:session:%s"
+	ADMIN_SESSION      = "session:admin:%s"
 	ADMIN_CHANNEL      = "admin"
 )
 
