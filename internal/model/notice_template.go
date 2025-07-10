@@ -3,7 +3,7 @@ package model
 // 新建通知模板接口请求参数
 type NoticeTemplateCreateReq struct {
 	Name     string   `json:"name,omitempty"`         // 名称
-	Scenes   []string `json:"scenes,omitempty"`       // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:通知公告]
+	Scenes   []string `json:"scenes,omitempty"`       // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:消息通知]
 	Title    string   `json:"title,omitempty"`        // 标题
 	Content  string   `json:"content,omitempty"`      // 内容
 	Channels []string `json:"channels,omitempty"`     // 适用渠道[web:站内信, email:邮件]
@@ -17,7 +17,7 @@ type NoticeTemplateCreateReq struct {
 type NoticeTemplateUpdateReq struct {
 	Id       string   `json:"id" v:"required"`        // ID
 	Name     string   `json:"name,omitempty"`         // 名称
-	Scenes   []string `json:"scenes,omitempty"`       // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:通知公告]
+	Scenes   []string `json:"scenes,omitempty"`       // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:消息通知]
 	Title    string   `json:"title,omitempty"`        // 标题
 	Content  string   `json:"content,omitempty"`      // 内容
 	Channels []string `json:"channels,omitempty"`     // 适用渠道[web:站内信, email:邮件]
@@ -48,7 +48,7 @@ type NoticeTemplateDetailRes struct {
 type NoticeTemplatePageReq struct {
 	Paging
 	Name     string   `json:"name,omitempty"`     // 名称
-	Scenes   []string `json:"scenes,omitempty"`   // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:通知公告]
+	Scenes   []string `json:"scenes,omitempty"`   // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:消息通知]
 	Title    string   `json:"title,omitempty"`    // 标题
 	Content  string   `json:"content,omitempty"`  // 内容
 	Channels []string `json:"channels,omitempty"` // 适用渠道[web:站内信, email:邮件]
@@ -81,7 +81,7 @@ type NoticeTemplateBatchOperateReq struct {
 type NoticeTemplate struct {
 	Id        string   `json:"id,omitempty"`         // ID
 	Name      string   `json:"name,omitempty"`       // 名称
-	Scenes    []string `json:"scenes,omitempty"`     // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:通知公告]
+	Scenes    []string `json:"scenes,omitempty"`     // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:消息通知]
 	Title     string   `json:"title,omitempty"`      // 标题
 	Content   string   `json:"content,omitempty"`    // 内容
 	Channels  []string `json:"channels,omitempty"`   // 适用渠道[web:站内信, email:邮件]

@@ -12,7 +12,7 @@ const (
 	SCENE_QUOTA_EXHAUSTION     = "quota_exhaustion"     // 额度耗尽通知
 	SCENE_QUOTA_EXPIRE_WARNING = "quota_expire_warning" // 额度过期提醒
 	SCENE_QUOTA_EXPIRE         = "quota_expire"         // 额度过期通知
-	SCENE_NOTICE               = "notice"               // 通知公告
+	SCENE_NOTICE               = "notice"               // 消息通知
 )
 
 const (

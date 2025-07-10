@@ -14,21 +14,21 @@ import (
 
 type (
 	INotice interface {
-		// 新建通知公告
+		// 新建消息通知
 		Create(ctx context.Context, params model.NoticeCreateReq) (string, error)
-		// 更新通知公告
+		// 更新消息通知
 		Update(ctx context.Context, params model.NoticeUpdateReq) error
-		// 删除通知公告
+		// 删除消息通知
 		Delete(ctx context.Context, id string) error
-		// 通知公告详情
+		// 消息通知详情
 		Detail(ctx context.Context, id string) (*model.Notice, error)
-		// 通知公告分页列表
+		// 消息通知分页列表
 		Page(ctx context.Context, params model.NoticePageReq) (*model.NoticePageRes, error)
-		// 通知公告列表
+		// 消息通知列表
 		List(ctx context.Context, params model.NoticeListReq) ([]*model.Notice, error)
-		// 发送通知公告邮件
+		// 发送消息通知邮件
 		SendMail(ctx context.Context, notice *entity.Notice) (err error)
-		// 通知公告批量操作
+		// 消息通知批量操作
 		BatchOperate(ctx context.Context, params model.NoticeBatchOperateReq) error
 		// 额度预警任务
 		QuotaWarningTask(ctx context.Context)

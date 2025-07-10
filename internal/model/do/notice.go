@@ -13,7 +13,7 @@ type Notice struct {
 	gmeta.Meta    `collection:"notice" bson:"-"`
 	Title         string        `bson:"title,omitempty"`        // 标题
 	Content       string        `bson:"content,omitempty"`      // 内容
-	Category      int           `bson:"category,omitempty"`     // 分类[1:系统公告, 2:活动通知, 3:维护通知]
+	Category      string        `bson:"category,omitempty"`     // 分类[service:服务消息, activity:活动消息, safety:安全消息, maint:维护消息, product:产品消息, fault:故障消息]
 	Scope         int           `bson:"scope,omitempty"`        // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
 	Users         []int         `bson:"users"`                  // 通知用户
 	Resellers     []int         `bson:"resellers"`              // 通知代理商

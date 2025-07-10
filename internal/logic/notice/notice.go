@@ -40,7 +40,7 @@ func New() service.INotice {
 	}
 }
 
-// 新建通知公告
+// 新建消息通知
 func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (string, error) {
 
 	if params.Content == "" || params.Content == "<p></p>" {
@@ -83,7 +83,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 			return "", err
 		}
 
-		// 发送通知公告邮件
+		// 发送消息通知邮件
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 			if err := s.SendMail(ctx, newData); err != nil {
 				logger.Error(ctx, err)
@@ -96,7 +96,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 	return id, nil
 }
 
-// 更新通知公告
+// 更新消息通知
 func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) error {
 
 	if params.Content == "" || params.Content == "<p></p>" {
@@ -133,7 +133,7 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 			return err
 		}
 
-		// 发送通知公告邮件
+		// 发送消息通知邮件
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 			if err := s.SendMail(ctx, newData); err != nil {
 				logger.Error(ctx, err)
@@ -146,7 +146,7 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 	return nil
 }
 
-// 删除通知公告
+// 删除消息通知
 func (s *sNotice) Delete(ctx context.Context, id string) error {
 
 	if _, err := dao.Notice.DeleteById(ctx, id); err != nil {
@@ -157,7 +157,7 @@ func (s *sNotice) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// 通知公告详情
+// 消息通知详情
 func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) {
 
 	notice, err := dao.Notice.FindById(ctx, id)
@@ -193,7 +193,7 @@ func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) 
 	}, nil
 }
 
-// 通知公告分页列表
+// 消息通知分页列表
 func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.NoticePageRes, error) {
 
 	paging := &db.Paging{
@@ -215,7 +215,7 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 		}
 	}
 
-	if params.Category != 0 {
+	if params.Category != "" {
 		filter["category"] = params.Category
 	}
 
@@ -279,7 +279,7 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 	}, nil
 }
 
-// 通知公告列表
+// 消息通知列表
 func (s *sNotice) List(ctx context.Context, params model.NoticeListReq) ([]*model.Notice, error) {
 
 	filter := bson.M{}
@@ -301,7 +301,7 @@ func (s *sNotice) List(ctx context.Context, params model.NoticeListReq) ([]*mode
 	return items, nil
 }
 
-// 发送通知公告邮件
+// 发送消息通知邮件
 func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err error) {
 
 	var (
@@ -351,7 +351,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 		}
 
 		if account == nil {
-			logger.Infof(ctx, "sNotice SendMail user: %d, 因无可用账号, 不发送通知公告邮件", user.UserId)
+			logger.Infof(ctx, "sNotice SendMail user: %d, 因无可用账号, 不发送消息通知邮件", user.UserId)
 			continue
 		}
 
@@ -381,7 +381,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 			}
 
 			if !isConfigEmail {
-				logger.Infof(ctx, "sNotice SendMail 因代理商: %d, 所有站点未配置邮箱, 不发送通知公告邮件", user.Rid)
+				logger.Infof(ctx, "sNotice SendMail 因代理商: %d, 所有站点未配置邮箱, 不发送消息通知邮件", user.Rid)
 				continue
 			}
 
@@ -416,7 +416,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 		}
 
 		if account == nil {
-			logger.Infof(ctx, "sNotice SendMail reseller: %d, 因无可用账号, 不发送通知公告邮件", reseller.UserId)
+			logger.Infof(ctx, "sNotice SendMail reseller: %d, 因无可用账号, 不发送消息通知邮件", reseller.UserId)
 			continue
 		}
 
@@ -442,7 +442,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 	return nil
 }
 
-// 通知公告批量操作
+// 消息通知批量操作
 func (s *sNotice) BatchOperate(ctx context.Context, params model.NoticeBatchOperateReq) error {
 
 	switch params.Action {

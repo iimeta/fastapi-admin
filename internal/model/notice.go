@@ -2,11 +2,11 @@ package model
 
 import "github.com/iimeta/fastapi-admin/internal/model/common"
 
-// 新建通知公告接口请求参数
+// 新建消息通知接口请求参数
 type NoticeCreateReq struct {
 	Title         string   `json:"title,omitempty"`           // 标题
 	Content       string   `json:"content,omitempty"`         // 内容
-	Category      int      `json:"category,omitempty"`        // 分类[1:系统公告, 2:活动通知, 3:维护通知]
+	Category      string   `json:"category,omitempty"`        // 分类[service:服务消息, activity:活动消息, safety:安全消息, maint:维护消息, product:产品消息, fault:故障消息]
 	Scope         int      `json:"scope,omitempty"`           // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
 	Users         []int    `json:"users,omitempty"`           // 通知用户
 	Resellers     []int    `json:"resellers,omitempty"`       // 通知代理商
@@ -19,12 +19,12 @@ type NoticeCreateReq struct {
 	Status        int      `json:"status,omitempty"`          // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 }
 
-// 更新通知公告接口请求参数
+// 更新消息通知接口请求参数
 type NoticeUpdateReq struct {
 	Id            string   `json:"id" v:"required"`          // ID
 	Title         string   `json:"title,omitempty"`          // 标题
 	Content       string   `json:"content,omitempty"`        // 内容
-	Category      int      `json:"category,omitempty"`       // 分类[1:系统公告, 2:活动通知, 3:维护通知]
+	Category      string   `json:"category,omitempty"`       // 分类[service:服务消息, activity:活动消息, safety:安全消息, maint:维护消息, product:产品消息, fault:故障消息]
 	Scope         int      `json:"scope,omitempty"`          // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
 	Users         []int    `json:"users,omitempty"`          // 通知用户
 	Resellers     []int    `json:"resellers,omitempty"`      // 通知代理商
@@ -37,39 +37,39 @@ type NoticeUpdateReq struct {
 	Status        int      `json:"status,omitempty"`         // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 }
 
-// 通知公告详情接口响应参数
+// 消息通知详情接口响应参数
 type NoticeDetailRes struct {
 	*Notice
 }
 
-// 通知公告分页列表接口请求参数
+// 消息通知分页列表接口请求参数
 type NoticePageReq struct {
 	Paging
 	Title       string   `json:"title,omitempty"`        // 标题
 	Content     string   `json:"content,omitempty"`      // 内容
-	Category    int      `json:"category,omitempty"`     // 分类[1:系统公告, 2:活动通知, 3:维护通知]
+	Category    string   `json:"category,omitempty"`     // 分类[service:服务消息, activity:活动消息, safety:安全消息, maint:维护消息, product:产品消息, fault:故障消息]
 	Remark      string   `json:"remark,omitempty"`       // 备注
 	Status      int      `json:"status,omitempty"`       // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 	PublishTime []string `json:"publish_time,omitempty"` // 发布时间
 }
 
-// 通知公告分页列表接口响应参数
+// 消息通知分页列表接口响应参数
 type NoticePageRes struct {
 	Items  []*Notice `json:"items"`
 	Paging *Paging   `json:"paging"`
 }
 
-// 通知公告列表接口请求参数
+// 消息通知列表接口请求参数
 type NoticeListReq struct {
 	Title string `json:"title,omitempty"` // 标题
 }
 
-// 通知公告列表接口响应参数
+// 消息通知列表接口响应参数
 type NoticeListRes struct {
 	Items []*Notice `json:"items"`
 }
 
-// 通知公告批量操作接口请求参数
+// 消息通知批量操作接口请求参数
 type NoticeBatchOperateReq struct {
 	Action string   `json:"action"` // 动作
 	Ids    []string `json:"ids"`    // 主键Ids
@@ -80,7 +80,7 @@ type Notice struct {
 	Id            string        `json:"id,omitempty"`             // ID
 	Title         string        `json:"title,omitempty"`          // 标题
 	Content       string        `json:"content,omitempty"`        // 内容
-	Category      int           `json:"category,omitempty"`       // 分类[1:系统公告, 2:活动通知, 3:维护通知]
+	Category      string        `json:"category,omitempty"`       // 分类[service:服务消息, activity:活动消息, safety:安全消息, maint:维护消息, product:产品消息, fault:故障消息]
 	Scope         int           `json:"scope,omitempty"`          // 通知范围[1:全部, 2:全部用户, 3:全部代理商, 4:指定用户, 5:指定代理商, 6:指定用户和代理商]
 	Users         []int         `json:"users,omitempty"`          // 通知用户
 	Resellers     []int         `json:"resellers,omitempty"`      // 通知代理商
