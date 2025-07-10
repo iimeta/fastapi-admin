@@ -2,8 +2,7 @@ package notice_template
 
 import (
 	"context"
-	"github.com/go-redsync/redsync/v4"
-	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -13,24 +12,21 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
-	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"regexp"
 )
 
-type sNoticeTemplate struct {
-	noticeRedsync *redsync.Redsync
-}
+type sNoticeTemplate struct{}
 
 func init() {
-	service.RegisterNoticeTemplate(New())
+	noticeTemplate := New()
+	service.RegisterNoticeTemplate(noticeTemplate)
+	noticeTemplate.Init(gctx.New())
 }
 
 func New() service.INoticeTemplate {
-	return &sNoticeTemplate{
-		noticeRedsync: redsync.New(goredis.NewPool(redis.UniversalClient)),
-	}
+	return &sNoticeTemplate{}
 }
 
 // 新建通知模板

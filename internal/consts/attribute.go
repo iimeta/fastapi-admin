@@ -22,4 +22,6 @@ const (
 	ATTRIBUTE_JUMP_URL  = "jump_url"  // 跳转URL
 	ATTRIBUTE_ICP_BEIAN = "icp_beian" // ICP备案
 	ATTRIBUTE_GA_BEIAN  = "ga_beian"  // 公安备案
+
+	ATTRIBUTE_CODE = "code" // 验证码
 )

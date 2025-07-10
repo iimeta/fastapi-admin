@@ -9,10 +9,15 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/do"
 )
 
 type (
 	INoticeTemplate interface {
+		// 初始化通知模板
+		Init(ctx context.Context)
+		// 默认通知模板
+		Default() []*do.NoticeTemplate
 		// 新建通知模板
 		Create(ctx context.Context, params model.NoticeTemplateCreateReq) (string, error)
 		// 更新通知模板
