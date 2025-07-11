@@ -310,7 +310,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 	)
 
 	if notice.Scope == 1 || notice.Scope == 2 {
-		if users, err = dao.User.Find(ctx, bson.M{"status": 1}); err != nil {
+		if users, err = dao.User.Find(ctx, bson.M{"rid": bson.M{"$exists": false}, "status": 1}); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
