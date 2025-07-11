@@ -7,7 +7,7 @@ import (
 
 // 新建消息通知接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"新建消息通知接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"admin" tags:"notice" summary:"新建消息通知接口"`
 	model.NoticeCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新消息通知接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"更新消息通知接口"`
+	g.Meta `path:"/update" method:"post" auth:"true" role:"admin" tags:"notice" summary:"更新消息通知接口"`
 	model.NoticeUpdateReq
 }
 
@@ -29,7 +29,7 @@ type UpdateRes struct {
 
 // 删除消息通知接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"删除消息通知接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"admin" tags:"notice" summary:"删除消息通知接口"`
 	Id     string `json:"id"`
 }
 
@@ -40,7 +40,7 @@ type DeleteRes struct {
 
 // 消息通知详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" method:"get" auth:"true" role:"reseller,admin" tags:"notice" summary:"消息通知详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"admin" tags:"notice" summary:"消息通知详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -52,7 +52,7 @@ type DetailRes struct {
 
 // 消息通知分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"消息通知分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"admin" tags:"notice" summary:"消息通知分页列表接口"`
 	model.NoticePageReq
 }
 
@@ -64,7 +64,7 @@ type PageRes struct {
 
 // 消息通知列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" method:"get" auth:"true" role:"reseller,user,admin" tags:"notice" summary:"消息通知列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"admin" tags:"notice" summary:"消息通知列表接口"`
 	model.NoticeListReq
 }
 
@@ -76,7 +76,7 @@ type ListRes struct {
 
 // 消息通知批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"消息通知批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"notice" summary:"消息通知批量操作接口"`
 	model.NoticeBatchOperateReq
 }
 

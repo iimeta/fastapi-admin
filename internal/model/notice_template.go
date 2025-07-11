@@ -47,12 +47,12 @@ type NoticeTemplateDetailRes struct {
 // 通知模板分页列表接口请求参数
 type NoticeTemplatePageReq struct {
 	Paging
-	Name     string   `json:"name,omitempty"`     // 名称
-	Scenes   []string `json:"scenes,omitempty"`   // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:消息通知]
-	Title    string   `json:"title,omitempty"`    // 标题
-	Content  string   `json:"content,omitempty"`  // 内容
-	Channels []string `json:"channels,omitempty"` // 适用渠道[web:站内信, email:邮件]
-	Remark   string   `json:"remark,omitempty"`   // 备注
+	Name    string   `json:"name,omitempty"`    // 名称
+	Scenes  []string `json:"scenes,omitempty"`  // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:消息通知]
+	Title   string   `json:"title,omitempty"`   // 标题
+	Content string   `json:"content,omitempty"` // 内容
+	Status  int      `json:"status,omitempty"`  // 状态[1:正常, 2:禁用, -1:删除]
+	Remark  string   `json:"remark,omitempty"`  // 备注
 }
 
 // 通知模板分页列表接口响应参数
@@ -63,7 +63,7 @@ type NoticeTemplatePageRes struct {
 
 // 通知模板列表接口请求参数
 type NoticeTemplateListReq struct {
-	Title string `json:"title,omitempty"` // 标题
+	Scenes []string `json:"scenes,omitempty"` // 使用场景[code:验证码, login:登录通知, register:注册通知, forget_password:找回密码, change_password:修改密码, change_email:修改邮箱, quota_warning:额度不足提醒, quota_exhaustion:额度耗尽通知, quota_expire_warning:额度过期提醒, quota_expire:额度过期通知, notice:消息通知]
 }
 
 // 通知模板列表接口响应参数

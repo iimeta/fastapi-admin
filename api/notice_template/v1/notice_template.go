@@ -7,7 +7,7 @@ import (
 
 // 新建通知模板接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"新建通知模板接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"admin" tags:"notice" summary:"新建通知模板接口"`
 	model.NoticeTemplateCreateReq
 }
 
@@ -18,7 +18,7 @@ type CreateRes struct {
 
 // 更新通知模板接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"更新通知模板接口"`
+	g.Meta `path:"/update" method:"post" auth:"true" role:"admin" tags:"notice" summary:"更新通知模板接口"`
 	model.NoticeTemplateUpdateReq
 }
 
@@ -40,7 +40,7 @@ type ChangePublicRes struct {
 
 // 更改通知模板状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" method:"post" auth:"true" role:"reseller,admin" tags:"group" summary:"更改通知模板状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"admin" tags:"group" summary:"更改通知模板状态接口"`
 	model.NoticeTemplateChangeStatusReq
 }
 
@@ -51,7 +51,7 @@ type ChangeStatusRes struct {
 
 // 删除通知模板接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"删除通知模板接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"admin" tags:"notice" summary:"删除通知模板接口"`
 	Id     string `json:"id"`
 }
 
@@ -62,7 +62,7 @@ type DeleteRes struct {
 
 // 通知模板详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" method:"get" auth:"true" role:"reseller,admin" tags:"notice" summary:"通知模板详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"admin" tags:"notice" summary:"通知模板详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -74,7 +74,7 @@ type DetailRes struct {
 
 // 通知模板分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"通知模板分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"admin" tags:"notice" summary:"通知模板分页列表接口"`
 	model.NoticeTemplatePageReq
 }
 
@@ -86,7 +86,7 @@ type PageRes struct {
 
 // 通知模板列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" method:"get" auth:"true" role:"reseller,user,admin" tags:"notice" summary:"通知模板列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"admin" tags:"notice" summary:"通知模板列表接口"`
 	model.NoticeTemplateListReq
 }
 
@@ -98,7 +98,7 @@ type ListRes struct {
 
 // 通知模板批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"reseller,admin" tags:"notice" summary:"通知模板批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"notice" summary:"通知模板批量操作接口"`
 	model.NoticeTemplateBatchOperateReq
 }
 

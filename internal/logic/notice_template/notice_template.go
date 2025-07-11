@@ -188,10 +188,8 @@ func (s *sNoticeTemplate) Page(ctx context.Context, params model.NoticeTemplateP
 		}
 	}
 
-	if len(params.Channels) > 0 {
-		filter["channels"] = bson.M{
-			"$in": params.Channels,
-		}
+	if params.Status != 0 {
+		filter["status"] = params.Status
 	}
 
 	if params.Remark != "" {
@@ -200,7 +198,7 @@ func (s *sNoticeTemplate) Page(ctx context.Context, params model.NoticeTemplateP
 		}
 	}
 
-	results, err := dao.NoticeTemplate.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	results, err := dao.NoticeTemplate.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -237,7 +235,15 @@ func (s *sNoticeTemplate) Page(ctx context.Context, params model.NoticeTemplateP
 // 通知模板列表
 func (s *sNoticeTemplate) List(ctx context.Context, params model.NoticeTemplateListReq) ([]*model.NoticeTemplate, error) {
 
-	filter := bson.M{}
+	filter := bson.M{
+		"status": 1,
+	}
+
+	if len(params.Scenes) > 0 {
+		filter["scenes"] = bson.M{
+			"$in": params.Scenes,
+		}
+	}
 
 	results, err := dao.NoticeTemplate.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
@@ -248,8 +254,11 @@ func (s *sNoticeTemplate) List(ctx context.Context, params model.NoticeTemplateL
 	items := make([]*model.NoticeTemplate, 0)
 	for _, result := range results {
 		items = append(items, &model.NoticeTemplate{
-			Id:   result.Id,
-			Name: result.Name,
+			Id:       result.Id,
+			Name:     result.Name,
+			Title:    result.Title,
+			Content:  result.Content,
+			Channels: result.Channels,
 		})
 	}
 
