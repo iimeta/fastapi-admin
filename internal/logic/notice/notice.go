@@ -364,7 +364,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 			if account.LoginDomain != "" {
 				siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
 				if siteConfig != nil && siteConfig.Rid == user.Rid && siteConfig.Host != "" {
-					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
+					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 					isConfigEmail = true
 				}
 			}
@@ -373,7 +373,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 				siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid)
 				for _, siteConfig := range siteConfigs {
 					if siteConfig != nil && siteConfig.Host != "" {
-						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
+						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 						isConfigEmail = true
 						break
 					}
@@ -388,7 +388,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 		} else if account.LoginDomain != "" {
 			siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
 			if siteConfig != nil && siteConfig.Host != "" {
-				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
+				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 			} else {
 				logger.Infof(ctx, "sNotice SendMail 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
 			}
@@ -425,7 +425,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 		if account.LoginDomain != "" {
 			siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
 			if siteConfig != nil && siteConfig.Host != "" {
-				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
+				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 			} else {
 				logger.Infof(ctx, "sNotice SendMail 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
 			}

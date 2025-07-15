@@ -179,7 +179,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		data = GetVariableData(ctx, nil, nil, siteConfig, noticeTemplate.Variables)
 
 		if siteConfig.Host != "" {
-			dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password)
+			dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 		}
 	}
 

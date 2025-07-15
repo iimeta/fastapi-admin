@@ -30,12 +30,13 @@ func NewMessage(to []string, subject, body string) *Message {
 	}
 }
 
-func NewDialer(host string, port int, username, password string) *Dialer {
+func NewDialer(host string, port int, userName, password, fromName string) *Dialer {
 	return &Dialer{
 		Host:     host,
 		Port:     port,
-		UserName: username,
+		UserName: userName,
 		Password: password,
+		FromName: fromName,
 	}
 }
 
@@ -45,6 +46,7 @@ func NewDefaultDialer() *Dialer {
 		Port:     config.Cfg.Email.Port,
 		UserName: config.Cfg.Email.UserName,
 		Password: config.Cfg.Email.Password,
+		FromName: config.Cfg.Email.FromName,
 	}
 }
 
@@ -56,7 +58,6 @@ func SendMail(message *Message, dialer *Dialer, opt ...OptionFunc) error {
 		dialer = NewDefaultDialer()
 	}
 
-	// 这种方式可以添加别名, 即“XX官方”
 	m.SetHeader("From", m.FormatAddress(dialer.UserName, dialer.FromName))
 
 	if len(message.To) > 0 {
@@ -70,9 +71,6 @@ func SendMail(message *Message, dialer *Dialer, opt ...OptionFunc) error {
 	if len(message.Body) > 0 {
 		m.SetBody("text/html", message.Body)
 	}
-
-	// m.SetHeader("Cc", m.FormatAddress("xxxx@foxmail.com", "收件人")) //抄送
-	// m.SetHeader("Bcc", m.FormatAddress("xxxx@gmail.com", "收件人"))  //暗送
 
 	for _, o := range opt {
 		o(m)
