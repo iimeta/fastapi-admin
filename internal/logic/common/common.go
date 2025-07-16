@@ -183,6 +183,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		}
 	}
 
+	data["scene"] = consts.SCENE_MAP[params.Action]
 	data["code"] = code
 
 	title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data)

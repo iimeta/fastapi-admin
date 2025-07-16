@@ -143,6 +143,8 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 
 			data := common.GetVariableData(ctx, user, nil, siteConfig, noticeTemplate.Variables)
 
+			data["name"] = user.Name
+
 			quota := util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6)
 			if quota < 0 {
 				data["quota"] = fmt.Sprintf("-$%f", math.Abs(quota))
@@ -248,6 +250,8 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			data := common.GetVariableData(ctx, nil, reseller, siteConfig, noticeTemplate.Variables)
+
+			data["name"] = reseller.Name
 
 			quota := util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6)
 			if quota < 0 {

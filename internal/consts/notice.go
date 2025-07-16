@@ -26,3 +26,18 @@ var NOTICE_MAP = map[string]string{
 	SCENE_QUOTA_EXPIRE_WARNING: "expire_warning_notice",
 	SCENE_QUOTA_EXPIRE:         "expire_notice",
 }
+
+var SCENE_MAP = map[string]string{
+	SCENE_CODE:                 "验证码",
+	SCENE_LOGIN:                "登录",
+	SCENE_REGISTER:             "注册",
+	SCENE_FORGET_PASSWORD:      "找回密码",
+	SCENE_CHANGE_PASSWORD:      "修改密码",
+	SCENE_CHANGE_EMAIL:         "修改邮箱",
+	SCENE_CHANGE_PHONE:         "修改手机号",
+	SCENE_QUOTA_WARNING:        "额度不足提醒",
+	SCENE_QUOTA_EXHAUSTION:     "额度耗尽通知",
+	SCENE_QUOTA_EXPIRE_WARNING: "额度过期提醒",
+	SCENE_QUOTA_EXPIRE:         "额度过期通知",
+	SCENE_NOTICE:               "消息通知",
+}
