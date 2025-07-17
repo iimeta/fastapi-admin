@@ -153,7 +153,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
-				data["warning_threshold"] = user.WarningThreshold / consts.QUOTA_USD_UNIT
+				data["warning_threshold"] = fmt.Sprintf("$%d", user.WarningThreshold/consts.QUOTA_USD_UNIT)
 			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
 			}
@@ -261,7 +261,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
-				data["warning_threshold"] = reseller.WarningThreshold / consts.QUOTA_USD_UNIT
+				data["warning_threshold"] = fmt.Sprintf("$%d", reseller.WarningThreshold/consts.QUOTA_USD_UNIT)
 			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
 			}

@@ -1,7 +1,7 @@
 package consts
 
 const (
-	SCENE_CODE                 = "code"                 // 验证码
+	SCENE_CODE                 = "code"                 // 安全验证
 	SCENE_LOGIN                = "login"                // 登录通知
 	SCENE_REGISTER             = "register"             // 注册通知
 	SCENE_FORGET_PASSWORD      = "forget_password"      // 找回密码
@@ -28,7 +28,7 @@ var NOTICE_MAP = map[string]string{
 }
 
 var SCENE_MAP = map[string]string{
-	SCENE_CODE:                 "验证码",
+	SCENE_CODE:                 "安全验证",
 	SCENE_LOGIN:                "登录",
 	SCENE_REGISTER:             "注册",
 	SCENE_FORGET_PASSWORD:      "找回密码",
