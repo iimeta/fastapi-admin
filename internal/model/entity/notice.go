@@ -23,7 +23,7 @@ type Notice struct {
 	Status        int           `bson:"status,omitempty"`         // 状态[1:发布, 2:草稿, 3:定时, 4:过期, -1:删除]
 	Variables     []string      `bson:"variables,omitempty"`      // 变量
 	Reads         []common.Read `bson:"reads,omitempty"`          // 已读
-	UserId        int           `bson:"user_id,omitempty"`        // 用户ID
+	Publisher     int           `bson:"publisher,omitempty"`      // 发布人
 	PublishTime   int64         `bson:"publish_time,omitempty"`   // 发布时间
 	Rid           int           `bson:"rid,omitempty"`            // 代理商ID
 	Creator       string        `bson:"creator,omitempty"`        // 创建人

@@ -62,7 +62,7 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 		Remark:        params.Remark,
 		Status:        params.Status,
 		Variables:     util.GetTemplateVariables(params.Title, params.Content),
-		UserId:        service.Session().GetUserId(ctx),
+		Publisher:     service.Session().GetUserId(ctx),
 	}
 
 	if notice.Status == 1 {
@@ -183,7 +183,7 @@ func (s *sNotice) Detail(ctx context.Context, id string) (*model.Notice, error) 
 		Status:        notice.Status,
 		Variables:     notice.Variables,
 		Reads:         notice.Reads,
-		UserId:        notice.UserId,
+		Publisher:     notice.Publisher,
 		PublishTime:   util.FormatDateTime(notice.PublishTime),
 		Rid:           notice.Rid,
 		Creator:       notice.Creator,
@@ -261,7 +261,7 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 			Remark:        result.Remark,
 			Status:        result.Status,
 			Reads:         result.Reads,
-			UserId:        result.UserId,
+			Publisher:     result.Publisher,
 			PublishTime:   util.FormatDateTime(result.PublishTime),
 			Rid:           result.Rid,
 			CreatedAt:     util.FormatDateTimeMonth(result.CreatedAt),
