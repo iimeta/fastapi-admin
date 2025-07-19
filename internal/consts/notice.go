@@ -8,6 +8,7 @@ const (
 	SCENE_CHANGE_PASSWORD      = "change_password"      // 修改密码
 	SCENE_CHANGE_EMAIL         = "change_email"         // 修改邮箱
 	SCENE_CHANGE_PHONE         = "change_phone"         // 修改手机号
+	SCENE_QUOTA_RECHARGE       = "quota_recharge"       // 充值额度
 	SCENE_QUOTA_WARNING        = "quota_warning"        // 额度不足提醒
 	SCENE_QUOTA_EXHAUSTION     = "quota_exhaustion"     // 额度耗尽通知
 	SCENE_QUOTA_EXPIRE_WARNING = "quota_expire_warning" // 额度过期提醒
@@ -20,14 +21,14 @@ const (
 	NOTICE_CHANNEL_EMAIL = "email" // 邮件
 )
 
-var NOTICE_MAP = map[string]string{
+var QUOTA_NOTICE = map[string]string{
 	SCENE_QUOTA_WARNING:        "warning_notice",
 	SCENE_QUOTA_EXHAUSTION:     "exhaustion_notice",
 	SCENE_QUOTA_EXPIRE_WARNING: "expire_warning_notice",
 	SCENE_QUOTA_EXPIRE:         "expire_notice",
 }
 
-var SCENE_MAP = map[string]string{
+var SCENE = map[string]string{
 	SCENE_CODE:                 "安全验证",
 	SCENE_LOGIN:                "登录",
 	SCENE_REGISTER:             "注册",
@@ -35,6 +36,7 @@ var SCENE_MAP = map[string]string{
 	SCENE_CHANGE_PASSWORD:      "修改密码",
 	SCENE_CHANGE_EMAIL:         "修改邮箱",
 	SCENE_CHANGE_PHONE:         "修改手机号",
+	SCENE_QUOTA_RECHARGE:       "充值额度",
 	SCENE_QUOTA_WARNING:        "额度不足提醒",
 	SCENE_QUOTA_EXHAUSTION:     "额度耗尽通知",
 	SCENE_QUOTA_EXPIRE_WARNING: "额度过期提醒",

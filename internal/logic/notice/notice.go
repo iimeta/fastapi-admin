@@ -230,8 +230,8 @@ func (s *sNotice) Page(ctx context.Context, params model.NoticePageReq) (*model.
 	}
 
 	if len(params.PublishTime) > 0 {
-		gte := gtime.NewFromStrFormat(params.PublishTime[0], time.DateOnly).StartOfDay().TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.PublishTime[1], time.DateOnly).EndOfDay(true).TimestampMilli()
+		gte := gtime.NewFromStrFormat(params.PublishTime[0], time.DateTime).TimestampMilli()
+		lte := gtime.NewFromStrLayout(params.PublishTime[1], time.DateTime).TimestampMilli() + 999
 		filter["publish_time"] = bson.M{
 			"$gte": gte,
 			"$lte": lte,

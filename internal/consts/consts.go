@@ -80,3 +80,10 @@ var MODEL_TYPE = map[int]string{
 	101: "多模态实时",
 	102: "多模态语音",
 }
+
+// 额度类型
+var QUOTA_TYPE = map[int]string{
+	1: "充值",
+	2: "扣除",
+	3: "赠送",
+}

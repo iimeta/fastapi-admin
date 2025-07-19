@@ -183,7 +183,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		}
 	}
 
-	data["scene"] = consts.SCENE_MAP[params.Action]
+	data["scene"] = consts.SCENE[params.Action]
 	data["code"] = code
 
 	title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data)
@@ -351,10 +351,10 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_PHONE:
 				userAttribute[parts[1]] = user.Phone
 			case consts.ATTRIBUTE_QUOTA:
-				if quota := util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6); quota < 0 {
-					userAttribute[parts[1]] = fmt.Sprintf("-$%f", math.Abs(quota))
+				if user.Quota > 0 {
+					userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6))
 				} else {
-					userAttribute[parts[1]] = fmt.Sprintf("$%f", quota)
+					userAttribute[parts[1]] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(user.Quota))/consts.QUOTA_USD_UNIT, 6))
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
 				userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
@@ -384,10 +384,10 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_PHONE:
 				resellerAttribute[parts[1]] = reseller.Phone
 			case consts.ATTRIBUTE_QUOTA:
-				if quota := util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6); quota < 0 {
-					resellerAttribute[parts[1]] = fmt.Sprintf("-$%f", math.Abs(quota))
+				if reseller.Quota > 0 {
+					resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6))
 				} else {
-					resellerAttribute[parts[1]] = fmt.Sprintf("$%f", quota)
+					resellerAttribute[parts[1]] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(reseller.Quota))/consts.QUOTA_USD_UNIT, 6))
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
 				resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.UsedQuota)/consts.QUOTA_USD_UNIT, 6))

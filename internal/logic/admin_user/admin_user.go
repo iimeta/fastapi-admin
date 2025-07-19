@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -12,16 +13,19 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
 	"github.com/iimeta/fastapi-admin/utility/db"
+	"github.com/iimeta/fastapi-admin/utility/email"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
+	"math"
 	"regexp"
 	"slices"
 	"time"
@@ -706,6 +710,71 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if err = g.Validator().Data(newData.Email).Rules("email").Run(ctx); err != nil {
+		logger.Infof(ctx, "sAdminUser Recharge user: %d, error: %v", newData.UserId, err)
+		return nil
+	} else {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			var (
+				siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1})
+				dialer        = email.NewDefaultDialer()
+			)
+
+			account, err := dao.Account.FindOne(ctx, bson.M{"user_id": newData.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+			if err != nil {
+				logger.Error(ctx, err)
+			} else if account.LoginDomain != "" {
+				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Host != "" {
+					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+				} else {
+					logger.Infof(ctx, "sAdminUser Recharge 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
+				}
+			}
+
+			noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_QUOTA_RECHARGE, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL})
+			if err != nil {
+				logger.Error(ctx, err)
+				return
+			}
+
+			data := common.GetVariableData(ctx, newData, nil, siteConfig, noticeTemplate.Variables)
+
+			data["quota_type"] = consts.QUOTA_TYPE[params.QuotaType]
+			data["name"] = newData.Name
+
+			if params.Quota > 0 {
+				data["recharge_quota"] = fmt.Sprintf("$%f", util.Round(float64(params.Quota)/consts.QUOTA_USD_UNIT, 6))
+			} else {
+				data["recharge_quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(params.Quota))/consts.QUOTA_USD_UNIT, 6))
+			}
+
+			if newData.Quota > 0 {
+				data["quota"] = fmt.Sprintf("$%f", util.Round(float64(newData.Quota)/consts.QUOTA_USD_UNIT, 6))
+			} else {
+				data["quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(newData.Quota))/consts.QUOTA_USD_UNIT, 6))
+			}
+
+			data["quota_expires_at"] = "无期限"
+			if newData.QuotaExpiresAt > 0 {
+				data["quota_expires_at"] = util.FormatDateTime(newData.QuotaExpiresAt)
+			}
+
+			title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data)
+			if err != nil {
+				logger.Error(ctx, err)
+				return
+			}
+
+			if err = email.SendMail(email.NewMessage([]string{newData.Email}, title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sAdminUser Recharge user: %d, email: %s, SendMail %s error: %v", newData.UserId, newData.Email, title, err)
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 
 	return nil
