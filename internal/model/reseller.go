@@ -111,6 +111,7 @@ type ResellerBatchOperateReq struct {
 	Value          any      `json:"value"`                      // 值
 	QuotaType      int      `json:"quota_type"`                 // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
+	IsSendNotice   bool     `json:"is_send_notice,omitempty"`   // 是否发送通知
 	Data           []int    `json:"data,omitempty"`             // 删除数据[1:用户数据, 2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据]
 }
 
@@ -120,6 +121,7 @@ type ResellerRechargeReq struct {
 	Quota          int    `json:"quota,omitempty" v:"required"` // 额度
 	QuotaType      int    `json:"quota_type,omitempty"`         // 额度类型[1:充值, 2:扣除, 3:赠送]
 	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`   // 额度过期时间
+	IsSendNotice   bool   `json:"is_send_notice,omitempty"`     // 是否发送通知
 }
 
 // 代理商权限接口请求参数
