@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
@@ -36,6 +37,13 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 	var defaultGroup *entity.Group
 	if params.IsDefault {
 		defaultGroup, err = dao.Group.FindOne(ctx, bson.M{"is_default": true})
+		params.Weight = 99999
+	} else {
+		if groups, err := dao.Group.Find(ctx, bson.M{"weight": params.Weight}, &dao.FindOptions{SortFields: []string{"-is_default"}}); err == nil && len(groups) > 0 {
+			if len(groups) > 1 || !groups[0].IsDefault {
+				return errors.Newf("排序: %d 已被占用, 请重新输入排序", params.Weight)
+			}
+		}
 	}
 
 	id, err := dao.Group.Insert(ctx, &do.Group{
@@ -183,6 +191,13 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 	var defaultGroup *entity.Group
 	if params.IsDefault && !oldData.IsDefault {
 		defaultGroup, err = dao.Group.FindOne(ctx, bson.M{"is_default": true})
+		params.Weight = 99999
+	} else if !params.IsDefault {
+		if groups, err := dao.Group.Find(ctx, bson.M{"weight": params.Weight}, &dao.FindOptions{SortFields: []string{"-is_default"}}); err == nil && len(groups) > 0 {
+			if len(groups) > 2 || (len(groups) > 1 && ((!groups[0].IsDefault && groups[0].Id != oldData.Id) || groups[1].Id != oldData.Id)) || (len(groups) == 1 && groups[0].Id != oldData.Id) {
+				return errors.Newf("排序: %d 已被占用, 请重新输入排序", params.Weight)
+			}
+		}
 	}
 
 	group := &do.Group{
