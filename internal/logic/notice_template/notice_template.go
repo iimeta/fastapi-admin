@@ -36,7 +36,7 @@ func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplat
 		return "", errors.New("请输入内容")
 	}
 
-	notice := &do.NoticeTemplate{
+	noticeTemplate := &do.NoticeTemplate{
 		Name:      params.Name,
 		Scenes:    params.Scenes,
 		Title:     params.Title,
@@ -50,7 +50,7 @@ func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplat
 		UserId:    service.Session().GetUserId(ctx),
 	}
 
-	id, err := dao.NoticeTemplate.Insert(ctx, notice)
+	id, err := dao.NoticeTemplate.Insert(ctx, noticeTemplate)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
@@ -66,7 +66,7 @@ func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplat
 		return errors.New("请输入内容")
 	}
 
-	notice := &do.NoticeTemplate{
+	noticeTemplate := &do.NoticeTemplate{
 		Name:      params.Name,
 		Scenes:    params.Scenes,
 		Title:     params.Title,
@@ -79,7 +79,7 @@ func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplat
 		Variables: util.GetTemplateVariables(params.Title, params.Content),
 	}
 
-	if err := dao.NoticeTemplate.UpdateById(ctx, params.Id, notice); err != nil {
+	if err := dao.NoticeTemplate.UpdateById(ctx, params.Id, noticeTemplate); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -127,30 +127,30 @@ func (s *sNoticeTemplate) Delete(ctx context.Context, id string) error {
 // 通知模板详情
 func (s *sNoticeTemplate) Detail(ctx context.Context, id string) (*model.NoticeTemplate, error) {
 
-	notice, err := dao.NoticeTemplate.FindById(ctx, id)
+	noticeTemplate, err := dao.NoticeTemplate.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	return &model.NoticeTemplate{
-		Id:        notice.Id,
-		Name:      notice.Name,
-		Scenes:    notice.Scenes,
-		Title:     notice.Title,
-		Content:   notice.Content,
-		Channels:  notice.Channels,
-		IsPopup:   notice.IsPopup,
-		IsPublic:  notice.IsPublic,
-		Remark:    notice.Remark,
-		Status:    notice.Status,
-		Variables: notice.Variables,
-		UserId:    notice.UserId,
-		Rid:       notice.Rid,
-		Creator:   notice.Creator,
-		Updater:   notice.Updater,
-		CreatedAt: util.FormatDateTime(notice.CreatedAt),
-		UpdatedAt: util.FormatDateTime(notice.UpdatedAt),
+		Id:        noticeTemplate.Id,
+		Name:      noticeTemplate.Name,
+		Scenes:    noticeTemplate.Scenes,
+		Title:     noticeTemplate.Title,
+		Content:   noticeTemplate.Content,
+		Channels:  noticeTemplate.Channels,
+		IsPopup:   noticeTemplate.IsPopup,
+		IsPublic:  noticeTemplate.IsPublic,
+		Remark:    noticeTemplate.Remark,
+		Status:    noticeTemplate.Status,
+		Variables: noticeTemplate.Variables,
+		UserId:    noticeTemplate.UserId,
+		Rid:       noticeTemplate.Rid,
+		Creator:   noticeTemplate.Creator,
+		Updater:   noticeTemplate.Updater,
+		CreatedAt: util.FormatDateTime(noticeTemplate.CreatedAt),
+		UpdatedAt: util.FormatDateTime(noticeTemplate.UpdatedAt),
 	}, nil
 }
 
@@ -277,30 +277,30 @@ func (s *sNoticeTemplate) GetNoticeTemplateByScene(ctx context.Context, scene st
 		filter["channels"] = bson.M{"$in": channels}
 	}
 
-	notice, err := dao.NoticeTemplate.FindOne(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	noticeTemplate, err := dao.NoticeTemplate.FindOne(ctx, filter, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	return &model.NoticeTemplate{
-		Id:        notice.Id,
-		Name:      notice.Name,
-		Scenes:    notice.Scenes,
-		Title:     notice.Title,
-		Content:   notice.Content,
-		Channels:  notice.Channels,
-		IsPopup:   notice.IsPopup,
-		IsPublic:  notice.IsPublic,
-		Remark:    notice.Remark,
-		Status:    notice.Status,
-		Variables: notice.Variables,
-		UserId:    notice.UserId,
-		Rid:       notice.Rid,
-		Creator:   notice.Creator,
-		Updater:   notice.Updater,
-		CreatedAt: util.FormatDateTime(notice.CreatedAt),
-		UpdatedAt: util.FormatDateTime(notice.UpdatedAt),
+		Id:        noticeTemplate.Id,
+		Name:      noticeTemplate.Name,
+		Scenes:    noticeTemplate.Scenes,
+		Title:     noticeTemplate.Title,
+		Content:   noticeTemplate.Content,
+		Channels:  noticeTemplate.Channels,
+		IsPopup:   noticeTemplate.IsPopup,
+		IsPublic:  noticeTemplate.IsPublic,
+		Remark:    noticeTemplate.Remark,
+		Status:    noticeTemplate.Status,
+		Variables: noticeTemplate.Variables,
+		UserId:    noticeTemplate.UserId,
+		Rid:       noticeTemplate.Rid,
+		Creator:   noticeTemplate.Creator,
+		Updater:   noticeTemplate.Updater,
+		CreatedAt: util.FormatDateTime(noticeTemplate.CreatedAt),
+		UpdatedAt: util.FormatDateTime(noticeTemplate.UpdatedAt),
 	}, nil
 }
 
