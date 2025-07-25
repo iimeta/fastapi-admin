@@ -53,6 +53,7 @@ func (s *sSiteConfig) Create(ctx context.Context, params model.SiteConfigCreateR
 		GrantQuota:          params.GrantQuota,
 		QuotaExpiresAt:      params.QuotaExpiresAt,
 		SupportEmailSuffix:  params.SupportEmailSuffix,
+		RegisterWelcome:     params.RegisterWelcome,
 		Host:                params.Host,
 		Port:                params.Port,
 		UserName:            params.UserName,
@@ -105,6 +106,7 @@ func (s *sSiteConfig) Update(ctx context.Context, params model.SiteConfigUpdateR
 		GrantQuota:          params.GrantQuota,
 		QuotaExpiresAt:      params.QuotaExpiresAt,
 		SupportEmailSuffix:  params.SupportEmailSuffix,
+		RegisterWelcome:     params.RegisterWelcome,
 		Host:                params.Host,
 		Port:                params.Port,
 		UserName:            params.UserName,
@@ -213,6 +215,7 @@ func (s *sSiteConfig) Detail(ctx context.Context, params model.SiteConfigDetailR
 		GrantQuota:          siteConfig.GrantQuota,
 		QuotaExpiresAt:      siteConfig.QuotaExpiresAt,
 		SupportEmailSuffix:  siteConfig.SupportEmailSuffix,
+		RegisterWelcome:     siteConfig.RegisterWelcome,
 		Host:                siteConfig.Host,
 		Port:                siteConfig.Port,
 		UserName:            siteConfig.UserName,
@@ -434,9 +437,14 @@ func (s *sSiteConfig) IsDomainExist(ctx context.Context, domain string, id ...st
 func (s *sSiteConfig) GetSiteConfigsByRid(ctx context.Context, rid int) []*entity.SiteConfig {
 
 	if rid == 0 {
-		return nil
+		return []*entity.SiteConfig{}
 	}
 
-	siteConfigs, _ := dao.SiteConfig.Find(ctx, bson.M{"user_id": rid, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	siteConfigs, err := dao.SiteConfig.Find(ctx, bson.M{"user_id": rid, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return []*entity.SiteConfig{}
+	}
+
 	return siteConfigs
 }

@@ -27,6 +27,7 @@ type SiteConfig struct {
 	GrantQuota          int                   `bson:"grant_quota"`           // 注册授予额度
 	QuotaExpiresAt      int                   `bson:"quota_expires_at"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `bson:"support_email_suffix"`  // 注册支持的邮箱后缀
+	RegisterWelcome     string                `bson:"register_welcome"`      // 注册欢迎语
 	Host                string                `bson:"host"`                  // 发信服务器
 	Port                int                   `bson:"port"`                  // 发信端口号
 	UserName            string                `bson:"user_name"`             // 发信账号
