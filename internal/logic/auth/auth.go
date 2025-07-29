@@ -15,11 +15,13 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/cache"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
+	"github.com/iimeta/fastapi-admin/utility/email"
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
@@ -208,6 +210,32 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			logger.Error(ctx, err)
 		}
 
+		if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
+			logger.Error(ctx, err)
+		} else {
+
+			if user, err := dao.User.FindById(ctx, user.Id); err != nil {
+				logger.Error(ctx, err)
+			} else {
+
+				data := common.GetVariableData(ctx, user, nil, siteConfig, noticeTemplate.Variables)
+
+				if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
+					logger.Error(ctx, err)
+				} else {
+
+					dialer := email.NewDefaultDialer()
+					if siteConfig != nil && siteConfig.Rid == user.Rid && siteConfig.Host != "" {
+						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+					}
+
+					if err = email.SendMail(email.NewMessage([]string{user.Email}, title, content), dialer); err != nil {
+						logger.Errorf(ctx, "sAuth Register user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, title, err)
+					}
+				}
+			}
+		}
+
 	} else if params.Channel == consts.RESELLER_CHANNEL {
 
 		salt := grand.Letters(8)
@@ -269,6 +297,26 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_RESELLER_USAGE_KEY, reseller.UserId), consts.RESELLER_QUOTA_FIELD, int64(reseller.Quota)); err != nil {
 				logger.Error(ctx, err)
 				return err
+			}
+		}
+
+		if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
+			logger.Error(ctx, err)
+		} else {
+
+			if reseller, err := dao.Reseller.FindById(ctx, reseller.Id); err != nil {
+				logger.Error(ctx, err)
+			} else {
+
+				data := common.GetVariableData(ctx, nil, reseller, siteConfig, noticeTemplate.Variables)
+
+				if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
+					logger.Error(ctx, err)
+				} else {
+					if err = email.SendMail(email.NewMessage([]string{reseller.Email}, title, content), email.NewDefaultDialer()); err != nil {
+						logger.Errorf(ctx, "sAuth Register reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, title, err)
+					}
+				}
 			}
 		}
 	}
