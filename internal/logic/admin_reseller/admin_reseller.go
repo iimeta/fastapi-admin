@@ -138,6 +138,31 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 		return err
 	}
 
+	// 发送欢迎邮件
+	if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
+		logger.Error(ctx, err)
+	} else {
+
+		dialer := email.NewDefaultDialer()
+
+		siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost())
+		if siteConfig != nil && siteConfig.Host != "" {
+			dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+		} else {
+			logger.Infof(ctx, "sAdminReseller Create 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", g.RequestFromCtx(ctx).GetHost())
+		}
+
+		data := common.GetVariableData(ctx, nil, newData, siteConfig, noticeTemplate.Variables)
+
+		if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			if err = email.SendMail(email.NewMessage([]string{newData.Email}, title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sAdminReseller Create reseller: %d, email: %s, SendMail %s error: %v", newData.UserId, newData.Email, title, err)
+			}
+		}
+	}
+
 	return nil
 }
 
