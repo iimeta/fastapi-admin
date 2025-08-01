@@ -14,8 +14,8 @@ const (
 	SCENE_QUOTA_EXPIRE_WARNING = "quota_expire_warning" // 额度过期提醒
 	SCENE_QUOTA_EXPIRE         = "quota_expire"         // 额度过期通知
 	SCENE_NOTICE               = "notice"               // 消息通知
-	SCENE_NOTICE_REGISTER      = "register_notice"      // 注册通知
-	SCENE_NOTICE_LOGIN         = "login_notice"         // 登录通知
+	SCENE_NOTICE_REGISTER      = "notice_register"      // 注册通知
+	SCENE_NOTICE_LOGIN         = "notice_login"         // 登录通知
 )
 
 const (
