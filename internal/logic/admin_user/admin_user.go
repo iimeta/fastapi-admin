@@ -180,55 +180,68 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 	}
 
 	// 发送欢迎邮件
-	if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
-		logger.Error(ctx, err)
-	} else {
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-		dialer := email.NewDefaultDialer()
-		var siteConfig *entity.SiteConfig
+		if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_NOTICE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
+			logger.Error(ctx, err)
+		} else {
 
-		if newData.Rid > 0 {
+			dialer := email.NewDefaultDialer()
+			var siteConfig *entity.SiteConfig
 
-			isConfigEmail := false
+			if newData.Rid > 0 {
 
-			if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost()); siteConfig != nil && siteConfig.Host != "" {
-				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-				isConfigEmail = true
-			}
+				isConfigEmail := false
 
-			if !isConfigEmail {
-				siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid)
-				for _, siteConfig = range siteConfigs {
-					if siteConfig != nil && siteConfig.Host != "" {
-						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-						isConfigEmail = true
-						break
+				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost()); siteConfig != nil && siteConfig.Host != "" {
+					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+					isConfigEmail = true
+				}
+
+				if !isConfigEmail {
+					siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid)
+					for _, siteConfig = range siteConfigs {
+						if siteConfig != nil && siteConfig.Host != "" {
+							dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+							isConfigEmail = true
+							break
+						}
 					}
+				}
+
+				if !isConfigEmail {
+					logger.Infof(ctx, "sAdminUser Create 因代理商: %d, 所有站点未配置邮箱, 不发送欢迎邮件", user.Rid)
+					return
+				}
+
+			} else {
+				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost()); siteConfig != nil && siteConfig.Host != "" {
+					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+				} else {
+					logger.Infof(ctx, "sAdminUser Create 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", g.RequestFromCtx(ctx).GetHost())
 				}
 			}
 
-			if !isConfigEmail {
-				logger.Infof(ctx, "sAdminUser Create 因代理商: %d, 所有站点未配置邮箱, 不发送欢迎邮件", user.Rid)
-				return nil
+			data := common.GetVariableData(ctx, newData, nil, siteConfig, noticeTemplate.Variables)
+
+			data["name"] = newData.Name
+			data["account"] = params.Account
+			data["quota"] = fmt.Sprintf("$%f", util.Round(float64(newData.Quota)/consts.QUOTA_USD_UNIT, 6))
+			data["quota_expires_at"] = "无期限"
+			if newData.QuotaExpiresAt > 0 {
+				data["quota_expires_at"] = util.FormatDateTime(newData.QuotaExpiresAt)
 			}
 
-		} else {
-			if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost()); siteConfig != nil && siteConfig.Host != "" {
-				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+			if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
+				logger.Error(ctx, err)
 			} else {
-				logger.Infof(ctx, "sAdminUser Create 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", g.RequestFromCtx(ctx).GetHost())
+				if err = email.SendMail(email.NewMessage([]string{newData.Email}, title, content), dialer); err != nil {
+					logger.Errorf(ctx, "sAdminUser Create user: %d, email: %s, SendMail %s error: %v", newData.UserId, newData.Email, title, err)
+				}
 			}
 		}
-
-		data := common.GetVariableData(ctx, newData, nil, siteConfig, noticeTemplate.Variables)
-
-		if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
-			logger.Error(ctx, err)
-		} else {
-			if err = email.SendMail(email.NewMessage([]string{newData.Email}, title, content), dialer); err != nil {
-				logger.Errorf(ctx, "sAdminUser Create user: %d, email: %s, SendMail %s error: %v", newData.UserId, newData.Email, title, err)
-			}
-		}
+	}, nil); err != nil {
+		logger.Error(ctx, err)
 	}
 
 	return nil

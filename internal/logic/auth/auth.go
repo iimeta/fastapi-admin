@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -211,59 +212,72 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		}
 
 		// 发送欢迎邮件
-		if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
-			logger.Error(ctx, err)
-		} else {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-			if user, err := dao.User.FindById(ctx, user.Id); err != nil {
+			if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_NOTICE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
 				logger.Error(ctx, err)
 			} else {
 
-				dialer := email.NewDefaultDialer()
+				if user, err := dao.User.FindById(ctx, user.Id); err != nil {
+					logger.Error(ctx, err)
+				} else {
 
-				if user.Rid > 0 {
+					dialer := email.NewDefaultDialer()
 
-					isConfigEmail := false
+					if user.Rid > 0 {
 
-					if siteConfig != nil && siteConfig.Host != "" {
-						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-						isConfigEmail = true
-					}
+						isConfigEmail := false
 
-					if !isConfigEmail {
-						siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid)
-						for _, siteConfig = range siteConfigs {
-							if siteConfig != nil && siteConfig.Host != "" {
-								dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-								isConfigEmail = true
-								break
+						if siteConfig != nil && siteConfig.Host != "" {
+							dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+							isConfigEmail = true
+						}
+
+						if !isConfigEmail {
+							siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid)
+							for _, siteConfig = range siteConfigs {
+								if siteConfig != nil && siteConfig.Host != "" {
+									dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+									isConfigEmail = true
+									break
+								}
 							}
+						}
+
+						if !isConfigEmail {
+							logger.Infof(ctx, "sAuth Register 因代理商: %d, 所有站点未配置邮箱, 不发送欢迎邮件", user.Rid)
+							return
+						}
+
+					} else {
+						if siteConfig != nil && siteConfig.Host != "" {
+							dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+						} else {
+							logger.Infof(ctx, "sAuth Register 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", params.Domain)
 						}
 					}
 
-					if !isConfigEmail {
-						logger.Infof(ctx, "sAuth Register 因代理商: %d, 所有站点未配置邮箱, 不发送欢迎邮件", user.Rid)
-						return nil
+					data := common.GetVariableData(ctx, user, nil, siteConfig, noticeTemplate.Variables)
+
+					data["name"] = user.Name
+					data["account"] = params.Account
+					data["quota"] = fmt.Sprintf("$%f", util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6))
+					data["quota_expires_at"] = "无期限"
+					if user.QuotaExpiresAt > 0 {
+						data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
 					}
 
-				} else {
-					if siteConfig != nil && siteConfig.Host != "" {
-						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+					if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
+						logger.Error(ctx, err)
 					} else {
-						logger.Infof(ctx, "sAuth Register 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", params.Domain)
-					}
-				}
-
-				data := common.GetVariableData(ctx, user, nil, siteConfig, noticeTemplate.Variables)
-
-				if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
-					logger.Error(ctx, err)
-				} else {
-					if err = email.SendMail(email.NewMessage([]string{user.Email}, title, content), dialer); err != nil {
-						logger.Errorf(ctx, "sAuth Register user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, title, err)
+						if err = email.SendMail(email.NewMessage([]string{user.Email}, title, content), dialer); err != nil {
+							logger.Errorf(ctx, "sAuth Register user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, title, err)
+						}
 					}
 				}
 			}
+		}, nil); err != nil {
+			logger.Error(ctx, err)
 		}
 
 	} else if params.Channel == consts.RESELLER_CHANNEL {
@@ -331,32 +345,45 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		}
 
 		// 发送欢迎邮件
-		if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
-			logger.Error(ctx, err)
-		} else {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-			if reseller, err := dao.Reseller.FindById(ctx, reseller.Id); err != nil {
+			if noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, consts.SCENE_NOTICE_REGISTER, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {
 				logger.Error(ctx, err)
 			} else {
 
-				dialer := email.NewDefaultDialer()
-
-				if siteConfig != nil && siteConfig.Host != "" {
-					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-				} else {
-					logger.Infof(ctx, "sAuth Register 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", params.Domain)
-				}
-
-				data := common.GetVariableData(ctx, nil, reseller, siteConfig, noticeTemplate.Variables)
-
-				if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
+				if reseller, err := dao.Reseller.FindById(ctx, reseller.Id); err != nil {
 					logger.Error(ctx, err)
 				} else {
-					if err = email.SendMail(email.NewMessage([]string{reseller.Email}, title, content), dialer); err != nil {
-						logger.Errorf(ctx, "sAuth Register reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, title, err)
+
+					dialer := email.NewDefaultDialer()
+
+					if siteConfig != nil && siteConfig.Host != "" {
+						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+					} else {
+						logger.Infof(ctx, "sAuth Register 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", params.Domain)
+					}
+
+					data := common.GetVariableData(ctx, nil, reseller, siteConfig, noticeTemplate.Variables)
+
+					data["name"] = reseller.Name
+					data["account"] = params.Account
+					data["quota"] = fmt.Sprintf("$%f", util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6))
+					data["quota_expires_at"] = "无期限"
+					if reseller.QuotaExpiresAt > 0 {
+						data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
+					}
+
+					if title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data); err != nil {
+						logger.Error(ctx, err)
+					} else {
+						if err = email.SendMail(email.NewMessage([]string{reseller.Email}, title, content), dialer); err != nil {
+							logger.Errorf(ctx, "sAuth Register reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, title, err)
+						}
 					}
 				}
 			}
+		}, nil); err != nil {
+			logger.Error(ctx, err)
 		}
 	}
 

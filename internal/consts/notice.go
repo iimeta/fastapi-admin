@@ -2,8 +2,8 @@ package consts
 
 const (
 	SCENE_CODE                 = "code"                 // 安全验证
-	SCENE_LOGIN                = "login"                // 登录通知
-	SCENE_REGISTER             = "register"             // 注册通知
+	SCENE_REGISTER             = "register"             // 注册
+	SCENE_LOGIN                = "login"                // 登录
 	SCENE_FORGET_PASSWORD      = "forget_password"      // 找回密码
 	SCENE_CHANGE_PASSWORD      = "change_password"      // 修改密码
 	SCENE_CHANGE_EMAIL         = "change_email"         // 修改邮箱
@@ -14,6 +14,8 @@ const (
 	SCENE_QUOTA_EXPIRE_WARNING = "quota_expire_warning" // 额度过期提醒
 	SCENE_QUOTA_EXPIRE         = "quota_expire"         // 额度过期通知
 	SCENE_NOTICE               = "notice"               // 消息通知
+	SCENE_NOTICE_REGISTER      = "register_notice"      // 注册通知
+	SCENE_NOTICE_LOGIN         = "login_notice"         // 登录通知
 )
 
 const (
@@ -30,8 +32,8 @@ var QUOTA_NOTICE = map[string]string{
 
 var SCENE = map[string]string{
 	SCENE_CODE:                 "安全验证",
-	SCENE_LOGIN:                "登录",
 	SCENE_REGISTER:             "注册",
+	SCENE_LOGIN:                "登录",
 	SCENE_FORGET_PASSWORD:      "找回密码",
 	SCENE_CHANGE_PASSWORD:      "修改密码",
 	SCENE_CHANGE_EMAIL:         "修改邮箱",
@@ -42,4 +44,6 @@ var SCENE = map[string]string{
 	SCENE_QUOTA_EXPIRE_WARNING: "额度过期提醒",
 	SCENE_QUOTA_EXPIRE:         "额度过期通知",
 	SCENE_NOTICE:               "消息通知",
+	SCENE_NOTICE_REGISTER:      "注册通知",
+	SCENE_NOTICE_LOGIN:         "登录通知",
 }

@@ -103,6 +103,17 @@ func (s *sNoticeTemplate) Default() []*do.NoticeTemplate {
 			UserId:   1,
 			Remark:   "系统默认模板",
 		},
+		{
+			Name:     consts.SCENE[consts.SCENE_NOTICE_REGISTER],
+			Scenes:   []string{consts.SCENE_NOTICE_REGISTER},
+			Title:    "欢迎来到 {{.site.title}}",
+			Content:  `<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.05);font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.6;color:#333"><div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:30px;text-align:center;color:#fff"><h1 style="margin:0;font-size:24px">🎉 欢迎来到 {{.site.title}}</h1></div><div style="padding:30px"><p style="margin:0 0 15px">尊敬的 <strong>{{.name}}</strong>：</p><div style="background:#f0f5ff;border-radius:8px;padding:20px;margin:25px 0;border:1px dashed #c7d2fe"><p style="margin:0 0 10px;font-size:18px;font-weight:600;color:#4f46e5">🎉 您的账户已成功开通</p><ul style="margin:0;padding-left:22px;color:#4b5563"><li style="margin:0;color:#4b5563">登录账号：<span style="font-size:16px;font-weight:600;color:#4f46e5">{{.account}}</span></li><li style="margin:0;color:#4b5563">账户额度：<span style="font-size:16px;font-weight:600;color:#4f46e5">{{.quota}}</span></li><li style="margin:0;color:#4b5563">额度过期：<span style="font-size:16px;font-weight:600;color:#4f46e5">{{.quota_expires_at}}</span></li></ul></div>{{.site.register_welcome}}</div><div style="padding:20px;text-align:center;font-size:12px;color:#9ca3af;background:#f9fafb"><p style="margin:0 0 8px 0">此为系统邮件，请勿直接回复</p><p style="margin:0"><a href="{{.site.jump_url}}" style="color:#4f46e5;text-decoration:none">{{.site.copyright}}</a></p></div></div>`,
+			Channels: []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL},
+			IsPublic: true,
+			Status:   1,
+			UserId:   1,
+			Remark:   "系统默认模板",
+		},
 	}
 
 	for _, noticeTemplate := range noticeTemplates {

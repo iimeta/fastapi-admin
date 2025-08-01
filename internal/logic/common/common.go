@@ -21,6 +21,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/mongo"
+	"html/template"
 	"math"
 	"strings"
 	"time"
@@ -422,6 +423,8 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 				siteAttribute[parts[1]] = siteConfig.IcpBeian
 			case consts.ATTRIBUTE_GA_BEIAN:
 				siteAttribute[parts[1]] = siteConfig.GaBeian
+			case consts.ATTRIBUTE_REGISTER_WELCOME:
+				siteAttribute[parts[1]] = template.HTML(siteConfig.RegisterWelcome)
 			default:
 				siteAttribute[parts[1]] = ""
 			}
