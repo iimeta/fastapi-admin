@@ -32,7 +32,7 @@ func New() service.INoticeTemplate {
 // 新建通知模板
 func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplateCreateReq) (string, error) {
 
-	if params.Content == "" || params.Content == "<p></p>" {
+	if params.Content == "" || params.Content == "\n" || params.Content == "<p></p>" {
 		return "", errors.New("请输入内容")
 	}
 
@@ -62,7 +62,7 @@ func (s *sNoticeTemplate) Create(ctx context.Context, params model.NoticeTemplat
 // 更新通知模板
 func (s *sNoticeTemplate) Update(ctx context.Context, params model.NoticeTemplateUpdateReq) error {
 
-	if params.Content == "" || params.Content == "<p></p>" {
+	if params.Content == "" || params.Content == "\n" || params.Content == "<p></p>" {
 		return errors.New("请输入内容")
 	}
 
