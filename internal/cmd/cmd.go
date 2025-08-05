@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -287,7 +288,17 @@ func authMiddleware(r *ghttp.Request) {
 	handler := r.GetServeHandler()
 
 	if handler.GetMetaTag("auth") != "true" {
+
+		if config.Cfg.Debug.Open {
+			if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
+				logger.Debugf(r.GetCtx(), "authMiddleware url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
+			} else {
+				logger.Debugf(r.GetCtx(), "authMiddleware url: %s, Content-Type: %s", r.GetUrl(), r.GetHeader("Content-Type"))
+			}
+		}
+
 		r.Middleware.Next()
+
 		return
 	}
 
@@ -364,9 +375,9 @@ func authMiddleware(r *ghttp.Request) {
 
 	if config.Cfg.Debug.Open {
 		if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
-			logger.Debugf(r.GetCtx(), "url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
+			logger.Debugf(r.GetCtx(), "authMiddleware url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
 		} else {
-			logger.Debugf(r.GetCtx(), "url: %s, Content-Type: %s", r.GetUrl(), r.GetHeader("Content-Type"))
+			logger.Debugf(r.GetCtx(), "authMiddleware url: %s, Content-Type: %s", r.GetUrl(), r.GetHeader("Content-Type"))
 		}
 	}
 
@@ -379,6 +390,11 @@ func middlewareHandlerResponse(r *ghttp.Request) {
 
 	// There's custom buffer content, it then exits current handler.
 	if r.Response.BufferLength() > 0 {
+		if config.Cfg.Debug.Open {
+			if gstr.HasPrefix(r.Response.Header().Get("Content-Type"), "application/json") {
+				logger.Debugf(r.GetCtx(), "middlewareHandlerResponse url: %s, response: %s", r.GetUrl(), r.Response.BufferString())
+			}
+		}
 		return
 	}
 
@@ -421,11 +437,17 @@ func middlewareHandlerResponse(r *ghttp.Request) {
 		}
 	}
 
-	r.Response.WriteJson(ghttp.DefaultHandlerResponse{
+	content := ghttp.DefaultHandlerResponse{
 		Code:    code.Code(),
 		Message: msg,
 		Data:    res,
-	})
+	}
+
+	if config.Cfg.Debug.Open {
+		logger.Debugf(r.GetCtx(), "middlewareHandlerResponse url: %s, response: %s", r.GetUrl(), gjson.MustEncodeString(content))
+	}
+
+	r.Response.WriteJson(content)
 }
 
 func checkRole(roles []string, userRole string) bool {
