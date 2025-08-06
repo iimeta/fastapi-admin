@@ -3,6 +3,8 @@ package chat
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -18,7 +20,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"time"
 )
 
 type sChat struct{}
@@ -320,15 +321,16 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 // 聊天导出
 func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string, error) {
 
-	filter := bson.M{}
+	filter := bson.M{
+		"status": bson.M{"$in": []int{1, -1, 2}},
+	}
+
 	if len(params.Ids) > 0 {
-		filter = bson.M{"_id": bson.M{"$in": params.Ids}}
+		filter["_id"] = bson.M{"$in": params.Ids}
 	} else {
-		filter = bson.M{
-			"req_time": bson.M{
-				"$gte": gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli(),
-				"$lte": gtime.NewFromStrLayout(params.ReqTime[1], time.DateTime).TimestampMilli() + 999,
-			},
+		filter["req_time"] = bson.M{
+			"$gte": gtime.NewFromStrFormat(params.ReqTime[0], time.DateTime).TimestampMilli(),
+			"$lte": gtime.NewFromStrLayout(params.ReqTime[1], time.DateTime).TimestampMilli() + 999,
 		}
 	}
 
@@ -344,7 +346,26 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 		}
 	}
 
-	results, err := dao.Chat.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
+	findOptions := &dao.FindOptions{
+		SortFields: []string{
+			"-req_time",
+			"status",
+			"-created_at",
+		},
+		IncludeFields: []string{
+			"user_id",
+			"app_id",
+			"model",
+			"prompt_tokens",
+			"completion_tokens",
+			"total_tokens",
+			"req_time",
+			"key",
+			"creator",
+		},
+	}
+
+	results, err := dao.Chat.Find(ctx, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
