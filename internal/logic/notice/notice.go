@@ -2,6 +2,10 @@ package notice
 
 import (
 	"context"
+	"regexp"
+	"slices"
+	"time"
+
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/frame/g"
@@ -21,9 +25,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"regexp"
-	"slices"
-	"time"
 )
 
 type sNotice struct {
@@ -83,9 +84,9 @@ func (s *sNotice) Create(ctx context.Context, params model.NoticeCreateReq) (str
 			return "", err
 		}
 
-		// 发送消息通知邮件
+		// 发送消息通知
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-			if err := s.SendMail(ctx, newData); err != nil {
+			if err := s.Send(ctx, newData); err != nil {
 				logger.Error(ctx, err)
 			}
 		}, nil); err != nil {
@@ -133,9 +134,9 @@ func (s *sNotice) Update(ctx context.Context, params model.NoticeUpdateReq) erro
 			return err
 		}
 
-		// 发送消息通知邮件
+		// 发送消息通知
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-			if err := s.SendMail(ctx, newData); err != nil {
+			if err := s.Send(ctx, newData); err != nil {
 				logger.Error(ctx, err)
 			}
 		}, nil); err != nil {
@@ -301,8 +302,8 @@ func (s *sNotice) List(ctx context.Context, params model.NoticeListReq) ([]*mode
 	return items, nil
 }
 
-// 发送消息通知邮件
-func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err error) {
+// 发送消息通知
+func (s *sNotice) Send(ctx context.Context, notice *entity.Notice) (err error) {
 
 	var (
 		users     []*entity.User
@@ -338,21 +339,41 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 	}
 
 	for _, user := range users {
+		// 发送消息通知邮件
+		if err = s.SendMail(ctx, notice, user, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	for _, reseller := range resellers {
+		// 发送消息通知邮件
+		if err = s.SendMail(ctx, notice, nil, reseller); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	return nil
+}
+
+// 发送消息通知邮件
+func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice, user *entity.User, reseller *entity.Reseller) error {
+
+	if user != nil {
 
 		if err := g.Validator().Data(user.Email).Rules("email").Run(ctx); err != nil {
 			logger.Infof(ctx, "sNotice SendMail user: %d, error: %v", user.UserId, err)
-			continue
+			return errors.Newf("user: %d, error: %v", user.UserId, err)
 		}
 
 		account, err := dao.Account.FindOne(ctx, bson.M{"user_id": user.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 		if err != nil {
 			logger.Error(ctx, err)
-			continue
+			return err
 		}
 
 		if account == nil {
 			logger.Infof(ctx, "sNotice SendMail user: %d, 因无可用账号, 不发送消息通知邮件", user.UserId)
-			continue
+			return errors.Newf("user: %d, 因无可用账号, 不发送消息通知邮件", user.UserId)
 		}
 
 		dialer := email.NewDefaultDialer()
@@ -382,7 +403,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 
 			if !isConfigEmail {
 				logger.Infof(ctx, "sNotice SendMail 因代理商: %d, 所有站点未配置邮箱, 不发送消息通知邮件", user.Rid)
-				continue
+				return errors.Newf("因代理商: %d, 所有站点未配置邮箱, 不发送消息通知邮件", user.Rid)
 			}
 
 		} else if account.LoginDomain != "" {
@@ -396,28 +417,28 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 
 		if err = email.SendMail(email.NewMessage([]string{user.Email}, notice.Title, notice.Content), dialer); err != nil {
 			logger.Errorf(ctx, "sNotice SendMail user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, notice.Title, err)
-			continue
+			return err
 		}
 
 		logger.Infof(ctx, "sNotice SendMail user: %d, email: %s, SendMail %s success", user.UserId, user.Email, notice.Title)
 	}
 
-	for _, reseller := range resellers {
+	if reseller != nil {
 
 		if err := g.Validator().Data(reseller.Email).Rules("email").Run(ctx); err != nil {
 			logger.Infof(ctx, "sNotice SendMail reseller: %d, error: %v", reseller.UserId, err)
-			continue
+			return errors.Newf("reseller: %d, error: %v", reseller.UserId, err)
 		}
 
 		account, err := dao.ResellerAccount.FindOne(ctx, bson.M{"user_id": reseller.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 		if err != nil {
 			logger.Error(ctx, err)
-			continue
+			return err
 		}
 
 		if account == nil {
 			logger.Infof(ctx, "sNotice SendMail reseller: %d, 因无可用账号, 不发送消息通知邮件", reseller.UserId)
-			continue
+			return errors.Newf("reseller: %d, 因无可用账号, 不发送消息通知邮件", reseller.UserId)
 		}
 
 		dialer := email.NewDefaultDialer()
@@ -433,7 +454,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice) (err erro
 
 		if err = email.SendMail(email.NewMessage([]string{reseller.Email}, notice.Title, notice.Content), dialer); err != nil {
 			logger.Errorf(ctx, "sNotice SendMail reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, notice.Title, err)
-			continue
+			return err
 		}
 
 		logger.Infof(ctx, "sNotice SendMail reseller: %d, email: %s, SendMail %s success", reseller.UserId, reseller.Email, notice.Title)
@@ -453,7 +474,7 @@ func (s *sNotice) BatchOperate(ctx context.Context, params model.NoticeBatchOper
 		} else {
 			for _, notice := range notices {
 				if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-					if err := s.SendMail(ctx, notice); err != nil {
+					if err := s.Send(ctx, notice); err != nil {
 						logger.Error(ctx, err)
 					}
 				}, nil); err != nil {

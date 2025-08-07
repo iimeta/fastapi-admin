@@ -3,6 +3,9 @@ package notice
 import (
 	"context"
 	"fmt"
+	"math"
+	"time"
+
 	"github.com/go-redsync/redsync/v4"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -18,8 +21,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"math"
-	"time"
 )
 
 // 额度预警任务
@@ -128,8 +129,17 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 					continue
 				}
 
-			} else if account.LoginDomain != "" {
-				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Host != "" {
+			} else {
+
+				if account.LoginDomain != "" {
+					siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+				} else {
+					if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+
+				if siteConfig != nil && siteConfig.Host != "" {
 					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 				} else {
 					logger.Infof(ctx, "sNotice QuotaWarningTask 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
@@ -236,11 +246,17 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 			}
 
 			if account.LoginDomain != "" {
-				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Host != "" {
-					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-				} else {
-					logger.Infof(ctx, "sNotice QuotaWarningTask 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
+				siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+			} else {
+				if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
+					logger.Error(ctx, err)
 				}
+			}
+
+			if siteConfig != nil && siteConfig.Host != "" {
+				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+			} else {
+				logger.Infof(ctx, "sNotice QuotaWarningTask 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
 			}
 
 			if noticeTemplate, err = service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene, []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL}); err != nil {

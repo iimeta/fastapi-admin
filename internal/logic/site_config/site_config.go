@@ -2,6 +2,8 @@ package site_config
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -16,7 +18,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"regexp"
 )
 
 type sSiteConfig struct{}
@@ -366,7 +367,7 @@ func (s *sSiteConfig) Site(ctx context.Context, params model.SiteConfigDetailReq
 	}
 
 	if siteConfig == nil {
-		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1})
+		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	}
 
 	if siteConfig == nil {

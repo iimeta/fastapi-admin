@@ -26,8 +26,10 @@ type (
 		Page(ctx context.Context, params model.NoticePageReq) (*model.NoticePageRes, error)
 		// 消息通知列表
 		List(ctx context.Context, params model.NoticeListReq) ([]*model.Notice, error)
+		// 发送消息通知
+		Send(ctx context.Context, notice *entity.Notice) (err error)
 		// 发送消息通知邮件
-		SendMail(ctx context.Context, notice *entity.Notice) (err error)
+		SendMail(ctx context.Context, notice *entity.Notice, user *entity.User, reseller *entity.Reseller) error
 		// 消息通知批量操作
 		BatchOperate(ctx context.Context, params model.NoticeBatchOperateReq) error
 		// 额度预警任务
