@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"regexp"
+	"slices"
+	"time"
+
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -26,10 +31,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"math"
-	"regexp"
-	"slices"
-	"time"
 )
 
 type sAdminReseller struct{}
@@ -768,16 +769,16 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 				data["quota_type"] = consts.QUOTA_TYPE[params.QuotaType]
 				data["name"] = newData.Name
 
-				if params.Quota > 0 {
-					data["recharge_quota"] = fmt.Sprintf("$%f", util.Round(float64(params.Quota)/consts.QUOTA_USD_UNIT, 6))
-				} else {
+				if params.Quota < 0 {
 					data["recharge_quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(params.Quota))/consts.QUOTA_USD_UNIT, 6))
+				} else {
+					data["recharge_quota"] = fmt.Sprintf("$%f", util.Round(float64(params.Quota)/consts.QUOTA_USD_UNIT, 6))
 				}
 
-				if newData.Quota > 0 {
-					data["quota"] = fmt.Sprintf("$%f", util.Round(float64(newData.Quota)/consts.QUOTA_USD_UNIT, 6))
-				} else {
+				if newData.Quota < 0 {
 					data["quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(newData.Quota))/consts.QUOTA_USD_UNIT, 6))
+				} else {
+					data["quota"] = fmt.Sprintf("$%f", util.Round(float64(newData.Quota)/consts.QUOTA_USD_UNIT, 6))
 				}
 
 				data["quota_expires_at"] = "无期限"

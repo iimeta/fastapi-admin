@@ -3,6 +3,11 @@ package common
 import (
 	"context"
 	"fmt"
+	"html/template"
+	"math"
+	"strings"
+	"time"
+
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gregex"
@@ -21,10 +26,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/mongo"
-	"html/template"
-	"math"
-	"strings"
-	"time"
 )
 
 type sCommon struct{}
@@ -352,19 +353,27 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_PHONE:
 				userAttribute[parts[1]] = user.Phone
 			case consts.ATTRIBUTE_QUOTA:
-				if user.Quota > 0 {
-					userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6))
-				} else {
+				if user.Quota < 0 {
 					userAttribute[parts[1]] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(user.Quota))/consts.QUOTA_USD_UNIT, 6))
+				} else {
+					userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6))
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
 				userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
-				userAttribute[parts[1]] = util.FormatDateTime(user.QuotaExpiresAt)
+				quotaExpiresAt := util.FormatDateTime(user.QuotaExpiresAt)
+				if quotaExpiresAt == "" {
+					quotaExpiresAt = "无期限"
+				}
+				userAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
 				userAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(user.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
-				userAttribute[parts[1]] = user.ExpireWarningThreshold
+				expireWarningThreshold := user.ExpireWarningThreshold
+				if expireWarningThreshold == 0 {
+					expireWarningThreshold = config.Cfg.QuotaWarning.ExpireThreshold
+				}
+				userAttribute[parts[1]] = expireWarningThreshold
 			default:
 				userAttribute[parts[1]] = ""
 			}
@@ -385,19 +394,27 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_PHONE:
 				resellerAttribute[parts[1]] = reseller.Phone
 			case consts.ATTRIBUTE_QUOTA:
-				if reseller.Quota > 0 {
-					resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6))
-				} else {
+				if reseller.Quota < 0 {
 					resellerAttribute[parts[1]] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(reseller.Quota))/consts.QUOTA_USD_UNIT, 6))
+				} else {
+					resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6))
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
 				resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.UsedQuota)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
-				resellerAttribute[parts[1]] = util.FormatDateTime(reseller.QuotaExpiresAt)
+				quotaExpiresAt := util.FormatDateTime(reseller.QuotaExpiresAt)
+				if quotaExpiresAt == "" {
+					quotaExpiresAt = "无期限"
+				}
+				resellerAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
 				resellerAttribute[parts[1]] = fmt.Sprintf("$%f", util.Round(float64(reseller.WarningThreshold)/consts.QUOTA_USD_UNIT, 6))
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
-				resellerAttribute[parts[1]] = reseller.ExpireWarningThreshold
+				expireWarningThreshold := reseller.ExpireWarningThreshold
+				if expireWarningThreshold == 0 {
+					expireWarningThreshold = config.Cfg.QuotaWarning.ExpireThreshold
+				}
+				resellerAttribute[parts[1]] = expireWarningThreshold
 			default:
 				resellerAttribute[parts[1]] = ""
 			}

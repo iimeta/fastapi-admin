@@ -10,6 +10,7 @@ import (
 
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
+	"github.com/iimeta/fastapi-admin/utility/email"
 )
 
 type (
@@ -29,7 +30,7 @@ type (
 		// 发送消息通知
 		Send(ctx context.Context, notice *entity.Notice) (err error)
 		// 发送消息通知邮件
-		SendMail(ctx context.Context, notice *entity.Notice, user *entity.User, reseller *entity.Reseller) error
+		SendMail(ctx context.Context, dialer *email.Dialer, to string, title string, content string) error
 		// 消息通知批量操作
 		BatchOperate(ctx context.Context, params model.NoticeBatchOperateReq) error
 		// 额度预警任务

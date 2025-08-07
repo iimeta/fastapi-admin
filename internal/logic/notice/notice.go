@@ -15,6 +15,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
@@ -339,52 +340,34 @@ func (s *sNotice) Send(ctx context.Context, notice *entity.Notice) (err error) {
 	}
 
 	for _, user := range users {
-		// 发送消息通知邮件
-		if err = s.SendMail(ctx, notice, user, nil); err != nil {
-			logger.Error(ctx, err)
-		}
-	}
 
-	for _, reseller := range resellers {
-		// 发送消息通知邮件
-		if err = s.SendMail(ctx, notice, nil, reseller); err != nil {
-			logger.Error(ctx, err)
-		}
-	}
-
-	return nil
-}
-
-// 发送消息通知邮件
-func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice, user *entity.User, reseller *entity.Reseller) error {
-
-	if user != nil {
-
-		if err := g.Validator().Data(user.Email).Rules("email").Run(ctx); err != nil {
-			logger.Infof(ctx, "sNotice SendMail user: %d, error: %v", user.UserId, err)
-			return errors.Newf("user: %d, error: %v", user.UserId, err)
+		if err = g.Validator().Data(user.Email).Rules("email").Run(ctx); err != nil {
+			logger.Infof(ctx, "sNotice Send user: %d, error: %v", user.UserId, err)
+			continue
 		}
 
 		account, err := dao.Account.FindOne(ctx, bson.M{"user_id": user.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 		if err != nil {
 			logger.Error(ctx, err)
-			return err
+			continue
 		}
 
 		if account == nil {
-			logger.Infof(ctx, "sNotice SendMail user: %d, 因无可用账号, 不发送消息通知邮件", user.UserId)
-			return errors.Newf("user: %d, 因无可用账号, 不发送消息通知邮件", user.UserId)
+			logger.Infof(ctx, "sNotice Send user: %d, 因无可用账号, 不发送消息通知邮件", user.UserId)
+			continue
 		}
 
-		dialer := email.NewDefaultDialer()
+		var (
+			dialer     = email.NewDefaultDialer()
+			siteConfig *entity.SiteConfig
+		)
 
 		if user.Rid > 0 {
 
 			isConfigEmail := false
 
 			if account.LoginDomain != "" {
-				siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
-				if siteConfig != nil && siteConfig.Rid == user.Rid && siteConfig.Host != "" {
+				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Rid == user.Rid && siteConfig.Host != "" {
 					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 					isConfigEmail = true
 				}
@@ -392,7 +375,7 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice, user *ent
 
 			if !isConfigEmail {
 				siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid)
-				for _, siteConfig := range siteConfigs {
+				for _, siteConfig = range siteConfigs {
 					if siteConfig != nil && siteConfig.Host != "" {
 						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 						isConfigEmail = true
@@ -402,63 +385,100 @@ func (s *sNotice) SendMail(ctx context.Context, notice *entity.Notice, user *ent
 			}
 
 			if !isConfigEmail {
-				logger.Infof(ctx, "sNotice SendMail 因代理商: %d, 所有站点未配置邮箱, 不发送消息通知邮件", user.Rid)
-				return errors.Newf("因代理商: %d, 所有站点未配置邮箱, 不发送消息通知邮件", user.Rid)
+				logger.Infof(ctx, "sNotice Send 因代理商: %d, 所有站点未配置邮箱, 不发送消息通知邮件", user.Rid)
+				continue
 			}
 
-		} else if account.LoginDomain != "" {
-			siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+		} else {
+
+			if account.LoginDomain != "" {
+				siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+			} else {
+				if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
 			if siteConfig != nil && siteConfig.Host != "" {
 				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 			} else {
-				logger.Infof(ctx, "sNotice SendMail 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
+				logger.Infof(ctx, "sNotice Send 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
 			}
 		}
 
-		if err = email.SendMail(email.NewMessage([]string{user.Email}, notice.Title, notice.Content), dialer); err != nil {
-			logger.Errorf(ctx, "sNotice SendMail user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, notice.Title, err)
-			return err
+		title, content, err := util.RenderTemplate(notice.Title, notice.Content, common.GetVariableData(ctx, user, nil, siteConfig, notice.Variables))
+		if err != nil {
+			logger.Error(ctx, err)
+			continue
 		}
 
-		logger.Infof(ctx, "sNotice SendMail user: %d, email: %s, SendMail %s success", user.UserId, user.Email, notice.Title)
+		// 发送消息通知邮件
+		if err = s.SendMail(ctx, dialer, user.Email, title, content); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 
-	if reseller != nil {
+	for _, reseller := range resellers {
 
-		if err := g.Validator().Data(reseller.Email).Rules("email").Run(ctx); err != nil {
-			logger.Infof(ctx, "sNotice SendMail reseller: %d, error: %v", reseller.UserId, err)
-			return errors.Newf("reseller: %d, error: %v", reseller.UserId, err)
+		if err = g.Validator().Data(reseller.Email).Rules("email").Run(ctx); err != nil {
+			logger.Infof(ctx, "sNotice Send reseller: %d, error: %v", reseller.UserId, err)
+			continue
 		}
 
 		account, err := dao.ResellerAccount.FindOne(ctx, bson.M{"user_id": reseller.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 		if err != nil {
 			logger.Error(ctx, err)
-			return err
+			continue
 		}
 
 		if account == nil {
-			logger.Infof(ctx, "sNotice SendMail reseller: %d, 因无可用账号, 不发送消息通知邮件", reseller.UserId)
-			return errors.Newf("reseller: %d, 因无可用账号, 不发送消息通知邮件", reseller.UserId)
+			logger.Infof(ctx, "sNotice Send reseller: %d, 因无可用账号, 不发送消息通知邮件", reseller.UserId)
+			continue
 		}
 
-		dialer := email.NewDefaultDialer()
+		var (
+			dialer     = email.NewDefaultDialer()
+			siteConfig *entity.SiteConfig
+		)
 
 		if account.LoginDomain != "" {
-			siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
-			if siteConfig != nil && siteConfig.Host != "" {
-				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-			} else {
-				logger.Infof(ctx, "sNotice SendMail 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
+			siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+		} else {
+			if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
+				logger.Error(ctx, err)
 			}
 		}
 
-		if err = email.SendMail(email.NewMessage([]string{reseller.Email}, notice.Title, notice.Content), dialer); err != nil {
-			logger.Errorf(ctx, "sNotice SendMail reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, notice.Title, err)
-			return err
+		if siteConfig != nil && siteConfig.Host != "" {
+			dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+		} else {
+			logger.Infof(ctx, "sNotice Send 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
 		}
 
-		logger.Infof(ctx, "sNotice SendMail reseller: %d, email: %s, SendMail %s success", reseller.UserId, reseller.Email, notice.Title)
+		title, content, err := util.RenderTemplate(notice.Title, notice.Content, common.GetVariableData(ctx, nil, reseller, siteConfig, notice.Variables))
+		if err != nil {
+			logger.Error(ctx, err)
+			continue
+		}
+
+		// 发送消息通知邮件
+		if err = s.SendMail(ctx, dialer, reseller.Email, title, content); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
+
+	return nil
+}
+
+// 发送消息通知邮件
+func (s *sNotice) SendMail(ctx context.Context, dialer *email.Dialer, to, title, content string) error {
+
+	if err := email.SendMail(email.NewMessage([]string{to}, title, content), dialer); err != nil {
+		logger.Errorf(ctx, "sNotice SendMail email: %s, SendMail %s error: %v", to, title, err)
+		return err
+	}
+
+	logger.Infof(ctx, "sNotice SendMail email: %s, SendMail %s success", to, title)
 
 	return nil
 }

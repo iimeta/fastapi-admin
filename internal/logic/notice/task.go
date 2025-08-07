@@ -155,10 +155,10 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 
 			data["name"] = user.Name
 
-			if user.Quota > 0 {
-				data["quota"] = fmt.Sprintf("$%f", util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6))
-			} else {
+			if user.Quota < 0 {
 				data["quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(user.Quota))/consts.QUOTA_USD_UNIT, 6))
+			} else {
+				data["quota"] = fmt.Sprintf("$%f", util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
@@ -268,10 +268,10 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 
 			data["name"] = reseller.Name
 
-			if reseller.Quota > 0 {
-				data["quota"] = fmt.Sprintf("$%f", util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6))
-			} else {
+			if reseller.Quota < 0 {
 				data["quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(reseller.Quota))/consts.QUOTA_USD_UNIT, 6))
+			} else {
+				data["quota"] = fmt.Sprintf("$%f", util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
