@@ -3,6 +3,9 @@ package model
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"slices"
+
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -21,8 +24,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"regexp"
-	"slices"
 )
 
 type sModel struct{}
@@ -790,30 +791,27 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 	if detail.ForwardConfig != nil {
 
 		if detail.ForwardConfig.TargetModel != "" {
-			modelNames, err := s.ModelNames(ctx, []string{detail.ForwardConfig.TargetModel})
-			if err != nil {
+			if modelNames, err := s.ModelNames(ctx, []string{detail.ForwardConfig.TargetModel}); err != nil {
 				logger.Error(ctx, err)
-				return nil, err
+			} else if len(modelNames) > 0 {
+				detail.ForwardConfig.TargetModelName = modelNames[0]
 			}
-			detail.ForwardConfig.TargetModelName = modelNames[0]
 		}
 
 		if detail.ForwardConfig.DecisionModel != "" {
-			modelNames, err := s.ModelNames(ctx, []string{detail.ForwardConfig.DecisionModel})
-			if err != nil {
+			if modelNames, err := s.ModelNames(ctx, []string{detail.ForwardConfig.DecisionModel}); err != nil {
 				logger.Error(ctx, err)
-				return nil, err
+			} else if len(modelNames) > 0 {
+				detail.ForwardConfig.DecisionModelName = modelNames[0]
 			}
-			detail.ForwardConfig.DecisionModelName = modelNames[0]
 		}
 
 		if detail.ForwardConfig.TargetModels != nil && len(detail.ForwardConfig.TargetModels) > 0 {
-			modelNames, err := s.ModelNames(ctx, detail.ForwardConfig.TargetModels)
-			if err != nil {
+			if modelNames, err := s.ModelNames(ctx, detail.ForwardConfig.TargetModels); err != nil {
 				logger.Error(ctx, err)
-				return nil, err
+			} else {
+				detail.ForwardConfig.TargetModelNames = modelNames
 			}
-			detail.ForwardConfig.TargetModelNames = modelNames
 		}
 	}
 
