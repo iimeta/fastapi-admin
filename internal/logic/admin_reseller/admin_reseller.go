@@ -736,7 +736,7 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 
 	if params.IsSendNotice {
 
-		if err = g.Validator().Data(newData.Email).Rules("email").Run(ctx); err != nil {
+		if err = email.Verify(newData.Email); err != nil {
 			logger.Infof(ctx, "sAdminReseller Recharge reseller: %d, error: %v", newData.UserId, err)
 			return nil
 		} else {

@@ -2,7 +2,10 @@ package email
 
 import (
 	"crypto/tls"
+
+	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/iimeta/fastapi-admin/internal/config"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"gopkg.in/gomail.v2"
 )
 
@@ -87,4 +90,13 @@ func do(dialer *Dialer, msg *gomail.Message) error {
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	return d.DialAndSend(msg)
+}
+
+func Verify(email string) error {
+
+	if ok := gregex.IsMatchString(`^[a-zA-Z0-9_\-\.+]+@[a-zA-Z0-9_\-]+(\.[a-zA-Z0-9_\-]+)+$`, email); ok {
+		return nil
+	}
+
+	return errors.Newf("The `%s` is not a valid email address", email)
 }

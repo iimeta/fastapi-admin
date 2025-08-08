@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -55,7 +54,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				continue
 			}
 
-			if err = g.Validator().Data(user.Email).Rules("email").Run(ctx); err != nil {
+			if err = email.Verify(user.Email); err != nil {
 				logger.Infof(ctx, "sNotice QuotaWarningTask user: %d, error: %v", user.UserId, err)
 				continue
 			}
@@ -198,7 +197,7 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				continue
 			}
 
-			if err = g.Validator().Data(reseller.Email).Rules("email").Run(ctx); err != nil {
+			if err = email.Verify(reseller.Email); err != nil {
 				logger.Infof(ctx, "sNotice QuotaWarningTask reseller: %d, error: %v", reseller.UserId, err)
 				continue
 			}

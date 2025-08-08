@@ -780,7 +780,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 
 	if params.IsSendNotice {
 
-		if err = g.Validator().Data(newData.Email).Rules("email").Run(ctx); err != nil {
+		if err = email.Verify(newData.Email); err != nil {
 			logger.Infof(ctx, "sAdminUser Recharge user: %d, error: %v", newData.UserId, err)
 			return nil
 		} else {
