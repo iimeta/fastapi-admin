@@ -196,13 +196,13 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 
 				isConfigEmail := false
 
-				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost()); siteConfig != nil && siteConfig.Host != "" {
+				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost()); siteConfig != nil && siteConfig.Rid == newData.Rid && siteConfig.Host != "" {
 					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 					isConfigEmail = true
 				}
 
 				if !isConfigEmail {
-					siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid)
+					siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, newData.Rid)
 					for _, siteConfig = range siteConfigs {
 						if siteConfig != nil && siteConfig.Host != "" {
 							dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
@@ -213,7 +213,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 				}
 
 				if !isConfigEmail {
-					logger.Infof(ctx, "sAdminUser Create 因代理商: %d, 所有站点未配置邮箱, 不发送欢迎邮件", user.Rid)
+					logger.Infof(ctx, "sAdminUser Create 因代理商: %d, 所有站点未配置邮箱, 不发送欢迎邮件", newData.Rid)
 					return
 				}
 
