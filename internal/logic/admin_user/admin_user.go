@@ -816,7 +816,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 
 					isConfigEmail := false
 
-					if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Host != "" {
+					if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Rid == newData.Rid && siteConfig.Host != "" {
 						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 						isConfigEmail = true
 					}
