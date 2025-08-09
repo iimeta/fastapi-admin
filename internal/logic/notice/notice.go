@@ -365,11 +365,9 @@ func (s *sNotice) Send(ctx context.Context, notice *entity.Notice) (err error) {
 
 			isConfigEmail := false
 
-			if account.LoginDomain != "" {
-				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Rid == user.Rid && siteConfig.Host != "" {
-					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-					isConfigEmail = true
-				}
+			if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Rid == user.Rid && siteConfig.Host != "" {
+				dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+				isConfigEmail = true
 			}
 
 			if !isConfigEmail {
@@ -390,9 +388,8 @@ func (s *sNotice) Send(ctx context.Context, notice *entity.Notice) (err error) {
 
 		} else {
 
-			if account.LoginDomain != "" {
-				siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
-			} else {
+			siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+			if siteConfig == nil {
 				if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
 					logger.Error(ctx, err)
 				}
@@ -440,9 +437,8 @@ func (s *sNotice) Send(ctx context.Context, notice *entity.Notice) (err error) {
 			siteConfig *entity.SiteConfig
 		)
 
-		if account.LoginDomain != "" {
-			siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
-		} else {
+		siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+		if siteConfig == nil {
 			if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
 				logger.Error(ctx, err)
 			}

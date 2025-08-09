@@ -187,8 +187,10 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 			logger.Error(ctx, err)
 		} else {
 
-			dialer := email.NewDefaultDialer()
-			var siteConfig *entity.SiteConfig
+			var (
+				dialer     = email.NewDefaultDialer()
+				siteConfig *entity.SiteConfig
+			)
 
 			if newData.Rid > 0 {
 
@@ -216,7 +218,15 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 				}
 
 			} else {
-				if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost()); siteConfig != nil && siteConfig.Host != "" {
+
+				siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost())
+				if siteConfig == nil {
+					if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+
+				if siteConfig != nil && siteConfig.Host != "" {
 					dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 				} else {
 					logger.Infof(ctx, "sAdminUser Create 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", g.RequestFromCtx(ctx).GetHost())
@@ -787,15 +797,56 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 			if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
 				var (
-					siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1})
-					dialer        = email.NewDefaultDialer()
+					dialer     = email.NewDefaultDialer()
+					siteConfig *entity.SiteConfig
 				)
 
 				account, err := dao.Account.FindOne(ctx, bson.M{"user_id": newData.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 				if err != nil {
 					logger.Error(ctx, err)
-				} else if account.LoginDomain != "" {
+					return
+				}
+
+				if account == nil {
+					logger.Infof(ctx, "sAdminUser Recharge user: %d, 因无可用账号, 不发送充值通知邮件", newData.UserId)
+					return
+				}
+
+				if newData.Rid > 0 {
+
+					isConfigEmail := false
+
 					if siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Host != "" {
+						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+						isConfigEmail = true
+					}
+
+					if !isConfigEmail {
+						siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, newData.Rid)
+						for _, siteConfig = range siteConfigs {
+							if siteConfig != nil && siteConfig.Host != "" {
+								dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
+								isConfigEmail = true
+								break
+							}
+						}
+					}
+
+					if !isConfigEmail {
+						logger.Infof(ctx, "sAdminUser Recharge 因代理商: %d, 所有站点未配置邮箱, 不发送充值通知邮件", newData.Rid)
+						return
+					}
+
+				} else {
+
+					siteConfig = service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain)
+					if siteConfig == nil {
+						if siteConfig, err = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err != nil {
+							logger.Error(ctx, err)
+						}
+					}
+
+					if siteConfig != nil && siteConfig.Host != "" {
 						dialer = email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
 					} else {
 						logger.Infof(ctx, "sAdminUser Recharge 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", account.LoginDomain)
