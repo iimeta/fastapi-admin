@@ -212,17 +212,21 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			}
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:         modelAgent.Id,
-				Corp:       modelAgent.Corp,
-				Name:       modelAgent.Name,
-				BaseUrl:    modelAgent.BaseUrl,
-				Path:       modelAgent.Path,
-				Weight:     modelAgent.Weight,
-				Models:     append(modelAgent.Models, params.Id),
-				LbStrategy: modelAgent.LbStrategy,
-				Key:        modelAgent.Key,
-				Remark:     modelAgent.Remark,
-				Status:     modelAgent.Status,
+				Id:                   modelAgent.Id,
+				Corp:                 modelAgent.Corp,
+				Name:                 modelAgent.Name,
+				BaseUrl:              modelAgent.BaseUrl,
+				Path:                 modelAgent.Path,
+				Weight:               modelAgent.Weight,
+				Models:               append(modelAgent.Models, params.Id),
+				IsEnableModelReplace: modelAgent.IsEnableModelReplace,
+				ReplaceModels:        modelAgent.ReplaceModels,
+				TargetModels:         modelAgent.TargetModels,
+				IsNeverDisable:       modelAgent.IsNeverDisable,
+				LbStrategy:           modelAgent.LbStrategy,
+				Key:                  modelAgent.Key,
+				Remark:               modelAgent.Remark,
+				Status:               modelAgent.Status,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -247,17 +251,21 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			}
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:         modelAgent.Id,
-				Corp:       modelAgent.Corp,
-				Name:       modelAgent.Name,
-				BaseUrl:    modelAgent.BaseUrl,
-				Path:       modelAgent.Path,
-				Weight:     modelAgent.Weight,
-				Models:     modelAgent.Models,
-				LbStrategy: modelAgent.LbStrategy,
-				Key:        modelAgent.Key,
-				Remark:     modelAgent.Remark,
-				Status:     modelAgent.Status,
+				Id:                   modelAgent.Id,
+				Corp:                 modelAgent.Corp,
+				Name:                 modelAgent.Name,
+				BaseUrl:              modelAgent.BaseUrl,
+				Path:                 modelAgent.Path,
+				Weight:               modelAgent.Weight,
+				Models:               append(modelAgent.Models, params.Id),
+				IsEnableModelReplace: modelAgent.IsEnableModelReplace,
+				ReplaceModels:        modelAgent.ReplaceModels,
+				TargetModels:         modelAgent.TargetModels,
+				IsNeverDisable:       modelAgent.IsNeverDisable,
+				LbStrategy:           modelAgent.LbStrategy,
+				Key:                  modelAgent.Key,
+				Remark:               modelAgent.Remark,
+				Status:               modelAgent.Status,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
