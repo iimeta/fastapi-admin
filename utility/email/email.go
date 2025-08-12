@@ -1,11 +1,16 @@
 package email
 
 import (
+	"context"
 	"crypto/tls"
+	"sync"
+	"time"
 
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/utility/logger"
 	"gopkg.in/gomail.v2"
 )
 
@@ -24,6 +29,8 @@ type Dialer struct {
 }
 
 type OptionFunc func(msg *gomail.Message)
+
+var mutex sync.Mutex
 
 func NewMessage(to []string, subject, body string) *Message {
 	return &Message{
@@ -99,4 +106,21 @@ func Verify(email string) error {
 	}
 
 	return errors.Newf("The `%s` is not a valid email address", email)
+}
+
+func SendMailTask(ctx context.Context, message *Message, dialer *Dialer, opt ...OptionFunc) error {
+
+	mutex.Lock()
+
+	logger.Debugf(ctx, "SendMailTask To: %s start", message.To)
+
+	now := gtime.TimestampMilli()
+
+	defer func() {
+		time.Sleep(config.Cfg.Email.Interval * time.Millisecond)
+		logger.Debugf(ctx, "SendMailTask To: %s end time: %d", message.To, gtime.TimestampMilli()-now)
+		mutex.Unlock()
+	}()
+
+	return SendMail(message, dialer, opt...)
 }

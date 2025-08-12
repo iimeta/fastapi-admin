@@ -811,12 +811,12 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 					return
 				}
 
-				if err = email.SendMail(email.NewMessage([]string{newData.Email}, title, content), dialer); err != nil {
-					logger.Errorf(ctx, "sAdminReseller Recharge reseller: %d, email: %s, SendMail %s error: %v", newData.UserId, newData.Email, title, err)
+				if err = email.SendMailTask(ctx, email.NewMessage([]string{newData.Email}, title, content), dialer); err != nil {
+					logger.Errorf(ctx, "sAdminReseller Recharge reseller: %d, email: %s, SendMailTask %s error: %v", newData.UserId, newData.Email, title, err)
 					return
 				}
 
-				logger.Infof(ctx, "sAdminReseller Recharge reseller: %d, email: %s, SendMail %s success", newData.UserId, newData.Email, title)
+				logger.Infof(ctx, "sAdminReseller Recharge reseller: %d, email: %s, SendMailTask %s success", newData.UserId, newData.Email, title)
 
 			}, nil); err != nil {
 				logger.Error(ctx, err)

@@ -2,6 +2,8 @@ package statistics
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -16,7 +18,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"go.mongodb.org/mongo-driver/bson"
-	"time"
 )
 
 type sStatistics struct {
@@ -75,6 +76,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 	logger.Debugf(ctx, "sStatistics StatisticsData collection: %s start", collection)
 
 	now := gtime.TimestampMilli()
+
 	defer func() {
 		logger.Debugf(ctx, "sStatistics StatisticsData collection: %s end time: %d", collection, gtime.TimestampMilli()-now)
 	}()

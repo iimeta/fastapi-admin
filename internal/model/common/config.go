@@ -14,12 +14,13 @@ type Http struct {
 }
 
 type Email struct {
-	Open     bool   `bson:"open"      json:"open"`      // 开关
-	Host     string `bson:"host"      json:"host"`      // smtp.xxx.com
-	Port     int    `bson:"port"      json:"port"`      // 端口号
-	UserName string `bson:"user_name" json:"user_name"` // 登录账号
-	Password string `bson:"password"  json:"password"`  // 登录密码
-	FromName string `bson:"from_name" json:"from_name"` // 发送人名称
+	Open     bool          `bson:"open"      json:"open"`      // 开关
+	Host     string        `bson:"host"      json:"host"`      // smtp.xxx.com
+	Port     int           `bson:"port"      json:"port"`      // 端口号
+	UserName string        `bson:"user_name" json:"user_name"` // 登录账号
+	Password string        `bson:"password"  json:"password"`  // 登录密码
+	FromName string        `bson:"from_name" json:"from_name"` // 发送人名称
+	Interval time.Duration `bson:"interval"  json:"interval"`  // 发信间隔时间, 单位: 毫秒
 }
 
 type Statistics struct {

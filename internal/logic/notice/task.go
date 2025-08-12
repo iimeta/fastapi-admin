@@ -168,12 +168,12 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				continue
 			}
 
-			if err = email.SendMail(email.NewMessage([]string{user.Email}, title, content), dialer); err != nil {
-				logger.Errorf(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s error: %v", user.UserId, user.Email, title, err)
+			if err = email.SendMailTask(ctx, email.NewMessage([]string{user.Email}, title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMailTask %s error: %v", user.UserId, user.Email, title, err)
 				continue
 			}
 
-			logger.Infof(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMail %s success", user.UserId, user.Email, title)
+			logger.Infof(ctx, "sNotice QuotaWarningTask user: %d, email: %s, SendMailTask %s success", user.UserId, user.Email, title)
 
 			if err = dao.User.UpdateById(ctx, user.Id, bson.M{
 				consts.QUOTA_NOTICE[scene]: true,
@@ -280,12 +280,12 @@ func (s *sNotice) QuotaWarningTask(ctx context.Context) {
 				continue
 			}
 
-			if err = email.SendMail(email.NewMessage([]string{reseller.Email}, title, content), dialer); err != nil {
-				logger.Errorf(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s error: %v", reseller.UserId, reseller.Email, title, err)
+			if err = email.SendMailTask(ctx, email.NewMessage([]string{reseller.Email}, title, content), dialer); err != nil {
+				logger.Errorf(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMailTask %s error: %v", reseller.UserId, reseller.Email, title, err)
 				continue
 			}
 
-			logger.Infof(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMail %s success", reseller.UserId, reseller.Email, title)
+			logger.Infof(ctx, "sNotice QuotaWarningTask reseller: %d, email: %s, SendMailTask %s success", reseller.UserId, reseller.Email, title)
 
 			if err = dao.Reseller.UpdateById(ctx, reseller.Id, bson.M{
 				consts.QUOTA_NOTICE[scene]: true,

@@ -2,6 +2,8 @@ package sys_config
 
 import (
 	"context"
+	"time"
+
 	"github.com/gogf/gf/v2/os/gcron"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -21,7 +23,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 type sSysConfig struct{}
@@ -370,7 +371,8 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Port:     465,
 			UserName: "xxx@xxx.com",
 			Password: "xxx",
-			FromName: "智元 Fast API Pro",
+			FromName: "智元 Fast API",
+			Interval: 3000,
 		},
 		Statistics: &common.Statistics{
 			Open:        true,

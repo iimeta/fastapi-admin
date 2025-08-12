@@ -468,12 +468,12 @@ func (s *sNotice) Send(ctx context.Context, notice *entity.Notice) (err error) {
 // 发送消息通知邮件
 func (s *sNotice) SendMail(ctx context.Context, dialer *email.Dialer, to, title, content string) error {
 
-	if err := email.SendMail(email.NewMessage([]string{to}, title, content), dialer); err != nil {
-		logger.Errorf(ctx, "sNotice SendMail email: %s, SendMail %s error: %v", to, title, err)
+	if err := email.SendMailTask(ctx, email.NewMessage([]string{to}, title, content), dialer); err != nil {
+		logger.Errorf(ctx, "sNotice SendMail email: %s, SendMailTask %s error: %v", to, title, err)
 		return err
 	}
 
-	logger.Infof(ctx, "sNotice SendMail email: %s, SendMail %s success", to, title)
+	logger.Infof(ctx, "sNotice SendMail email: %s, SendMailTask %s success", to, title)
 
 	return nil
 }
