@@ -40,6 +40,7 @@ type SiteConfig struct {
 	DocumentTitle       string                `bson:"document_title,omitempty"`        // 文档标题
 	DocumentMoreUrl     string                `bson:"document_more_url,omitempty"`     // 文档更多URL
 	Documents           []common.Document     `bson:"documents,omitempty"`             // 文档
+	RechargeTips        string                `bson:"recharge_tips,omitempty"`         // 充值提示
 	Remark              string                `bson:"remark,omitempty"`                // 备注
 	Status              int                   `bson:"status,omitempty"`                // 状态[1:正常, 2:禁用, -1:删除]
 	UserId              int                   `bson:"user_id,omitempty"`               // 用户ID

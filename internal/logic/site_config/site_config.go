@@ -70,6 +70,7 @@ func (s *sSiteConfig) Create(ctx context.Context, params model.SiteConfigCreateR
 		DocumentTitle:       params.DocumentTitle,
 		DocumentMoreUrl:     params.DocumentMoreUrl,
 		Documents:           params.Documents,
+		RechargeTips:        params.RechargeTips,
 		Remark:              params.Remark,
 		Status:              params.Status,
 		UserId:              service.Session().GetUserId(ctx),
@@ -123,6 +124,7 @@ func (s *sSiteConfig) Update(ctx context.Context, params model.SiteConfigUpdateR
 		DocumentTitle:       params.DocumentTitle,
 		DocumentMoreUrl:     params.DocumentMoreUrl,
 		Documents:           params.Documents,
+		RechargeTips:        params.RechargeTips,
 		Remark:              params.Remark,
 		Status:              params.Status,
 	}
@@ -232,6 +234,7 @@ func (s *sSiteConfig) Detail(ctx context.Context, params model.SiteConfigDetailR
 		DocumentTitle:       siteConfig.DocumentTitle,
 		DocumentMoreUrl:     siteConfig.DocumentMoreUrl,
 		Documents:           siteConfig.Documents,
+		RechargeTips:        siteConfig.RechargeTips,
 		Remark:              siteConfig.Remark,
 		Status:              siteConfig.Status,
 		UserId:              siteConfig.UserId,
@@ -398,6 +401,7 @@ func (s *sSiteConfig) Site(ctx context.Context, params model.SiteConfigDetailReq
 		DocumentTitle:       siteConfig.DocumentTitle,
 		DocumentMoreUrl:     siteConfig.DocumentMoreUrl,
 		Documents:           siteConfig.Documents,
+		RechargeTips:        siteConfig.RechargeTips,
 	}
 }
 
