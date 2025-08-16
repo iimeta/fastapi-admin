@@ -564,7 +564,7 @@ func (s *sAdminReseller) Page(ctx context.Context, params model.ResellerPageReq)
 
 	if params.Quota != 0 {
 		filter["quota"] = bson.M{
-			"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+			"$lt": params.Quota * consts.QUOTA_USD_UNIT,
 		}
 	}
 

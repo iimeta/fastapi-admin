@@ -597,7 +597,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 
 	if params.Quota != 0 {
 		filter["quota"] = bson.M{
-			"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+			"$lt": params.Quota * consts.QUOTA_USD_UNIT,
 		}
 	}
 
