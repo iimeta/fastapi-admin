@@ -2,9 +2,13 @@ package dashboard
 
 import (
 	"context"
+	"math"
+	"time"
+
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/model"
@@ -12,8 +16,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"math"
-	"time"
 )
 
 type sDashboard struct{}
@@ -328,6 +330,12 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 		quotaWarning = user.QuotaWarning
 		warningThreshold = user.WarningThreshold
 		expireWarningThreshold = user.ExpireWarningThreshold
+	}
+
+	if warningThreshold == 0 {
+		quotaWarning = config.Cfg.QuotaWarning.Open
+		warningThreshold = config.Cfg.QuotaWarning.Threshold
+		expireWarningThreshold = config.Cfg.QuotaWarning.ExpireThreshold
 	}
 
 	return &model.Expense{
