@@ -364,7 +364,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			ErrorPrefix:     "fastapi",
 		},
 		Http: &common.Http{
-			Timeout: 60,
+			Timeout: 300,
 		},
 		Email: &common.Email{
 			Host:     "smtp.xxx.com",
