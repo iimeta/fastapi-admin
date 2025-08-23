@@ -385,6 +385,8 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			ModelKeyErrDisable:      100000,
 			ModelAgentErrDisable:    100000,
 			ModelAgentKeyErrDisable: 100000,
+			ShortTimeout:            300,
+			LongTimeout:             600,
 		},
 		//Midjourney: &common.Midjourney{
 		//	CdnUrl:          "https://cdn.xxx.com",
