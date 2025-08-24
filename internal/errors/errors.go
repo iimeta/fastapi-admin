@@ -2,6 +2,8 @@ package errors
 
 import (
 	"errors"
+	"fmt"
+
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 )
@@ -18,7 +20,7 @@ func New(text string) error {
 }
 
 func Newf(format string, args ...interface{}) error {
-	return gerror.Newf(format, args...)
+	return errors.New(fmt.Sprintf(format, args...))
 }
 
 func Is(err, target error) bool {
