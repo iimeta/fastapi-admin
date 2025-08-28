@@ -402,6 +402,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"completion",
 				"messages",
 				"image",
+				"audio",
 			},
 			ChatReserve:  90,
 			ImageReserve: 90,
