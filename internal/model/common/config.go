@@ -132,6 +132,11 @@ type QuotaWarning struct {
 	ExpireNotice     bool          `bson:"expire_notice"     json:"expire_notice"`     // 额度过期通知开关
 }
 
+type ServiceUnavailable struct {
+	Open        bool     `bson:"open"         json:"open"`         // 开关
+	IpWhitelist []string `bson:"ip_whitelist" json:"ip_whitelist"` // IP白名单
+}
+
 type Debug struct {
 	Open bool `bson:"open" json:"open"` // 开关
 }

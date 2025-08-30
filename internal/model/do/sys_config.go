@@ -29,6 +29,7 @@ type SysConfig struct {
 	NotShieldError        *common.NotShieldError        `bson:"not_shield_error,omitempty"`        // 不屏蔽错误
 	Notice                *common.Notice                `bson:"notice,omitempty"`                  // 通知
 	QuotaWarning          *common.QuotaWarning          `bson:"quota_warning,omitempty"`           // 额度预警
+	ServiceUnavailable    *common.ServiceUnavailable    `bson:"service_unavailable,omitempty"`     // 暂停服务
 	Debug                 *common.Debug                 `bson:"debug,omitempty"`                   // 调试
 	Creator               string                        `bson:"creator,omitempty"`                 // 创建人
 	Updater               string                        `bson:"updater,omitempty"`                 // 更新人

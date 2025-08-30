@@ -132,6 +132,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Notice: params.Notice}
 	case "quota_warning":
 		sysConfig = &do.SysConfig{QuotaWarning: params.QuotaWarning}
+	case "service_unavailable":
+		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "debug":
 		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
@@ -189,6 +191,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		NotShieldError:        sysConfig.NotShieldError,
 		Notice:                sysConfig.Notice,
 		QuotaWarning:          sysConfig.QuotaWarning,
+		ServiceUnavailable:    sysConfig.ServiceUnavailable,
 		Debug:                 sysConfig.Debug,
 		Creator:               sysConfig.Creator,
 		Updater:               sysConfig.Updater,
@@ -257,6 +260,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Notice = s.Default().Notice
 	case "quota_warning":
 		sysConfigUpdateReq.QuotaWarning = s.Default().QuotaWarning
+	case "service_unavailable":
+		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -348,6 +353,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.ResellerShieldError == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "reseller_shield_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.ServiceUnavailable == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "service_unavailable"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -512,6 +524,14 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			ExpireWarning:    true,
 			ExpireThreshold:  3,
 			ExpireNotice:     true,
+		},
+		ServiceUnavailable: &common.ServiceUnavailable{
+			Open: false,
+			IpWhitelist: []string{
+				"127.0.0.1",
+				"::1",
+				"172.17.0.1",
+			},
 		},
 		Debug: &common.Debug{
 			Open: false,
