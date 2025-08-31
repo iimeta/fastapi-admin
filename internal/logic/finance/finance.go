@@ -4,6 +4,10 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"regexp"
+	"slices"
+	"time"
+
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -15,9 +19,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"regexp"
-	"slices"
-	"time"
 )
 
 type sFinance struct{}
@@ -209,14 +210,18 @@ func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealR
 		filter["user_id"] = params.UserId
 	}
 
-	if params.Remark != "" {
-		filter["remark"] = bson.M{
-			"$regex": regexp.QuoteMeta(params.Remark),
-		}
+	if params.Type != 0 {
+		filter["type"] = params.Type
 	}
 
 	if params.Status != 0 {
 		filter["status"] = params.Status
+	}
+
+	if params.Remark != "" {
+		filter["remark"] = bson.M{
+			"$regex": regexp.QuoteMeta(params.Remark),
+		}
 	}
 
 	if len(params.CreatedAt) > 0 {

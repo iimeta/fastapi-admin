@@ -5,6 +5,9 @@ import "context"
 // 初始化任务
 func Init(ctx context.Context) {
 
+	// 额度任务
+	quotaTask(ctx)
+
 	// 统计任务
 	statisticsTask(ctx)
 

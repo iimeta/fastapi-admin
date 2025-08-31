@@ -22,7 +22,8 @@ type SysConfigUpdateReq struct {
 	NotRetryError         *common.NotRetryError         `json:"not_retry_error,omitempty"`         // 不重试错误
 	NotShieldError        *common.NotShieldError        `json:"not_shield_error,omitempty"`        // 不屏蔽错误
 	Notice                *common.Notice                `json:"notice,omitempty"`                  // 通知
-	QuotaWarning          *common.QuotaWarning          `json:"quota_warning,omitempty"`           // 额度预警
+	Quota                 *common.Quota                 `json:"quota,omitempty"`                   // 额度
+	QuotaTask             *common.QuotaTask             `json:"quota_task,omitempty"`              // 额度任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
 	Debug                 *common.Debug                 `json:"debug,omitempty"`                   // 调试
 }
@@ -67,7 +68,8 @@ type SysConfig struct {
 	NotRetryError         *common.NotRetryError         `json:"not_retry_error,omitempty"`         // 不重试错误
 	NotShieldError        *common.NotShieldError        `json:"not_shield_error,omitempty"`        // 不屏蔽错误
 	Notice                *common.Notice                `json:"notice,omitempty"`                  // 通知
-	QuotaWarning          *common.QuotaWarning          `json:"quota_warning,omitempty"`           // 额度预警
+	Quota                 *common.Quota                 `json:"quota,omitempty"`                   // 额度
+	QuotaTask             *common.QuotaTask             `json:"quota_task,omitempty"`              // 额度任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
 	Debug                 *common.Debug                 `json:"debug,omitempty"`                   // 调试
 	Creator               string                        `json:"creator,omitempty"`                 // 创建人

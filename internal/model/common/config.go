@@ -123,13 +123,21 @@ type Notice struct {
 	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
 }
 
-type QuotaWarning struct {
-	Open             bool          `bson:"open"              json:"open"`              // 额度预警开关
-	Threshold        int           `bson:"threshold"         json:"threshold"`         // 额度预警阈值, 单位: $
-	ExhaustionNotice bool          `bson:"exhaustion_notice" json:"exhaustion_notice"` // 额度耗尽通知开关
-	ExpireWarning    bool          `bson:"expire_warning"    json:"expire_warning"`    // 额度过期预警开关
-	ExpireThreshold  time.Duration `bson:"expire_threshold"  json:"expire_threshold"`  // 额度过期预警阈值, 单位: 天
-	ExpireNotice     bool          `bson:"expire_notice"     json:"expire_notice"`     // 额度过期通知开关
+type Quota struct {
+	Warning           bool          `bson:"warning"             json:"warning"`             // 额度预警开关
+	Threshold         int           `bson:"threshold"           json:"threshold"`           // 额度预警阈值, 单位: $
+	ExpiredWarning    bool          `bson:"expired_warning"     json:"expired_warning"`     // 额度过期预警开关
+	ExpiredThreshold  time.Duration `bson:"expired_threshold"   json:"expired_threshold"`   // 额度过期预警阈值, 单位: 天
+	ExhaustedNotice   bool          `bson:"exhausted_notice"    json:"exhausted_notice"`    // 额度耗尽通知开关
+	ExpiredNotice     bool          `bson:"expired_notice"      json:"expired_notice"`      // 额度过期通知开关
+	ExpiredClear      bool          `bson:"expired_clear"       json:"expired_clear"`       // 额度过期清零开关
+	ExpiredClearDefer time.Duration `bson:"expired_clear_defer" json:"expired_clear_defer"` // 额度过期清零延迟, 单位: 分钟
+}
+
+type QuotaTask struct {
+	Open        bool          `bson:"open"         json:"open"`         // 开关
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
 }
 
 type ServiceUnavailable struct {

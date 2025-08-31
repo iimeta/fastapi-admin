@@ -2,10 +2,9 @@ package task
 
 import (
 	"context"
+
 	"github.com/gogf/gf/v2/os/gcron"
-	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/iimeta/fastapi-admin/internal/config"
-	"github.com/iimeta/fastapi-admin/internal/service"
 )
 
 var (
@@ -28,9 +27,7 @@ func noticeTask(ctx context.Context) {
 		}
 
 		noticeEntry, _ = gcron.AddSingleton(ctx, config.Cfg.Notice.Cron, func(ctx context.Context) {
-			if config.Cfg.QuotaWarning.Open {
-				service.Notice().QuotaWarningTask(gctx.New())
-			}
+
 		})
 
 	} else {

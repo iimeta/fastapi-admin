@@ -371,7 +371,7 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
 				expireWarningThreshold := user.ExpireWarningThreshold
 				if expireWarningThreshold == 0 {
-					expireWarningThreshold = config.Cfg.QuotaWarning.ExpireThreshold
+					expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 				}
 				userAttribute[parts[1]] = expireWarningThreshold
 			default:
@@ -412,7 +412,7 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
 				expireWarningThreshold := reseller.ExpireWarningThreshold
 				if expireWarningThreshold == 0 {
-					expireWarningThreshold = config.Cfg.QuotaWarning.ExpireThreshold
+					expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 				}
 				resellerAttribute[parts[1]] = expireWarningThreshold
 			default:

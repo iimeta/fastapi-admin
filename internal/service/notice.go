@@ -33,8 +33,6 @@ type (
 		SendMail(ctx context.Context, dialer *email.Dialer, to string, title string, content string) error
 		// 消息通知批量操作
 		BatchOperate(ctx context.Context, params model.NoticeBatchOperateReq) error
-		// 额度预警任务
-		QuotaWarningTask(ctx context.Context)
 	}
 )
 

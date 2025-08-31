@@ -774,6 +774,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		Quota:  params.Quota,
 		Type:   params.QuotaType,
 		Status: 1,
+		Rid:    newData.Rid,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err

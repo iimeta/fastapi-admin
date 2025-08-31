@@ -333,9 +333,9 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 	}
 
 	if warningThreshold == 0 {
-		quotaWarning = config.Cfg.QuotaWarning.Open
-		warningThreshold = config.Cfg.QuotaWarning.Threshold
-		expireWarningThreshold = config.Cfg.QuotaWarning.ExpireThreshold
+		quotaWarning = config.Cfg.Quota.Warning
+		warningThreshold = config.Cfg.Quota.Threshold
+		expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 	}
 
 	return &model.Expense{

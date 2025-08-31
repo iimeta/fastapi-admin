@@ -130,8 +130,10 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{NotShieldError: params.NotShieldError}
 	case "notice":
 		sysConfig = &do.SysConfig{Notice: params.Notice}
-	case "quota_warning":
-		sysConfig = &do.SysConfig{QuotaWarning: params.QuotaWarning}
+	case "quota":
+		sysConfig = &do.SysConfig{Quota: params.Quota}
+	case "quota_task":
+		sysConfig = &do.SysConfig{QuotaTask: params.QuotaTask}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "debug":
@@ -190,7 +192,8 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		NotRetryError:         sysConfig.NotRetryError,
 		NotShieldError:        sysConfig.NotShieldError,
 		Notice:                sysConfig.Notice,
-		QuotaWarning:          sysConfig.QuotaWarning,
+		Quota:                 sysConfig.Quota,
+		QuotaTask:             sysConfig.QuotaTask,
 		ServiceUnavailable:    sysConfig.ServiceUnavailable,
 		Debug:                 sysConfig.Debug,
 		Creator:               sysConfig.Creator,
@@ -258,8 +261,10 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		return nil, nil
 	case "notice":
 		sysConfigUpdateReq.Notice = s.Default().Notice
-	case "quota_warning":
-		sysConfigUpdateReq.QuotaWarning = s.Default().QuotaWarning
+	case "quota":
+		sysConfigUpdateReq.Quota = s.Default().Quota
+	case "quota_task":
+		sysConfigUpdateReq.QuotaTask = s.Default().QuotaTask
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	}
@@ -337,8 +342,15 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}
 
-	if sysConfig.QuotaWarning == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "quota_warning"}); err != nil {
+	if sysConfig.Quota == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "quota"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.QuotaTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "quota_task"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -517,13 +529,20 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Cron:        "0 * * * * ?",
 			LockMinutes: 10,
 		},
-		QuotaWarning: &common.QuotaWarning{
-			Open:             true,
-			Threshold:        50 * consts.QUOTA_USD_UNIT,
-			ExhaustionNotice: true,
-			ExpireWarning:    true,
-			ExpireThreshold:  3,
-			ExpireNotice:     true,
+		Quota: &common.Quota{
+			Warning:           true,
+			Threshold:         100 * consts.QUOTA_USD_UNIT,
+			ExpiredWarning:    true,
+			ExpiredThreshold:  3,
+			ExhaustedNotice:   true,
+			ExpiredNotice:     true,
+			ExpiredClear:      false,
+			ExpiredClearDefer: 5,
+		},
+		QuotaTask: &common.QuotaTask{
+			Open:        true,
+			Cron:        "0 * * * * ?",
+			LockMinutes: 10,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{
 			Open: false,
