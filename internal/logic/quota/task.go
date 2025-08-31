@@ -75,9 +75,9 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 				expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 			}
 
-			if !user.WarningNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= warningThreshold {
+			if config.Cfg.Quota.Warning && !user.WarningNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= warningThreshold && (user.QuotaExpiresAt == 0 || user.QuotaExpiresAt > gtime.TimestampMilli()) {
 				scene = consts.SCENE_QUOTA_WARNING
-			} else if config.Cfg.Quota.ExhaustedNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= 0 {
+			} else if config.Cfg.Quota.ExhaustedNotice && !user.ExhaustionNotice && user.UsedQuota != 0 && user.Quota <= 0 && (user.QuotaExpiresAt == 0 || user.QuotaExpiresAt > gtime.TimestampMilli()) {
 				scene = consts.SCENE_QUOTA_EXHAUSTION
 			} else if config.Cfg.Quota.ExpiredWarning && !user.ExpireWarningNotice && user.Quota > 0 && user.QuotaExpiresAt > 0 && gtime.TimestampMilli() > user.QuotaExpiresAt-(expireWarningThreshold*gtime.D).Milliseconds() {
 				scene = consts.SCENE_QUOTA_EXPIRE_WARNING
@@ -217,9 +217,9 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 				expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 			}
 
-			if !reseller.WarningNotice && !reseller.ExhaustionNotice && reseller.UsedQuota != 0 && reseller.Quota <= warningThreshold {
+			if config.Cfg.Quota.Warning && !reseller.WarningNotice && !reseller.ExhaustionNotice && reseller.UsedQuota != 0 && reseller.Quota <= warningThreshold && (reseller.QuotaExpiresAt == 0 || reseller.QuotaExpiresAt > gtime.TimestampMilli()) {
 				scene = consts.SCENE_QUOTA_WARNING
-			} else if config.Cfg.Quota.ExhaustedNotice && !reseller.ExhaustionNotice && reseller.UsedQuota != 0 && reseller.Quota <= 0 {
+			} else if config.Cfg.Quota.ExhaustedNotice && !reseller.ExhaustionNotice && reseller.UsedQuota != 0 && reseller.Quota <= 0 && (reseller.QuotaExpiresAt == 0 || reseller.QuotaExpiresAt > gtime.TimestampMilli()) {
 				scene = consts.SCENE_QUOTA_EXHAUSTION
 			} else if config.Cfg.Quota.ExpiredWarning && !reseller.ExpireWarningNotice && reseller.Quota > 0 && reseller.QuotaExpiresAt > 0 && gtime.TimestampMilli() > reseller.QuotaExpiresAt-(expireWarningThreshold*gtime.D).Milliseconds() {
 				scene = consts.SCENE_QUOTA_EXPIRE_WARNING
