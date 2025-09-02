@@ -150,8 +150,3 @@ type SearchQuota struct {
 	FixedQuota        int    `bson:"fixed_quota,omitempty"         json:"fixed_quota,omitempty"`         // 固定额度
 	IsDefault         bool   `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
 }
-
-type Read struct {
-	UserId int   `bson:"user_id,omitempty"` // 用户ID
-	ReadAt int64 `bson:"read_at,omitempty"` // 阅读时间
-}
