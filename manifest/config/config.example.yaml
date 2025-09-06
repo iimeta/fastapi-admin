@@ -1,8 +1,9 @@
+# 服务配置
 server:
   address:     ":8080"
   clientMaxBodySize: 20m
 
-# Redis 配置
+# Redis配置
 redis:
   default:
     address: 127.0.0.1:6379
