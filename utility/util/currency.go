@@ -1,8 +1,9 @@
 package util
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/consts"
 	"math"
+
+	"github.com/iimeta/fastapi-admin/internal/consts"
 )
 
 func Round(f float64, n int) float64 {

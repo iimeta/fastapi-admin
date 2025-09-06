@@ -6,7 +6,6 @@ package sys_config
 
 import (
 	"context"
-
 	"github.com/iimeta/fastapi-admin/api/sys_config/v1"
 )
 

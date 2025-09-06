@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
-	"github.com/iimeta/fastapi-admin/internal/service"
 
 	"github.com/iimeta/fastapi-admin/api/user/v1"
+	"github.com/iimeta/fastapi-admin/internal/service"
 )
 
 func (c *ControllerV1) UpdateInfo(ctx context.Context, req *v1.UpdateInfoReq) (res *v1.UpdateInfoRes, err error) {

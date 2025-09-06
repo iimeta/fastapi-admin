@@ -6,7 +6,6 @@ package user
 
 import (
 	"context"
-
 	"github.com/iimeta/fastapi-admin/api/user/v1"
 )
 

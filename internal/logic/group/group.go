@@ -2,6 +2,9 @@ package group
 
 import (
 	"context"
+	"regexp"
+	"time"
+
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -17,8 +20,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
-	"regexp"
-	"time"
 )
 
 type sGroup struct{}

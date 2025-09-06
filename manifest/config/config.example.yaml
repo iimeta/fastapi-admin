@@ -1,6 +1,5 @@
-admin_server_address: ":8080"
-
 server:
+  address:     ":8080"
   clientMaxBodySize: 15m
 
 # Redis 配置

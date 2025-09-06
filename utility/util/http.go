@@ -2,6 +2,10 @@ package util
 
 import (
 	"context"
+	"net/http"
+	"net/url"
+	"time"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gclient"
@@ -10,9 +14,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/utility/logger"
-	"net/http"
-	"net/url"
-	"time"
 )
 
 func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL ...string) error {

@@ -6,7 +6,6 @@ package site_config
 
 import (
 	"context"
-
 	"github.com/iimeta/fastapi-admin/api/site_config/v1"
 )
 

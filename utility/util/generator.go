@@ -1,12 +1,13 @@
 package util
 
 import (
-	"github.com/bwmarrin/snowflake"
-	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/gogf/gf/v2/util/grand"
 	"math/rand"
 	"slices"
 	"strings"
+
+	"github.com/bwmarrin/snowflake"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/grand"
 )
 
 var node *snowflake.Node

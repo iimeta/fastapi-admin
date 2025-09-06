@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
-	"github.com/iimeta/fastapi-admin/internal/service"
 
 	"github.com/iimeta/fastapi-admin/api/app/v1"
+	"github.com/iimeta/fastapi-admin/internal/service"
 )
 
 func (c *ControllerV1) KeyBatchOperate(ctx context.Context, req *v1.KeyBatchOperateReq) (res *v1.KeyBatchOperateRes, err error) {

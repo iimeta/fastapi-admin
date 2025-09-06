@@ -6,7 +6,6 @@ package notice_template
 
 import (
 	"context"
-
 	"github.com/iimeta/fastapi-admin/api/notice_template/v1"
 )
 

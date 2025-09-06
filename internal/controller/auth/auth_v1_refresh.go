@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/iimeta/fastapi-admin/api/auth/v1"
 )
 

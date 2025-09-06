@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-admin/api/auth/v1"
 	"github.com/iimeta/fastapi-admin/internal/service"

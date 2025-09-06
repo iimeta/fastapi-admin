@@ -2,6 +2,8 @@ package model_agent
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -18,7 +20,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"regexp"
 )
 
 type sModelAgent struct{}

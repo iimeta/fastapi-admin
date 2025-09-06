@@ -6,7 +6,6 @@ package sys_admin
 
 import (
 	"context"
-
 	"github.com/iimeta/fastapi-admin/api/sys_admin/v1"
 )
 

@@ -2,6 +2,8 @@ package log
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -12,7 +14,6 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 	"github.com/iimeta/fastapi-admin/utility/redis"
 	"go.mongodb.org/mongo-driver/bson"
-	"time"
 )
 
 type sLog struct {
