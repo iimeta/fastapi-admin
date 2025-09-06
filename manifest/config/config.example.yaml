@@ -1,6 +1,6 @@
 # 服务配置
 server:
-  address:     ":8080"
+  address: ":8080"
   clientMaxBodySize: 20m
 
 # Redis配置
