@@ -7,7 +7,7 @@ type ModelCreateReq struct {
 	Corp                 string                      `json:"corp,omitempty"`                    // 公司
 	Name                 string                      `json:"name,omitempty"`                    // 模型名称
 	Model                string                      `json:"model,omitempty"`                   // 模型
-	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	BaseUrl              string                      `json:"base_url,omitempty"`                // 模型地址
 	Path                 string                      `json:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                        `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
@@ -40,7 +40,7 @@ type ModelUpdateReq struct {
 	Corp                 string                      `json:"corp,omitempty"`                    // 公司
 	Name                 string                      `json:"name,omitempty"`                    // 模型名称
 	Model                string                      `json:"model,omitempty"`                   // 模型
-	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	BaseUrl              string                      `json:"base_url,omitempty"`                // 模型地址
 	Path                 string                      `json:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                        `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
@@ -84,7 +84,7 @@ type ModelPageReq struct {
 	Corp      string   `json:"corp,omitempty"`       // 公司
 	Name      string   `json:"name,omitempty"`       // 模型名称
 	Model     string   `json:"model,omitempty"`      // 模型
-	Type      int      `json:"type,omitempty"`       // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type      int      `json:"type,omitempty"`       // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	Group     string   `json:"group,omitempty"`      // 分组
 	Remark    string   `json:"remark,omitempty"`     // 备注
 	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
@@ -102,7 +102,7 @@ type ModelListReq struct {
 	Corp   string   `json:"corp,omitempty"`   // 公司
 	Name   string   `json:"name,omitempty"`   // 模型名称
 	Model  string   `json:"model,omitempty"`  // 模型
-	Type   int      `json:"type,omitempty"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type   int      `json:"type,omitempty"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	Status int      `json:"status,omitempty"` // 状态[1:正常, 2:禁用, -1:删除]
 	Models []string `json:"models,omitempty"` // 模型权限
 }
@@ -128,7 +128,7 @@ type ModelTreeReq struct {
 	Corp   string `json:"corp,omitempty"`         // 公司
 	Name   string `json:"name,omitempty"`         // 模型名称
 	Model  string `json:"model,omitempty"`        // 模型
-	Type   int    `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type   int    `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
@@ -144,7 +144,7 @@ type ModelPermissionsReq struct {
 	Corp   string `json:"corp"`   // 公司
 	Name   string `json:"name"`   // 模型名称
 	Model  string `json:"model"`  // 模型
-	Type   int    `json:"type"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type   int    `json:"type"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	Status int    `json:"status"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
@@ -179,7 +179,7 @@ type FastAPI struct {
 	Corp                 string                      `json:"corp,omitempty"`                   // 公司名称
 	Code                 string                      `json:"code,omitempty"`                   // 公司代码
 	Model                string                      `json:"model,omitempty"`                  // 模型
-	Type                 int                         `json:"type,omitempty"`                   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type                 int                         `json:"type,omitempty"`                   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	BaseUrl              string                      `json:"base_url,omitempty"`               // 模型地址
 	Path                 string                      `json:"path,omitempty"`                   // 模型路径
 	TextQuota            common.TextQuota            `json:"text_quota,omitempty"`             // 文本额度
@@ -199,7 +199,7 @@ type Model struct {
 	CorpCode             string                      `json:"corp_code,omitempty"`               // 公司代码
 	Name                 string                      `json:"name,omitempty"`                    // 模型名称
 	Model                string                      `json:"model,omitempty"`                   // 模型
-	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	BaseUrl              string                      `json:"base_url,omitempty"`                // 模型地址
 	Path                 string                      `json:"path,omitempty"`                    // 模型路径
 	Groups               []string                    `json:"groups,omitempty"`                  // 分组权限

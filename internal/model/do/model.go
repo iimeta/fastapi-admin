@@ -14,7 +14,7 @@ type Model struct {
 	Corp                 string                      `bson:"corp,omitempty"`                 // 公司
 	Name                 string                      `bson:"name,omitempty"`                 // 模型名称
 	Model                string                      `bson:"model,omitempty"`                // 模型
-	Type                 int                         `bson:"type,omitempty"`                 // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 100:多模态, 101:多模态实时, 102:多模态语音]
+	Type                 int                         `bson:"type,omitempty"`                 // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	BaseUrl              string                      `bson:"base_url"`                       // 模型地址
 	Path                 string                      `bson:"path"`                           // 模型路径
 	IsEnablePresetConfig bool                        `bson:"is_enable_preset_config"`        // 是否启用预设配置
