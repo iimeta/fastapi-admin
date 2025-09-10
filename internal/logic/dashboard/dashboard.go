@@ -560,8 +560,8 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 // 每秒钟数据
 func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSecondReq) (int, int, error) {
 
-	startTime := gtime.TimestampMilli() - 5000
 	endTime := gtime.TimestampMilli()
+	startTime := endTime - 5000
 
 	pipeline := []bson.M{
 		{
@@ -623,7 +623,17 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 	}
 
 	if len(result) > 0 {
-		return int(math.Ceil(gconv.Float64(result[0]["rps"]) / 5)), (gconv.Int(result[0]["prompt_tokens"]) + gconv.Int(result[0]["completion_tokens"])) / 5, nil
+
+		rps := gconv.Float64(result[0]["rps"])
+		tps := gconv.Int(result[0]["prompt_tokens"]) + gconv.Int(result[0]["completion_tokens"])
+
+		if rps >= 5 {
+			tps /= 5
+		} else {
+			tps /= int(rps)
+		}
+
+		return int(math.Ceil(rps / 5)), tps, nil
 	}
 
 	return 0, 0, nil

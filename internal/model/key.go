@@ -2,7 +2,7 @@ package model
 
 // 新建密钥接口请求参数
 type KeyCreateReq struct {
-	Corp           string   `json:"corp,omitempty"`             // 公司
+	ProviderId     string   `json:"provider_id,omitempty"`      // 提供商ID
 	Key            string   `json:"key,omitempty"`              // 密钥
 	Weight         int      `json:"weight,omitempty"`           // 权重
 	Models         []string `json:"models,omitempty"`           // 模型
@@ -16,7 +16,7 @@ type KeyCreateReq struct {
 // 更新密钥接口请求参数
 type KeyUpdateReq struct {
 	Id             string   `json:"id,omitempty"`                  // ID
-	Corp           string   `json:"corp,omitempty"`                // 公司
+	ProviderId     string   `json:"provider_id,omitempty"`         // 提供商ID
 	Key            string   `json:"key,omitempty"`                 // 密钥
 	Weight         int      `json:"weight,omitempty"`              // 权重
 	Models         []string `json:"models,omitempty" d:"[]"`       // 模型
@@ -44,7 +44,7 @@ type KeyPageReq struct {
 	Type           int      `json:"type,omitempty"`             // 密钥类型[1:应用, 2:模型]
 	UserId         int      `json:"user_id,omitempty"`          // 用户ID
 	AppId          int      `json:"app_id,omitempty"`           // 应用ID
-	Corp           string   `json:"corp,omitempty"`             // 公司
+	ProviderId     string   `json:"provider_id,omitempty"`      // 提供商ID
 	Key            string   `json:"key,omitempty"`              // 密钥
 	Quota          float64  `json:"quota,omitempty"`            // 额度
 	QuotaExpiresAt []string `json:"quota_expires_at,omitempty"` // 额度过期时间
@@ -65,7 +65,7 @@ type KeyPageRes struct {
 type KeyListReq struct {
 	Type        int      `json:"type,omitempty"`         // 密钥类型[1:应用, 2:模型]
 	AppId       int      `json:"app_id,omitempty"`       // 应用ID
-	Corp        string   `json:"corp,omitempty"`         // 公司
+	ProviderId  string   `json:"provider_id,omitempty"`  // 提供商ID
 	Key         string   `json:"key,omitempty"`          // 密钥
 	Models      []string `json:"models,omitempty"`       // 模型
 	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
@@ -85,7 +85,7 @@ type KeyBatchOperateReq struct {
 	Ids         []string `json:"ids"`                    // 主键Ids
 	Value       any      `json:"value"`                  // 值
 	Type        int      `json:"type,omitempty"`         // 密钥类型[1:应用, 2:模型]
-	Corp        string   `json:"corp,omitempty"`         // 公司
+	ProviderId  string   `json:"provider_id,omitempty"`  // 提供商ID
 	Key         string   `json:"key,omitempty"`          // 密钥
 	Models      []string `json:"models,omitempty"`       // 模型
 	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
@@ -110,8 +110,8 @@ type Key struct {
 	Id                  string   `json:"id,omitempty"`                    // ID
 	UserId              int      `json:"user_id,omitempty"`               // 用户ID
 	AppId               int      `json:"app_id,omitempty"`                // 应用ID
-	Corp                string   `json:"corp,omitempty"`                  // 公司ID
-	CorpName            string   `json:"corp_name,omitempty"`             // 公司名称
+	ProviderId          string   `json:"provider_id,omitempty"`           // 提供商ID
+	ProviderName        string   `json:"provider_name,omitempty"`         // 提供商名称
 	Key                 string   `json:"key,omitempty"`                   // 密钥
 	Type                int      `json:"type,omitempty"`                  // 密钥类型[1:应用, 2:模型]
 	Weight              int      `json:"weight"`                          // 权重

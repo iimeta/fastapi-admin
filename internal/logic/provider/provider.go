@@ -1,4 +1,4 @@
-package corp
+package provider
 
 import (
 	"context"
@@ -20,28 +20,28 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type sCorp struct{}
+type sProvider struct{}
 
 func init() {
-	service.RegisterCorp(New())
+	service.RegisterProvider(New())
 }
 
-func New() service.ICorp {
-	return &sCorp{}
+func New() service.IProvider {
+	return &sProvider{}
 }
 
-// 新建公司
-func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) (string, error) {
+// 新建提供商
+func (s *sProvider) Create(ctx context.Context, params model.ProviderCreateReq) (string, error) {
 
 	if params.Sort == 0 {
-		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-sort"}}); err == nil && corp != nil {
-			params.Sort = corp.Sort + 1
+		if provider, err := dao.Provider.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-sort"}}); err == nil && provider != nil {
+			params.Sort = provider.Sort + 1
 		} else {
 			params.Sort = 1
 		}
 	}
 
-	id, err := dao.Corp.Insert(ctx, &do.Corp{
+	id, err := dao.Provider.Insert(ctx, &do.Provider{
 		Name:     gstr.Trim(params.Name),
 		Code:     gstr.Trim(params.Code),
 		Sort:     params.Sort,
@@ -54,15 +54,15 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) (string,
 		return "", err
 	}
 
-	corp, err := dao.Corp.FindById(ctx, id)
+	provider, err := dao.Provider.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_PROVIDER, model.PubMessage{
 		Action:  consts.ACTION_CREATE,
-		NewData: corp,
+		NewData: provider,
 	}); err != nil {
 		logger.Error(ctx, err)
 	}
@@ -70,24 +70,24 @@ func (s *sCorp) Create(ctx context.Context, params model.CorpCreateReq) (string,
 	return id, nil
 }
 
-// 更新公司
-func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
+// 更新提供商
+func (s *sProvider) Update(ctx context.Context, params model.ProviderUpdateReq) error {
 
 	if params.Sort == 0 {
-		if corp, err := dao.Corp.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-sort"}}); err == nil && corp != nil {
-			params.Sort = corp.Sort + 1
+		if provider, err := dao.Provider.FindOne(ctx, bson.M{}, &dao.FindOptions{SortFields: []string{"-sort"}}); err == nil && provider != nil {
+			params.Sort = provider.Sort + 1
 		} else {
 			params.Sort = 1
 		}
 	}
 
-	oldData, err := dao.Corp.FindById(ctx, params.Id)
+	oldData, err := dao.Provider.FindById(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	corp, err := dao.Corp.FindOneAndUpdateById(ctx, params.Id, &do.Corp{
+	provider, err := dao.Provider.FindOneAndUpdateById(ctx, params.Id, &do.Provider{
 		Name:     gstr.Trim(params.Name),
 		Code:     gstr.Trim(params.Code),
 		Sort:     params.Sort,
@@ -100,10 +100,10 @@ func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_PROVIDER, model.PubMessage{
 		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
-		NewData: corp,
+		NewData: provider,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -112,10 +112,10 @@ func (s *sCorp) Update(ctx context.Context, params model.CorpUpdateReq) error {
 	return nil
 }
 
-// 更改公司公开状态
-func (s *sCorp) ChangePublic(ctx context.Context, params model.CorpChangePublicReq) error {
+// 更改提供商公开状态
+func (s *sProvider) ChangePublic(ctx context.Context, params model.ProviderChangePublicReq) error {
 
-	if err := dao.Corp.UpdateById(ctx, params.Id, bson.M{
+	if err := dao.Provider.UpdateById(ctx, params.Id, bson.M{
 		"is_public": params.IsPublic,
 	}); err != nil {
 		logger.Error(ctx, err)
@@ -125,10 +125,10 @@ func (s *sCorp) ChangePublic(ctx context.Context, params model.CorpChangePublicR
 	return nil
 }
 
-// 更改公司状态
-func (s *sCorp) ChangeStatus(ctx context.Context, params model.CorpChangeStatusReq) error {
+// 更改提供商状态
+func (s *sProvider) ChangeStatus(ctx context.Context, params model.ProviderChangeStatusReq) error {
 
-	corp, err := dao.Corp.FindOneAndUpdateById(ctx, params.Id, bson.M{
+	provider, err := dao.Provider.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status": params.Status,
 	})
 	if err != nil {
@@ -136,9 +136,9 @@ func (s *sCorp) ChangeStatus(ctx context.Context, params model.CorpChangeStatusR
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_PROVIDER, model.PubMessage{
 		Action:  consts.ACTION_STATUS,
-		NewData: corp,
+		NewData: provider,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -147,18 +147,18 @@ func (s *sCorp) ChangeStatus(ctx context.Context, params model.CorpChangeStatusR
 	return nil
 }
 
-// 删除公司
-func (s *sCorp) Delete(ctx context.Context, id string) error {
+// 删除提供商
+func (s *sProvider) Delete(ctx context.Context, id string) error {
 
-	corp, err := dao.Corp.FindOneAndDeleteById(ctx, id)
+	provider, err := dao.Provider.FindOneAndDeleteById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CORP, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_PROVIDER, model.PubMessage{
 		Action:  consts.ACTION_DELETE,
-		OldData: corp,
+		OldData: provider,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -167,32 +167,32 @@ func (s *sCorp) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// 公司详情
-func (s *sCorp) Detail(ctx context.Context, id string) (*model.Corp, error) {
+// 提供商详情
+func (s *sProvider) Detail(ctx context.Context, id string) (*model.Provider, error) {
 
-	corp, err := dao.Corp.FindById(ctx, id)
+	provider, err := dao.Provider.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	return &model.Corp{
-		Id:        corp.Id,
-		Name:      corp.Name,
-		Code:      corp.Code,
-		Sort:      corp.Sort,
-		IsPublic:  corp.IsPublic,
-		Remark:    corp.Remark,
-		Status:    corp.Status,
-		Creator:   corp.Creator,
-		Updater:   corp.Updater,
-		CreatedAt: util.FormatDateTime(corp.CreatedAt),
-		UpdatedAt: util.FormatDateTime(corp.UpdatedAt),
+	return &model.Provider{
+		Id:        provider.Id,
+		Name:      provider.Name,
+		Code:      provider.Code,
+		Sort:      provider.Sort,
+		IsPublic:  provider.IsPublic,
+		Remark:    provider.Remark,
+		Status:    provider.Status,
+		Creator:   provider.Creator,
+		Updater:   provider.Updater,
+		CreatedAt: util.FormatDateTime(provider.CreatedAt),
+		UpdatedAt: util.FormatDateTime(provider.UpdatedAt),
 	}, nil
 }
 
-// 公司分页列表
-func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.CorpPageRes, error) {
+// 提供商分页列表
+func (s *sProvider) Page(ctx context.Context, params model.ProviderPageReq) (*model.ProviderPageRes, error) {
 
 	paging := &db.Paging{
 		Page:     params.Page,
@@ -236,15 +236,15 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 		}
 	}
 
-	results, err := dao.Corp.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at"}})
+	results, err := dao.Provider.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	items := make([]*model.Corp, 0)
+	items := make([]*model.Provider, 0)
 	for _, result := range results {
-		items = append(items, &model.Corp{
+		items = append(items, &model.Provider{
 			Id:        result.Id,
 			Name:      result.Name,
 			Code:      result.Code,
@@ -257,7 +257,7 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 		})
 	}
 
-	return &model.CorpPageRes{
+	return &model.ProviderPageRes{
 		Items: items,
 		Paging: &model.Paging{
 			Page:     paging.Page,
@@ -267,8 +267,8 @@ func (s *sCorp) Page(ctx context.Context, params model.CorpPageReq) (*model.Corp
 	}, nil
 }
 
-// 公司列表
-func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Corp, error) {
+// 提供商列表
+func (s *sProvider) List(ctx context.Context, params model.ProviderListReq) ([]*model.Provider, error) {
 
 	filter := bson.M{
 		"status": 1,
@@ -278,15 +278,15 @@ func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Co
 		filter["is_public"] = true
 	}
 
-	results, err := dao.Corp.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"sort", "status", "-updated_at"}})
+	results, err := dao.Provider.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"sort", "status", "-updated_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	items := make([]*model.Corp, 0)
+	items := make([]*model.Provider, 0)
 	for _, result := range results {
-		items = append(items, &model.Corp{
+		items = append(items, &model.Provider{
 			Id:   result.Id,
 			Name: result.Name,
 			Code: result.Code,
@@ -296,13 +296,13 @@ func (s *sCorp) List(ctx context.Context, params model.CorpListReq) ([]*model.Co
 	return items, nil
 }
 
-// 公司批量操作
-func (s *sCorp) BatchOperate(ctx context.Context, params model.CorpBatchOperateReq) error {
+// 提供商批量操作
+func (s *sProvider) BatchOperate(ctx context.Context, params model.ProviderBatchOperateReq) error {
 
 	switch params.Action {
 	case consts.ACTION_STATUS:
 		for _, id := range params.Ids {
-			if err := s.ChangeStatus(ctx, model.CorpChangeStatusReq{
+			if err := s.ChangeStatus(ctx, model.ProviderChangeStatusReq{
 				Id:     id,
 				Status: gconv.Int(params.Value),
 			}); err != nil {

@@ -2,7 +2,7 @@ package entity
 
 import "github.com/gogf/gf/v2/util/gmeta"
 
-type Corp struct {
+type Provider struct {
 	gmeta.Meta `role:"*" bson:"-"`
 	Id         string `bson:"_id,omitempty"`        // ID
 	Name       string `bson:"name,omitempty"`       // 名称

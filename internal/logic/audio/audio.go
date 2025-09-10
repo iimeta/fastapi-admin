@@ -44,36 +44,35 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	corpName := result.Corp
-	if corp, err := dao.Corp.FindById(ctx, result.Corp); err == nil && corp != nil {
-		corpName = corp.Name
+	providerName := result.ProviderId
+	if provider, err := dao.Provider.FindById(ctx, result.ProviderId); err == nil && provider != nil {
+		providerName = provider.Name
 	}
 
 	audio := &model.Audio{
-		Id:          result.Id,
-		TraceId:     result.TraceId,
-		UserId:      result.UserId,
-		AppId:       result.AppId,
-		Corp:        result.Corp,
-		CorpName:    corpName,
-		GroupId:     result.GroupId,
-		GroupName:   result.GroupName,
-		Discount:    result.Discount,
-		Model:       result.Model,
-		Type:        result.Type,
-		Input:       result.Input,
-		Text:        result.Text,
-		Characters:  result.Characters,
-		Minute:      result.Minute,
-		AudioQuota:  result.AudioQuota,
-		TotalTokens: result.TotalTokens,
-		TotalTime:   result.TotalTime,
-		ReqTime:     util.FormatDateTime(result.ReqTime),
-		ClientIp:    result.ClientIp,
-		Retry:       result.Retry,
-		Status:      result.Status,
-		Host:        result.Host,
-		Creator:     util.Desensitize(result.Creator),
+		Id:           result.Id,
+		TraceId:      result.TraceId,
+		UserId:       result.UserId,
+		AppId:        result.AppId,
+		GroupId:      result.GroupId,
+		GroupName:    result.GroupName,
+		Discount:     result.Discount,
+		ProviderName: providerName,
+		Model:        result.Model,
+		ModelType:    result.ModelType,
+		Input:        result.Input,
+		Text:         result.Text,
+		Characters:   result.Characters,
+		Minute:       result.Minute,
+		AudioQuota:   result.AudioQuota,
+		TotalTokens:  result.TotalTokens,
+		TotalTime:    result.TotalTime,
+		ReqTime:      util.FormatDateTime(result.ReqTime),
+		ClientIp:     result.ClientIp,
+		Retry:        result.Retry,
+		Status:       result.Status,
+		Host:         result.Host,
+		Creator:      util.Desensitize(result.Creator),
 	}
 
 	if audio.Status == -1 {
@@ -110,8 +109,9 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 
 	if service.Session().IsAdminRole(ctx) {
 
+		audio.ProviderId = result.ProviderId
 		audio.ModelId = result.ModelId
-		audio.Name = result.Name
+		audio.ModelName = result.ModelName
 		audio.Key = util.Desensitize(result.Key)
 		audio.IsEnablePresetConfig = result.IsEnablePresetConfig
 		audio.IsEnableModelAgent = result.IsEnableModelAgent
@@ -134,24 +134,23 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 
 		if result.ModelAgent != nil {
 
-			corpName := result.ModelAgent.Corp
-			if corp, err := dao.Corp.FindById(ctx, result.ModelAgent.Corp); err == nil && corp != nil {
-				corpName = corp.Name
+			providerName := result.ModelAgent.ProviderId
+			if provider, err := dao.Provider.FindById(ctx, result.ModelAgent.ProviderId); err == nil && provider != nil {
+				providerName = provider.Name
 			}
 
 			audio.ModelAgent = &model.ModelAgent{
-				Corp:     result.ModelAgent.Corp,
-				CorpName: corpName,
-				Name:     result.ModelAgent.Name,
-				BaseUrl:  result.ModelAgent.BaseUrl,
-				Path:     result.ModelAgent.Path,
-				Weight:   result.ModelAgent.Weight,
-				Remark:   result.ModelAgent.Remark,
-				Status:   result.ModelAgent.Status,
+				ProviderId:   result.ModelAgent.ProviderId,
+				ProviderName: providerName,
+				Name:         result.ModelAgent.Name,
+				BaseUrl:      result.ModelAgent.BaseUrl,
+				Path:         result.ModelAgent.Path,
+				Weight:       result.ModelAgent.Weight,
+				Remark:       result.ModelAgent.Remark,
 			}
 		}
 
-		if audio.Type == 6 {
+		if audio.ModelType == 6 {
 			audio.Input = result.FilePath
 		}
 	}
@@ -245,7 +244,6 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 			Id:          result.Id,
 			UserId:      result.UserId,
 			AppId:       result.AppId,
-			Corp:        result.Corp,
 			Model:       result.Model,
 			Characters:  result.Characters,
 			Minute:      result.Minute,

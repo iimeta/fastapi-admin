@@ -73,7 +73,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 			if key == nil {
 
 				id, err := dao.Key.Insert(ctx, &do.Key{
-					Corp:           params.Corp,
+					ProviderId:     params.ProviderId,
 					Key:            gstr.Trim(k),
 					Type:           2,
 					Weight:         params.Weight,
@@ -113,7 +113,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 
 				if err := s.Update(ctx, model.KeyUpdateReq{
 					Id:             key.Id,
-					Corp:           params.Corp,
+					ProviderId:     params.ProviderId,
 					Key:            key.Key,
 					Weight:         key.Weight,
 					Models:         modelSet.Slice(),
@@ -156,7 +156,7 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 	}
 
 	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, &do.Key{
-		Corp:               params.Corp,
+		ProviderId:         params.ProviderId,
 		Key:                gstr.Trim(params.Key),
 		Weight:             params.Weight,
 		Models:             params.Models,
@@ -310,10 +310,10 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		return nil, errors.New("Unauthorized")
 	}
 
-	corpName := key.Corp
-	if key.Corp != "" {
-		if corp, err := dao.Corp.FindById(ctx, key.Corp); err == nil && corp != nil {
-			corpName = corp.Name
+	providerName := key.ProviderId
+	if key.ProviderId != "" {
+		if provider, err := dao.Provider.FindById(ctx, key.ProviderId); err == nil && provider != nil {
+			providerName = provider.Name
 		}
 	}
 
@@ -351,8 +351,8 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		Id:                  key.Id,
 		UserId:              key.UserId,
 		AppId:               key.AppId,
-		Corp:                key.Corp,
-		CorpName:            corpName,
+		ProviderId:          key.ProviderId,
+		ProviderName:        providerName,
 		Key:                 key.Key,
 		Type:                key.Type,
 		Weight:              key.Weight,
@@ -406,8 +406,8 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		filter["user_id"] = params.UserId
 	}
 
-	if params.Corp != "" {
-		filter["corp"] = params.Corp
+	if params.ProviderId != "" {
+		filter["provider_id"] = params.ProviderId
 	}
 
 	if params.AppId != 0 {
@@ -469,18 +469,18 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		return nil, err
 	}
 
-	corpMap := make(map[string]*entity.Corp)
+	providerMap := make(map[string]*entity.Provider)
 	modelAgentMap := make(map[string]*entity.ModelAgent)
 
 	if params.Type == 2 && service.Session().IsAdminRole(ctx) {
 
-		corps, err := dao.Corp.Find(ctx, bson.M{})
+		providers, err := dao.Provider.Find(ctx, bson.M{})
 		if err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
 
-		corpMap = util.ToMap(corps, func(t *entity.Corp) string {
+		providerMap = util.ToMap(providers, func(t *entity.Provider) string {
 			return t.Id
 		})
 
@@ -502,7 +502,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Id:                  result.Id,
 			UserId:              result.UserId,
 			AppId:               result.AppId,
-			Corp:                result.Corp,
+			ProviderId:          result.ProviderId,
 			Key:                 util.Desensitize(result.Key),
 			Type:                result.Type,
 			Weight:              result.Weight,
@@ -527,11 +527,11 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 
 		if params.Type == 2 && service.Session().IsAdminRole(ctx) {
 
-			corpName := result.Corp
-			if corpMap[result.Corp] != nil {
-				corpName = corpMap[result.Corp].Name
+			providerName := result.ProviderId
+			if providerMap[result.ProviderId] != nil {
+				providerName = providerMap[result.ProviderId].Name
 			}
-			key.CorpName = corpName
+			key.ProviderName = providerName
 
 			modelAgentNames := make([]string, 0)
 			for _, id := range result.ModelAgents {
@@ -562,8 +562,8 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 		"type": 2,
 	}
 
-	if params.Corp != "" {
-		filter["corp"] = params.Corp
+	if params.ProviderId != "" {
+		filter["provider_id"] = params.ProviderId
 	}
 
 	if params.AppId != 0 {
@@ -579,12 +579,12 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 		items = append(items, &model.Key{
-			Id:     result.Id,
-			Corp:   result.Corp,
-			Key:    util.Desensitize(result.Key),
-			Type:   result.Type,
-			Remark: result.Remark,
-			Status: result.Status,
+			Id:         result.Id,
+			ProviderId: result.ProviderId,
+			Key:        util.Desensitize(result.Key),
+			Type:       result.Type,
+			Remark:     result.Remark,
+			Status:     result.Status,
 		})
 	}
 
@@ -619,8 +619,8 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 				"type": params.Type,
 			}
 
-			if params.Corp != "" {
-				filter["corp"] = params.Corp
+			if params.ProviderId != "" {
+				filter["provider_id"] = params.ProviderId
 			}
 
 			if params.Key != "" {
@@ -672,8 +672,8 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 				"type": params.Type,
 			}
 
-			if params.Corp != "" {
-				filter["corp"] = params.Corp
+			if params.ProviderId != "" {
+				filter["provider_id"] = params.ProviderId
 			}
 
 			if params.Key != "" {

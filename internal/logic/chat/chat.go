@@ -49,9 +49,9 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	corpName := result.Corp
-	if corp, err := dao.Corp.FindById(ctx, result.Corp); err == nil && corp != nil {
-		corpName = corp.Name
+	providerName := result.ProviderId
+	if provider, err := dao.Provider.FindById(ctx, result.ProviderId); err == nil && provider != nil {
+		providerName = provider.Name
 	}
 
 	chat := &model.Chat{
@@ -59,13 +59,12 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		TraceId:              result.TraceId,
 		UserId:               result.UserId,
 		AppId:                result.AppId,
-		Corp:                 result.Corp,
-		CorpName:             corpName,
-		Model:                result.Model,
 		GroupId:              result.GroupId,
 		GroupName:            result.GroupName,
 		Discount:             result.Discount,
-		Type:                 result.Type,
+		ProviderName:         providerName,
+		Model:                result.Model,
+		ModelType:            result.ModelType,
 		Stream:               result.Stream,
 		Messages:             result.Messages,
 		Prompt:               result.Prompt,
@@ -124,9 +123,9 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 	}
 
 	if service.Session().IsAdminRole(ctx) {
-
+		chat.ProviderId = result.ProviderId
 		chat.ModelId = result.ModelId
-		chat.Name = result.Name
+		chat.ModelName = result.ModelName
 		chat.Key = util.Desensitize(result.Key)
 		chat.IsEnablePresetConfig = result.IsEnablePresetConfig
 		chat.IsEnableModelAgent = result.IsEnableModelAgent
@@ -149,20 +148,19 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 
 		if result.ModelAgent != nil {
 
-			corpName := result.ModelAgent.Corp
-			if corp, err := dao.Corp.FindById(ctx, result.ModelAgent.Corp); err == nil && corp != nil {
-				corpName = corp.Name
+			providerName := result.ModelAgent.ProviderId
+			if provider, err := dao.Provider.FindById(ctx, result.ModelAgent.ProviderId); err == nil && provider != nil {
+				providerName = provider.Name
 			}
 
 			chat.ModelAgent = &model.ModelAgent{
-				Corp:     result.ModelAgent.Corp,
-				CorpName: corpName,
-				Name:     result.ModelAgent.Name,
-				BaseUrl:  result.ModelAgent.BaseUrl,
-				Path:     result.ModelAgent.Path,
-				Weight:   result.ModelAgent.Weight,
-				Remark:   result.ModelAgent.Remark,
-				Status:   result.ModelAgent.Status,
+				ProviderId:   result.ModelAgent.ProviderId,
+				ProviderName: providerName,
+				Name:         result.ModelAgent.Name,
+				BaseUrl:      result.ModelAgent.BaseUrl,
+				Path:         result.ModelAgent.Path,
+				Weight:       result.ModelAgent.Weight,
+				Remark:       result.ModelAgent.Remark,
 			}
 		}
 	}
@@ -287,7 +285,6 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			Id:               result.Id,
 			UserId:           result.UserId,
 			AppId:            result.AppId,
-			Corp:             result.Corp,
 			Model:            result.Model,
 			Stream:           result.Stream,
 			PromptTokens:     result.PromptTokens,

@@ -44,7 +44,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 	}
 
 	m := &do.Model{
-		Corp:                 params.Corp,
+		ProviderId:           params.ProviderId,
 		Name:                 gstr.Trim(params.Name),
 		Model:                gstr.Trim(params.Model),
 		Type:                 params.Type,
@@ -214,7 +214,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
 				Id:                   modelAgent.Id,
-				Corp:                 modelAgent.Corp,
+				ProviderId:           modelAgent.ProviderId,
 				Name:                 modelAgent.Name,
 				BaseUrl:              modelAgent.BaseUrl,
 				Path:                 modelAgent.Path,
@@ -253,7 +253,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 
 			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
 				Id:                   modelAgent.Id,
-				Corp:                 modelAgent.Corp,
+				ProviderId:           modelAgent.ProviderId,
 				Name:                 modelAgent.Name,
 				BaseUrl:              modelAgent.BaseUrl,
 				Path:                 modelAgent.Path,
@@ -275,7 +275,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 	}
 
 	m := &do.Model{
-		Corp:                 params.Corp,
+		ProviderId:           params.ProviderId,
 		Name:                 gstr.Trim(params.Name),
 		Model:                gstr.Trim(params.Model),
 		Type:                 params.Type,
@@ -739,11 +739,11 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		}
 	}
 
-	corpName := m.Corp
-	corpCode := m.Corp
-	if corp, err := dao.Corp.FindById(ctx, m.Corp); err == nil && corp != nil {
-		corpName = corp.Name
-		corpCode = corp.Code
+	providerName := m.ProviderId
+	providerCode := m.ProviderId
+	if provider, err := dao.Provider.FindById(ctx, m.ProviderId); err == nil && provider != nil {
+		providerName = provider.Name
+		providerCode = provider.Code
 	}
 
 	groups, err := service.Group().List(ctx, model.GroupListReq{})
@@ -763,9 +763,9 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 
 	detail := &model.Model{
 		Id:                   m.Id,
-		Corp:                 m.Corp,
-		CorpName:             corpName,
-		CorpCode:             corpCode,
+		ProviderId:           m.ProviderId,
+		ProviderName:         providerName,
+		ProviderCode:         providerCode,
 		Name:                 m.Name,
 		Model:                m.Model,
 		Type:                 m.Type,
@@ -965,8 +965,8 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		}
 	}
 
-	if params.Corp != "" {
-		filter["corp"] = params.Corp
+	if params.ProviderId != "" {
+		filter["provider_id"] = params.ProviderId
 	}
 
 	if params.Name != "" {
@@ -1001,13 +1001,13 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		return nil, err
 	}
 
-	corps, err := dao.Corp.Find(ctx, bson.M{})
+	providers, err := dao.Provider.Find(ctx, bson.M{})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
+	providerMap := util.ToMap(providers, func(t *entity.Provider) string {
 		return t.Id
 	})
 
@@ -1020,11 +1020,11 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 	items := make([]*model.Model, 0)
 	for _, result := range results {
 
-		corpName := result.Corp
-		corpCode := result.Corp
-		if corpMap[result.Corp] != nil {
-			corpName = corpMap[result.Corp].Name
-			corpCode = corpMap[result.Corp].Code
+		providerName := result.ProviderId
+		providerCode := result.ProviderId
+		if providerMap[result.ProviderId] != nil {
+			providerName = providerMap[result.ProviderId].Name
+			providerCode = providerMap[result.ProviderId].Code
 		}
 
 		groupNames := make([]string, 0)
@@ -1036,9 +1036,9 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 		model := &model.Model{
 			Id:                   result.Id,
-			Corp:                 result.Corp,
-			CorpName:             corpName,
-			CorpCode:             corpCode,
+			ProviderId:           result.ProviderId,
+			ProviderName:         providerName,
+			ProviderCode:         providerCode,
 			Name:                 result.Name,
 			Model:                result.Model,
 			Type:                 result.Type,
@@ -1082,8 +1082,8 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 
 	filter := bson.M{}
 
-	if params.Corp != "" {
-		filter["corp"] = params.Corp
+	if params.ProviderId != "" {
+		filter["provider_id"] = params.ProviderId
 	}
 
 	if params.Name != "" {
@@ -1186,32 +1186,32 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 		return nil, err
 	}
 
-	corps, err := dao.Corp.Find(ctx, bson.M{})
+	providers, err := dao.Provider.Find(ctx, bson.M{})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
+	providerMap := util.ToMap(providers, func(t *entity.Provider) string {
 		return t.Id
 	})
 
 	items := make([]*model.Model, 0)
 	for _, result := range results {
 
-		corpName := result.Corp
-		if corpMap[result.Corp] != nil {
-			corpName = corpMap[result.Corp].Name
+		providerName := result.ProviderId
+		if providerMap[result.ProviderId] != nil {
+			providerName = providerMap[result.ProviderId].Name
 		}
 
 		model := &model.Model{
-			Id:       result.Id,
-			Corp:     result.Corp,
-			CorpName: corpName,
-			Name:     result.Name,
-			Model:    result.Model,
-			Type:     result.Type,
-			Status:   result.Status,
+			Id:           result.Id,
+			ProviderId:   result.ProviderId,
+			ProviderName: providerName,
+			Name:         result.Name,
+			Model:        result.Model,
+			Type:         result.Type,
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
@@ -1259,7 +1259,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 
 			m := model.ModelUpdateReq{
 				Id:                   result.Id,
-				Corp:                 result.Corp,
+				ProviderId:           result.ProviderId,
 				Name:                 result.Name,
 				Model:                result.Model,
 				Type:                 result.Type,
@@ -1334,7 +1334,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 
 			m := model.ModelUpdateReq{
 				Id:                   result.Id,
-				Corp:                 result.Corp,
+				ProviderId:           result.ProviderId,
 				Name:                 result.Name,
 				Model:                result.Model,
 				Type:                 result.Type,
@@ -1417,7 +1417,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 
 			m := model.ModelUpdateReq{
 				Id:                   result.Id,
-				Corp:                 result.Corp,
+				ProviderId:           result.ProviderId,
 				Name:                 result.Name,
 				Model:                result.Model,
 				Type:                 result.Type,
@@ -1551,41 +1551,41 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 		return nil, err
 	}
 
-	treeData := make(map[string][]model.Tree) // [Corp:Type][][Model]
+	treeData := make(map[string][]model.Tree) // [ProviderId:Type][][Model]
 
 	for _, result := range results {
 
-		corpTree := treeData[fmt.Sprintf("%s:%d", result.Corp, result.Type)]
-		if corpTree == nil {
-			corpTree = make([]model.Tree, 0)
+		providerTree := treeData[fmt.Sprintf("%s:%d", result.ProviderId, result.Type)]
+		if providerTree == nil {
+			providerTree = make([]model.Tree, 0)
 		}
 
-		corpTree = append(corpTree, model.Tree{
+		providerTree = append(providerTree, model.Tree{
 			Title: result.Model,
 			Value: result.Id,
 			Key:   result.Id,
 		})
 
-		treeData[fmt.Sprintf("%s:%d", result.Corp, result.Type)] = corpTree
+		treeData[fmt.Sprintf("%s:%d", result.ProviderId, result.Type)] = providerTree
 	}
 
-	corps, err := service.Corp().List(ctx, model.CorpListReq{})
+	providers, err := service.Provider().List(ctx, model.ProviderListReq{})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	items := make([]*model.Tree, 0)
-	for _, corp := range corps {
+	for _, provider := range providers {
 
 		children := make([]model.Tree, 0)
 
 		for _, typ := range consts.MODEL_TYPES {
-			if modelTree := treeData[fmt.Sprintf("%s:%d", corp.Id, typ)]; modelTree != nil {
+			if modelTree := treeData[fmt.Sprintf("%s:%d", provider.Id, typ)]; modelTree != nil {
 				children = append(children, model.Tree{
 					Title:    consts.MODEL_TYPE[typ],
-					Value:    fmt.Sprintf("%s:%d", corp.Id, typ),
-					Key:      fmt.Sprintf("%s:%d", corp.Id, typ),
+					Value:    fmt.Sprintf("%s:%d", provider.Id, typ),
+					Key:      fmt.Sprintf("%s:%d", provider.Id, typ),
 					Children: modelTree,
 				})
 			}
@@ -1593,9 +1593,9 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 
 		if len(children) > 0 {
 			items = append(items, &model.Tree{
-				Title:    corp.Name,
-				Value:    corp.Id,
-				Key:      corp.Id,
+				Title:    provider.Name,
+				Value:    provider.Id,
+				Key:      provider.Id,
 				Children: children,
 			})
 		}
@@ -1608,11 +1608,11 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsReq) ([]*model.Model, error) {
 
 	modelListReq := model.ModelListReq{
-		Corp:   params.Corp,
-		Name:   params.Name,
-		Model:  params.Model,
-		Type:   params.Type,
-		Status: params.Status,
+		ProviderId: params.ProviderId,
+		Name:       params.Name,
+		Model:      params.Model,
+		Type:       params.Type,
+		Status:     params.Status,
 	}
 
 	switch params.Action {
@@ -1720,17 +1720,17 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 		return errors.New("模型接口数据格式不支持, 请联系作者...")
 	}
 
-	corps, err := dao.Corp.Find(ctx, bson.M{})
+	providers, err := dao.Provider.Find(ctx, bson.M{})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	corpNameMap := make(map[string]string)
-	corpCodeMap := make(map[string]string)
-	for _, corp := range corps {
-		corpNameMap[corp.Name] = corp.Id
-		corpCodeMap[corp.Code] = corp.Id
+	providerNameMap := make(map[string]string)
+	providerCodeMap := make(map[string]string)
+	for _, provider := range providers {
+		providerNameMap[provider.Name] = provider.Id
+		providerCodeMap[provider.Code] = provider.Id
 	}
 
 	models, err := dao.Model.Find(ctx, bson.M{})
@@ -1750,8 +1750,8 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 		if modelAgent, err := dao.ModelAgent.FindOne(ctx, bson.M{"name": "FastAPI"}); err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 
-				if corpCodeMap["FastAPI"] == "" {
-					if corpCodeMap["FastAPI"], err = service.Corp().Create(ctx, model.CorpCreateReq{
+				if providerCodeMap["FastAPI"] == "" {
+					if providerCodeMap["FastAPI"], err = service.Provider().Create(ctx, model.ProviderCreateReq{
 						Name:     "FastAPI",
 						Code:     "FastAPI",
 						IsPublic: true,
@@ -1763,7 +1763,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				}
 
 				if modelAgentId, err = service.ModelAgent().Create(ctx, model.ModelAgentCreateReq{
-					Corp:         corpCodeMap["FastAPI"],
+					ProviderId:   providerCodeMap["FastAPI"],
 					Name:         "FastAPI",
 					BaseUrl:      gstr.Replace(params.Url, "/models", ""),
 					Key:          params.Key,
@@ -1786,14 +1786,14 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 	for _, data := range result.Data {
 
-		corp := corpNameMap[data.FastAPI.Corp]
-		if corp == "" {
-			corp = corpCodeMap[data.FastAPI.Code]
+		provider := providerNameMap[data.FastAPI.Provider]
+		if provider == "" {
+			provider = providerCodeMap[data.FastAPI.Code]
 		}
 
-		if corp == "" {
-			if corp, err = service.Corp().Create(ctx, model.CorpCreateReq{
-				Name:     data.FastAPI.Corp,
+		if provider == "" {
+			if provider, err = service.Provider().Create(ctx, model.ProviderCreateReq{
+				Name:     data.FastAPI.Provider,
 				Code:     data.FastAPI.Code,
 				IsPublic: true,
 				Status:   1,
@@ -1801,14 +1801,14 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				logger.Error(ctx, err)
 				return err
 			}
-			corpNameMap[data.FastAPI.Corp] = corp
-			corpCodeMap[data.FastAPI.Code] = corp
+			providerNameMap[data.FastAPI.Provider] = provider
+			providerCodeMap[data.FastAPI.Code] = provider
 		}
 
 		if modelMap[data.Id] == nil {
 
 			modelCreateReq := model.ModelCreateReq{
-				Corp:                 corp,
+				ProviderId:           provider,
 				Name:                 data.Id,
 				Model:                data.FastAPI.Model,
 				Type:                 data.FastAPI.Type,
@@ -1850,7 +1850,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 			modelUpdateReq := model.ModelUpdateReq{
 				Id:                   detail.Id,
-				Corp:                 detail.Corp,
+				ProviderId:           detail.ProviderId,
 				Name:                 detail.Name,
 				Model:                detail.Model,
 				Type:                 detail.Type,

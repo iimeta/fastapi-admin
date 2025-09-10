@@ -40,7 +40,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}
 
 	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
-		Corp:                 params.Corp,
+		ProviderId:           params.ProviderId,
 		Name:                 gstr.Trim(params.Name),
 		BaseUrl:              gstr.Trim(params.BaseUrl),
 		Path:                 gstr.Trim(params.Path),
@@ -73,7 +73,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 
 	if params.Key != "" {
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
-			Corp:           params.Corp,
+			ProviderId:     params.ProviderId,
 			Key:            params.Key,
 			Weight:         params.Weight,
 			Models:         params.Models,
@@ -136,7 +136,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}
 
 	if err = dao.ModelAgent.UpdateById(ctx, params.Id, &do.ModelAgent{
-		Corp:                 params.Corp,
+		ProviderId:           params.ProviderId,
 		Name:                 gstr.Trim(params.Name),
 		BaseUrl:              gstr.Trim(params.BaseUrl),
 		Path:                 gstr.Trim(params.Path),
@@ -200,7 +200,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 
 	if params.Key != "" {
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
-			Corp:           params.Corp,
+			ProviderId:     params.ProviderId,
 			Key:            params.Key,
 			Weight:         params.Weight,
 			Models:         params.Models,
@@ -391,9 +391,9 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		return nil, err
 	}
 
-	corpName := modelAgent.Corp
-	if corp, err := dao.Corp.FindById(ctx, modelAgent.Corp); err == nil && corp != nil {
-		corpName = corp.Name
+	providerName := modelAgent.ProviderId
+	if provider, err := dao.Provider.FindById(ctx, modelAgent.ProviderId); err == nil && provider != nil {
+		providerName = provider.Name
 	}
 
 	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
@@ -437,8 +437,8 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 
 	return &model.ModelAgent{
 		Id:                   modelAgent.Id,
-		Corp:                 modelAgent.Corp,
-		CorpName:             corpName,
+		ProviderId:           modelAgent.ProviderId,
+		ProviderName:         providerName,
 		Name:                 modelAgent.Name,
 		BaseUrl:              modelAgent.BaseUrl,
 		Path:                 modelAgent.Path,
@@ -474,8 +474,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 	filter := bson.M{}
 
-	if params.Corp != "" {
-		filter["corp"] = params.Corp
+	if params.ProviderId != "" {
+		filter["provider_id"] = params.ProviderId
 	}
 
 	if params.Name != "" {
@@ -526,13 +526,13 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		return nil, err
 	}
 
-	corps, err := dao.Corp.Find(ctx, bson.M{})
+	providers, err := dao.Provider.Find(ctx, bson.M{})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	corpMap := util.ToMap(corps, func(t *entity.Corp) string {
+	providerMap := util.ToMap(providers, func(t *entity.Provider) string {
 		return t.Id
 	})
 
@@ -564,15 +564,15 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 	items := make([]*model.ModelAgent, 0)
 	for _, result := range results {
 
-		corpName := result.Corp
-		if corpMap[result.Corp] != nil {
-			corpName = corpMap[result.Corp].Name
+		providerName := result.ProviderId
+		if providerMap[result.ProviderId] != nil {
+			providerName = providerMap[result.ProviderId].Name
 		}
 
 		items = append(items, &model.ModelAgent{
 			Id:                 result.Id,
-			Corp:               result.Corp,
-			CorpName:           corpName,
+			ProviderId:         result.ProviderId,
+			ProviderName:       providerName,
 			Name:               result.Name,
 			BaseUrl:            result.BaseUrl,
 			Path:               result.Path,
@@ -630,7 +630,7 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 	for _, result := range results {
 		items = append(items, &model.ModelAgent{
 			Id:         result.Id,
-			Corp:       result.Corp,
+			ProviderId: result.ProviderId,
 			Name:       result.Name,
 			BaseUrl:    result.BaseUrl,
 			Path:       result.Path,

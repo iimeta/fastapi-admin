@@ -2,15 +2,15 @@
 // Code generated and maintained by GoFrame CLI tool. DO NOT EDIT.
 // =================================================================================
 
-package corp
+package provider
 
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/corp/v1"
+	"github.com/iimeta/fastapi-admin/api/provider/v1"
 )
 
-type ICorpV1 interface {
+type IProviderV1 interface {
 	Create(ctx context.Context, req *v1.CreateReq) (res *v1.CreateRes, err error)
 	Update(ctx context.Context, req *v1.UpdateReq) (res *v1.UpdateRes, err error)
 	ChangeStatus(ctx context.Context, req *v1.ChangeStatusReq) (res *v1.ChangeStatusRes, err error)

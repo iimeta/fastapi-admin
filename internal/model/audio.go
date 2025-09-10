@@ -43,15 +43,15 @@ type Audio struct {
 	TraceId              string                 `json:"trace_id,omitempty"`                // 日志ID
 	UserId               int                    `json:"user_id,omitempty"`                 // 用户ID
 	AppId                int                    `json:"app_id,omitempty"`                  // 应用ID
-	Corp                 string                 `json:"corp,omitempty"`                    // 公司
-	CorpName             string                 `json:"corp_name,omitempty"`               // 公司名称
 	GroupId              string                 `json:"group_id,omitempty"`                // 分组ID
 	GroupName            string                 `json:"group_name,omitempty"`              // 分组名称
 	Discount             float64                `json:"discount,omitempty"`                // 分组折扣
+	ProviderId           string                 `json:"provider_id,omitempty"`             // 提供商ID
+	ProviderName         string                 `json:"provider_name,omitempty"`           // 提供商名称
 	ModelId              string                 `json:"model_id,omitempty"`                // 模型ID
-	Name                 string                 `json:"name,omitempty"`                    // 模型名称
+	ModelName            string                 `json:"model_name,omitempty"`              // 模型名称
 	Model                string                 `json:"model,omitempty"`                   // 模型
-	Type                 int                    `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
+	ModelType            int                    `json:"model_type,omitempty"`              // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	Key                  string                 `json:"key,omitempty"`                     // 密钥
 	IsEnablePresetConfig bool                   `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
 	PresetConfig         common.PresetConfig    `json:"preset_config,omitempty"`           // 预设配置

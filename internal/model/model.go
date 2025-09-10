@@ -4,7 +4,7 @@ import "github.com/iimeta/fastapi-admin/internal/model/common"
 
 // 新建模型接口请求参数
 type ModelCreateReq struct {
-	Corp                 string                      `json:"corp,omitempty"`                    // 公司
+	ProviderId           string                      `json:"provider_id,omitempty"`             // 提供商ID
 	Name                 string                      `json:"name,omitempty"`                    // 模型名称
 	Model                string                      `json:"model,omitempty"`                   // 模型
 	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
@@ -37,7 +37,7 @@ type ModelCreateReq struct {
 // 更新模型接口请求参数
 type ModelUpdateReq struct {
 	Id                   string                      `json:"id" v:"required"`                   // ID
-	Corp                 string                      `json:"corp,omitempty"`                    // 公司
+	ProviderId           string                      `json:"provider_id,omitempty"`             // 提供商ID
 	Name                 string                      `json:"name,omitempty"`                    // 模型名称
 	Model                string                      `json:"model,omitempty"`                   // 模型
 	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
@@ -81,14 +81,14 @@ type ModelDetailRes struct {
 // 模型分页列表接口请求参数
 type ModelPageReq struct {
 	Paging
-	Corp      string   `json:"corp,omitempty"`       // 公司
-	Name      string   `json:"name,omitempty"`       // 模型名称
-	Model     string   `json:"model,omitempty"`      // 模型
-	Type      int      `json:"type,omitempty"`       // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
-	Group     string   `json:"group,omitempty"`      // 分组
-	Remark    string   `json:"remark,omitempty"`     // 备注
-	Status    int      `json:"status,omitempty"`     // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
+	ProviderId string   `json:"provider_id,omitempty"` // 提供商ID
+	Name       string   `json:"name,omitempty"`        // 模型名称
+	Model      string   `json:"model,omitempty"`       // 模型
+	Type       int      `json:"type,omitempty"`        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
+	Group      string   `json:"group,omitempty"`       // 分组
+	Remark     string   `json:"remark,omitempty"`      // 备注
+	Status     int      `json:"status,omitempty"`      // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt  []string `json:"created_at,omitempty"`  // 创建时间
 }
 
 // 模型分页列表接口响应参数
@@ -99,12 +99,12 @@ type ModelPageRes struct {
 
 // 模型列表接口请求参数
 type ModelListReq struct {
-	Corp   string   `json:"corp,omitempty"`   // 公司
-	Name   string   `json:"name,omitempty"`   // 模型名称
-	Model  string   `json:"model,omitempty"`  // 模型
-	Type   int      `json:"type,omitempty"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
-	Status int      `json:"status,omitempty"` // 状态[1:正常, 2:禁用, -1:删除]
-	Models []string `json:"models,omitempty"` // 模型权限
+	ProviderId string   `json:"provider_id,omitempty"` // 提供商ID
+	Name       string   `json:"name,omitempty"`        // 模型名称
+	Model      string   `json:"model,omitempty"`       // 模型
+	Type       int      `json:"type,omitempty"`        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
+	Status     int      `json:"status,omitempty"`      // 状态[1:正常, 2:禁用, -1:删除]
+	Models     []string `json:"models,omitempty"`      // 模型权限
 }
 
 // 模型列表接口响应参数
@@ -125,11 +125,11 @@ type ModelBatchOperateReq struct {
 
 // 模型树接口请求参数
 type ModelTreeReq struct {
-	Corp   string `json:"corp,omitempty"`         // 公司
-	Name   string `json:"name,omitempty"`         // 模型名称
-	Model  string `json:"model,omitempty"`        // 模型
-	Type   int    `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
-	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
+	ProviderId string `json:"provider_id,omitempty"`  // 提供商ID
+	Name       string `json:"name,omitempty"`         // 模型名称
+	Model      string `json:"model,omitempty"`        // 模型
+	Type       int    `json:"type,omitempty"`         // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
+	Status     int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 模型树接口响应参数
@@ -139,13 +139,13 @@ type ModelTreeRes struct {
 
 // 模型权限列表接口请求参数
 type ModelPermissionsReq struct {
-	Id     string `json:"id"`     // 主键Id
-	Action string `json:"action"` // 动作
-	Corp   string `json:"corp"`   // 公司
-	Name   string `json:"name"`   // 模型名称
-	Model  string `json:"model"`  // 模型
-	Type   int    `json:"type"`   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
-	Status int    `json:"status"` // 状态[1:正常, 2:禁用, -1:删除]
+	Id         string `json:"id"`          // 主键Id
+	Action     string `json:"action"`      // 动作
+	ProviderId string `json:"provider_id"` // 提供商ID
+	Name       string `json:"name"`        // 模型名称
+	Model      string `json:"model"`       // 模型
+	Type       int    `json:"type"`        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
+	Status     int    `json:"status"`      // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 模型权限列表接口响应参数
@@ -176,8 +176,8 @@ type ModelsData struct {
 }
 
 type FastAPI struct {
-	Corp                 string                      `json:"corp,omitempty"`                   // 公司名称
-	Code                 string                      `json:"code,omitempty"`                   // 公司代码
+	Provider             string                      `json:"provider,omitempty"`               // 提供商名称
+	Code                 string                      `json:"code,omitempty"`                   // 提供商代码
 	Model                string                      `json:"model,omitempty"`                  // 模型
 	Type                 int                         `json:"type,omitempty"`                   // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 	BaseUrl              string                      `json:"base_url,omitempty"`               // 模型地址
@@ -194,9 +194,9 @@ type FastAPI struct {
 
 type Model struct {
 	Id                   string                      `json:"id,omitempty"`                      // ID
-	Corp                 string                      `json:"corp,omitempty"`                    // 公司ID
-	CorpName             string                      `json:"corp_name,omitempty"`               // 公司名称
-	CorpCode             string                      `json:"corp_code,omitempty"`               // 公司代码
+	ProviderId           string                      `json:"provider_id,omitempty"`             // 提供商ID
+	ProviderName         string                      `json:"provider_name,omitempty"`           // 提供商名称
+	ProviderCode         string                      `json:"provider_code,omitempty"`           // 提供商代码
 	Name                 string                      `json:"name,omitempty"`                    // 模型名称
 	Model                string                      `json:"model,omitempty"`                   // 模型
 	Type                 int                         `json:"type,omitempty"`                    // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
