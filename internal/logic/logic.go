@@ -8,6 +8,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/admin_reseller"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/admin_user"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/app"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/app_key"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/audio"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/auth"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/chat"

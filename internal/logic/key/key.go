@@ -16,7 +16,6 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
-	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
@@ -75,7 +74,6 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 				id, err := dao.Key.Insert(ctx, &do.Key{
 					ProviderId:     params.ProviderId,
 					Key:            gstr.Trim(k),
-					Type:           2,
 					Weight:         params.Weight,
 					Models:         params.Models,
 					ModelAgents:    params.ModelAgents,
@@ -142,14 +140,6 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 		return err
 	}
 
-	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
-		return errors.New("Unauthorized")
-	}
-
-	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
-		return errors.New("Unauthorized")
-	}
-
 	if isModelAgent {
 		params.Remark = oldData.Remark
 		params.Status = oldData.Status
@@ -188,32 +178,6 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 // 更改密钥状态
 func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error {
 
-	if service.Session().IsResellerRole(ctx) {
-
-		key, err := dao.Key.FindById(ctx, params.Id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if key.Rid != service.Session().GetRid(ctx) {
-			return errors.New("Unauthorized")
-		}
-	}
-
-	if service.Session().IsUserRole(ctx) {
-
-		key, err := dao.Key.FindById(ctx, params.Id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if key.UserId != service.Session().GetUserId(ctx) {
-			return errors.New("Unauthorized")
-		}
-	}
-
 	key, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"status":               params.Status,
 		"is_auto_disabled":     false,
@@ -224,13 +188,7 @@ func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq
 		return err
 	}
 
-	channel := consts.CHANGE_CHANNEL_KEY
-
-	if key.Type == 1 {
-		channel = consts.CHANGE_CHANNEL_APP_KEY
-	}
-
-	if _, err = redis.Publish(ctx, channel, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
 		Action:  consts.ACTION_STATUS,
 		NewData: key,
 	}); err != nil {
@@ -244,45 +202,13 @@ func (s *sKey) ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq
 // 删除密钥
 func (s *sKey) Delete(ctx context.Context, id string) error {
 
-	if service.Session().IsResellerRole(ctx) {
-
-		key, err := dao.Key.FindById(ctx, id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if key.Rid != service.Session().GetRid(ctx) {
-			return errors.New("Unauthorized")
-		}
-	}
-
-	if service.Session().IsUserRole(ctx) {
-
-		key, err := dao.Key.FindById(ctx, id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if key.UserId != service.Session().GetUserId(ctx) {
-			return errors.New("Unauthorized")
-		}
-	}
-
 	key, err := dao.Key.FindOneAndDeleteById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	channel := consts.CHANGE_CHANNEL_KEY
-
-	if key.Type == 1 {
-		channel = consts.CHANGE_CHANNEL_APP_KEY
-	}
-
-	if _, err = redis.Publish(ctx, channel, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
 		Action:  consts.ACTION_DELETE,
 		OldData: key,
 	}); err != nil {
@@ -300,14 +226,6 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
-	}
-
-	if service.Session().IsResellerRole(ctx) && key.Rid != service.Session().GetRid(ctx) {
-		return nil, errors.New("Unauthorized")
-	}
-
-	if service.Session().IsUserRole(ctx) && key.UserId != service.Session().GetUserId(ctx) {
-		return nil, errors.New("Unauthorized")
 	}
 
 	providerName := key.ProviderId
@@ -337,50 +255,27 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		}
 	}
 
-	groupName := ""
-	if key.IsBindGroup && key.Group != "" {
-		group, err := dao.Group.FindById(ctx, key.Group)
-		if err != nil {
-			logger.Error(ctx, err)
-		} else {
-			groupName = group.Name
-		}
-	}
-
 	return &model.Key{
-		Id:                  key.Id,
-		UserId:              key.UserId,
-		AppId:               key.AppId,
-		ProviderId:          key.ProviderId,
-		ProviderName:        providerName,
-		Key:                 key.Key,
-		Type:                key.Type,
-		Weight:              key.Weight,
-		Models:              key.Models,
-		ModelNames:          modelNames,
-		ModelAgents:         key.ModelAgents,
-		ModelAgentNames:     modelAgentNames,
-		IsAgentsOnly:        key.IsAgentsOnly,
-		IsNeverDisable:      key.IsNeverDisable,
-		IsLimitQuota:        key.IsLimitQuota,
-		Quota:               key.Quota,
-		UsedQuota:           key.UsedQuota,
-		QuotaExpiresRule:    key.QuotaExpiresRule,
-		QuotaExpiresAt:      util.FormatDateTime(key.QuotaExpiresAt),
-		QuotaExpiresMinutes: key.QuotaExpiresMinutes,
-		IsBindGroup:         key.IsBindGroup,
-		Group:               key.Group,
-		GroupName:           groupName,
-		IpWhitelist:         key.IpWhitelist,
-		IpBlacklist:         key.IpBlacklist,
-		Remark:              key.Remark,
-		Status:              key.Status,
-		IsAutoDisabled:      key.IsAutoDisabled,
-		AutoDisabledReason:  key.AutoDisabledReason,
-		Creator:             key.Creator,
-		Updater:             key.Updater,
-		CreatedAt:           util.FormatDateTime(key.CreatedAt),
-		UpdatedAt:           util.FormatDateTime(key.UpdatedAt),
+		Id:                 key.Id,
+		ProviderId:         key.ProviderId,
+		ProviderName:       providerName,
+		Key:                key.Key,
+		Weight:             key.Weight,
+		Models:             key.Models,
+		ModelNames:         modelNames,
+		ModelAgents:        key.ModelAgents,
+		ModelAgentNames:    modelAgentNames,
+		IsAgentsOnly:       key.IsAgentsOnly,
+		IsNeverDisable:     key.IsNeverDisable,
+		UsedQuota:          key.UsedQuota,
+		Remark:             key.Remark,
+		Status:             key.Status,
+		IsAutoDisabled:     key.IsAutoDisabled,
+		AutoDisabledReason: key.AutoDisabledReason,
+		Creator:            key.Creator,
+		Updater:            key.Updater,
+		CreatedAt:          util.FormatDateTime(key.CreatedAt),
+		UpdatedAt:          util.FormatDateTime(key.UpdatedAt),
 	}, nil
 }
 
@@ -392,26 +287,10 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		PageSize: params.PageSize,
 	}
 
-	filter := bson.M{
-		"type": params.Type,
-	}
-
-	if service.Session().IsResellerRole(ctx) {
-		filter["rid"] = service.Session().GetRid(ctx)
-	}
-
-	if service.Session().IsUserRole(ctx) {
-		filter["user_id"] = service.Session().GetUserId(ctx)
-	} else if params.UserId != 0 {
-		filter["user_id"] = params.UserId
-	}
+	filter := bson.M{}
 
 	if params.ProviderId != "" {
 		filter["provider_id"] = params.ProviderId
-	}
-
-	if params.AppId != 0 {
-		filter["app_id"] = params.AppId
 	}
 
 	if params.Key != "" {
@@ -436,22 +315,6 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		filter["status"] = params.Status
 	}
 
-	if params.Quota != 0 {
-		filter["is_limit_quota"] = true
-		filter["quota"] = bson.M{
-			"$lte": params.Quota * consts.QUOTA_USD_UNIT,
-		}
-	}
-
-	if len(params.QuotaExpiresAt) > 0 {
-		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
-		filter["quota_expires_at"] = bson.M{
-			"$gte": gte,
-			"$lte": lte,
-		}
-	}
-
 	if params.Remark != "" {
 		filter["$or"] = bson.A{
 			bson.M{"remark": bson.M{
@@ -472,75 +335,57 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	providerMap := make(map[string]*entity.Provider)
 	modelAgentMap := make(map[string]*entity.ModelAgent)
 
-	if params.Type == 2 && service.Session().IsAdminRole(ctx) {
-
-		providers, err := dao.Provider.Find(ctx, bson.M{})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		providerMap = util.ToMap(providers, func(t *entity.Provider) string {
-			return t.Id
-		})
-
-		modelAgentResults, err := dao.ModelAgent.Find(ctx, bson.M{})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		modelAgentMap = util.ToMap(modelAgentResults, func(t *entity.ModelAgent) string {
-			return t.Id
-		})
+	providers, err := dao.Provider.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
 	}
+
+	providerMap = util.ToMap(providers, func(t *entity.Provider) string {
+		return t.Id
+	})
+
+	modelAgentResults, err := dao.ModelAgent.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelAgentMap = util.ToMap(modelAgentResults, func(t *entity.ModelAgent) string {
+		return t.Id
+	})
 
 	items := make([]*model.Key, 0)
 	for _, result := range results {
 
 		key := &model.Key{
-			Id:                  result.Id,
-			UserId:              result.UserId,
-			AppId:               result.AppId,
-			ProviderId:          result.ProviderId,
-			Key:                 util.Desensitize(result.Key),
-			Type:                result.Type,
-			Weight:              result.Weight,
-			Models:              result.Models,
-			ModelAgents:         result.ModelAgents,
-			IsAgentsOnly:        result.IsAgentsOnly,
-			IsLimitQuota:        result.IsLimitQuota,
-			Quota:               result.Quota,
-			UsedQuota:           result.UsedQuota,
-			QuotaExpiresRule:    result.QuotaExpiresRule,
-			QuotaExpiresAt:      util.FormatDateTime(result.QuotaExpiresAt),
-			QuotaExpiresMinutes: result.QuotaExpiresMinutes,
-			IsBindGroup:         result.IsBindGroup,
-			Group:               result.Group,
-			IpWhitelist:         result.IpWhitelist,
-			IpBlacklist:         result.IpBlacklist,
-			Remark:              result.Remark,
-			Status:              result.Status,
-			CreatedAt:           util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:           util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:           result.Id,
+			ProviderId:   result.ProviderId,
+			Key:          util.Desensitize(result.Key),
+			Weight:       result.Weight,
+			Models:       result.Models,
+			ModelAgents:  result.ModelAgents,
+			IsAgentsOnly: result.IsAgentsOnly,
+			UsedQuota:    result.UsedQuota,
+			Remark:       result.Remark,
+			Status:       result.Status,
+			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:    util.FormatDateTimeMonth(result.UpdatedAt),
 		}
 
-		if params.Type == 2 && service.Session().IsAdminRole(ctx) {
-
-			providerName := result.ProviderId
-			if providerMap[result.ProviderId] != nil {
-				providerName = providerMap[result.ProviderId].Name
-			}
-			key.ProviderName = providerName
-
-			modelAgentNames := make([]string, 0)
-			for _, id := range result.ModelAgents {
-				if modelAgentMap[id] != nil {
-					modelAgentNames = append(modelAgentNames, modelAgentMap[id].Name)
-				}
-			}
-			key.ModelAgentNames = modelAgentNames
+		providerName := result.ProviderId
+		if providerMap[result.ProviderId] != nil {
+			providerName = providerMap[result.ProviderId].Name
 		}
+		key.ProviderName = providerName
+
+		modelAgentNames := make([]string, 0)
+		for _, id := range result.ModelAgents {
+			if modelAgentMap[id] != nil {
+				modelAgentNames = append(modelAgentNames, modelAgentMap[id].Name)
+			}
+		}
+		key.ModelAgentNames = modelAgentNames
 
 		items = append(items, key)
 	}
@@ -558,16 +403,10 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 // 密钥列表
 func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key, error) {
 
-	filter := bson.M{
-		"type": 2,
-	}
+	filter := bson.M{}
 
 	if params.ProviderId != "" {
 		filter["provider_id"] = params.ProviderId
-	}
-
-	if params.AppId != 0 {
-		filter["app_id"] = params.AppId
 	}
 
 	results, err := dao.Key.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at", "key"}})
@@ -582,7 +421,6 @@ func (s *sKey) List(ctx context.Context, params model.KeyListReq) ([]*model.Key,
 			Id:         result.Id,
 			ProviderId: result.ProviderId,
 			Key:        util.Desensitize(result.Key),
-			Type:       result.Type,
 			Remark:     result.Remark,
 			Status:     result.Status,
 		})
@@ -615,9 +453,7 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 			}
 		case consts.ACTION_ALL_STATUS:
 
-			filter := bson.M{
-				"type": params.Type,
-			}
+			filter := bson.M{}
 
 			if params.ProviderId != "" {
 				filter["provider_id"] = params.ProviderId
@@ -668,9 +504,7 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 
 		case consts.ACTION_ALL_DELETE:
 
-			filter := bson.M{
-				"type": params.Type,
-			}
+			filter := bson.M{}
 
 			if params.ProviderId != "" {
 				filter["provider_id"] = params.ProviderId
@@ -729,7 +563,6 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 func (s *sKey) DetailListByKey(ctx context.Context, keys []string) ([]*entity.Key, error) {
 
 	filter := bson.M{
-		"type": 2,
 		"key": bson.M{
 			"$in": keys,
 		},
@@ -754,14 +587,6 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 		return err
 	}
 
-	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
-		return errors.New("Unauthorized")
-	}
-
-	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
-		return errors.New("Unauthorized")
-	}
-
 	newData, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"models": params.Models,
 	})
@@ -770,57 +595,7 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 		return err
 	}
 
-	channel := consts.CHANGE_CHANNEL_KEY
-
-	if newData.Type == 1 {
-		channel = consts.CHANGE_CHANNEL_APP_KEY
-	}
-
-	if _, err = redis.Publish(ctx, channel, model.PubMessage{
-		Action:  consts.ACTION_UPDATE,
-		OldData: oldData,
-		NewData: newData,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
-}
-
-// 密钥绑定分组
-func (s *sKey) Group(ctx context.Context, params model.KeyGroupReq) error {
-
-	oldData, err := dao.Key.FindById(ctx, params.Id)
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if service.Session().IsResellerRole(ctx) && oldData.Rid != service.Session().GetRid(ctx) {
-		return errors.New("Unauthorized")
-	}
-
-	if service.Session().IsUserRole(ctx) && oldData.UserId != service.Session().GetUserId(ctx) {
-		return errors.New("Unauthorized")
-	}
-
-	newData, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"is_bind_group": params.IsBindGroup,
-		"group":         params.Group,
-	})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	channel := consts.CHANGE_CHANNEL_KEY
-
-	if newData.Type == 1 {
-		channel = consts.CHANGE_CHANNEL_APP_KEY
-	}
-
-	if _, err = redis.Publish(ctx, channel, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
 		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
 		NewData: newData,

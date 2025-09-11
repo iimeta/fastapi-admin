@@ -81,7 +81,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, e
 			return dashboard, err
 		}
 
-		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx), "type": 1}); err != nil {
+		if dashboard.AppKey, err = dao.AppKey.CountDocuments(ctx, bson.M{"rid": service.Session().GetRid(ctx)}); err != nil {
 			logger.Error(ctx, err)
 			return dashboard, err
 		}
@@ -120,7 +120,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, e
 			return dashboard, err
 		}
 
-		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx), "type": 1}); err != nil {
+		if dashboard.AppKey, err = dao.AppKey.CountDocuments(ctx, bson.M{"user_id": service.Session().GetUserId(ctx)}); err != nil {
 			logger.Error(ctx, err)
 			return dashboard, err
 		}
@@ -153,7 +153,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, e
 			return dashboard, err
 		}
 
-		if dashboard.AppKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 1}); err != nil {
+		if dashboard.AppKey, err = dao.AppKey.EstimatedDocumentCount(ctx); err != nil {
 			logger.Error(ctx, err)
 			return dashboard, err
 		}
@@ -178,7 +178,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, e
 			return dashboard, err
 		}
 
-		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"type": 2, "status": 1}); err != nil {
+		if dashboard.ModelKey, err = dao.Key.CountDocuments(ctx, bson.M{"status": 1}); err != nil {
 			logger.Error(ctx, err)
 			return dashboard, err
 		}

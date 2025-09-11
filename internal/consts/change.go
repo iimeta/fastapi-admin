@@ -28,6 +28,7 @@ const (
 	ACTION_TIME       = "time"
 	ACTION_USER       = "user"
 	ACTION_APP        = "app"
+	ACTION_APP_KEY    = "app_key"
 	ACTION_KEY        = "key"
 	ACTION_GROUP      = "group"
 	ACTION_ALL_UPDATE = "all-update"

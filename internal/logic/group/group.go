@@ -698,21 +698,21 @@ func (s *sGroup) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	keys, err := dao.Key.Find(ctx, bson.M{"group": id})
+	appKeys, err := dao.AppKey.Find(ctx, bson.M{"group": id})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	for _, key := range keys {
+	for _, key := range appKeys {
 
-		keyGroupReq := model.KeyGroupReq{
+		keyGroupReq := model.AppKeyGroupReq{
 			Id:          key.Id,
 			IsBindGroup: key.IsBindGroup,
 			Group:       "",
 		}
 
-		if err = service.Key().Group(ctx, keyGroupReq); err != nil {
+		if err = service.AppKey().Group(ctx, keyGroupReq); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}

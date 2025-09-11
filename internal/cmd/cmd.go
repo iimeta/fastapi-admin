@@ -18,6 +18,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/admin_reseller"
 	"github.com/iimeta/fastapi-admin/internal/controller/admin_user"
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
+	"github.com/iimeta/fastapi-admin/internal/controller/app_key"
 	"github.com/iimeta/fastapi-admin/internal/controller/audio"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/chat"
@@ -95,8 +96,8 @@ var (
 			s.AddStaticPath("/notice/template/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/notice/template/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/notice/template/update", "./resource/fastapi-web/")
-			s.AddStaticPath("/finance/bill_list", "./resource/fastapi-web/")
-			s.AddStaticPath("/finance/deal_record", "./resource/fastapi-web/")
+			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
+			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/chat", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
@@ -174,6 +175,12 @@ var (
 				v1.Group("/app", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						app.NewV1(),
+					)
+				})
+
+				v1.Group("/app/key", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						app_key.NewV1(),
 					)
 				})
 

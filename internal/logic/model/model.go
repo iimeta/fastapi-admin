@@ -644,6 +644,31 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 		}
 	}
 
+	appKeys, err := dao.AppKey.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	for _, key := range appKeys {
+
+		keyModelsReq := model.AppKeyModelsReq{
+			Id:     key.Id,
+			Models: []string{},
+		}
+
+		for _, m := range key.Models {
+			if m != id {
+				keyModelsReq.Models = append(keyModelsReq.Models, m)
+			}
+		}
+
+		if err = service.AppKey().Models(ctx, keyModelsReq); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	keys, err := dao.Key.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -1643,6 +1668,20 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 		}
 
 		modelListReq.Models = app.Models
+
+	case consts.ACTION_APP_KEY:
+
+		appKey, err := service.AppKey().Detail(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if appKey.Models == nil {
+			return nil, nil
+		}
+
+		modelListReq.Models = appKey.Models
 
 	case consts.ACTION_KEY:
 
