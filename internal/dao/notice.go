@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
@@ -19,6 +18,6 @@ func NewNoticeDao(database ...string) *NoticeDao {
 	}
 
 	return &NoticeDao{
-		MongoDB: NewMongoDB[entity.Notice](database[0], do.NOTICE_COLLECTION),
+		MongoDB: NewMongoDB[entity.Notice](database[0], NOTICE),
 	}
 }

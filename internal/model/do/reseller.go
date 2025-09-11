@@ -6,11 +6,6 @@ import (
 	"github.com/gogf/gf/v2/util/gmeta"
 )
 
-const (
-	RESELLER_COLLECTION         = "reseller"
-	RESELLER_ACCOUNT_COLLECTION = "reseller_account"
-)
-
 type Reseller struct {
 	gmeta.Meta             `collection:"reseller" bson:"-"`
 	Id                     string        `bson:"_id,omitempty"`                      // ID

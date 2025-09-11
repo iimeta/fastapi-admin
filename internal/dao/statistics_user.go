@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
@@ -19,6 +18,6 @@ func NewStatisticsUserDao(database ...string) *StatisticsUserDao {
 	}
 
 	return &StatisticsUserDao{
-		MongoDB: NewMongoDB[entity.StatisticsUser](database[0], do.STATISTICS_USER_COLLECTION),
+		MongoDB: NewMongoDB[entity.StatisticsUser](database[0], STATISTICS_USER),
 	}
 }

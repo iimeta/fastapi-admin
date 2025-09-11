@@ -2,10 +2,6 @@ package do
 
 import "github.com/gogf/gf/v2/util/gmeta"
 
-const (
-	PROVIDER_COLLECTION = "provider"
-)
-
 type Provider struct {
 	gmeta.Meta `collection:"provider" bson:"-"`
 	Name       string `bson:"name,omitempty"`       // 名称

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/util/grand"
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/crypto"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -25,7 +24,7 @@ func NewSysAdminDao(database ...string) *SysAdminDao {
 	}
 
 	return &SysAdminDao{
-		MongoDB: NewMongoDB[entity.SysAdmin](database[0], do.SYS_ADMIN_COLLECTION),
+		MongoDB: NewMongoDB[entity.SysAdmin](database[0], SYS_ADMIN),
 	}
 }
 

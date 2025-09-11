@@ -5,10 +5,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-const (
-	SITE_CONFIG_COLLECTION = "site_config"
-)
-
 type SiteConfig struct {
 	gmeta.Meta          `collection:"site_config" bson:"-"`
 	Domain              string                `bson:"domain,omitempty"`      // 域名

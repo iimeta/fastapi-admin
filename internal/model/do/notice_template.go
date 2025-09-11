@@ -4,10 +4,6 @@ import (
 	"github.com/gogf/gf/v2/util/gmeta"
 )
 
-const (
-	NOTICE_TEMPLATE_COLLECTION = "notice_template"
-)
-
 type NoticeTemplate struct {
 	gmeta.Meta `collection:"notice_template" bson:"-"`
 	Name       string   `bson:"name,omitempty"`       // 名称

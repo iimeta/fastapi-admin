@@ -2,10 +2,6 @@ package do
 
 import "github.com/gogf/gf/v2/util/gmeta"
 
-const (
-	DEAL_RECORD_COLLECTION = "deal_record"
-)
-
 type DealRecord struct {
 	gmeta.Meta `collection:"deal_record" bson:"-"`
 	UserId     int    `bson:"user_id,omitempty"`    // 用户ID

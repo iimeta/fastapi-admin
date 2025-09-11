@@ -25,7 +25,7 @@ func NewUserDao(database ...string) *UserDao {
 	}
 
 	return &UserDao{
-		MongoDB: NewMongoDB[entity.User](database[0], do.USER_COLLECTION),
+		MongoDB: NewMongoDB[entity.User](database[0], USER),
 	}
 }
 

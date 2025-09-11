@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
@@ -19,6 +18,6 @@ func NewAccountDao(database ...string) *AccountDao {
 	}
 
 	return &AccountDao{
-		MongoDB: NewMongoDB[entity.Account](database[0], do.ACCOUNT_COLLECTION),
+		MongoDB: NewMongoDB[entity.Account](database[0], ACCOUNT),
 	}
 }

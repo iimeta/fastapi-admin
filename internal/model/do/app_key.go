@@ -2,10 +2,6 @@ package do
 
 import "github.com/gogf/gf/v2/util/gmeta"
 
-const (
-	APP_KEY_COLLECTION = "app_key"
-)
-
 type AppKey struct {
 	gmeta.Meta          `collection:"app_key" bson:"-"`
 	UserId              int      `bson:"user_id,omitempty"`            // 用户ID

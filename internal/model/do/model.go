@@ -5,10 +5,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-const (
-	MODEL_COLLECTION = "model"
-)
-
 type Model struct {
 	gmeta.Meta           `collection:"model" bson:"-"`
 	ProviderId           string                      `bson:"provider_id,omitempty"`          // 提供商ID

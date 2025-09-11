@@ -1,0 +1,28 @@
+package dao
+
+const (
+	USER               = "user"
+	ACCOUNT            = "account"
+	RESELLER           = "reseller"
+	RESELLER_ACCOUNT   = "reseller_account"
+	APP                = "app"
+	APP_KEY            = "app_key"
+	PROVIDER           = "provider"
+	MODEL              = "model"
+	MODEL_AGENT        = "model_agent"
+	KEY                = "key"
+	GROUP              = "group"
+	NOTICE             = "notice"
+	NOTICE_TEMPLATE    = "notice_template"
+	DEAL_RECORD        = "deal_record"
+	CHAT               = "chat"
+	IMAGE              = "image"
+	AUDIO              = "audio"
+	MIDJOURNEY         = "midjourney"
+	SITE_CONFIG        = "site_config"
+	SYS_ADMIN          = "sys_admin"
+	SYS_CONFIG         = "sys_config"
+	STATISTICS_USER    = "statistics_user"
+	STATISTICS_APP     = "statistics_app"
+	STATISTICS_APP_KEY = "statistics_app_key"
+)

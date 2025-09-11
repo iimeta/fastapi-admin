@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
@@ -19,6 +18,6 @@ func NewMidjourneyDao(database ...string) *MidjourneyDao {
 	}
 
 	return &MidjourneyDao{
-		MongoDB: NewMongoDB[entity.Midjourney](database[0], do.MIDJOURNEY_COLLECTION),
+		MongoDB: NewMongoDB[entity.Midjourney](database[0], MIDJOURNEY),
 	}
 }

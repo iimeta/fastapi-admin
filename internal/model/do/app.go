@@ -2,10 +2,6 @@ package do
 
 import "github.com/gogf/gf/v2/util/gmeta"
 
-const (
-	APP_COLLECTION = "app"
-)
-
 type App struct {
 	gmeta.Meta     `collection:"app" bson:"-"`
 	UserId         int      `bson:"user_id,omitempty"`    // 用户ID

@@ -4,10 +4,6 @@ import (
 	"github.com/gogf/gf/v2/util/gmeta"
 )
 
-const (
-	NOTICE_COLLECTION = "notice"
-)
-
 type Notice struct {
 	gmeta.Meta    `collection:"notice" bson:"-"`
 	Title         string   `bson:"title,omitempty"`        // 标题

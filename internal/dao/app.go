@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,7 +21,7 @@ func NewAppDao(database ...string) *AppDao {
 	}
 
 	return &AppDao{
-		MongoDB: NewMongoDB[entity.App](database[0], do.APP_COLLECTION),
+		MongoDB: NewMongoDB[entity.App](database[0], APP),
 	}
 }
 

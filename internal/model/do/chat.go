@@ -5,10 +5,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-const (
-	CHAT_COLLECTION = "chat"
-)
-
 type Chat struct {
 	gmeta.Meta           `collection:"chat" bson:"-"`
 	TraceId              string                      `bson:"trace_id,omitempty"`                // 日志ID

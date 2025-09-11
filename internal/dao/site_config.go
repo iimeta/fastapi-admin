@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
@@ -19,6 +18,6 @@ func NewSiteConfigDao(database ...string) *SiteConfigDao {
 	}
 
 	return &SiteConfigDao{
-		MongoDB: NewMongoDB[entity.SiteConfig](database[0], do.SITE_CONFIG_COLLECTION),
+		MongoDB: NewMongoDB[entity.SiteConfig](database[0], SITE_CONFIG),
 	}
 }

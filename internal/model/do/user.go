@@ -6,11 +6,6 @@ import (
 	"github.com/gogf/gf/v2/util/gmeta"
 )
 
-const (
-	USER_COLLECTION    = "user"
-	ACCOUNT_COLLECTION = "account"
-)
-
 type User struct {
 	gmeta.Meta             `collection:"user" bson:"-"`
 	Id                     string        `bson:"_id,omitempty"`                      // ID

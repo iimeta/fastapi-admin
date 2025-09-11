@@ -5,12 +5,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-const (
-	STATISTICS_USER_COLLECTION    = "statistics_user"
-	STATISTICS_APP_COLLECTION     = "statistics_app"
-	STATISTICS_APP_KEY_COLLECTION = "statistics_app_key"
-)
-
 type StatisticsUser struct {
 	gmeta.Meta     `collection:"statistics_user" bson:"-"`
 	UserId         int                 `bson:"user_id,omitempty"`         // 用户ID

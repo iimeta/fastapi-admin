@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
@@ -19,6 +18,6 @@ func NewDealRecordDao(database ...string) *DealRecordDao {
 	}
 
 	return &DealRecordDao{
-		MongoDB: NewMongoDB[entity.DealRecord](database[0], do.DEAL_RECORD_COLLECTION),
+		MongoDB: NewMongoDB[entity.DealRecord](database[0], DEAL_RECORD),
 	}
 }

@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
@@ -19,6 +18,6 @@ func NewProviderDao(database ...string) *ProviderDao {
 	}
 
 	return &ProviderDao{
-		MongoDB: NewMongoDB[entity.Provider](database[0], do.PROVIDER_COLLECTION),
+		MongoDB: NewMongoDB[entity.Provider](database[0], PROVIDER),
 	}
 }

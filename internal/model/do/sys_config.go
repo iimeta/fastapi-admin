@@ -5,10 +5,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-const (
-	SYS_CONFIG_COLLECTION = "sys_config"
-)
-
 type SysConfig struct {
 	gmeta.Meta            `collection:"sys_config" bson:"-"`
 	Core                  *common.Core                  `bson:"core,omitempty"`                    // 核心

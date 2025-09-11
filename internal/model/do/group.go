@@ -5,10 +5,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-const (
-	GROUP_COLLECTION = "group"
-)
-
 type Group struct {
 	gmeta.Meta         `collection:"group" bson:"-"`
 	Name               string                `bson:"name,omitempty"`        // 分组名称

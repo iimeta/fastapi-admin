@@ -2,10 +2,6 @@ package do
 
 import "github.com/gogf/gf/v2/util/gmeta"
 
-const (
-	SYS_ADMIN_COLLECTION = "sys_admin"
-)
-
 type SysAdmin struct {
 	gmeta.Meta   `collection:"sys_admin" bson:"-"`
 	Id           string `bson:"_id,omitempty"`            // ID

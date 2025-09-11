@@ -25,7 +25,7 @@ func NewResellerDao(database ...string) *ResellerDao {
 	}
 
 	return &ResellerDao{
-		MongoDB: NewMongoDB[entity.Reseller](database[0], do.RESELLER_COLLECTION),
+		MongoDB: NewMongoDB[entity.Reseller](database[0], RESELLER),
 	}
 }
 
@@ -42,7 +42,7 @@ func NewResellerAccountDao(database ...string) *ResellerAccountDao {
 	}
 
 	return &ResellerAccountDao{
-		MongoDB: NewMongoDB[entity.ResellerAccount](database[0], do.RESELLER_ACCOUNT_COLLECTION),
+		MongoDB: NewMongoDB[entity.ResellerAccount](database[0], RESELLER_ACCOUNT),
 	}
 }
 

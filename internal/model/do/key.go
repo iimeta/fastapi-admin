@@ -2,10 +2,6 @@ package do
 
 import "github.com/gogf/gf/v2/util/gmeta"
 
-const (
-	KEY_COLLECTION = "key"
-)
-
 type Key struct {
 	gmeta.Meta         `collection:"key" bson:"-"`
 	ProviderId         string   `bson:"provider_id,omitempty"` // 提供商ID
