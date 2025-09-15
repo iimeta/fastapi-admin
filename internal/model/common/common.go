@@ -154,19 +154,26 @@ type SearchQuota struct {
 }
 
 type Pricing struct {
-	BillingRule            int                      `bson:"billing_rule"`             // 计费规则[1:按官方, 2:按系统]
-	BillingItems           []string                 `bson:"billing_items"`            // 计费项
-	TextPricing            TextPricing              `bson:"text_pricing"`             // 文本
-	TextCachePricing       CachePricing             `bson:"text_cache_pricing"`       // 文本缓存
-	ImageGenerationPricing []ImageGenerationPricing `bson:"image_generation_pricing"` // 图像生成
-	AudioPricing           AudioPricing             `bson:"audio_pricing"`            // 音频
-	VisionPricing          []VisionPricing          `bson:"vision_pricing"`           // 识图
-	SearchPricing          []SearchPricing          `bson:"search_pricing"`           // 搜索
+	BillingRule            int                      `bson:"billing_rule"`              // 计费规则[1:按官方, 2:按系统]
+	BillingItems           []string                 `bson:"billing_items"`             // 计费项
+	TextPricing            TextPricing              `bson:"text_pricing"`              // 文本
+	TextCachePricing       CachePricing             `bson:"text_cache_pricing"`        // 文本缓存
+	TieredTextPricing      []TextPricing            `bson:"tiered_text_pricing"`       // 阶梯文本
+	TieredTextCachePricing []CachePricing           `bson:"tiered_text_cache_pricing"` // 阶梯文本缓存
+	ImageGenerationPricing []ImageGenerationPricing `bson:"image_generation_pricing"`  // 图像生成
+	ImageCachePricing      CachePricing             `bson:"image_cache_pricing"`       // 图像缓存
+	AudioPricing           AudioPricing             `bson:"audio_pricing"`             // 音频
+	AudioCachePricing      CachePricing             `bson:"audio_cache_pricing"`       // 音频缓存
+	VisionPricing          []VisionPricing          `bson:"vision_pricing"`            // 识图
+	SearchPricing          []SearchPricing          `bson:"search_pricing"`            // 搜索
 }
 
 type TextPricing struct {
 	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
 	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
+	Thinking    string  `bson:"thinking,omitempty"     json:"thinking,omitempty"`     // 思考
+	Gt          int     `bson:"gt,omitempty"           json:"gt,omitempty"`           // 大于
+	Lte         int     `bson:"lte,omitempty"          json:"lte,omitempty"`          // 小于等于
 }
 
 type ImageGenerationPricing struct {
@@ -197,4 +204,6 @@ type SearchPricing struct {
 type CachePricing struct {
 	ReadRatio  float64 `bson:"read_ratio,omitempty"  json:"read_ratio,omitempty"`  // 读取/命中倍率
 	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
+	Gt         int     `bson:"gt,omitempty"          json:"gt,omitempty"`          // 大于
+	Lte        int     `bson:"lte,omitempty"         json:"lte,omitempty"`         // 小于等于
 }
