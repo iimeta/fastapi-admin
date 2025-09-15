@@ -152,3 +152,49 @@ type SearchQuota struct {
 	FixedQuota        int    `bson:"fixed_quota,omitempty"         json:"fixed_quota,omitempty"`         // 固定额度
 	IsDefault         bool   `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
 }
+
+type Pricing struct {
+	BillingRule            int                      `bson:"billing_rule"`             // 计费规则[1:按官方, 2:按系统]
+	BillingItems           []string                 `bson:"billing_items"`            // 计费项
+	TextPricing            TextPricing              `bson:"text_pricing"`             // 文本
+	TextCachePricing       CachePricing             `bson:"text_cache_pricing"`       // 文本缓存
+	ImageGenerationPricing []ImageGenerationPricing `bson:"image_generation_pricing"` // 图像生成
+	AudioPricing           AudioPricing             `bson:"audio_pricing"`            // 音频
+	VisionPricing          []VisionPricing          `bson:"vision_pricing"`           // 识图
+	SearchPricing          []SearchPricing          `bson:"search_pricing"`           // 搜索
+}
+
+type TextPricing struct {
+	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
+	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
+}
+
+type ImageGenerationPricing struct {
+	Quality    string `bson:"quality,omitempty"     json:"quality,omitempty"`     // 质量[high, medium, low, hd, standard]
+	Width      int    `bson:"width,omitempty"       json:"width,omitempty"`       // 宽度
+	Height     int    `bson:"height,omitempty"      json:"height,omitempty"`      // 高度
+	FixedQuota int    `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
+	IsDefault  bool   `bson:"is_default,omitempty"  json:"is_default,omitempty"`  // 是否默认选项
+}
+
+type AudioPricing struct {
+	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
+	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
+}
+
+type VisionPricing struct {
+	Mode       string `bson:"mode,omitempty"        json:"mode,omitempty"`        // 模式[low, high, auto]
+	FixedQuota int    `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
+	IsDefault  bool   `bson:"is_default,omitempty"  json:"is_default,omitempty"`  // 是否默认选项
+}
+
+type SearchPricing struct {
+	SearchContextSize string `bson:"search_context_size,omitempty" json:"search_context_size,omitempty"` // 搜索上下文大小[high, medium, low]
+	FixedQuota        int    `bson:"fixed_quota,omitempty"         json:"fixed_quota,omitempty"`         // 固定额度
+	IsDefault         bool   `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
+}
+
+type CachePricing struct {
+	ReadRatio  float64 `bson:"read_ratio,omitempty"  json:"read_ratio,omitempty"`  // 读取/命中倍率
+	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
+}
