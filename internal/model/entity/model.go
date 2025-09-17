@@ -16,6 +16,7 @@ type Model struct {
 	Path                 string                      `bson:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                        `bson:"is_enable_preset_config,omitempty"` // 是否启用预设配置
 	PresetConfig         common.PresetConfig         `bson:"preset_config,omitempty"`           // 预设配置
+	Pricing              common.Pricing              `bson:"pricing,omitempty"`                 // 定价
 	TextQuota            common.TextQuota            `bson:"text_quota,omitempty"`              // 文本额度
 	ImageQuota           common.ImageQuota           `bson:"image_quota,omitempty"`             // 图像额度
 	AudioQuota           common.AudioQuota           `bson:"audio_quota,omitempty"`             // 音频额度

@@ -172,8 +172,8 @@ type TextPricing struct {
 	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
 	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
 	Thinking    string  `bson:"thinking,omitempty"     json:"thinking,omitempty"`     // 思考
-	Gt          int     `bson:"gt,omitempty"           json:"gt,omitempty"`           // 大于
-	Lte         int     `bson:"lte,omitempty"          json:"lte,omitempty"`          // 小于等于
+	InputGt     int     `bson:"input_gt,omitempty"     json:"input_gt,omitempty"`     // 输入大于, 单位: k
+	InputLte    int     `bson:"input_lte,omitempty"    json:"input_lte,omitempty"`    // 输入小于等于, 单位: k
 }
 
 type ImageGenerationPricing struct {
@@ -204,6 +204,6 @@ type SearchPricing struct {
 type CachePricing struct {
 	ReadRatio  float64 `bson:"read_ratio,omitempty"  json:"read_ratio,omitempty"`  // 读取/命中倍率
 	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
-	Gt         int     `bson:"gt,omitempty"          json:"gt,omitempty"`          // 大于
-	Lte        int     `bson:"lte,omitempty"         json:"lte,omitempty"`         // 小于等于
+	InputGt    int     `bson:"input_gt,omitempty"    json:"input_gt,omitempty"`    // 输入大于, 单位: k
+	InputLte   int     `bson:"input_lte,omitempty"   json:"input_lte,omitempty"`   // 输入小于等于, 单位: k
 }
