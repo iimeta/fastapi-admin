@@ -155,11 +155,12 @@ type SearchQuota struct {
 
 type Pricing struct {
 	BillingRule            int                      `bson:"billing_rule"`              // 计费规则[1:按官方, 2:按系统]
-	BillingItems           []string                 `bson:"billing_items"`             // 计费项
+	BillingItems           []string                 `bson:"billing_items"`             // 计费项[text:文本, text_cache:文本缓存, tiered_text:阶梯文本, tiered_text_cache:阶梯文本缓存, image:图像, image_generation:图像生成, image_cache:图像缓存, audio:音频, audio_cache:音频缓存, vision:识图, search:搜索]
 	TextPricing            TextPricing              `bson:"text_pricing"`              // 文本
 	TextCachePricing       CachePricing             `bson:"text_cache_pricing"`        // 文本缓存
 	TieredTextPricing      []TextPricing            `bson:"tiered_text_pricing"`       // 阶梯文本
 	TieredTextCachePricing []CachePricing           `bson:"tiered_text_cache_pricing"` // 阶梯文本缓存
+	ImagePricing           ImagePricing             `bson:"image_pricing"`             // 图像
 	ImageGenerationPricing []ImageGenerationPricing `bson:"image_generation_pricing"`  // 图像生成
 	ImageCachePricing      CachePricing             `bson:"image_cache_pricing"`       // 图像缓存
 	AudioPricing           AudioPricing             `bson:"audio_pricing"`             // 音频
@@ -174,6 +175,11 @@ type TextPricing struct {
 	Thinking    string  `bson:"thinking,omitempty"     json:"thinking,omitempty"`     // 思考
 	InputGt     int     `bson:"input_gt,omitempty"     json:"input_gt,omitempty"`     // 输入大于, 单位: k
 	InputLte    int     `bson:"input_lte,omitempty"    json:"input_lte,omitempty"`    // 输入小于等于, 单位: k
+}
+
+type ImagePricing struct {
+	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
+	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
 }
 
 type ImageGenerationPricing struct {
