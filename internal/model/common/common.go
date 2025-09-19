@@ -154,19 +154,20 @@ type SearchQuota struct {
 }
 
 type Pricing struct {
-	BillingRule            int                      `bson:"billing_rule"`              // 计费规则[1:按官方, 2:按系统]
-	BillingItems           []string                 `bson:"billing_items"`             // 计费项[text:文本, text_cache:文本缓存, tiered_text:阶梯文本, tiered_text_cache:阶梯文本缓存, image:图像, image_generation:图像生成, image_cache:图像缓存, audio:音频, audio_cache:音频缓存, vision:识图, search:搜索]
-	TextPricing            TextPricing              `bson:"text_pricing"`              // 文本
-	TextCachePricing       CachePricing             `bson:"text_cache_pricing"`        // 文本缓存
-	TieredTextPricing      []TextPricing            `bson:"tiered_text_pricing"`       // 阶梯文本
-	TieredTextCachePricing []CachePricing           `bson:"tiered_text_cache_pricing"` // 阶梯文本缓存
-	ImagePricing           ImagePricing             `bson:"image_pricing"`             // 图像
-	ImageGenerationPricing []ImageGenerationPricing `bson:"image_generation_pricing"`  // 图像生成
-	ImageCachePricing      CachePricing             `bson:"image_cache_pricing"`       // 图像缓存
-	AudioPricing           AudioPricing             `bson:"audio_pricing"`             // 音频
-	AudioCachePricing      CachePricing             `bson:"audio_cache_pricing"`       // 音频缓存
-	VisionPricing          []VisionPricing          `bson:"vision_pricing"`            // 识图
-	SearchPricing          []SearchPricing          `bson:"search_pricing"`            // 搜索
+	BillingRule     int                      `bson:"billing_rule,omitempty"      json:"billing_rule,omitempty"`      // 计费规则[1:按官方, 2:按系统]
+	BillingItems    []string                 `bson:"billing_items,omitempty"     json:"billing_items,omitempty"`     // 计费项[text:文本, text_cache:文本缓存, tiered_text:阶梯文本, tiered_text_cache:阶梯文本缓存, image:图像, image_generation:图像生成, image_cache:图像缓存, audio:音频, audio_cache:音频缓存, vision:识图, search:搜索, midjourney:Midjourney]
+	Text            TextPricing              `bson:"text,omitempty"              json:"text,omitempty"`              // 文本
+	TextCache       CachePricing             `bson:"text_cache,omitempty"        json:"text_cache,omitempty"`        // 文本缓存
+	TieredText      []TextPricing            `bson:"tiered_text,omitempty"       json:"tiered_text,omitempty"`       // 阶梯文本
+	TieredTextCache []CachePricing           `bson:"tiered_text_cache,omitempty" json:"tiered_text_cache,omitempty"` // 阶梯文本缓存
+	Image           ImagePricing             `bson:"image,omitempty"             json:"image,omitempty"`             // 图像
+	ImageGeneration []ImageGenerationPricing `bson:"image_generation,omitempty"  json:"image_generation,omitempty"`  // 图像生成
+	ImageCache      CachePricing             `bson:"image_cache,omitempty"       json:"image_cache,omitempty"`       // 图像缓存
+	Audio           AudioPricing             `bson:"audio,omitempty"             json:"audio,omitempty"`             // 音频
+	AudioCache      CachePricing             `bson:"audio_cache,omitempty"       json:"audio_cache,omitempty"`       // 音频缓存
+	Vision          []VisionPricing          `bson:"vision,omitempty"            json:"vision,omitempty"`            // 识图
+	Search          []SearchPricing          `bson:"search,omitempty"            json:"search,omitempty"`            // 搜索
+	Midjourney      []MidjourneyPricing      `bson:"midjourney,omitempty"        json:"midjourney,omitempty"`        // Midjourney
 }
 
 type TextPricing struct {
@@ -212,4 +213,11 @@ type CachePricing struct {
 	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
 	InputGt    int     `bson:"input_gt,omitempty"    json:"input_gt,omitempty"`    // 输入大于, 单位: k
 	InputLte   int     `bson:"input_lte,omitempty"   json:"input_lte,omitempty"`   // 输入小于等于, 单位: k
+}
+
+type MidjourneyPricing struct {
+	Name       string `bson:"name,omitempty"        json:"name,omitempty"`   // 名称
+	Action     string `bson:"action,omitempty"      json:"action,omitempty"` // 动作[IMAGINE, UPSCALE, VARIATION, ZOOM, PAN, DESCRIBE, BLEND, SHORTEN, SWAP_FACE]
+	Path       string `bson:"path,omitempty"        json:"path,omitempty"`   // 路径
+	FixedQuota int    `bson:"fixed_quota"           json:"fixed_quota"`      // 固定额度
 }
