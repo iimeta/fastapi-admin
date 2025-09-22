@@ -173,7 +173,7 @@ type Pricing struct {
 type TextPricing struct {
 	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
 	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
-	Thinking    string  `bson:"thinking,omitempty"     json:"thinking,omitempty"`     // 思考
+	Mode        string  `bson:"mode,omitempty"         json:"mode,omitempty"`         // 模式[all:全部, thinking:思考, non_thinking:非思考]
 	InputGt     int     `bson:"input_gt"               json:"input_gt"`               // 输入大于, 单位: k
 	InputLte    int     `bson:"input_lte"              json:"input_lte"`              // 输入小于等于, 单位: k
 }
@@ -181,6 +181,7 @@ type TextPricing struct {
 type CachePricing struct {
 	ReadRatio  float64 `bson:"read_ratio,omitempty"  json:"read_ratio,omitempty"`  // 读取/命中倍率
 	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
+	Mode       string  `bson:"mode,omitempty"        json:"mode,omitempty"`        // 模式[all:全部, thinking:思考, non_thinking:非思考]
 	InputGt    int     `bson:"input_gt"              json:"input_gt"`              // 输入大于, 单位: k
 	InputLte   int     `bson:"input_lte"             json:"input_lte"`             // 输入小于等于, 单位: k
 }
