@@ -163,9 +163,9 @@ type Pricing struct {
 	Image           ImagePricing             `bson:"image,omitempty"             json:"image,omitempty"`             // 图像
 	ImageGeneration []ImageGenerationPricing `bson:"image_generation,omitempty"  json:"image_generation,omitempty"`  // 图像生成
 	ImageCache      CachePricing             `bson:"image_cache,omitempty"       json:"image_cache,omitempty"`       // 图像缓存
+	Vision          []VisionPricing          `bson:"vision,omitempty"            json:"vision,omitempty"`            // 识图
 	Audio           AudioPricing             `bson:"audio,omitempty"             json:"audio,omitempty"`             // 音频
 	AudioCache      CachePricing             `bson:"audio_cache,omitempty"       json:"audio_cache,omitempty"`       // 音频缓存
-	Vision          []VisionPricing          `bson:"vision,omitempty"            json:"vision,omitempty"`            // 识图
 	Search          []SearchPricing          `bson:"search,omitempty"            json:"search,omitempty"`            // 搜索
 	Midjourney      []MidjourneyPricing      `bson:"midjourney,omitempty"        json:"midjourney,omitempty"`        // Midjourney
 }
@@ -174,8 +174,15 @@ type TextPricing struct {
 	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
 	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
 	Thinking    string  `bson:"thinking,omitempty"     json:"thinking,omitempty"`     // 思考
-	InputGt     int     `bson:"input_gt,omitempty"     json:"input_gt,omitempty"`     // 输入大于, 单位: k
-	InputLte    int     `bson:"input_lte,omitempty"    json:"input_lte,omitempty"`    // 输入小于等于, 单位: k
+	InputGt     int     `bson:"input_gt"               json:"input_gt"`               // 输入大于, 单位: k
+	InputLte    int     `bson:"input_lte"              json:"input_lte"`              // 输入小于等于, 单位: k
+}
+
+type CachePricing struct {
+	ReadRatio  float64 `bson:"read_ratio,omitempty"  json:"read_ratio,omitempty"`  // 读取/命中倍率
+	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
+	InputGt    int     `bson:"input_gt"              json:"input_gt"`              // 输入大于, 单位: k
+	InputLte   int     `bson:"input_lte"             json:"input_lte"`             // 输入小于等于, 单位: k
 }
 
 type ImagePricing struct {
@@ -191,28 +198,21 @@ type ImageGenerationPricing struct {
 	IsDefault  bool   `bson:"is_default,omitempty"  json:"is_default,omitempty"`  // 是否默认选项
 }
 
-type AudioPricing struct {
-	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
-	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
-}
-
 type VisionPricing struct {
 	Mode       string `bson:"mode,omitempty"        json:"mode,omitempty"`        // 模式[low, high, auto]
 	FixedQuota int    `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
 	IsDefault  bool   `bson:"is_default,omitempty"  json:"is_default,omitempty"`  // 是否默认选项
 }
 
+type AudioPricing struct {
+	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
+	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
+}
+
 type SearchPricing struct {
 	SearchContextSize string `bson:"search_context_size,omitempty" json:"search_context_size,omitempty"` // 搜索上下文大小[high, medium, low]
 	FixedQuota        int    `bson:"fixed_quota,omitempty"         json:"fixed_quota,omitempty"`         // 固定额度
 	IsDefault         bool   `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
-}
-
-type CachePricing struct {
-	ReadRatio  float64 `bson:"read_ratio,omitempty"  json:"read_ratio,omitempty"`  // 读取/命中倍率
-	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
-	InputGt    int     `bson:"input_gt,omitempty"    json:"input_gt,omitempty"`    // 输入大于, 单位: k
-	InputLte   int     `bson:"input_lte,omitempty"   json:"input_lte,omitempty"`   // 输入小于等于, 单位: k
 }
 
 type MidjourneyPricing struct {
