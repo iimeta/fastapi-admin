@@ -155,7 +155,8 @@ type SearchQuota struct {
 
 type Pricing struct {
 	BillingRule     int                      `bson:"billing_rule,omitempty"      json:"billing_rule,omitempty"`      // 计费规则[1:按官方, 2:按系统]
-	BillingItems    []string                 `bson:"billing_items,omitempty"     json:"billing_items,omitempty"`     // 计费项[text:文本, text_cache:文本缓存, tiered_text:阶梯文本, tiered_text_cache:阶梯文本缓存, image:图像, image_generation:图像生成, image_cache:图像缓存, audio:音频, audio_cache:音频缓存, vision:识图, search:搜索, midjourney:Midjourney]
+	BillingMethods  []int                    `bson:"billing_methods,omitempty"   json:"billing_methods,omitempty"`   // 计费方式[1:按量, 2:按次]
+	BillingItems    []string                 `bson:"billing_items,omitempty"     json:"billing_items,omitempty"`     // 计费项[text:文本, text_cache:文本缓存, tiered_text:阶梯文本, tiered_text_cache:阶梯文本缓存, image:图像, image_generation:图像生成, image_cache:图像缓存, audio:音频, audio_cache:音频缓存, vision:识图, search:搜索, midjourney:Midjourney, once:一次]
 	Text            TextPricing              `bson:"text,omitempty"              json:"text,omitempty"`              // 文本
 	TextCache       CachePricing             `bson:"text_cache,omitempty"        json:"text_cache,omitempty"`        // 文本缓存
 	TieredText      []TextPricing            `bson:"tiered_text,omitempty"       json:"tiered_text,omitempty"`       // 阶梯文本
@@ -168,6 +169,7 @@ type Pricing struct {
 	AudioCache      CachePricing             `bson:"audio_cache,omitempty"       json:"audio_cache,omitempty"`       // 音频缓存
 	Search          []SearchPricing          `bson:"search,omitempty"            json:"search,omitempty"`            // 搜索
 	Midjourney      []MidjourneyPricing      `bson:"midjourney,omitempty"        json:"midjourney,omitempty"`        // Midjourney
+	Once            OncePricing              `bson:"once,omitempty"              json:"once,omitempty"`              // 一次
 }
 
 type TextPricing struct {
@@ -192,17 +194,17 @@ type ImagePricing struct {
 }
 
 type ImageGenerationPricing struct {
-	Quality    string `bson:"quality,omitempty"     json:"quality,omitempty"`     // 质量[high, medium, low, hd, standard]
-	Width      int    `bson:"width,omitempty"       json:"width,omitempty"`       // 宽度
-	Height     int    `bson:"height,omitempty"      json:"height,omitempty"`      // 高度
-	FixedQuota int    `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
-	IsDefault  bool   `bson:"is_default,omitempty"  json:"is_default,omitempty"`  // 是否默认选项
+	Quality   string  `bson:"quality,omitempty"    json:"quality,omitempty"`    // 质量[high, medium, low, hd, standard]
+	Width     int     `bson:"width,omitempty"      json:"width,omitempty"`      // 宽度
+	Height    int     `bson:"height,omitempty"     json:"height,omitempty"`     // 高度
+	OnceRatio float64 `bson:"once_ratio"           json:"once_ratio"`           // 一次倍率
+	IsDefault bool    `bson:"is_default,omitempty" json:"is_default,omitempty"` // 是否默认选项
 }
 
 type VisionPricing struct {
-	Mode       string `bson:"mode,omitempty"        json:"mode,omitempty"`        // 模式[low, high, auto]
-	FixedQuota int    `bson:"fixed_quota,omitempty" json:"fixed_quota,omitempty"` // 固定额度
-	IsDefault  bool   `bson:"is_default,omitempty"  json:"is_default,omitempty"`  // 是否默认选项
+	Mode      string  `bson:"mode,omitempty"       json:"mode,omitempty"`       // 模式[low, high, auto]
+	OnceRatio float64 `bson:"once_ratio"           json:"once_ratio"`           // 一次倍率
+	IsDefault bool    `bson:"is_default,omitempty" json:"is_default,omitempty"` // 是否默认选项
 }
 
 type AudioPricing struct {
@@ -211,14 +213,18 @@ type AudioPricing struct {
 }
 
 type SearchPricing struct {
-	SearchContextSize string `bson:"search_context_size,omitempty" json:"search_context_size,omitempty"` // 搜索上下文大小[high, medium, low]
-	FixedQuota        int    `bson:"fixed_quota,omitempty"         json:"fixed_quota,omitempty"`         // 固定额度
-	IsDefault         bool   `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
+	SearchContextSize string  `bson:"search_context_size,omitempty" json:"search_context_size,omitempty"` // 搜索上下文大小[high, medium, low]
+	OnceRatio         float64 `bson:"once_ratio"                    json:"once_ratio"`                    // 一次倍率
+	IsDefault         bool    `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
 }
 
 type MidjourneyPricing struct {
-	Name       string `bson:"name,omitempty"        json:"name,omitempty"`   // 名称
-	Action     string `bson:"action,omitempty"      json:"action,omitempty"` // 动作[IMAGINE, UPSCALE, VARIATION, ZOOM, PAN, DESCRIBE, BLEND, SHORTEN, SWAP_FACE]
-	Path       string `bson:"path,omitempty"        json:"path,omitempty"`   // 路径
-	FixedQuota int    `bson:"fixed_quota"           json:"fixed_quota"`      // 固定额度
+	Name      string  `bson:"name,omitempty"   json:"name,omitempty"`   // 名称
+	Action    string  `bson:"action,omitempty" json:"action,omitempty"` // 动作[IMAGINE, UPSCALE, VARIATION, ZOOM, PAN, DESCRIBE, BLEND, SHORTEN, SWAP_FACE]
+	Path      string  `bson:"path,omitempty"   json:"path,omitempty"`   // 路径
+	OnceRatio float64 `bson:"once_ratio"       json:"once_ratio"`       // 一次倍率
+}
+
+type OncePricing struct {
+	OnceRatio float64 `bson:"once_ratio" json:"once_ratio"` // 一次倍率
 }
