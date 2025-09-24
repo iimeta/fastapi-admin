@@ -1071,6 +1071,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			Model:                result.Model,
 			Type:                 result.Type,
 			GroupNames:           groupNames,
+			Pricing:              result.Pricing,
 			TextQuota:            result.TextQuota,
 			ImageQuota:           result.ImageQuota,
 			AudioQuota:           result.AudioQuota,
