@@ -20,58 +20,58 @@ type Pricing struct {
 }
 
 type TextPricing struct {
-	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
-	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
-	Mode        string  `bson:"mode,omitempty"         json:"mode,omitempty"`         // 模式[all:全部, thinking:思考, non_thinking:非思考]
-	InputGt     int     `bson:"input_gt"               json:"input_gt"`               // 输入大于, 单位: k
-	InputLte    int     `bson:"input_lte"              json:"input_lte"`              // 输入小于等于, 单位: k
+	InputRatio  float64 `bson:"input_ratio"    json:"input_ratio,omitempty"`  // 输入倍率
+	OutputRatio float64 `bson:"output_ratio"   json:"output_ratio,omitempty"` // 输出倍率
+	Mode        string  `bson:"mode,omitempty" json:"mode,omitempty"`         // 模式[all:全部, thinking:思考, non_thinking:非思考]
+	InputGt     int     `bson:"input_gt"       json:"input_gt"`               // 输入大于, 单位: k
+	InputLte    int     `bson:"input_lte"      json:"input_lte"`              // 输入小于等于, 单位: k
 }
 
 type CachePricing struct {
-	ReadRatio  float64 `bson:"read_ratio,omitempty"  json:"read_ratio,omitempty"`  // 读取/命中倍率
-	WriteRatio float64 `bson:"write_ratio,omitempty" json:"write_ratio,omitempty"` // 写入倍率
-	Mode       string  `bson:"mode,omitempty"        json:"mode,omitempty"`        // 模式[all:全部, thinking:思考, non_thinking:非思考]
-	InputGt    int     `bson:"input_gt"              json:"input_gt"`              // 输入大于, 单位: k
-	InputLte   int     `bson:"input_lte"             json:"input_lte"`             // 输入小于等于, 单位: k
+	ReadRatio  float64 `bson:"read_ratio"     json:"read_ratio,omitempty"`  // 读取/命中倍率
+	WriteRatio float64 `bson:"write_ratio"    json:"write_ratio,omitempty"` // 写入倍率
+	Mode       string  `bson:"mode,omitempty" json:"mode,omitempty"`        // 模式[all:全部, thinking:思考, non_thinking:非思考]
+	InputGt    int     `bson:"input_gt"       json:"input_gt"`              // 输入大于, 单位: k
+	InputLte   int     `bson:"input_lte"      json:"input_lte"`             // 输入小于等于, 单位: k
 }
 
 type ImagePricing struct {
-	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
-	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
+	InputRatio  float64 `bson:"input_ratio"  json:"input_ratio,omitempty"`  // 输入倍率
+	OutputRatio float64 `bson:"output_ratio" json:"output_ratio,omitempty"` // 输出倍率
 }
 
 type ImageGenerationPricing struct {
 	Quality   string  `bson:"quality,omitempty"    json:"quality,omitempty"`    // 质量[high, medium, low, hd, standard]
 	Width     int     `bson:"width,omitempty"      json:"width,omitempty"`      // 宽度
 	Height    int     `bson:"height,omitempty"     json:"height,omitempty"`     // 高度
-	OnceRatio float64 `bson:"once_ratio"           json:"once_ratio"`           // 一次倍率
+	OnceRatio float64 `bson:"once_ratio"           json:"once_ratio,omitempty"` // 一次倍率
 	IsDefault bool    `bson:"is_default,omitempty" json:"is_default,omitempty"` // 是否默认选项
 }
 
 type VisionPricing struct {
 	Mode      string  `bson:"mode,omitempty"       json:"mode,omitempty"`       // 模式[low, high, auto]
-	OnceRatio float64 `bson:"once_ratio"           json:"once_ratio"`           // 一次倍率
+	OnceRatio float64 `bson:"once_ratio"           json:"once_ratio,omitempty"` // 一次倍率
 	IsDefault bool    `bson:"is_default,omitempty" json:"is_default,omitempty"` // 是否默认选项
 }
 
 type AudioPricing struct {
-	InputRatio  float64 `bson:"input_ratio,omitempty"  json:"input_ratio,omitempty"`  // 输入倍率
-	OutputRatio float64 `bson:"output_ratio,omitempty" json:"output_ratio,omitempty"` // 输出倍率
+	InputRatio  float64 `bson:"input_ratio"  json:"input_ratio,omitempty"`  // 输入倍率
+	OutputRatio float64 `bson:"output_ratio" json:"output_ratio,omitempty"` // 输出倍率
 }
 
 type SearchPricing struct {
 	ContextSize string  `bson:"context_size,omitempty" json:"context_size,omitempty"` // 上下文大小[high, medium, low]
-	OnceRatio   float64 `bson:"once_ratio"             json:"once_ratio"`             // 一次倍率
+	OnceRatio   float64 `bson:"once_ratio"             json:"once_ratio,omitempty"`   // 一次倍率
 	IsDefault   bool    `bson:"is_default,omitempty"   json:"is_default,omitempty"`   // 是否默认选项
 }
 
 type MidjourneyPricing struct {
-	Name      string  `bson:"name,omitempty"   json:"name,omitempty"`   // 名称
-	Action    string  `bson:"action,omitempty" json:"action,omitempty"` // 动作[IMAGINE, UPSCALE, VARIATION, ZOOM, PAN, DESCRIBE, BLEND, SHORTEN, SWAP_FACE]
-	Path      string  `bson:"path,omitempty"   json:"path,omitempty"`   // 路径
-	OnceRatio float64 `bson:"once_ratio"       json:"once_ratio"`       // 一次倍率
+	Name      string  `bson:"name,omitempty"   json:"name,omitempty"`       // 名称
+	Action    string  `bson:"action,omitempty" json:"action,omitempty"`     // 动作[IMAGINE, UPSCALE, VARIATION, ZOOM, PAN, DESCRIBE, BLEND, SHORTEN, SWAP_FACE]
+	Path      string  `bson:"path,omitempty"   json:"path,omitempty"`       // 路径
+	OnceRatio float64 `bson:"once_ratio"       json:"once_ratio,omitempty"` // 一次倍率
 }
 
 type OncePricing struct {
-	OnceRatio float64 `bson:"once_ratio" json:"once_ratio"` // 一次倍率
+	OnceRatio float64 `bson:"once_ratio" json:"once_ratio,omitempty"` // 一次倍率
 }
