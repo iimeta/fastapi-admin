@@ -60,9 +60,9 @@ type AudioPricing struct {
 }
 
 type SearchPricing struct {
-	SearchContextSize string  `bson:"search_context_size,omitempty" json:"search_context_size,omitempty"` // 搜索上下文大小[high, medium, low]
-	OnceRatio         float64 `bson:"once_ratio"                    json:"once_ratio"`                    // 一次倍率
-	IsDefault         bool    `bson:"is_default,omitempty"          json:"is_default,omitempty"`          // 是否默认选项
+	ContextSize string  `bson:"context_size,omitempty" json:"context_size,omitempty"` // 上下文大小[high, medium, low]
+	OnceRatio   float64 `bson:"once_ratio"             json:"once_ratio"`             // 一次倍率
+	IsDefault   bool    `bson:"is_default,omitempty"   json:"is_default,omitempty"`   // 是否默认选项
 }
 
 type MidjourneyPricing struct {
