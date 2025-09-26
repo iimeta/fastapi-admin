@@ -1,0 +1,1 @@
+function a(t){return parseFloat((t/5e5).toFixed(6)).toLocaleString(void 0,{maximumFractionDigits:6})}function i(t){return parseFloat((t/5e5).toFixed(4)).toLocaleString(void 0,{maximumFractionDigits:4})}function n(t){const o=t.match(/^(-?\d*)(\.\d{0,6})?/);return o?o[0]:t}export{i as a,n as p,a as q};
