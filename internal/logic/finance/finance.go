@@ -178,7 +178,7 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 				UserId:   result.UserId,
 				Model:    modelStat.Model,
 				Total:    modelStat.Total,
-				Tokens:   gconv.String(util.QuotaConv(modelStat.Tokens)),
+				Tokens:   gconv.String(util.ConvQuota(modelStat.Tokens)),
 			})
 		}
 	}

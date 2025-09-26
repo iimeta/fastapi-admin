@@ -405,7 +405,7 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 			Model:            result.Model,
 			PromptTokens:     result.PromptTokens,
 			CompletionTokens: result.CompletionTokens,
-			TotalTokens:      gconv.String(util.QuotaConv(result.TotalTokens)),
+			TotalTokens:      gconv.String(util.ConvQuota(result.TotalTokens)),
 			Key:              result.Key,
 			Creator:          result.Creator,
 		})

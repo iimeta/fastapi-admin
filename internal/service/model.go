@@ -9,10 +9,15 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
 type (
 	IModel interface {
+		// 转换定价成倍率
+		ConvPricingToRatio(pricing common.Pricing) common.Pricing
+		// 转换定价成价格
+		ConvPricingToPrice(pricing common.Pricing) common.Pricing
 		// 新建模型
 		Create(ctx context.Context, params model.ModelCreateReq) error
 		// 更新模型

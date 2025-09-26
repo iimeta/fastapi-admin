@@ -901,7 +901,7 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 		}
 
 		if result.Quota > 0 {
-			appKeyExport.Quota = gconv.String(util.QuotaConv(result.Quota))
+			appKeyExport.Quota = gconv.String(util.ConvQuota(result.Quota))
 		}
 
 		if app, ok := appMap[result.AppId]; ok {
