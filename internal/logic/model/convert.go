@@ -32,19 +32,9 @@ func (s *sModel) ConvPricingToRatio(pricing common.Pricing) common.Pricing {
 	pricing.Image.InputRatio = util.ConvRatio(pricing.Image.InputRatio)
 	pricing.Image.OutputRatio = util.ConvRatio(pricing.Image.OutputRatio)
 
-	// 图像生成
-	for i, imageGeneration := range pricing.ImageGeneration {
-		pricing.ImageGeneration[i].OnceRatio = util.ConvRatio(imageGeneration.OnceRatio)
-	}
-
 	// 图像缓存
 	pricing.ImageCache.ReadRatio = util.ConvRatio(pricing.ImageCache.ReadRatio)
 	pricing.ImageCache.WriteRatio = util.ConvRatio(pricing.ImageCache.WriteRatio)
-
-	// 识图
-	for i, vision := range pricing.Vision {
-		pricing.Vision[i].OnceRatio = util.ConvRatio(vision.OnceRatio)
-	}
 
 	// 音频
 	pricing.Audio.InputRatio = util.ConvRatio(pricing.Audio.InputRatio)
@@ -53,19 +43,6 @@ func (s *sModel) ConvPricingToRatio(pricing common.Pricing) common.Pricing {
 	// 音频缓存
 	pricing.AudioCache.ReadRatio = util.ConvRatio(pricing.AudioCache.ReadRatio)
 	pricing.AudioCache.WriteRatio = util.ConvRatio(pricing.AudioCache.WriteRatio)
-
-	// 搜索
-	for i, search := range pricing.Search {
-		pricing.Search[i].OnceRatio = util.ConvRatio(search.OnceRatio)
-	}
-
-	// Midjourney
-	for i, midjourney := range pricing.Midjourney {
-		pricing.Midjourney[i].OnceRatio = util.ConvRatio(midjourney.OnceRatio)
-	}
-
-	// 一次
-	pricing.Once.OnceRatio = util.ConvRatio(pricing.Once.OnceRatio)
 
 	return pricing
 }
@@ -97,19 +74,9 @@ func (s *sModel) ConvPricingToPrice(pricing common.Pricing) common.Pricing {
 	pricing.Image.InputRatio = util.ConvPrice(pricing.Image.InputRatio)
 	pricing.Image.OutputRatio = util.ConvPrice(pricing.Image.OutputRatio)
 
-	// 图像生成
-	for i, imageGeneration := range pricing.ImageGeneration {
-		pricing.ImageGeneration[i].OnceRatio = util.ConvPrice(imageGeneration.OnceRatio)
-	}
-
 	// 图像缓存
 	pricing.ImageCache.ReadRatio = util.ConvPrice(pricing.ImageCache.ReadRatio)
 	pricing.ImageCache.WriteRatio = util.ConvPrice(pricing.ImageCache.WriteRatio)
-
-	// 识图
-	for i, vision := range pricing.Vision {
-		pricing.Vision[i].OnceRatio = util.ConvPrice(vision.OnceRatio)
-	}
 
 	// 音频
 	pricing.Audio.InputRatio = util.ConvPrice(pricing.Audio.InputRatio)
@@ -118,19 +85,6 @@ func (s *sModel) ConvPricingToPrice(pricing common.Pricing) common.Pricing {
 	// 音频缓存
 	pricing.AudioCache.ReadRatio = util.ConvPrice(pricing.AudioCache.ReadRatio)
 	pricing.AudioCache.WriteRatio = util.ConvPrice(pricing.AudioCache.WriteRatio)
-
-	// 搜索
-	for i, search := range pricing.Search {
-		pricing.Search[i].OnceRatio = util.ConvPrice(search.OnceRatio)
-	}
-
-	// Midjourney
-	for i, midjourney := range pricing.Midjourney {
-		pricing.Midjourney[i].OnceRatio = util.ConvPrice(midjourney.OnceRatio)
-	}
-
-	// 一次
-	pricing.Once.OnceRatio = util.ConvPrice(pricing.Once.OnceRatio)
 
 	return pricing
 }
