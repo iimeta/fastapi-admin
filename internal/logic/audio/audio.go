@@ -64,7 +64,6 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		Text:         result.Text,
 		Characters:   result.Characters,
 		Minute:       result.Minute,
-		AudioQuota:   result.AudioQuota,
 		TotalTokens:  result.TotalTokens,
 		TotalTime:    result.TotalTime,
 		ReqTime:      util.FormatDateTime(result.ReqTime),

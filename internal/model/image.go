@@ -74,8 +74,6 @@ type Image struct {
 	ResponseFormat       string                 `json:"response_format,omitempty"`         // 图像格式[url, b64_json]
 	Images               []string               `json:"images,omitempty"`                  // 生成图像url
 	ImageData            []common.ImageData     `json:"image_data,omitempty"`              // 生成图像数据
-	ImageQuota           common.ImageQuota      `json:"image_quota,omitempty"`             // 图像额度
-	GenerationQuota      common.GenerationQuota `json:"generation_quota,omitempty"`        // 生成额度
 	InputTokens          int                    `json:"input_tokens,omitempty"`            // 输入令牌数
 	OutputTokens         int                    `json:"output_tokens,omitempty"`           // 输出令牌数
 	TextTokens           int                    `json:"text_tokens,omitempty"`             // 文本令牌数

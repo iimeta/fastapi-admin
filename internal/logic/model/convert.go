@@ -18,12 +18,16 @@ func (s *sModel) ConvPricingToRatio(pricing common.Pricing) common.Pricing {
 
 	// 阶梯文本
 	for i, tieredText := range pricing.TieredText {
+		pricing.TieredText[i].Gt *= 1000
+		pricing.TieredText[i].Lte *= 1000
 		pricing.TieredText[i].InputRatio = util.ConvRatio(tieredText.InputRatio)
 		pricing.TieredText[i].OutputRatio = util.ConvRatio(tieredText.OutputRatio)
 	}
 
 	// 阶梯文本缓存
 	for i, tieredTextCache := range pricing.TieredTextCache {
+		pricing.TieredTextCache[i].Gt *= 1000
+		pricing.TieredTextCache[i].Lte *= 1000
 		pricing.TieredTextCache[i].ReadRatio = util.ConvRatio(tieredTextCache.ReadRatio)
 		pricing.TieredTextCache[i].WriteRatio = util.ConvRatio(tieredTextCache.WriteRatio)
 	}
@@ -60,12 +64,16 @@ func (s *sModel) ConvPricingToPrice(pricing common.Pricing) common.Pricing {
 
 	// 阶梯文本
 	for i, tieredText := range pricing.TieredText {
+		pricing.TieredText[i].Gt /= 1000
+		pricing.TieredText[i].Lte /= 1000
 		pricing.TieredText[i].InputRatio = util.ConvPrice(tieredText.InputRatio)
 		pricing.TieredText[i].OutputRatio = util.ConvPrice(tieredText.OutputRatio)
 	}
 
 	// 阶梯文本缓存
 	for i, tieredTextCache := range pricing.TieredTextCache {
+		pricing.TieredTextCache[i].Gt /= 1000
+		pricing.TieredTextCache[i].Lte /= 1000
 		pricing.TieredTextCache[i].ReadRatio = util.ConvPrice(tieredTextCache.ReadRatio)
 		pricing.TieredTextCache[i].WriteRatio = util.ConvPrice(tieredTextCache.WriteRatio)
 	}

@@ -70,7 +70,6 @@ type Audio struct {
 	Text                 string                 `json:"text,omitempty"`                    // 输出文本
 	Characters           int                    `json:"characters,omitempty"`              // 字符数
 	Minute               float64                `json:"minute,omitempty"`                  // 分钟数
-	AudioQuota           common.AudioQuota      `json:"audio_quota,omitempty"`             // 音频额度
 	FilePath             string                 `json:"file_path,omitempty"`               // 文件路径
 	TotalTokens          int                    `json:"total_tokens,omitempty"`            // 总令牌数
 	TotalTime            int64                  `json:"total_time,omitempty"`              // 总时间
