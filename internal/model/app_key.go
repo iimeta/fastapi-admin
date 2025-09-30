@@ -18,6 +18,7 @@ type AppKeyConfigReq struct {
 	UserId              int      `json:"user_id,omitempty"`                  // 用户ID
 	AppId               int      `json:"app_id,omitempty"`                   // 应用ID
 	Key                 string   `json:"key,omitempty"`                      // 密钥
+	BillingMethods      []int    `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
 	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`           // 是否限制额度
 	Quota               int      `json:"quota,omitempty"`                    // 额度
@@ -49,6 +50,7 @@ type AppKeyPageReq struct {
 	UserId         int      `json:"user_id,omitempty"`          // 用户ID
 	AppId          int      `json:"app_id,omitempty"`           // 应用ID
 	Key            string   `json:"key,omitempty"`              // 应用密钥
+	BillingMethods []int    `json:"billing_methods,omitempty"`  // 计费方式[1:按Tokens, 2:按次]
 	Quota          float64  `json:"quota,omitempty"`            // 额度
 	QuotaExpiresAt []string `json:"quota_expires_at,omitempty"` // 额度过期时间
 	Models         []string `json:"models,omitempty"`           // 模型
@@ -71,6 +73,7 @@ type AppKeyBatchOperateReq struct {
 	UserId              int           `json:"user_id,omitempty"`                  // 用户ID
 	AppId               int           `json:"app_id,omitempty"`                   // 应用ID
 	Key                 string        `json:"key,omitempty"`                      // 应用密钥
+	BillingMethods      []int         `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
 	N                   int           `json:"n,omitempty"`                        // 数量
 	Models              []string      `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool          `json:"is_limit_quota,omitempty"`           // 是否限制额度
@@ -123,6 +126,7 @@ type AppKey struct {
 	UserId              int      `json:"user_id,omitempty"`               // 用户ID
 	AppId               int      `json:"app_id,omitempty"`                // 应用ID
 	Key                 string   `json:"key,omitempty"`                   // 应用密钥
+	BillingMethods      []int    `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Models              []string `json:"models,omitempty"`                // 模型权限
 	ModelNames          []string `json:"model_names,omitempty"`           // 模型名称
 	IsLimitQuota        bool     `json:"is_limit_quota"`                  // 是否限制额度
