@@ -4,7 +4,6 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -60,17 +59,6 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		return "", err
 	}
 
-	if len(params.Models) > 0 {
-		if err = dao.Model.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": params.Models}}, bson.M{
-			"$push": bson.M{
-				"model_agents": id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return "", err
-		}
-	}
-
 	if params.Key != "" {
 		if err = service.Key().Create(ctx, model.KeyCreateReq{
 			ProviderId:     params.ProviderId,
@@ -100,23 +88,6 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}); err != nil {
 		logger.Error(ctx, err)
 		return "", err
-	}
-
-	for _, id := range modelAgent.Models {
-
-		newData, err := dao.Model.FindById(ctx, id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return "", err
-		}
-
-		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
-			Action:  consts.ACTION_UPDATE,
-			NewData: newData,
-		}); err != nil {
-			logger.Error(ctx, err)
-			return "", err
-		}
 	}
 
 	return id, nil
@@ -154,26 +125,6 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
-	}
-
-	if err = dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.Id}}}, bson.M{
-		"$pull": bson.M{
-			"model_agents": params.Id,
-		},
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if len(params.Models) > 0 {
-		if err = dao.Model.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": params.Models}}, bson.M{
-			"$addToSet": bson.M{
-				"model_agents": params.Id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
 	}
 
 	var oldKeyList []*entity.Key
@@ -269,27 +220,6 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		return err
 	}
 
-	modelSet := gset.NewStrSet()
-	modelSet.Add(oldData.Models...)
-	modelSet.Add(modelAgent.Models...)
-
-	for _, id := range modelSet.Slice() {
-
-		newData, err := dao.Model.FindById(ctx, id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
-			Action:  consts.ACTION_UPDATE,
-			NewData: newData,
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -336,15 +266,6 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	if err = dao.Model.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
-		"$pull": bson.M{
-			"model_agents": id,
-		},
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
 	if err = dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
 		"$pull": bson.M{
 			"model_agents": id,
@@ -352,23 +273,6 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
-	}
-
-	for _, id := range modelAgent.Models {
-
-		newData, err := dao.Model.FindById(ctx, id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
-			Action:  consts.ACTION_UPDATE,
-			NewData: newData,
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
@@ -396,17 +300,14 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		providerName = provider.Name
 	}
 
-	modelList, err := dao.Model.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
+	modelList, err := dao.Model.Find(ctx, bson.M{"_id": bson.M{"$in": modelAgent.Models}}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	models := make([]string, 0)
 	modelNames := make([]string, 0)
-
 	for _, model := range modelList {
-		models = append(models, model.Id)
 		modelNames = append(modelNames, model.Name)
 	}
 
@@ -443,7 +344,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		BaseUrl:              modelAgent.BaseUrl,
 		Path:                 modelAgent.Path,
 		Weight:               modelAgent.Weight,
-		Models:               models,
+		Models:               modelAgent.Models,
 		ModelNames:           modelNames,
 		FallbackModels:       fallbackModels,
 		FallbackModelNames:   fallbackModelNames,
@@ -492,21 +393,23 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 
 	if len(params.Models) > 0 {
 
-		modelList, err := dao.Model.Find(ctx, bson.M{"_id": bson.M{"$in": params.Models}})
+		modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": params.Models}})
 		if err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
 
-		set := gset.NewStrSet()
-		for _, model := range modelList {
-			set.Add(model.ModelAgents...)
+		if len(modelAgents) == 0 {
+			return nil, nil
 		}
 
-		if set.Size() > 0 {
-			filter["_id"] = bson.M{
-				"$in": set.Slice(),
-			}
+		modelAgentIds := make([]string, 0)
+		for _, modelAgent := range modelAgents {
+			modelAgentIds = append(modelAgentIds, modelAgent.Id)
+		}
+
+		filter["_id"] = bson.M{
+			"$in": modelAgentIds,
 		}
 	}
 

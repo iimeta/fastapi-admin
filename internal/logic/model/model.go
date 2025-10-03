@@ -58,7 +58,6 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		IsPublic:             params.IsPublic,
 		IsEnableModelAgent:   params.IsEnableModelAgent,
 		LbStrategy:           params.LbStrategy,
-		ModelAgents:          params.ModelAgents,
 		IsEnableForward:      params.IsEnableForward,
 		ForwardConfig:        params.ForwardConfig,
 		IsEnableFallback:     params.IsEnableFallback,
@@ -75,14 +74,6 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 
 	newData, err := dao.Model.FindById(ctx, id)
 	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
-		Action:  consts.ACTION_CREATE,
-		NewData: newData,
-	}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -180,6 +171,59 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		}
 	}
 
+	for _, modelAgentId := range params.ModelAgents {
+
+		oldData, err := dao.ModelAgent.FindById(ctx, modelAgentId)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, &do.ModelAgent{
+			ProviderId:           oldData.ProviderId,
+			Name:                 oldData.Name,
+			BaseUrl:              oldData.BaseUrl,
+			Path:                 oldData.Path,
+			Weight:               oldData.Weight,
+			Models:               append(oldData.Models, id),
+			IsEnableModelReplace: oldData.IsEnableModelReplace,
+			ReplaceModels:        oldData.ReplaceModels,
+			TargetModels:         oldData.TargetModels,
+			IsNeverDisable:       oldData.IsNeverDisable,
+			LbStrategy:           oldData.LbStrategy,
+			Remark:               oldData.Remark,
+			Status:               oldData.Status,
+			IsAutoDisabled:       oldData.IsAutoDisabled,
+			AutoDisabledReason:   oldData.AutoDisabledReason,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			OldData: oldData,
+			NewData: modelAgent,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+		Action:  consts.ACTION_CREATE,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 
@@ -194,78 +238,6 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
-	}
-
-	for _, modelAgentId := range params.ModelAgents {
-
-		if !slices.Contains(oldData.ModelAgents, modelAgentId) {
-
-			modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
-			if err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-
-			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:                   modelAgent.Id,
-				ProviderId:           modelAgent.ProviderId,
-				Name:                 modelAgent.Name,
-				BaseUrl:              modelAgent.BaseUrl,
-				Path:                 modelAgent.Path,
-				Weight:               modelAgent.Weight,
-				Models:               append(modelAgent.Models, params.Id),
-				IsEnableModelReplace: modelAgent.IsEnableModelReplace,
-				ReplaceModels:        modelAgent.ReplaceModels,
-				TargetModels:         modelAgent.TargetModels,
-				IsNeverDisable:       modelAgent.IsNeverDisable,
-				LbStrategy:           modelAgent.LbStrategy,
-				Key:                  modelAgent.Key,
-				Remark:               modelAgent.Remark,
-				Status:               modelAgent.Status,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-	}
-
-	for _, modelAgentId := range oldData.ModelAgents {
-
-		if !slices.Contains(params.ModelAgents, modelAgentId) {
-
-			modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
-			if err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-
-			for i, modelId := range modelAgent.Models {
-				if modelId == params.Id {
-					modelAgent.Models = util.Delete(modelAgent.Models, i)
-				}
-			}
-
-			if err = service.ModelAgent().Update(ctx, model.ModelAgentUpdateReq{
-				Id:                   modelAgent.Id,
-				ProviderId:           modelAgent.ProviderId,
-				Name:                 modelAgent.Name,
-				BaseUrl:              modelAgent.BaseUrl,
-				Path:                 modelAgent.Path,
-				Weight:               modelAgent.Weight,
-				Models:               append(modelAgent.Models, params.Id),
-				IsEnableModelReplace: modelAgent.IsEnableModelReplace,
-				ReplaceModels:        modelAgent.ReplaceModels,
-				TargetModels:         modelAgent.TargetModels,
-				IsNeverDisable:       modelAgent.IsNeverDisable,
-				LbStrategy:           modelAgent.LbStrategy,
-				Key:                  modelAgent.Key,
-				Remark:               modelAgent.Remark,
-				Status:               modelAgent.Status,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
 	}
 
 	m := &do.Model{
@@ -283,7 +255,6 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		IsPublic:             params.IsPublic,
 		IsEnableModelAgent:   params.IsEnableModelAgent,
 		LbStrategy:           params.LbStrategy,
-		ModelAgents:          params.ModelAgents,
 		IsEnableForward:      params.IsEnableForward,
 		ForwardConfig:        params.ForwardConfig,
 		IsEnableFallback:     params.IsEnableFallback,
@@ -438,15 +409,6 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		}
 	}
 
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
-		Action:  consts.ACTION_UPDATE,
-		OldData: oldData,
-		NewData: newData,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
 	groups, err := service.Group().GetGroupsByModels(ctx, oldData.Id)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -519,6 +481,123 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 				}
 			}
 		}
+	}
+
+	modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	oldModelAgents := make([]string, 0)
+	for _, oldData := range modelAgents {
+
+		oldModelAgents = append(oldModelAgents, oldData.Id)
+
+		if !slices.Contains(params.ModelAgents, oldData.Id) {
+
+			modelAgent := &do.ModelAgent{
+				ProviderId:           oldData.ProviderId,
+				Name:                 oldData.Name,
+				BaseUrl:              oldData.BaseUrl,
+				Path:                 oldData.Path,
+				Weight:               oldData.Weight,
+				Models:               oldData.Models,
+				IsEnableModelReplace: oldData.IsEnableModelReplace,
+				ReplaceModels:        oldData.ReplaceModels,
+				TargetModels:         oldData.TargetModels,
+				IsNeverDisable:       oldData.IsNeverDisable,
+				LbStrategy:           oldData.LbStrategy,
+				Remark:               oldData.Remark,
+				Status:               oldData.Status,
+				IsAutoDisabled:       oldData.IsAutoDisabled,
+				AutoDisabledReason:   oldData.AutoDisabledReason,
+			}
+
+			for i, modelId := range modelAgent.Models {
+				if modelId == params.Id {
+					modelAgent.Models = util.Delete(modelAgent.Models, i)
+					break
+				}
+			}
+
+			if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, modelAgent); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			newData, err := service.ModelAgent().Detail(ctx, oldData.Id)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+				Action:  consts.ACTION_UPDATE,
+				OldData: oldData,
+				NewData: newData,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	for _, modelAgentId := range params.ModelAgents {
+
+		if !slices.Contains(oldModelAgents, modelAgentId) {
+
+			oldData, err := dao.ModelAgent.FindById(ctx, modelAgentId)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, &do.ModelAgent{
+				ProviderId:           oldData.ProviderId,
+				Name:                 oldData.Name,
+				BaseUrl:              oldData.BaseUrl,
+				Path:                 oldData.Path,
+				Weight:               oldData.Weight,
+				Models:               append(oldData.Models, params.Id),
+				IsEnableModelReplace: oldData.IsEnableModelReplace,
+				ReplaceModels:        oldData.ReplaceModels,
+				TargetModels:         oldData.TargetModels,
+				IsNeverDisable:       oldData.IsNeverDisable,
+				LbStrategy:           oldData.LbStrategy,
+				Remark:               oldData.Remark,
+				Status:               oldData.Status,
+				IsAutoDisabled:       oldData.IsAutoDisabled,
+				AutoDisabledReason:   oldData.AutoDisabledReason,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			modelAgent, err := service.ModelAgent().Detail(ctx, modelAgentId)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+				Action:  consts.ACTION_UPDATE,
+				OldData: oldData,
+				NewData: modelAgent,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_MODEL, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: newData,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
 	}
 
 	return nil
@@ -737,19 +816,17 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		return nil, err
 	}
 
+	modelAgentList, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	modelAgents := make([]string, 0)
 	modelAgentNames := make([]string, 0)
-
-	if len(m.ModelAgents) > 0 {
-
-		modelAgentList, err := dao.ModelAgent.Find(ctx, bson.M{"_id": bson.M{"$in": m.ModelAgents}})
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		for _, modelAgent := range modelAgentList {
-			modelAgentNames = append(modelAgentNames, modelAgent.Name)
-		}
+	for _, modelAgent := range modelAgentList {
+		modelAgents = append(modelAgents, modelAgent.Id)
+		modelAgentNames = append(modelAgentNames, modelAgent.Name)
 	}
 
 	providerName := m.ProviderId
@@ -794,7 +871,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		IsPublic:             m.IsPublic,
 		IsEnableModelAgent:   m.IsEnableModelAgent,
 		LbStrategy:           m.LbStrategy,
-		ModelAgents:          m.ModelAgents,
+		ModelAgents:          modelAgents,
 		ModelAgentNames:      modelAgentNames,
 		IsEnableForward:      m.IsEnableForward,
 		ForwardConfig:        m.ForwardConfig,
@@ -1216,7 +1293,6 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 		}
 
 		if service.Session().IsAdminRole(ctx) {
-			model.ModelAgents = result.ModelAgents
 			model.IsEnableFallback = result.IsEnableFallback
 			model.FallbackConfig = result.FallbackConfig
 		}
@@ -1274,7 +1350,6 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				IsPublic:             result.IsPublic,
 				Groups:               groupIds,
 				LbStrategy:           result.LbStrategy,
-				ModelAgents:          result.ModelAgents,
 				IsEnableForward:      result.IsEnableForward,
 				ForwardConfig:        result.ForwardConfig,
 				IsEnableFallback:     result.IsEnableFallback,
@@ -1289,8 +1364,21 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				m.ModelAgents = params.ModelAgents
 			} else {
 				m.IsEnableModelAgent = gconv.Bool(params.Value)
-				if m.IsEnableModelAgent && len(m.ModelAgents) == 0 {
-					continue
+				if m.IsEnableModelAgent {
+
+					modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{result.Id}}})
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+
+					if len(modelAgents) == 0 {
+						continue
+					}
+
+					for _, modelAgent := range modelAgents {
+						m.ModelAgents = append(m.ModelAgents, modelAgent.Id)
+					}
 				}
 			}
 
@@ -1344,7 +1432,6 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				Groups:               groupIds,
 				IsEnableModelAgent:   result.IsEnableModelAgent,
 				LbStrategy:           result.LbStrategy,
-				ModelAgents:          result.ModelAgents,
 				ForwardConfig:        result.ForwardConfig,
 				IsEnableFallback:     result.IsEnableFallback,
 				FallbackConfig:       result.FallbackConfig,
@@ -1368,6 +1455,14 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 					(m.ForwardConfig.ForwardRule == 1 && m.ForwardConfig.TargetModel == "") ||
 					(m.ForwardConfig.ForwardRule == 2 && len(m.ForwardConfig.TargetModels) == 0)) {
 					continue
+				}
+			}
+
+			if modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{result.Id}}}); err != nil {
+				logger.Error(ctx, err)
+			} else {
+				for _, modelAgent := range modelAgents {
+					m.ModelAgents = append(m.ModelAgents, modelAgent.Id)
 				}
 			}
 
@@ -1421,7 +1516,6 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				Groups:               groupIds,
 				IsEnableModelAgent:   result.IsEnableModelAgent,
 				LbStrategy:           result.LbStrategy,
-				ModelAgents:          result.ModelAgents,
 				IsEnableForward:      result.IsEnableForward,
 				ForwardConfig:        result.ForwardConfig,
 				FallbackConfig:       result.FallbackConfig,
@@ -1436,6 +1530,14 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				m.IsEnableFallback = gconv.Bool(params.Value)
 				if m.IsEnableFallback && m.FallbackConfig == nil {
 					continue
+				}
+			}
+
+			if modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{result.Id}}}); err != nil {
+				logger.Error(ctx, err)
+			} else {
+				for _, modelAgent := range modelAgents {
+					m.ModelAgents = append(m.ModelAgents, modelAgent.Id)
 				}
 			}
 
