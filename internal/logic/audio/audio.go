@@ -54,9 +54,6 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		TraceId:      result.TraceId,
 		UserId:       result.UserId,
 		AppId:        result.AppId,
-		GroupId:      result.GroupId,
-		GroupName:    result.GroupName,
-		Discount:     result.Discount,
 		ProviderName: providerName,
 		Model:        result.Model,
 		ModelType:    result.ModelType,
@@ -64,7 +61,7 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		Text:         result.Text,
 		Characters:   result.Characters,
 		Minute:       result.Minute,
-		TotalTokens:  result.TotalTokens,
+		Spend:        result.Spend,
 		TotalTime:    result.TotalTime,
 		ReqTime:      util.FormatDateTime(result.ReqTime),
 		ClientIp:     result.ClientIp,
@@ -240,16 +237,16 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 	for _, result := range results {
 
 		audio := &model.Audio{
-			Id:          result.Id,
-			UserId:      result.UserId,
-			AppId:       result.AppId,
-			Model:       result.Model,
-			Characters:  result.Characters,
-			Minute:      result.Minute,
-			TotalTokens: result.TotalTokens,
-			TotalTime:   result.TotalTime,
-			ReqTime:     util.FormatDateTimeMonth(result.ReqTime),
-			Status:      result.Status,
+			Id:         result.Id,
+			UserId:     result.UserId,
+			AppId:      result.AppId,
+			Model:      result.Model,
+			Characters: result.Characters,
+			Minute:     result.Minute,
+			Spend:      result.Spend,
+			TotalTime:  result.TotalTime,
+			ReqTime:    util.FormatDateTimeMonth(result.ReqTime),
+			Status:     result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {

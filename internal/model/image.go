@@ -43,9 +43,6 @@ type Image struct {
 	TraceId              string                 `json:"trace_id,omitempty"`                // 日志ID
 	UserId               int                    `json:"user_id,omitempty"`                 // 用户ID
 	AppId                int                    `json:"app_id,omitempty"`                  // 应用ID
-	GroupId              string                 `json:"group_id,omitempty"`                // 分组ID
-	GroupName            string                 `json:"group_name,omitempty"`              // 分组名称
-	Discount             float64                `json:"discount,omitempty"`                // 分组折扣
 	ProviderId           string                 `json:"provider_id,omitempty"`             // 提供商ID
 	ProviderName         string                 `json:"provider_name,omitempty"`           // 提供商名称
 	ModelId              string                 `json:"model_id,omitempty"`                // 模型ID
@@ -78,7 +75,7 @@ type Image struct {
 	OutputTokens         int                    `json:"output_tokens,omitempty"`           // 输出令牌数
 	TextTokens           int                    `json:"text_tokens,omitempty"`             // 文本令牌数
 	ImageTokens          int                    `json:"image_tokens,omitempty"`            // 图像令牌数
-	TotalTokens          int                    `json:"total_tokens,omitempty"`            // 总令牌数
+	Spend                common.Spend           `json:"spend,omitempty"`                   // 花费
 	TotalTime            int64                  `json:"total_time,omitempty"`              // 总时间
 	InternalTime         int64                  `json:"internal_time,omitempty"`           // 内耗时间
 	ReqTime              string                 `json:"req_time,omitempty"`                // 请求时间

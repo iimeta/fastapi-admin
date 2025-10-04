@@ -59,9 +59,6 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		TraceId:          result.TraceId,
 		UserId:           result.UserId,
 		AppId:            result.AppId,
-		GroupId:          result.GroupId,
-		GroupName:        result.GroupName,
-		Discount:         result.Discount,
 		ProviderName:     providerName,
 		Model:            result.Model,
 		ModelType:        result.ModelType,
@@ -74,7 +71,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		SearchTokens:     result.SearchTokens,
 		CacheWriteTokens: result.CacheWriteTokens,
 		CacheHitTokens:   result.CacheHitTokens,
-		TotalTokens:      result.TotalTokens,
+		Spend:            result.Spend,
 		ConnTime:         result.ConnTime,
 		Duration:         result.Duration,
 		TotalTime:        result.TotalTime,
@@ -243,29 +240,9 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	}
 
 	findOptions := &dao.FindOptions{
-		SortFields: []string{
-			"-req_time",
-			"status",
-			"-created_at",
-		},
-		Index: index,
-		IncludeFields: []string{
-			"_id",
-			"user_id",
-			"app_id",
-			"model",
-			"stream",
-			"prompt_tokens",
-			"completion_tokens",
-			"total_tokens",
-			"conn_time",
-			"duration",
-			"total_time",
-			"req_time",
-			"status",
-			"internal_time",
-			"is_smart_match",
-		},
+		SortFields:    []string{"-req_time", "status", "-created_at"},
+		Index:         index,
+		IncludeFields: []string{"_id", "user_id", "app_id", "model", "stream", "prompt_tokens", "completion_tokens", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match"},
 	}
 
 	results, err := dao.Chat.FindByPage(ctx, paging, filter, findOptions)
@@ -285,7 +262,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			Stream:           result.Stream,
 			PromptTokens:     result.PromptTokens,
 			CompletionTokens: result.CompletionTokens,
-			TotalTokens:      result.TotalTokens,
+			Spend:            result.Spend,
 			ConnTime:         result.ConnTime,
 			Duration:         result.Duration,
 			TotalTime:        result.TotalTime,
@@ -340,22 +317,8 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 	}
 
 	findOptions := &dao.FindOptions{
-		SortFields: []string{
-			"-req_time",
-			"status",
-			"-created_at",
-		},
-		IncludeFields: []string{
-			"user_id",
-			"app_id",
-			"model",
-			"prompt_tokens",
-			"completion_tokens",
-			"total_tokens",
-			"req_time",
-			"key",
-			"creator",
-		},
+		SortFields:    []string{"-req_time", "status", "-created_at"},
+		IncludeFields: []string{"user_id", "app_id", "model", "prompt_tokens", "completion_tokens", "spend.total_tokens", "req_time", "key", "creator"},
 	}
 
 	results, err := dao.Chat.Find(ctx, filter, findOptions)
@@ -401,7 +364,7 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 			Model:            result.Model,
 			PromptTokens:     result.PromptTokens,
 			CompletionTokens: result.CompletionTokens,
-			TotalTokens:      gconv.String(util.ConvQuota(result.TotalTokens)),
+			TotalTokens:      gconv.String(util.ConvQuota(result.Spend.TotalTokens)),
 			Key:              result.Key,
 			Creator:          result.Creator,
 		})
