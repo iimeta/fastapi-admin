@@ -95,7 +95,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 
 	filter := bson.M{
 		"updated_at": bson.M{
-			"$gte": 1759586896705,
+			"$gte": lastTime,
 		},
 		"is_smart_match": bson.M{"$ne": true},
 		"is_retry":       bson.M{"$ne": true},
