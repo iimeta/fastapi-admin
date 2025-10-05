@@ -44,17 +44,12 @@ func (s *sMidjourney) Detail(ctx context.Context, id string) (*model.Midjourney,
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	providerName := result.ProviderId
-	if provider, err := dao.Provider.FindById(ctx, result.ProviderId); err == nil && provider != nil {
-		providerName = provider.Name
-	}
-
 	midjourney := &model.Midjourney{
 		Id:           result.Id,
 		TraceId:      result.TraceId,
 		UserId:       result.UserId,
 		AppId:        result.AppId,
-		ProviderName: providerName,
+		ProviderName: result.ProviderName,
 		Model:        result.Model,
 		ModelType:    result.ModelType,
 		Prompt:       result.Prompt,

@@ -49,17 +49,12 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	providerName := result.ProviderId
-	if provider, err := dao.Provider.FindById(ctx, result.ProviderId); err == nil && provider != nil {
-		providerName = provider.Name
-	}
-
 	chat := &model.Chat{
 		Id:               result.Id,
 		TraceId:          result.TraceId,
 		UserId:           result.UserId,
 		AppId:            result.AppId,
-		ProviderName:     providerName,
+		ProviderName:     result.ProviderName,
 		Model:            result.Model,
 		ModelType:        result.ModelType,
 		Stream:           result.Stream,

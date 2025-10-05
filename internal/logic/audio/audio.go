@@ -44,17 +44,12 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	providerName := result.ProviderId
-	if provider, err := dao.Provider.FindById(ctx, result.ProviderId); err == nil && provider != nil {
-		providerName = provider.Name
-	}
-
 	audio := &model.Audio{
 		Id:           result.Id,
 		TraceId:      result.TraceId,
 		UserId:       result.UserId,
 		AppId:        result.AppId,
-		ProviderName: providerName,
+		ProviderName: result.ProviderName,
 		Model:        result.Model,
 		ModelType:    result.ModelType,
 		Input:        result.Input,
