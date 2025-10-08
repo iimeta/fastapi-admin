@@ -50,32 +50,27 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 	}
 
 	chat := &model.Chat{
-		Id:               result.Id,
-		TraceId:          result.TraceId,
-		UserId:           result.UserId,
-		AppId:            result.AppId,
-		ProviderName:     result.ProviderName,
-		Model:            result.Model,
-		ModelType:        result.ModelType,
-		Stream:           result.Stream,
-		Messages:         result.Messages,
-		Prompt:           result.Prompt,
-		Completion:       result.Completion,
-		PromptTokens:     result.PromptTokens,
-		CompletionTokens: result.CompletionTokens,
-		SearchTokens:     result.SearchTokens,
-		CacheWriteTokens: result.CacheWriteTokens,
-		CacheHitTokens:   result.CacheHitTokens,
-		Spend:            result.Spend,
-		ConnTime:         result.ConnTime,
-		Duration:         result.Duration,
-		TotalTime:        result.TotalTime,
-		ReqTime:          util.FormatDateTime(result.ReqTime),
-		ClientIp:         result.ClientIp,
-		Retry:            result.Retry,
-		Status:           result.Status,
-		Host:             result.Host,
-		Creator:          util.Desensitize(result.Creator),
+		Id:           result.Id,
+		TraceId:      result.TraceId,
+		UserId:       result.UserId,
+		AppId:        result.AppId,
+		ProviderName: result.ProviderName,
+		Model:        result.Model,
+		ModelType:    result.ModelType,
+		Stream:       result.Stream,
+		Messages:     result.Messages,
+		Prompt:       result.Prompt,
+		Completion:   result.Completion,
+		Spend:        result.Spend,
+		ConnTime:     result.ConnTime,
+		Duration:     result.Duration,
+		TotalTime:    result.TotalTime,
+		ReqTime:      util.FormatDateTime(result.ReqTime),
+		ClientIp:     result.ClientIp,
+		Retry:        result.Retry,
+		Status:       result.Status,
+		Host:         result.Host,
+		Creator:      util.Desensitize(result.Creator),
 	}
 
 	if chat.Status == -1 {
@@ -237,7 +232,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "model", "stream", "prompt_tokens", "completion_tokens", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match"},
 	}
 
 	results, err := dao.Chat.FindByPage(ctx, paging, filter, findOptions)
@@ -250,19 +245,17 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	for _, result := range results {
 
 		chat := &model.Chat{
-			Id:               result.Id,
-			UserId:           result.UserId,
-			AppId:            result.AppId,
-			Model:            result.Model,
-			Stream:           result.Stream,
-			PromptTokens:     result.PromptTokens,
-			CompletionTokens: result.CompletionTokens,
-			Spend:            result.Spend,
-			ConnTime:         result.ConnTime,
-			Duration:         result.Duration,
-			TotalTime:        result.TotalTime,
-			ReqTime:          util.FormatDateTimeMonth(result.ReqTime),
-			Status:           result.Status,
+			Id:        result.Id,
+			UserId:    result.UserId,
+			AppId:     result.AppId,
+			Model:     result.Model,
+			Stream:    result.Stream,
+			Spend:     result.Spend,
+			ConnTime:  result.ConnTime,
+			Duration:  result.Duration,
+			TotalTime: result.TotalTime,
+			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
+			Status:    result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
@@ -313,7 +306,7 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
-		IncludeFields: []string{"user_id", "app_id", "model", "prompt_tokens", "completion_tokens", "spend.total_tokens", "req_time", "key", "creator"},
+		IncludeFields: []string{"user_id", "app_id", "model", "spend", "req_time", "key", "creator"},
 	}
 
 	results, err := dao.Chat.Find(ctx, filter, findOptions)
@@ -325,25 +318,25 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 	colFieldMap := make(map[string]string)
 	colFieldMap["请求时间"] = "ReqTime"
 	colFieldMap["模型"] = "Model"
-	colFieldMap["提问"] = "PromptTokens"
-	colFieldMap["回答"] = "CompletionTokens"
+	colFieldMap["输入Token数"] = "InputTokens"
+	colFieldMap["输出Token数"] = "OutputTokens"
 	colFieldMap["花费($)"] = "TotalTokens"
 
 	var titleCols []string
 
 	if service.Session().IsResellerRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "提问", "回答", "花费($)")
+		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费($)")
 		colFieldMap["用户ID"] = "UserId"
 	}
 
 	if service.Session().IsUserRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "应用ID", "密钥", "模型", "提问", "回答", "花费($)")
+		titleCols = append(titleCols, "请求时间", "应用ID", "密钥", "模型", "输入Token数", "输出Token数", "花费($)")
 		colFieldMap["应用ID"] = "AppId"
 		colFieldMap["密钥"] = "Creator"
 	}
 
 	if service.Session().IsAdminRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "提问", "回答", "花费($)", "密钥")
+		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费($)", "密钥")
 		colFieldMap["用户ID"] = "UserId"
 		colFieldMap["密钥"] = "Key"
 	}
@@ -353,15 +346,15 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 	values := make([]interface{}, 0)
 	for _, result := range results {
 		values = append(values, &model.ChatExport{
-			ReqTime:          util.FormatDateTime(result.ReqTime),
-			UserId:           result.UserId,
-			AppId:            result.AppId,
-			Model:            result.Model,
-			PromptTokens:     result.PromptTokens,
-			CompletionTokens: result.CompletionTokens,
-			TotalTokens:      gconv.String(util.ConvQuota(result.Spend.TotalTokens)),
-			Key:              result.Key,
-			Creator:          result.Creator,
+			ReqTime:      util.FormatDateTime(result.ReqTime),
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			Model:        result.Model,
+			InputTokens:  result.Spend.Text.InputTokens,
+			OutputTokens: result.Spend.Text.OutputTokens,
+			TotalTokens:  gconv.String(util.ConvQuota(result.Spend.TotalSpendTokens)),
+			Key:          result.Key,
+			Creator:      result.Creator,
 		})
 	}
 

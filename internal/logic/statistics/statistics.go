@@ -104,7 +104,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"updated_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "model_id", "model", "spend.total_tokens", "req_date", "status", "rid", "creator", "updated_at"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model_id", "model", "spend.total_spend_tokens", "req_date", "status", "rid", "creator", "updated_at"},
 	}
 
 	results, err := dao.NewMongoDB[entity.StatisticsData](db.DefaultDatabase, collection).FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, findOptions)
@@ -167,15 +167,15 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		}
 
 		user.Total += 1
-		user.Tokens += result.Spend.TotalTokens
+		user.Tokens += result.Spend.TotalSpendTokens
 		userModelStat.Total += 1
-		userModelStat.Tokens += result.Spend.TotalTokens
+		userModelStat.Tokens += result.Spend.TotalSpendTokens
 
 		if result.Status != 1 {
 			user.Abnormal += 1
-			user.AbnormalTokens += result.Spend.TotalTokens
+			user.AbnormalTokens += result.Spend.TotalSpendTokens
 			userModelStat.Abnormal += 1
-			userModelStat.AbnormalTokens += result.Spend.TotalTokens
+			userModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
 
 		if appMap[result.ReqDate] == nil {
@@ -217,15 +217,15 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		}
 
 		app.Total += 1
-		app.Tokens += result.Spend.TotalTokens
+		app.Tokens += result.Spend.TotalSpendTokens
 		appModelStat.Total += 1
-		appModelStat.Tokens += result.Spend.TotalTokens
+		appModelStat.Tokens += result.Spend.TotalSpendTokens
 
 		if result.Status != 1 {
 			app.Abnormal += 1
-			app.AbnormalTokens += result.Spend.TotalTokens
+			app.AbnormalTokens += result.Spend.TotalSpendTokens
 			appModelStat.Abnormal += 1
-			appModelStat.AbnormalTokens += result.Spend.TotalTokens
+			appModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
 
 		if appKeyMap[result.ReqDate] == nil {
@@ -268,15 +268,15 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		}
 
 		appKey.Total += 1
-		appKey.Tokens += result.Spend.TotalTokens
+		appKey.Tokens += result.Spend.TotalSpendTokens
 		appKeyModelStat.Total += 1
-		appKeyModelStat.Tokens += result.Spend.TotalTokens
+		appKeyModelStat.Tokens += result.Spend.TotalSpendTokens
 
 		if result.Status != 1 {
 			appKey.Abnormal += 1
-			appKey.AbnormalTokens += result.Spend.TotalTokens
+			appKey.AbnormalTokens += result.Spend.TotalSpendTokens
 			appKeyModelStat.Abnormal += 1
-			appKeyModelStat.AbnormalTokens += result.Spend.TotalTokens
+			appKeyModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
 	}
 

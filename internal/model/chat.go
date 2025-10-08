@@ -85,11 +85,6 @@ type Chat struct {
 	Messages             []common.Message       `json:"messages,omitempty"`                // 完整提示(提问)
 	Prompt               string                 `json:"prompt,omitempty"`                  // 提示(提问)
 	Completion           string                 `json:"completion,omitempty"`              // 补全(回答)
-	PromptTokens         int                    `json:"prompt_tokens,omitempty"`           // 提示令牌数(提问令牌数)
-	CompletionTokens     int                    `json:"completion_tokens,omitempty"`       // 补全令牌数(回答令牌数)
-	SearchTokens         int                    `json:"search_tokens,omitempty"`           // 搜索令牌数
-	CacheWriteTokens     int                    `json:"cache_write_tokens,omitempty"`      // 缓存写入令牌数
-	CacheHitTokens       int                    `json:"cache_hit_tokens,omitempty"`        // 缓存命中令牌数
 	Spend                common.Spend           `json:"spend,omitempty"`                   // 花费
 	ConnTime             int64                  `json:"conn_time,omitempty"`               // 连接时间
 	Duration             int64                  `json:"duration,omitempty"`                // 持续时间
@@ -112,19 +107,19 @@ type Chat struct {
 }
 
 type ChatExport struct {
-	UserId           int    `json:"user_id,omitempty"`           // 用户ID
-	AppId            int    `json:"app_id,omitempty"`            // 应用ID
-	Name             string `json:"name,omitempty"`              // 模型名称
-	Model            string `json:"model,omitempty"`             // 模型
-	Key              string `json:"key,omitempty"`               // 密钥
-	PromptTokens     int    `json:"prompt_tokens,omitempty"`     // 提示令牌数(提问令牌数)
-	CompletionTokens int    `json:"completion_tokens,omitempty"` // 补全令牌数(回答令牌数)
-	TotalTokens      any    `json:"total_tokens,omitempty"`      // 总令牌数
-	ConnTime         int64  `json:"conn_time,omitempty"`         // 连接时间
-	Duration         int64  `json:"duration,omitempty"`          // 持续时间
-	TotalTime        int64  `json:"total_time,omitempty"`        // 总时间
-	InternalTime     int64  `json:"internal_time,omitempty"`     // 内耗时间
-	ReqTime          string `json:"req_time,omitempty"`          // 请求时间
-	ReqDate          string `json:"req_date,omitempty"`          // 请求日期
-	Creator          string `json:"creator,omitempty"`           // 创建人
+	UserId       int    `json:"user_id,omitempty"`       // 用户ID
+	AppId        int    `json:"app_id,omitempty"`        // 应用ID
+	Name         string `json:"name,omitempty"`          // 模型名称
+	Model        string `json:"model,omitempty"`         // 模型
+	Key          string `json:"key,omitempty"`           // 密钥
+	InputTokens  int    `json:"input_tokens,omitempty"`  // 输入Token数
+	OutputTokens int    `json:"output_tokens,omitempty"` // 输出Token数
+	TotalTokens  any    `json:"total_tokens,omitempty"`  // 总Token数
+	ConnTime     int64  `json:"conn_time,omitempty"`     // 连接时间
+	Duration     int64  `json:"duration,omitempty"`      // 持续时间
+	TotalTime    int64  `json:"total_time,omitempty"`    // 总时间
+	InternalTime int64  `json:"internal_time,omitempty"` // 内耗时间
+	ReqTime      string `json:"req_time,omitempty"`      // 请求时间
+	ReqDate      string `json:"req_date,omitempty"`      // 请求日期
+	Creator      string `json:"creator,omitempty"`       // 创建人
 }

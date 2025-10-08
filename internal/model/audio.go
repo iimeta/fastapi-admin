@@ -65,9 +65,6 @@ type Audio struct {
 	RealModel            string                 `json:"real_model,omitempty"`              // 真实模型
 	Input                string                 `json:"input,omitempty"`                   // 输入文本
 	Text                 string                 `json:"text,omitempty"`                    // 输出文本
-	Characters           int                    `json:"characters,omitempty"`              // 字符数
-	Minute               float64                `json:"minute,omitempty"`                  // 分钟数
-	FilePath             string                 `json:"file_path,omitempty"`               // 文件路径
 	Spend                common.Spend           `json:"spend,omitempty"`                   // 花费
 	TotalTime            int64                  `json:"total_time,omitempty"`              // 总时间
 	InternalTime         int64                  `json:"internal_time,omitempty"`           // 内耗时间

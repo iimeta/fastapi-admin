@@ -57,10 +57,6 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 		N:            len(result.ImageData),
 		Quality:      result.Quality,
 		ImageData:    result.ImageData,
-		InputTokens:  result.InputTokens,
-		OutputTokens: result.OutputTokens,
-		TextTokens:   result.TextTokens,
-		ImageTokens:  result.ImageTokens,
 		Spend:        result.Spend,
 		TotalTime:    result.TotalTime,
 		ReqTime:      util.FormatDateTime(result.ReqTime),
@@ -240,19 +236,15 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 	for _, result := range results {
 
 		image := &model.Image{
-			Id:           result.Id,
-			UserId:       result.UserId,
-			AppId:        result.AppId,
-			Model:        result.Model,
-			Prompt:       result.Prompt,
-			InputTokens:  result.InputTokens,
-			OutputTokens: result.OutputTokens,
-			TextTokens:   result.TextTokens,
-			ImageTokens:  result.ImageTokens,
-			Spend:        result.Spend,
-			TotalTime:    result.TotalTime,
-			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
-			Status:       result.Status,
+			Id:        result.Id,
+			UserId:    result.UserId,
+			AppId:     result.AppId,
+			Model:     result.Model,
+			Prompt:    result.Prompt,
+			Spend:     result.Spend,
+			TotalTime: result.TotalTime,
+			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
+			Status:    result.Status,
 		}
 
 		for _, imageData := range result.ImageData {

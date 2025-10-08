@@ -54,8 +54,6 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		ModelType:    result.ModelType,
 		Input:        result.Input,
 		Text:         result.Text,
-		Characters:   result.Characters,
-		Minute:       result.Minute,
 		Spend:        result.Spend,
 		TotalTime:    result.TotalTime,
 		ReqTime:      util.FormatDateTime(result.ReqTime),
@@ -139,10 +137,6 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 				Weight:       result.ModelAgent.Weight,
 				Remark:       result.ModelAgent.Remark,
 			}
-		}
-
-		if audio.ModelType == 6 {
-			audio.Input = result.FilePath
 		}
 	}
 
@@ -232,16 +226,14 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 	for _, result := range results {
 
 		audio := &model.Audio{
-			Id:         result.Id,
-			UserId:     result.UserId,
-			AppId:      result.AppId,
-			Model:      result.Model,
-			Characters: result.Characters,
-			Minute:     result.Minute,
-			Spend:      result.Spend,
-			TotalTime:  result.TotalTime,
-			ReqTime:    util.FormatDateTimeMonth(result.ReqTime),
-			Status:     result.Status,
+			Id:        result.Id,
+			UserId:    result.UserId,
+			AppId:     result.AppId,
+			Model:     result.Model,
+			Spend:     result.Spend,
+			TotalTime: result.TotalTime,
+			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
+			Status:    result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {

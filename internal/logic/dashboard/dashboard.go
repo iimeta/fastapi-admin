@@ -576,10 +576,10 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 		},
 		{
 			"$group": bson.M{
-				"_id":               nil,
-				"rps":               bson.M{"$sum": 1},
-				"prompt_tokens":     bson.M{"$sum": "$prompt_tokens"},
-				"completion_tokens": bson.M{"$sum": "$completion_tokens"},
+				"_id":           nil,
+				"rps":           bson.M{"$sum": 1},
+				"input_tokens":  bson.M{"$sum": "$spend.text.input_tokens"},
+				"output_tokens": bson.M{"$sum": "$spend.text.output_tokens"},
 			},
 		},
 	}
@@ -625,7 +625,7 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 	if len(result) > 0 {
 
 		rps := gconv.Float64(result[0]["rps"])
-		tps := gconv.Int(result[0]["prompt_tokens"]) + gconv.Int(result[0]["completion_tokens"])
+		tps := gconv.Int(result[0]["input_tokens"]) + gconv.Int(result[0]["output_tokens"])
 
 		if rps >= 5 {
 			tps /= 5
@@ -658,10 +658,10 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 		},
 		{
 			"$group": bson.M{
-				"_id":               nil,
-				"rpm":               bson.M{"$sum": 1},
-				"prompt_tokens":     bson.M{"$sum": "$prompt_tokens"},
-				"completion_tokens": bson.M{"$sum": "$completion_tokens"},
+				"_id":           nil,
+				"rpm":           bson.M{"$sum": 1},
+				"input_tokens":  bson.M{"$sum": "$spend.text.input_tokens"},
+				"output_tokens": bson.M{"$sum": "$spend.text.output_tokens"},
 			},
 		},
 	}
@@ -705,7 +705,7 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	}
 
 	if len(result) > 0 {
-		return gconv.Int(result[0]["rpm"]), gconv.Int(result[0]["prompt_tokens"]) + gconv.Int(result[0]["completion_tokens"]), nil
+		return gconv.Int(result[0]["rpm"]), gconv.Int(result[0]["input_tokens"]) + gconv.Int(result[0]["output_tokens"]), nil
 	}
 
 	return 0, 0, nil
