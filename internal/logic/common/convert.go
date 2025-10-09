@@ -1,12 +1,12 @@
-package model
+package common
 
 import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/utility/util"
 )
 
-// 转换定价成倍率
-func (s *sModel) ConvPricingToRatio(pricing common.Pricing) common.Pricing {
+// 转换模型定价成倍率
+func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 
 	// 文本
 	if pricing.Text != nil {
@@ -67,8 +67,8 @@ func (s *sModel) ConvPricingToRatio(pricing common.Pricing) common.Pricing {
 	return pricing
 }
 
-// 转换定价成价格
-func (s *sModel) ConvPricingToPrice(pricing common.Pricing) common.Pricing {
+// 转换模型定价成价格
+func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 
 	// 文本
 	if pricing.Text != nil {
@@ -127,4 +127,62 @@ func (s *sModel) ConvPricingToPrice(pricing common.Pricing) common.Pricing {
 	}
 
 	return pricing
+}
+
+// 转换花费定价成价格
+func ConvSpendPricingToPrice(spend common.Spend) common.Spend {
+
+	// 文本
+	if spend.Text != nil && spend.Text.Pricing != nil {
+		spend.Text.Pricing.InputRatio = util.ConvPrice(spend.Text.Pricing.InputRatio)
+		spend.Text.Pricing.OutputRatio = util.ConvPrice(spend.Text.Pricing.OutputRatio)
+	}
+
+	// 文本缓存
+	if spend.TextCache != nil && spend.TextCache.Pricing != nil {
+		spend.TextCache.Pricing.ReadRatio = util.ConvPrice(spend.TextCache.Pricing.ReadRatio)
+		spend.TextCache.Pricing.WriteRatio = util.ConvPrice(spend.TextCache.Pricing.WriteRatio)
+	}
+
+	// 阶梯文本
+	if spend.TieredText != nil && spend.TieredText.Pricing != nil {
+		spend.TieredText.Pricing.Gt /= 1000
+		spend.TieredText.Pricing.Lte /= 1000
+		spend.TieredText.Pricing.InputRatio = util.ConvPrice(spend.TieredText.Pricing.InputRatio)
+		spend.TieredText.Pricing.OutputRatio = util.ConvPrice(spend.TieredText.Pricing.OutputRatio)
+	}
+
+	// 阶梯文本缓存
+	if spend.TieredTextCache != nil && spend.TieredTextCache.Pricing != nil {
+		spend.TieredTextCache.Pricing.Gt /= 1000
+		spend.TieredTextCache.Pricing.Lte /= 1000
+		spend.TieredTextCache.Pricing.ReadRatio = util.ConvPrice(spend.TieredTextCache.Pricing.ReadRatio)
+		spend.TieredTextCache.Pricing.WriteRatio = util.ConvPrice(spend.TieredTextCache.Pricing.WriteRatio)
+	}
+
+	// 图像
+	if spend.Image != nil && spend.Image.Pricing != nil {
+		spend.Image.Pricing.InputRatio = util.ConvPrice(spend.Image.Pricing.InputRatio)
+		spend.Image.Pricing.OutputRatio = util.ConvPrice(spend.Image.Pricing.OutputRatio)
+	}
+
+	// 图像缓存
+	if spend.ImageCache != nil && spend.ImageCache.Pricing != nil {
+		spend.ImageCache.Pricing.ReadRatio = util.ConvPrice(spend.ImageCache.Pricing.ReadRatio)
+		spend.ImageCache.Pricing.WriteRatio = util.ConvPrice(spend.ImageCache.Pricing.WriteRatio)
+	}
+
+	// 音频
+	if spend.Audio != nil && spend.Audio.Pricing != nil {
+		spend.Audio.Pricing.InputRatio = util.ConvPrice(spend.Audio.Pricing.InputRatio)
+		spend.Audio.Pricing.OutputRatio = util.ConvPrice(spend.Audio.Pricing.OutputRatio)
+	}
+
+	// 音频缓存
+	if spend.AudioCache != nil && spend.AudioCache.Pricing != nil {
+		spend.AudioCache.Pricing.ReadRatio = util.ConvPrice(spend.AudioCache.Pricing.ReadRatio)
+		spend.AudioCache.Pricing.WriteRatio = util.ConvPrice(spend.AudioCache.Pricing.WriteRatio)
+	}
+
+	return spend
 }

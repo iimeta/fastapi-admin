@@ -14,6 +14,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -232,7 +233,7 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "model", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match"},
 	}
 
 	results, err := dao.Chat.FindByPage(ctx, paging, filter, findOptions)
@@ -249,8 +250,9 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 			UserId:    result.UserId,
 			AppId:     result.AppId,
 			Model:     result.Model,
+			ModelType: result.ModelType,
 			Stream:    result.Stream,
-			Spend:     result.Spend,
+			Spend:     common.ConvSpendPricingToPrice(result.Spend),
 			ConnTime:  result.ConnTime,
 			Duration:  result.Duration,
 			TotalTime: result.TotalTime,

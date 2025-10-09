@@ -13,8 +13,9 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/internal/model/common"
+	mcommon "github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -52,7 +53,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		Path:                 gstr.Trim(params.Path),
 		IsEnablePresetConfig: params.IsEnablePresetConfig,
 		PresetConfig:         params.PresetConfig,
-		Pricing:              s.ConvPricingToRatio(params.Pricing),
+		Pricing:              common.ConvModelPricingToRatio(params.Pricing),
 		RequestDataFormat:    params.RequestDataFormat,
 		ResponseDataFormat:   params.ResponseDataFormat,
 		IsPublic:             params.IsPublic,
@@ -249,7 +250,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		Path:                 gstr.Trim(params.Path),
 		IsEnablePresetConfig: params.IsEnablePresetConfig,
 		PresetConfig:         params.PresetConfig,
-		Pricing:              s.ConvPricingToRatio(params.Pricing),
+		Pricing:              common.ConvModelPricingToRatio(params.Pricing),
 		RequestDataFormat:    params.RequestDataFormat,
 		ResponseDataFormat:   params.ResponseDataFormat,
 		IsPublic:             params.IsPublic,
@@ -865,7 +866,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		GroupNames:           groupNames,
 		IsEnablePresetConfig: m.IsEnablePresetConfig,
 		PresetConfig:         m.PresetConfig,
-		Pricing:              s.ConvPricingToPrice(m.Pricing),
+		Pricing:              common.ConvModelPricingToPrice(m.Pricing),
 		RequestDataFormat:    m.RequestDataFormat,
 		ResponseDataFormat:   m.ResponseDataFormat,
 		IsPublic:             m.IsPublic,
@@ -1127,7 +1128,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			Model:              result.Model,
 			Type:               result.Type,
 			GroupNames:         groupNames,
-			Pricing:            s.ConvPricingToPrice(result.Pricing),
+			Pricing:            common.ConvModelPricingToPrice(result.Pricing),
 			RequestDataFormat:  result.RequestDataFormat,
 			ResponseDataFormat: result.ResponseDataFormat,
 			IsPublic:           result.IsPublic,
@@ -1344,7 +1345,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				Path:                 result.Path,
 				IsEnablePresetConfig: result.IsEnablePresetConfig,
 				PresetConfig:         result.PresetConfig,
-				Pricing:              s.ConvPricingToPrice(result.Pricing),
+				Pricing:              common.ConvModelPricingToPrice(result.Pricing),
 				RequestDataFormat:    result.RequestDataFormat,
 				ResponseDataFormat:   result.ResponseDataFormat,
 				IsPublic:             result.IsPublic,
@@ -1425,7 +1426,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				Path:                 result.Path,
 				IsEnablePresetConfig: result.IsEnablePresetConfig,
 				PresetConfig:         result.PresetConfig,
-				Pricing:              s.ConvPricingToPrice(result.Pricing),
+				Pricing:              common.ConvModelPricingToPrice(result.Pricing),
 				RequestDataFormat:    result.RequestDataFormat,
 				ResponseDataFormat:   result.ResponseDataFormat,
 				IsPublic:             result.IsPublic,
@@ -1442,7 +1443,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 			if params.Value == "all" {
 
 				if m.ForwardConfig == nil {
-					m.ForwardConfig = new(common.ForwardConfig)
+					m.ForwardConfig = new(mcommon.ForwardConfig)
 				}
 
 				m.IsEnableForward = true
@@ -1509,7 +1510,7 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				Path:                 result.Path,
 				IsEnablePresetConfig: result.IsEnablePresetConfig,
 				PresetConfig:         result.PresetConfig,
-				Pricing:              s.ConvPricingToPrice(result.Pricing),
+				Pricing:              common.ConvModelPricingToPrice(result.Pricing),
 				RequestDataFormat:    result.RequestDataFormat,
 				ResponseDataFormat:   result.ResponseDataFormat,
 				IsPublic:             result.IsPublic,
