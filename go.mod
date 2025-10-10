@@ -1,6 +1,6 @@
 module github.com/iimeta/fastapi-admin
 
-go 1.24
+go 1.25
 
 replace github.com/iimeta/fastapi-sdk => ../fastapi-sdk
 
