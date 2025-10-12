@@ -6,9 +6,9 @@ replace github.com/iimeta/fastapi-sdk => ../fastapi-sdk
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/go-redsync/redsync/v4 v4.13.0
-	github.com/gogf/gf/contrib/nosql/redis/v2 v2.9.3
-	github.com/gogf/gf/v2 v2.9.3
+	github.com/go-redsync/redsync/v4 v4.14.0
+	github.com/gogf/gf/contrib/nosql/redis/v2 v2.9.4
+	github.com/gogf/gf/v2 v2.9.4
 	github.com/gorilla/websocket v1.5.3
 	github.com/iimeta/fastapi-sdk v1.7.0
 	github.com/redis/go-redis/v9 v9.14.0
@@ -41,7 +41,7 @@ require (
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/olekukonko/errors v1.1.0 // indirect
 	github.com/olekukonko/ll v0.0.9 // indirect
-	github.com/olekukonko/tablewriter v1.0.9 // indirect
+	github.com/olekukonko/tablewriter v1.1.0 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -53,13 +53,13 @@ require (
 	github.com/xuri/nfp v0.0.1 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/otel v1.37.0 // indirect
-	go.opentelemetry.io/otel/metric v1.37.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.37.0 // indirect
-	go.opentelemetry.io/otel/trace v1.37.0 // indirect
+	go.opentelemetry.io/otel v1.38.0 // indirect
+	go.opentelemetry.io/otel/metric v1.38.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.38.0 // indirect
+	go.opentelemetry.io/otel/trace v1.38.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
