@@ -62,7 +62,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		Messages:     result.Messages,
 		Prompt:       result.Prompt,
 		Completion:   result.Completion,
-		Spend:        result.Spend,
+		Spend:        common.ConvSpendPricingToPrice(result.Spend),
 		ConnTime:     result.ConnTime,
 		Duration:     result.Duration,
 		TotalTime:    result.TotalTime,

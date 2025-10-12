@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -54,7 +55,7 @@ func (s *sAudio) Detail(ctx context.Context, id string) (*model.Audio, error) {
 		ModelType:    result.ModelType,
 		Input:        result.Input,
 		Text:         result.Text,
-		Spend:        result.Spend,
+		Spend:        common.ConvSpendPricingToPrice(result.Spend),
 		TotalTime:    result.TotalTime,
 		ReqTime:      util.FormatDateTime(result.ReqTime),
 		ClientIp:     result.ClientIp,
@@ -230,7 +231,8 @@ func (s *sAudio) Page(ctx context.Context, params model.AudioPageReq) (*model.Au
 			UserId:    result.UserId,
 			AppId:     result.AppId,
 			Model:     result.Model,
-			Spend:     result.Spend,
+			ModelType: result.ModelType,
+			Spend:     common.ConvSpendPricingToPrice(result.Spend),
 			TotalTime: result.TotalTime,
 			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
 			Status:    result.Status,

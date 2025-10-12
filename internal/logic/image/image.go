@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -57,7 +58,7 @@ func (s *sImage) Detail(ctx context.Context, id string) (*model.Image, error) {
 		N:            len(result.ImageData),
 		Quality:      result.Quality,
 		ImageData:    result.ImageData,
-		Spend:        result.Spend,
+		Spend:        common.ConvSpendPricingToPrice(result.Spend),
 		TotalTime:    result.TotalTime,
 		ReqTime:      util.FormatDateTime(result.ReqTime),
 		ClientIp:     result.ClientIp,
@@ -240,8 +241,9 @@ func (s *sImage) Page(ctx context.Context, params model.ImagePageReq) (*model.Im
 			UserId:    result.UserId,
 			AppId:     result.AppId,
 			Model:     result.Model,
+			ModelType: result.ModelType,
 			Prompt:    result.Prompt,
-			Spend:     result.Spend,
+			Spend:     common.ConvSpendPricingToPrice(result.Spend),
 			TotalTime: result.TotalTime,
 			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
 			Status:    result.Status,
