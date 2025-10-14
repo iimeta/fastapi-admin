@@ -61,13 +61,6 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 		}
 	}
 
-	if len(params.Models) == 0 {
-		if params.Models, err = service.Model().PublicModels(ctx); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-	}
-
 	var (
 		salt     = grand.Letters(8)
 		id       = util.GenerateId()
@@ -78,7 +71,6 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 			Email:          params.Email,
 			Quota:          params.Quota,
 			QuotaExpiresAt: util.ConvTimestampMilli(params.QuotaExpiresAt),
-			Models:         params.Models,
 			Groups:         params.Groups,
 			Remark:         params.Remark,
 			Status:         1,
@@ -465,12 +457,6 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 		return nil, err
 	}
 
-	modelNames, err := service.Model().ModelNames(ctx, reseller.Models)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
 	groupNames, err := service.Group().GroupNames(ctx, reseller.Groups)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -508,8 +494,6 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 		AllocatedQuota:         allocatedQuota,
 		ToBeAllocated:          toBeAllocated,
 		QuotaExpiresAt:         util.FormatDateTime(reseller.QuotaExpiresAt),
-		Models:                 reseller.Models,
-		ModelNames:             modelNames,
 		Groups:                 reseller.Groups,
 		GroupNames:             groupNames,
 		QuotaWarning:           reseller.QuotaWarning,
@@ -634,7 +618,6 @@ func (s *sAdminReseller) Page(ctx context.Context, params model.ResellerPageReq)
 			AllocatedQuota: allocatedQuota,
 			ToBeAllocated:  toBeAllocated,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
-			Models:         result.Models,
 			Groups:         result.Groups,
 			Account:        accountMap[result.UserId].Account,
 			Remark:         result.Remark,
@@ -675,7 +658,6 @@ func (s *sAdminReseller) List(ctx context.Context, params model.ResellerListReq)
 			Phone:     result.Phone,
 			Quota:     result.Quota,
 			UsedQuota: result.UsedQuota,
-			Models:    result.Models,
 			Groups:    result.Groups,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
@@ -828,62 +810,24 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 }
 
 // 代理商权限
-func (s *sAdminReseller) Permissions(ctx context.Context, params model.ResellerPermissionsReq) error {
+func (s *sAdminReseller) Permissions(ctx context.Context, userId int, oldGroups, newGroups []string) error {
 
-	oldData, err := dao.Reseller.FindOne(ctx, bson.M{"user_id": params.UserId})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	addModels := make([]string, 0)
-	delModels := make([]string, 0)
 	addGroups := make([]string, 0)
 	delGroups := make([]string, 0)
 
-	for _, m := range params.Models {
-		if !slices.Contains(oldData.Models, m) {
-			addModels = append(addModels, m)
-		}
-	}
-
-	for _, m := range oldData.Models {
-		if !slices.Contains(params.Models, m) {
-			delModels = append(delModels, m)
-		}
-	}
-
-	for _, g := range params.Groups {
-		if !slices.Contains(oldData.Groups, g) {
+	for _, g := range newGroups {
+		if !slices.Contains(oldGroups, g) {
 			addGroups = append(addGroups, g)
 		}
 	}
 
-	for _, g := range oldData.Groups {
-		if !slices.Contains(params.Groups, g) {
+	for _, g := range oldGroups {
+		if !slices.Contains(newGroups, g) {
 			delGroups = append(delGroups, g)
 		}
 	}
 
-	newData, err := dao.Reseller.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
-		"models": params.Models,
-		"groups": params.Groups,
-	})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
-		Action:  consts.ACTION_UPDATE,
-		OldData: oldData,
-		NewData: newData,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	users, err := dao.User.Find(ctx, bson.M{"rid": params.UserId})
+	users, err := dao.User.Find(ctx, bson.M{"rid": userId})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -891,30 +835,13 @@ func (s *sAdminReseller) Permissions(ctx context.Context, params model.ResellerP
 
 	for _, user := range users {
 
-		if len(addModels) > 0 {
-			modelSet := gset.NewStrSetFrom(user.Models)
-			modelSet.Add(addModels...)
-			user.Models = modelSet.Slice()
-		}
-
 		if len(addGroups) > 0 {
 			groupSet := gset.NewStrSetFrom(user.Groups)
 			groupSet.Add(addGroups...)
 			user.Groups = groupSet.Slice()
 		}
 
-		models := make([]string, 0)
 		groups := make([]string, 0)
-
-		if len(delModels) > 0 {
-			for _, m := range user.Models {
-				if !slices.Contains(delModels, m) {
-					models = append(models, m)
-				}
-			}
-		} else {
-			models = user.Models
-		}
 
 		if len(delGroups) > 0 {
 			for _, g := range user.Groups {
@@ -926,11 +853,7 @@ func (s *sAdminReseller) Permissions(ctx context.Context, params model.ResellerP
 			groups = user.Groups
 		}
 
-		if err = service.AdminUser().Permissions(ctx, model.UserPermissionsReq{
-			UserId: user.UserId,
-			Models: models,
-			Groups: groups,
-		}); err != nil {
+		if err = service.AdminUser().Permissions(ctx, user.UserId, groups); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}

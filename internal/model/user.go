@@ -43,7 +43,6 @@ type UserCreateReq struct {
 	QuotaType      int      `json:"quota_type,omitempty"`                         // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
 	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
 	Groups         []string `json:"groups,omitempty" d:"[]"`                      // 分组权限
-	Models         []string `json:"models,omitempty" d:"[]"`                      // 模型权限
 	Remark         string   `json:"remark,omitempty"`                             // 备注
 }
 
@@ -136,13 +135,6 @@ type UserRechargeReq struct {
 	IsSendNotice   bool   `json:"is_send_notice,omitempty"`     // 是否发送通知
 }
 
-// 用户权限接口请求参数
-type UserPermissionsReq struct {
-	UserId int      `json:"user_id,omitempty"`       // 用户ID
-	Models []string `json:"models,omitempty" d:"[]"` // 模型权限
-	Groups []string `json:"groups,omitempty" d:"[]"` // 分组权限
-}
-
 type User struct {
 	Id                     string        `json:"id,omitempty"`                    // ID
 	UserId                 int           `json:"user_id,omitempty"`               // 用户ID
@@ -153,8 +145,6 @@ type User struct {
 	Quota                  int           `json:"quota"`                           // 剩余额度
 	UsedQuota              int           `json:"used_quota"`                      // 已用额度
 	QuotaExpiresAt         string        `json:"quota_expires_at"`                // 额度过期时间
-	Models                 []string      `json:"models,omitempty"`                // 模型权限
-	ModelNames             []string      `json:"model_names,omitempty"`           // 模型名称
 	Groups                 []string      `json:"groups,omitempty"`                // 分组权限
 	GroupNames             []string      `json:"group_names,omitempty"`           // 分组名称
 	Account                string        `json:"account,omitempty"`               // 账号

@@ -64,17 +64,6 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 		}
 	}
 
-	if len(params.Models) == 0 {
-		if service.Session().IsResellerRole(ctx) {
-			params.Models = service.Session().GetReseller(ctx).Models
-		} else {
-			if params.Models, err = service.Model().PublicModels(ctx); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-	}
-
 	var (
 		salt = grand.Letters(8)
 		id   = util.GenerateId()
@@ -84,7 +73,6 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 			Email:          params.Email,
 			Quota:          params.Quota,
 			QuotaExpiresAt: util.ConvTimestampMilli(params.QuotaExpiresAt),
-			Models:         params.Models,
 			Groups:         params.Groups,
 			Remark:         params.Remark,
 			Status:         1,
@@ -514,12 +502,6 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		return nil, err
 	}
 
-	modelNames, err := service.Model().ModelNames(ctx, user.Models)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
 	groupNames, err := service.Group().GroupNames(ctx, user.Groups)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -536,8 +518,6 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		Quota:                  user.Quota,
 		UsedQuota:              user.UsedQuota,
 		QuotaExpiresAt:         util.FormatDateTime(user.QuotaExpiresAt),
-		Models:                 user.Models,
-		ModelNames:             modelNames,
 		Groups:                 user.Groups,
 		GroupNames:             groupNames,
 		QuotaWarning:           user.QuotaWarning,
@@ -646,7 +626,6 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			Quota:          result.Quota,
 			UsedQuota:      result.UsedQuota,
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
-			Models:         result.Models,
 			Groups:         result.Groups,
 			Account:        accountMap[result.UserId].Account,
 			Remark:         result.Remark,
@@ -692,7 +671,6 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 			Phone:     result.Phone,
 			Quota:     result.Quota,
 			UsedQuota: result.UsedQuota,
-			Models:    result.Models,
 			Groups:    result.Groups,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
@@ -905,9 +883,9 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 }
 
 // 用户权限
-func (s *sAdminUser) Permissions(ctx context.Context, params model.UserPermissionsReq) error {
+func (s *sAdminUser) Permissions(ctx context.Context, userId int, groups []string) error {
 
-	oldData, err := dao.User.FindOne(ctx, bson.M{"user_id": params.UserId})
+	oldData, err := dao.User.FindOne(ctx, bson.M{"user_id": userId})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -917,9 +895,8 @@ func (s *sAdminUser) Permissions(ctx context.Context, params model.UserPermissio
 		return errors.New("Unauthorized")
 	}
 
-	newData, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": params.UserId}, bson.M{
-		"models": params.Models,
-		"groups": params.Groups,
+	newData, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": userId}, bson.M{
+		"groups": groups,
 	})
 	if err != nil {
 		logger.Error(ctx, err)

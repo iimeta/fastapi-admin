@@ -626,29 +626,34 @@ func (s *sGroup) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	resellers, err := dao.Reseller.Find(ctx, bson.M{"groups": bson.M{"$in": []string{id}}})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
+	if service.Session().IsAdminRole(ctx) {
 
-	for _, reseller := range resellers {
-
-		resellerModelsReq := model.ResellerPermissionsReq{
-			UserId: reseller.UserId,
-			Models: reseller.Models,
-			Groups: []string{},
-		}
-
-		for _, g := range reseller.Groups {
-			if g != id {
-				resellerModelsReq.Groups = append(resellerModelsReq.Groups, g)
-			}
-		}
-
-		if err = service.AdminReseller().Permissions(ctx, resellerModelsReq); err != nil {
+		resellers, err := dao.Reseller.Find(ctx, bson.M{"groups": bson.M{"$in": []string{id}}})
+		if err != nil {
 			logger.Error(ctx, err)
 			return err
+		}
+
+		for _, reseller := range resellers {
+
+			newData, err := dao.Reseller.FindOneAndUpdateById(ctx, reseller.Id, bson.M{
+				"$pull": bson.M{
+					"groups": id,
+				},
+			})
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+				Action:  consts.ACTION_UPDATE,
+				OldData: reseller,
+				NewData: newData,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
 		}
 	}
 
@@ -660,19 +665,21 @@ func (s *sGroup) Delete(ctx context.Context, id string) error {
 
 	for _, user := range users {
 
-		userPermissionsReq := model.UserPermissionsReq{
-			UserId: user.UserId,
-			Models: user.Models,
-			Groups: []string{},
+		newData, err := dao.User.FindOneAndUpdateById(ctx, user.Id, bson.M{
+			"$pull": bson.M{
+				"groups": id,
+			},
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
 		}
 
-		for _, g := range user.Groups {
-			if g != id {
-				userPermissionsReq.Groups = append(userPermissionsReq.Groups, g)
-			}
-		}
-
-		if err = service.AdminUser().Permissions(ctx, userPermissionsReq); err != nil {
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			OldData: user,
+			NewData: newData,
+		}); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}

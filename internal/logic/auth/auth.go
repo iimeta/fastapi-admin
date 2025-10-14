@@ -97,12 +97,6 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		return errors.New(params.Account + " 账号已存在")
 	}
 
-	models, err := service.Model().PublicModels(ctx)
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
 	groups, err := service.Group().PublicGroups(ctx)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -119,7 +113,6 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			UserId:  core.IncrUserId(ctx),
 			Name:    params.Account,
 			Email:   params.Account,
-			Models:  models,
 			Groups:  groups,
 			Status:  1,
 			Creator: id,
@@ -291,7 +284,6 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			UserId:  core.IncrResellerId(ctx),
 			Name:    params.Account,
 			Email:   params.Account,
-			Models:  models,
 			Groups:  groups,
 			Status:  1,
 			Creator: id,
@@ -531,7 +523,6 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Phone:     user.Phone,
 			Quota:     user.Quota,
 			UsedQuota: user.UsedQuota,
-			Models:    user.Models,
 			Groups:    user.Groups,
 			Rid:       user.Rid,
 			Account:   account.Account,
@@ -628,7 +619,6 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Phone:     reseller.Phone,
 			Quota:     reseller.Quota,
 			UsedQuota: reseller.UsedQuota,
-			Models:    reseller.Models,
 			Groups:    reseller.Groups,
 			Account:   accountInfo.Account,
 			CreatedAt: util.FormatDateTime(reseller.CreatedAt),

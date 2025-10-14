@@ -79,68 +79,11 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		return err
 	}
 
-	if params.IsPublic {
-
-		resellerList, err := dao.Reseller.Find(ctx, bson.M{})
+	if params.IsPublic && len(params.Groups) == 0 {
+		params.Groups, err = service.Group().PublicGroups(ctx)
 		if err != nil {
 			logger.Error(ctx, err)
 			return err
-		}
-
-		if err = dao.Reseller.UpdateMany(ctx, bson.M{}, bson.M{
-			"$push": bson.M{
-				"models": id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		for _, reseller := range resellerList {
-
-			newResellerData := *reseller
-
-			newResellerData.Models = append(newResellerData.Models, id)
-
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: reseller,
-				NewData: newResellerData,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-
-		userList, err := dao.User.Find(ctx, bson.M{})
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if err = dao.User.UpdateMany(ctx, bson.M{}, bson.M{
-			"$push": bson.M{
-				"models": id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		for _, user := range userList {
-
-			newUserData := *user
-
-			newUserData.Models = append(newUserData.Models, id)
-
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: user,
-				NewData: newUserData,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
 		}
 	}
 
@@ -268,146 +211,6 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
-	}
-
-	// 旧数据是公开, 新数据改为了私有
-	if oldData.IsPublic && !newData.IsPublic {
-
-		resellerList, err := dao.Reseller.Find(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}})
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if err = dao.Reseller.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}}, bson.M{
-			"$pull": bson.M{
-				"models": params.Id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		for _, reseller := range resellerList {
-
-			newResellerData := *reseller
-
-			for i, id := range newResellerData.Models {
-				if id == params.Id {
-					newResellerData.Models = append(newResellerData.Models[:i], newResellerData.Models[i+1:]...)
-					break
-				}
-			}
-
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: reseller,
-				NewData: newResellerData,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-
-		userList, err := dao.User.Find(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}})
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if err = dao.User.UpdateMany(ctx, bson.M{"models": bson.M{"$in": []string{params.Id}}}, bson.M{
-			"$pull": bson.M{
-				"models": params.Id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		for _, user := range userList {
-
-			newUserData := *user
-
-			for i, id := range newUserData.Models {
-				if id == params.Id {
-					newUserData.Models = append(newUserData.Models[:i], newUserData.Models[i+1:]...)
-					break
-				}
-			}
-
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: user,
-				NewData: newUserData,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-
-	} else if !oldData.IsPublic && newData.IsPublic { // 旧数据是私有, 新数据改为了公开
-
-		resellerList, err := dao.Reseller.Find(ctx, bson.M{})
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if err = dao.Reseller.UpdateMany(ctx, bson.M{}, bson.M{
-			"$addToSet": bson.M{
-				"models": params.Id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		for _, reseller := range resellerList {
-
-			newResellerData := *reseller
-
-			newResellerData.Models = gset.NewStrSetFrom(append(newResellerData.Models, params.Id)).Slice()
-
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: reseller,
-				NewData: newResellerData,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
-
-		userList, err := dao.User.Find(ctx, bson.M{})
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		if err = dao.User.UpdateMany(ctx, bson.M{}, bson.M{
-			"$addToSet": bson.M{
-				"models": params.Id,
-			},
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-
-		for _, user := range userList {
-
-			newUserData := *user
-
-			newUserData.Models = gset.NewStrSetFrom(append(newUserData.Models, params.Id)).Slice()
-
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: user,
-				NewData: newUserData,
-			}); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-		}
 	}
 
 	groups, err := service.Group().GetGroupsByModels(ctx, oldData.Id)
@@ -633,58 +436,6 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
-	}
-
-	resellers, err := dao.Reseller.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	for _, reseller := range resellers {
-
-		resellerModelsReq := model.ResellerPermissionsReq{
-			UserId: reseller.UserId,
-			Models: []string{},
-			Groups: reseller.Groups,
-		}
-
-		for _, m := range reseller.Models {
-			if m != id {
-				resellerModelsReq.Models = append(resellerModelsReq.Models, m)
-			}
-		}
-
-		if err = service.AdminReseller().Permissions(ctx, resellerModelsReq); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
-	}
-
-	users, err := dao.User.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	for _, user := range users {
-
-		userPermissionsReq := model.UserPermissionsReq{
-			UserId: user.UserId,
-			Models: []string{},
-			Groups: user.Groups,
-		}
-
-		for _, m := range user.Models {
-			if m != id {
-				userPermissionsReq.Models = append(userPermissionsReq.Models, m)
-			}
-		}
-
-		if err = service.AdminUser().Permissions(ctx, userPermissionsReq); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
 	}
 
 	apps, err := dao.App.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
@@ -947,7 +698,15 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			return nil, err
 		}
 
-		if params.Group != "" && slices.Contains(reseller.Groups, params.Group) {
+		if len(reseller.Groups) == 0 {
+			return nil, nil
+		}
+
+		if params.Group != "" {
+
+			if !slices.Contains(reseller.Groups, params.Group) {
+				return nil, nil
+			}
 
 			models, err := service.Group().GetModelsByGroups(ctx, params.Group)
 			if err != nil {
@@ -965,23 +724,18 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 		} else {
 
-			modelSet := gset.NewStrSetFrom(reseller.Models)
-
-			if len(reseller.Groups) > 0 {
-				models, err := service.Group().GetModelsByGroups(ctx, reseller.Groups...)
-				if err != nil {
-					logger.Error(ctx, err)
-					return nil, err
-				}
-				modelSet.Add(models...)
+			models, err := service.Group().GetModelsByGroups(ctx, reseller.Groups...)
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
 			}
 
-			if len(modelSet.Slice()) == 0 {
+			if len(models) == 0 {
 				return nil, nil
 			}
 
 			filter["_id"] = bson.M{
-				"$in": modelSet.Slice(),
+				"$in": models,
 			}
 		}
 	}
@@ -994,7 +748,15 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			return nil, err
 		}
 
-		if params.Group != "" && slices.Contains(user.Groups, params.Group) {
+		if len(user.Groups) == 0 {
+			return nil, nil
+		}
+
+		if params.Group != "" {
+
+			if !slices.Contains(user.Groups, params.Group) {
+				return nil, nil
+			}
 
 			models, err := service.Group().GetModelsByGroups(ctx, params.Group)
 			if err != nil {
@@ -1012,23 +774,18 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 		} else {
 
-			modelSet := gset.NewStrSetFrom(user.Models)
-
-			if len(user.Groups) > 0 {
-				models, err := service.Group().GetModelsByGroups(ctx, user.Groups...)
-				if err != nil {
-					logger.Error(ctx, err)
-					return nil, err
-				}
-				modelSet.Add(models...)
+			models, err := service.Group().GetModelsByGroups(ctx, user.Groups...)
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
 			}
 
-			if len(modelSet.Slice()) == 0 {
+			if len(models) == 0 {
 				return nil, nil
 			}
 
 			filter["_id"] = bson.M{
-				"$in": modelSet.Slice(),
+				"$in": models,
 			}
 		}
 	}
@@ -1199,7 +956,7 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 			return nil, err
 		}
 
-		modelSet := gset.NewStrSetFrom(reseller.Models)
+		modelSet := gset.NewStrSet()
 
 		if len(reseller.Groups) > 0 {
 			models, err := service.Group().GetModelsByGroups(ctx, reseller.Groups...)
@@ -1233,7 +990,7 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 			return nil, err
 		}
 
-		modelSet := gset.NewStrSetFrom(user.Models)
+		modelSet := gset.NewStrSet()
 
 		if len(user.Groups) > 0 {
 			models, err := service.Group().GetModelsByGroups(ctx, user.Groups...)
@@ -1583,7 +1340,7 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 			return nil, err
 		}
 
-		modelSet := gset.NewStrSetFrom(reseller.Models)
+		modelSet := gset.NewStrSet()
 
 		if len(reseller.Groups) > 0 {
 			models, err := service.Group().GetModelsByGroups(ctx, reseller.Groups...)
@@ -1611,7 +1368,7 @@ func (s *sModel) Tree(ctx context.Context, params model.ModelTreeReq) ([]*model.
 			return nil, err
 		}
 
-		modelSet := gset.NewStrSetFrom(user.Models)
+		modelSet := gset.NewStrSet()
 
 		if len(user.Groups) > 0 {
 			models, err := service.Group().GetModelsByGroups(ctx, user.Groups...)
@@ -1702,20 +1459,6 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 	}
 
 	switch params.Action {
-	case consts.ACTION_USER:
-
-		user, err := service.AdminUser().Detail(ctx, params.Id)
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		if user.Models == nil {
-			return nil, nil
-		}
-
-		modelListReq.Models = user.Models
-
 	case consts.ACTION_APP:
 
 		app, err := service.App().Detail(ctx, params.Id)

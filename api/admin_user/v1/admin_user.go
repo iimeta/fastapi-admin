@@ -117,14 +117,3 @@ type RechargeReq struct {
 type RechargeRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
-
-// 用户权限接口请求参数
-type PermissionsReq struct {
-	g.Meta `path:"/permissions" method:"post" auth:"true" role:"reseller,admin" tags:"admin_user" summary:"用户权限接口"`
-	model.UserPermissionsReq
-}
-
-// 用户权限接口响应参数
-type PermissionsRes struct {
-	g.Meta `mime:"application/json" example:"json"`
-}

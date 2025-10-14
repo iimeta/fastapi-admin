@@ -32,7 +32,7 @@ type (
 		// 用户充值
 		Recharge(ctx context.Context, params model.UserRechargeReq) error
 		// 用户权限
-		Permissions(ctx context.Context, params model.UserPermissionsReq) error
+		Permissions(ctx context.Context, userId int, groups []string) error
 		// 用户批量操作
 		BatchOperate(ctx context.Context, params model.UserBatchOperateReq) error
 	}

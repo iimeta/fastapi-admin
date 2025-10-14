@@ -21,5 +21,4 @@ type IAdminUserV1 interface {
 	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
 	Recharge(ctx context.Context, req *v1.RechargeReq) (res *v1.RechargeRes, err error)
-	Permissions(ctx context.Context, req *v1.PermissionsReq) (res *v1.PermissionsRes, err error)
 }

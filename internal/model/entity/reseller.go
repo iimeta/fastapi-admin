@@ -18,7 +18,6 @@ type Reseller struct {
 	UsedQuota              int           `bson:"used_quota,omitempty"`               // 已用额度
 	QuotaExpiresAt         int64         `bson:"quota_expires_at,omitempty"`         // 额度过期时间
 	Groups                 []string      `bson:"groups,omitempty"`                   // 分组权限
-	Models                 []string      `bson:"models,omitempty"`                   // 模型权限
 	QuotaWarning           bool          `bson:"quota_warning,omitempty"`            // 额度预警开关
 	WarningThreshold       int           `bson:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
 	ExpireWarningThreshold time.Duration `bson:"expire_warning_threshold,omitempty"` // 过期预警阈值, 单位: 天

@@ -232,7 +232,6 @@ func (s *sUser) GetUserByUserId(ctx context.Context, userId int) (*model.User, e
 		Quota:                  user.Quota,
 		UsedQuota:              user.UsedQuota,
 		QuotaExpiresAt:         util.FormatDateTime(user.QuotaExpiresAt),
-		Models:                 user.Models,
 		Groups:                 user.Groups,
 		QuotaWarning:           user.QuotaWarning,
 		WarningThreshold:       user.WarningThreshold,

@@ -32,7 +32,7 @@ type (
 		// 代理商充值
 		Recharge(ctx context.Context, params model.ResellerRechargeReq) error
 		// 代理商权限
-		Permissions(ctx context.Context, params model.ResellerPermissionsReq) error
+		Permissions(ctx context.Context, userId int, oldGroups []string, newGroups []string) error
 		// 代理商批量操作
 		BatchOperate(ctx context.Context, params model.ResellerBatchOperateReq) error
 	}

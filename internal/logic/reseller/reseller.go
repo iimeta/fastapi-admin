@@ -232,7 +232,6 @@ func (s *sReseller) GetResellerByUserId(ctx context.Context, userId int) (*model
 		Quota:                  reseller.Quota,
 		UsedQuota:              reseller.UsedQuota,
 		QuotaExpiresAt:         util.FormatDateTime(reseller.QuotaExpiresAt),
-		Models:                 reseller.Models,
 		Groups:                 reseller.Groups,
 		QuotaWarning:           reseller.QuotaWarning,
 		WarningThreshold:       reseller.WarningThreshold,

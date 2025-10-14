@@ -5,7 +5,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/config"
@@ -102,14 +101,13 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, e
 			return dashboard, err
 		}
 
-		modelSet := gset.NewStrSetFrom(service.Session().GetReseller(ctx).Models)
-		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetReseller(ctx).Groups...); err != nil {
+		models, err := service.Group().GetModelsByGroups(ctx, service.Session().GetReseller(ctx).Groups...)
+		if err != nil {
 			logger.Error(ctx, err)
-		} else {
-			modelSet.Add(groupModels...)
+			return dashboard, err
 		}
 
-		dashboard.Model = int64(modelSet.Size())
+		dashboard.Model = int64(len(models))
 		dashboard.Group = len(service.Session().GetReseller(ctx).Groups)
 	}
 
@@ -125,14 +123,13 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, e
 			return dashboard, err
 		}
 
-		modelSet := gset.NewStrSetFrom(service.Session().GetUser(ctx).Models)
-		if groupModels, err := service.Group().GetModelsByGroups(ctx, service.Session().GetUser(ctx).Groups...); err != nil {
+		models, err := service.Group().GetModelsByGroups(ctx, service.Session().GetUser(ctx).Groups...)
+		if err != nil {
 			logger.Error(ctx, err)
-		} else {
-			modelSet.Add(groupModels...)
+			return dashboard, err
 		}
 
-		dashboard.Model = int64(modelSet.Size())
+		dashboard.Model = int64(len(models))
 		dashboard.Group = len(service.Session().GetUser(ctx).Groups)
 	}
 
