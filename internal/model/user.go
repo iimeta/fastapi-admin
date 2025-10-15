@@ -48,14 +48,15 @@ type UserCreateReq struct {
 
 // 更新用户接口请求参数
 type UserUpdateReq struct {
-	Id             string `json:"id,omitempty"`                        // ID
-	Name           string `json:"name,omitempty" v:"required"`         // 姓名
-	Email          string `json:"email,omitempty" v:"required"`        // 邮箱
-	Account        string `json:"account,omitempty" v:"required"`      // 账号
-	Password       string `json:"password,omitempty" v:"min-length:6"` // 密码
-	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`          // 额度过期时间
-	Remark         string `json:"remark,omitempty"`                    // 备注
-	Status         int    `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
+	Id             string   `json:"id,omitempty"`                        // ID
+	Name           string   `json:"name,omitempty" v:"required"`         // 姓名
+	Email          string   `json:"email,omitempty" v:"required"`        // 邮箱
+	Account        string   `json:"account,omitempty" v:"required"`      // 账号
+	Password       string   `json:"password,omitempty" v:"min-length:6"` // 密码
+	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`          // 额度过期时间
+	Groups         []string `json:"groups,omitempty"`                    // 分组权限
+	Remark         string   `json:"remark,omitempty"`                    // 备注
+	Status         int      `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改用户额度过期时间接口请求参数

@@ -191,6 +191,7 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 		"name":                  params.Name,
 		"email":                 params.Email,
 		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"groups":                params.Groups,
 		"remark":                params.Remark,
 		"status":                params.Status,
 		"expire_warning_notice": false,
@@ -230,6 +231,13 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if !slices.Equal(oldData.Groups, newData.Groups) {
+		if err = s.Permissions(ctx, newData.UserId, oldData.Groups, newData.Groups); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil

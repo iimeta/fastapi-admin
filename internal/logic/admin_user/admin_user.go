@@ -263,6 +263,7 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		"name":                  params.Name,
 		"email":                 params.Email,
 		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"groups":                params.Groups,
 		"remark":                params.Remark,
 		"status":                params.Status,
 		"expire_warning_notice": false,

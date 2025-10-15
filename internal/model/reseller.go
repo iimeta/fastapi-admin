@@ -35,15 +35,16 @@ type ResellerCreateReq struct {
 
 // 更新代理商接口请求参数
 type ResellerUpdateReq struct {
-	Id             string `json:"id,omitempty"`                        // ID
-	Name           string `json:"name,omitempty" v:"required"`         // 姓名
-	Email          string `json:"email,omitempty" v:"required"`        // 邮箱
-	Account        string `json:"account,omitempty" v:"required"`      // 账号
-	Password       string `json:"password,omitempty" v:"min-length:6"` // 密码
-	Quota          int    `json:"quota,omitempty"`                     // 额度
-	QuotaExpiresAt string `json:"quota_expires_at,omitempty"`          // 额度过期时间
-	Remark         string `json:"remark,omitempty"`                    // 备注
-	Status         int    `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
+	Id             string   `json:"id,omitempty"`                        // ID
+	Name           string   `json:"name,omitempty" v:"required"`         // 姓名
+	Email          string   `json:"email,omitempty" v:"required"`        // 邮箱
+	Account        string   `json:"account,omitempty" v:"required"`      // 账号
+	Password       string   `json:"password,omitempty" v:"min-length:6"` // 密码
+	Quota          int      `json:"quota,omitempty"`                     // 额度
+	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`          // 额度过期时间
+	Groups         []string `json:"groups,omitempty"`                    // 分组权限
+	Remark         string   `json:"remark,omitempty"`                    // 备注
+	Status         int      `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改代理商额度过期时间接口请求参数
