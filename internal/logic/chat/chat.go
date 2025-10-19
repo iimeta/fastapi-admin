@@ -347,17 +347,26 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 
 	values := make([]interface{}, 0)
 	for _, result := range results {
-		values = append(values, &model.ChatExport{
-			ReqTime:      util.FormatDateTime(result.ReqTime),
-			UserId:       result.UserId,
-			AppId:        result.AppId,
-			Model:        result.Model,
-			InputTokens:  result.Spend.Text.InputTokens,
-			OutputTokens: result.Spend.Text.OutputTokens,
-			TotalTokens:  gconv.String(util.ConvQuota(result.Spend.TotalSpendTokens)),
-			Key:          result.Key,
-			Creator:      result.Creator,
-		})
+
+		value := &model.ChatExport{
+			ReqTime:     util.FormatDateTime(result.ReqTime),
+			UserId:      result.UserId,
+			AppId:       result.AppId,
+			Model:       result.Model,
+			TotalTokens: gconv.String(util.ConvQuota(result.Spend.TotalSpendTokens)),
+			Key:         result.Key,
+			Creator:     result.Creator,
+		}
+
+		if result.Spend.Text != nil {
+			value.InputTokens = result.Spend.Text.InputTokens
+			value.OutputTokens = result.Spend.Text.OutputTokens
+		} else if result.Spend.TieredText != nil {
+			value.InputTokens = result.Spend.TieredText.InputTokens
+			value.OutputTokens = result.Spend.TieredText.OutputTokens
+		}
+
+		values = append(values, value)
 	}
 
 	if err = util.ExcelExport("聊天日志", titleCols, colFieldMap, values, filePath); err != nil {
