@@ -155,13 +155,13 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 			data["name"] = user.Name
 
 			if user.Quota < 0 {
-				data["quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(user.Quota))/consts.QUOTA_USD_UNIT, 6))
+				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(user.Quota)))))
 			} else {
-				data["quota"] = fmt.Sprintf("$%f", util.Round(float64(user.Quota)/consts.QUOTA_USD_UNIT, 6))
+				data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(user.Quota))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
-				data["warning_threshold"] = fmt.Sprintf("$%d", warningThreshold/consts.QUOTA_USD_UNIT)
+				data["warning_threshold"] = fmt.Sprintf("$%d", warningThreshold/consts.QUOTA_DEFAULT_UNIT)
 			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
 			}
@@ -269,13 +269,13 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 			data["name"] = reseller.Name
 
 			if reseller.Quota < 0 {
-				data["quota"] = fmt.Sprintf("-$%f", util.Round(math.Abs(float64(reseller.Quota))/consts.QUOTA_USD_UNIT, 6))
+				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(reseller.Quota)))))
 			} else {
-				data["quota"] = fmt.Sprintf("$%f", util.Round(float64(reseller.Quota)/consts.QUOTA_USD_UNIT, 6))
+				data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(reseller.Quota))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
-				data["warning_threshold"] = fmt.Sprintf("$%d", warningThreshold/consts.QUOTA_USD_UNIT)
+				data["warning_threshold"] = fmt.Sprintf("$%d", warningThreshold/consts.QUOTA_DEFAULT_UNIT)
 			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
 			}

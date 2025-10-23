@@ -410,7 +410,7 @@ func (s *sAppKey) Page(ctx context.Context, params model.AppKeyPageReq) (*model.
 	if params.Quota != 0 {
 		filter["is_limit_quota"] = true
 		filter["quota"] = bson.M{
-			"$lte": params.Quota * consts.QUOTA_USD_UNIT,
+			"$lte": params.Quota * consts.QUOTA_DEFAULT_UNIT,
 		}
 	}
 
@@ -744,7 +744,7 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 		if params.QueryParams.Quota != 0 {
 			filter["is_limit_quota"] = true
 			filter["quota"] = bson.M{
-				"$lte": params.QueryParams.Quota * consts.QUOTA_USD_UNIT,
+				"$lte": params.QueryParams.Quota * consts.QUOTA_DEFAULT_UNIT,
 			}
 		}
 
@@ -909,7 +909,7 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 		}
 
 		if result.Quota > 0 {
-			appKeyExport.Quota = gconv.String(util.ConvQuota(result.Quota))
+			appKeyExport.Quota = gconv.String(common.ConvQuota(result.Quota))
 		}
 
 		if app, ok := appMap[result.AppId]; ok {

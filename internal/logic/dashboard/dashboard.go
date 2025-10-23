@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -243,7 +244,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 	for _, res := range result {
 		resultMap[gconv.String(res["_id"])] = &model.CallData{
 			Date:     gconv.String(res["_id"])[5:],
-			Spend:    util.ConvQuota(gconv.Int(res["tokens"])),
+			Spend:    common.ConvQuota(gconv.Int(res["tokens"])),
 			Call:     gconv.Int(res["count"]),
 			Tokens:   gconv.Int(res["tokens"]),
 			Abnormal: gconv.Int(res["abnormal"]),
@@ -337,14 +338,14 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
 	return &model.Expense{
 		Quota:                  quota,
-		QuotaUSD:               util.Round(float64(quota)/consts.QUOTA_USD_UNIT, 4),
+		QuotaUSD:               common.ConvQuota(quota, 4),
 		UsedQuota:              usedQuota,
-		UsedQuotaUSD:           util.Round(float64(usedQuota)/consts.QUOTA_USD_UNIT, 4),
+		UsedQuotaUSD:           common.ConvQuota(usedQuota, 4),
 		AllocatedQuota:         allocatedQuota,
 		ToBeAllocated:          toBeAllocated,
 		QuotaExpiresAt:         quotaExpiresAt,
 		QuotaWarning:           quotaWarning,
-		WarningThreshold:       warningThreshold / consts.QUOTA_USD_UNIT,
+		WarningThreshold:       warningThreshold / consts.QUOTA_DEFAULT_UNIT,
 		ExpireWarningThreshold: expireWarningThreshold,
 	}, nil
 }
@@ -720,7 +721,7 @@ func (s *sDashboard) QuotaWarning(ctx context.Context, params model.DashboardQuo
 	}
 
 	if params.WarningThreshold > 0 {
-		update["warning_threshold"] = params.WarningThreshold * consts.QUOTA_USD_UNIT
+		update["warning_threshold"] = params.WarningThreshold * consts.QUOTA_DEFAULT_UNIT
 	}
 
 	if params.ExpireWarningThreshold > 0 {

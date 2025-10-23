@@ -12,6 +12,7 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	common2 "github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -178,7 +179,7 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 				UserId:   result.UserId,
 				Model:    modelStat.Model,
 				Total:    modelStat.Total,
-				Tokens:   gconv.String(util.ConvQuota(modelStat.Tokens)),
+				Tokens:   gconv.String(common2.ConvQuota(modelStat.Tokens)),
 			})
 		}
 	}

@@ -531,7 +531,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		},
 		Quota: &common.Quota{
 			Warning:           true,
-			Threshold:         100 * consts.QUOTA_USD_UNIT,
+			Threshold:         100 * consts.QUOTA_DEFAULT_UNIT,
 			ExpiredWarning:    true,
 			ExpiredThreshold:  3,
 			ExhaustedNotice:   true,

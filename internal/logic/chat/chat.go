@@ -353,7 +353,7 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 			UserId:      result.UserId,
 			AppId:       result.AppId,
 			Model:       result.Model,
-			TotalTokens: gconv.String(util.ConvQuota(result.Spend.TotalSpendTokens)),
+			TotalTokens: gconv.String(common.ConvQuota(result.Spend.TotalSpendTokens)),
 			Key:         result.Key,
 			Creator:     result.Creator,
 		}
