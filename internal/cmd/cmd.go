@@ -120,11 +120,6 @@ var (
 
 			s.Group("/", func(g *ghttp.RouterGroup) {
 				g.Bind(
-					func(r *ghttp.Request) {
-						r.Response.WriteStatus(http.StatusOK, "Hello Fast API Admin")
-						r.Exit()
-						return
-					},
 					health.NewV1(),
 				)
 			})
