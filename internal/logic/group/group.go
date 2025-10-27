@@ -779,7 +779,7 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 	}
 
 	if group.ForwardConfig != nil && group.ForwardConfig.UsedQuota > 0 {
-		group.ForwardConfig.UsedQuota = float64(common.ConvQuotaUnit(group.ForwardConfig.UsedQuota))
+		group.ForwardConfig.UsedQuota = common.ConvQuotaUnitReverse(int(group.ForwardConfig.UsedQuota))
 	}
 
 	detail := &model.Group{

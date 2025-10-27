@@ -134,7 +134,7 @@ type Reseller struct {
 	Quota                  float64       `json:"quota,omitempty"`                    // 剩余额度
 	UsedQuota              float64       `json:"used_quota,omitempty"`               // 已用额度
 	AllocatedQuota         float64       `json:"allocated_quota,omitempty"`          // 已分配额度
-	ToBeAllocated          float64       `json:"to_be_allocated,omitempty"`          // 待分配额度
+	ToBeAllocatedQuota     float64       `json:"to_be_allocated_quota,omitempty"`    // 待分配额度
 	QuotaExpiresAt         string        `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	Groups                 []string      `json:"groups,omitempty"`                   // 分组权限
 	GroupNames             []string      `json:"group_names,omitempty"`              // 分组名称

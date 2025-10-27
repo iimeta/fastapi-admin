@@ -447,7 +447,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 			items = append(items, &model.DataTop{
 				UserId: gconv.Int(res["_id"]),
 				Call:   gconv.Int(res["count"]),
-				Tokens: gconv.Int(res["tokens"]),
+				Tokens: common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			})
 		}
 
@@ -458,7 +458,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 				AppId:  gconv.Int(res["_id"]),
 				UserId: gconv.Int(res["user_id"]),
 				Call:   gconv.Int(res["count"]),
-				Tokens: gconv.Int(res["tokens"]),
+				Tokens: common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			})
 		}
 
@@ -469,7 +469,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 				AppKey: util.Desensitize(gconv.String(res["_id"])),
 				AppId:  gconv.Int(res["app_id"]),
 				Call:   gconv.Int(res["count"]),
-				Tokens: gconv.Int(res["tokens"]),
+				Tokens: common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			})
 		}
 
@@ -479,7 +479,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 			items = append(items, &model.DataTop{
 				Model:  gconv.String(res["_id"]),
 				Call:   gconv.Int(res["count"]),
-				Tokens: gconv.Int(res["tokens"]),
+				Tokens: common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			})
 		}
 	}
