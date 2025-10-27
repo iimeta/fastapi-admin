@@ -135,7 +135,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 					logger.Error(ctx, err)
 				}
 
-				if expense != nil && expense.ToBeAllocated >= siteConfig.GrantQuota {
+				if expense != nil && expense.ToBeAllocatedQuota >= common.ConvQuotaUnitReverse(siteConfig.GrantQuota) {
 					user.Quota = siteConfig.GrantQuota
 					if siteConfig.QuotaExpiresAt > 0 {
 						user.QuotaExpiresAt = gtime.Now().Add(time.Duration(siteConfig.QuotaExpiresAt) * time.Minute).TimestampMilli()
@@ -255,7 +255,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 
 					data["name"] = user.Name
 					data["account"] = params.Account
-					data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(user.Quota))
+					data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(user.Quota))
 					data["quota_expires_at"] = "无期限"
 					if user.QuotaExpiresAt > 0 {
 						data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
@@ -360,7 +360,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 
 					data["name"] = reseller.Name
 					data["account"] = params.Account
-					data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(reseller.Quota))
+					data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(reseller.Quota))
 					data["quota_expires_at"] = "无期限"
 					if reseller.QuotaExpiresAt > 0 {
 						data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
@@ -521,8 +521,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Avatar:    user.Avatar,
 			Email:     user.Email,
 			Phone:     user.Phone,
-			Quota:     user.Quota,
-			UsedQuota: user.UsedQuota,
+			Quota:     common.ConvQuotaUnitReverse(user.Quota),
+			UsedQuota: common.ConvQuotaUnitReverse(user.UsedQuota),
 			Groups:    user.Groups,
 			Rid:       user.Rid,
 			Account:   account.Account,
@@ -617,8 +617,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Avatar:    reseller.Avatar,
 			Email:     reseller.Email,
 			Phone:     reseller.Phone,
-			Quota:     reseller.Quota,
-			UsedQuota: reseller.UsedQuota,
+			Quota:     common.ConvQuotaUnitReverse(reseller.Quota),
+			UsedQuota: common.ConvQuotaUnitReverse(reseller.UsedQuota),
 			Groups:    reseller.Groups,
 			Account:   accountInfo.Account,
 			CreatedAt: util.FormatDateTime(reseller.CreatedAt),

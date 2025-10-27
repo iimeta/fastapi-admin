@@ -92,7 +92,7 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 			BillingMethods:      params.BillingMethods,
 			Models:              params.Models,
 			IsLimitQuota:        params.IsLimitQuota,
-			Quota:               params.Quota,
+			Quota:               common.ConvQuotaUnit(params.Quota),
 			QuotaExpiresRule:    params.QuotaExpiresRule,
 			QuotaExpiresAt:      util.ConvTimestampMilli(params.QuotaExpiresAt),
 			QuotaExpiresMinutes: params.QuotaExpiresMinutes,
@@ -348,8 +348,8 @@ func (s *sAppKey) Detail(ctx context.Context, id string) (*model.AppKey, error) 
 		Models:              key.Models,
 		ModelNames:          modelNames,
 		IsLimitQuota:        key.IsLimitQuota,
-		Quota:               key.Quota,
-		UsedQuota:           key.UsedQuota,
+		Quota:               common.ConvQuotaUnitReverse(key.Quota),
+		UsedQuota:           common.ConvQuotaUnitReverse(key.UsedQuota),
 		QuotaExpiresRule:    key.QuotaExpiresRule,
 		QuotaExpiresAt:      util.FormatDateTime(key.QuotaExpiresAt),
 		QuotaExpiresMinutes: key.QuotaExpiresMinutes,
@@ -445,8 +445,8 @@ func (s *sAppKey) Page(ctx context.Context, params model.AppKeyPageReq) (*model.
 			BillingMethods:      result.BillingMethods,
 			Models:              result.Models,
 			IsLimitQuota:        result.IsLimitQuota,
-			Quota:               result.Quota,
-			UsedQuota:           result.UsedQuota,
+			Quota:               common.ConvQuotaUnitReverse(result.Quota),
+			UsedQuota:           common.ConvQuotaUnitReverse(result.UsedQuota),
 			QuotaExpiresRule:    result.QuotaExpiresRule,
 			QuotaExpiresAt:      util.FormatDateTime(result.QuotaExpiresAt),
 			QuotaExpiresMinutes: result.QuotaExpiresMinutes,
@@ -594,7 +594,7 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 				BillingMethods:      params.BillingMethods,
 				Models:              params.Models,
 				IsLimitQuota:        params.IsLimitQuota,
-				Quota:               params.Quota,
+				Quota:               common.ConvQuotaUnit(params.Quota),
 				QuotaExpiresRule:    params.QuotaExpiresRule,
 				QuotaExpiresAt:      util.ConvTimestampMilli(params.QuotaExpiresAt),
 				QuotaExpiresMinutes: params.QuotaExpiresMinutes,
@@ -909,7 +909,7 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 		}
 
 		if result.Quota > 0 {
-			appKeyExport.Quota = gconv.String(common.ConvQuota(result.Quota))
+			appKeyExport.Quota = gconv.String(common.ConvQuotaUnitReverse(result.Quota))
 		}
 
 		if app, ok := appMap[result.AppId]; ok {

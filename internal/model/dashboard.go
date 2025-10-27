@@ -59,8 +59,8 @@ type DashboardPerMinuteReq struct {
 
 // 每分钟数据接口响应参数
 type DashboardPerMinuteRes struct {
-	RPM int `json:"rpm"` // 每分钟请求数
-	TPM int `json:"tpm"` // 每分钟令牌数
+	RPM int `json:"rpm,omitempty"` // 每分钟请求数
+	TPM int `json:"tpm,omitempty"` // 每分钟令牌数
 }
 
 // 每秒钟数据接口请求参数
@@ -78,53 +78,51 @@ type DashboardPerSecondReq struct {
 
 // 每秒钟数据接口响应参数
 type DashboardPerSecondRes struct {
-	RPS int `json:"rps"` // 每秒钟请求数
-	TPS int `json:"tps"` // 每秒钟令牌数
+	RPS int `json:"rps,omitempty"` // 每秒钟请求数
+	TPS int `json:"tps,omitempty"` // 每秒钟令牌数
 }
 
 // 额度预警接口请求参数
 type DashboardQuotaWarningReq struct {
-	QuotaWarning           bool          `json:"quota_warning"`            // 额度预警开关
-	WarningThreshold       int           `json:"warning_threshold"`        // 预警阈值, 单位: $
-	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold"` // 过期预警阈值, 单位: 天
+	QuotaWarning           bool          `json:"quota_warning,omitempty"`            // 额度预警开关
+	WarningThreshold       int           `json:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
+	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold,omitempty"` // 过期预警阈值, 单位: 天
 }
 
 // 基础数据
 type Dashboard struct {
-	App       int64 `json:"app"`        // 应用数
-	TodayApp  int64 `json:"today_app"`  // 今日新增应用数
-	Model     int64 `json:"model"`      // 模型数
-	AppKey    int64 `json:"app_key"`    // 应用密钥数
-	ModelKey  int64 `json:"model_key"`  // 模型密钥数
-	User      int64 `json:"user"`       // 用户数
-	TodayUser int64 `json:"today_user"` // 今日新增用户数
-	Call      int   `json:"call"`       // 调用数
-	Group     int   `json:"group"`      // 分组数
+	App       int64 `json:"app,omitempty"`        // 应用数
+	TodayApp  int64 `json:"today_app,omitempty"`  // 今日新增应用数
+	Model     int64 `json:"model,omitempty"`      // 模型数
+	AppKey    int64 `json:"app_key,omitempty"`    // 应用密钥数
+	ModelKey  int64 `json:"model_key,omitempty"`  // 模型密钥数
+	User      int64 `json:"user,omitempty"`       // 用户数
+	TodayUser int64 `json:"today_user,omitempty"` // 今日新增用户数
+	Call      int   `json:"call,omitempty"`       // 调用数
+	Group     int   `json:"group,omitempty"`      // 分组数
 }
 
 // 调用数据
 type CallData struct {
-	Date     string  `json:"date"`     // 日期
-	Spend    float64 `json:"spend"`    // 花费($)
-	Call     int     `json:"call"`     // 调用数
-	Tokens   int     `json:"tokens"`   // 令牌数
-	User     int     `json:"user"`     // 用户数
-	App      int     `json:"app"`      // 应用数
-	Abnormal int     `json:"abnormal"` // 异常数
+	Date     string  `json:"date,omitempty"`     // 日期
+	Spend    float64 `json:"spend,omitempty"`    // 花费($)
+	Call     int     `json:"call,omitempty"`     // 调用数
+	Tokens   int     `json:"tokens,omitempty"`   // 令牌数
+	User     int     `json:"user,omitempty"`     // 用户数
+	App      int     `json:"app,omitempty"`      // 应用数
+	Abnormal int     `json:"abnormal,omitempty"` // 异常数
 }
 
 // 费用
 type Expense struct {
-	Quota                  int           `json:"quota"`                    // 剩余额度
-	QuotaUSD               float64       `json:"quota_usd"`                // 剩余额度美元单位
-	UsedQuota              int           `json:"used_quota"`               // 已用额度
-	UsedQuotaUSD           float64       `json:"used_quota_usd"`           // 已用额度美元单位
-	AllocatedQuota         int           `json:"allocated_quota"`          // 已分配额度
-	ToBeAllocated          int           `json:"to_be_allocated"`          // 待分配额度
-	QuotaExpiresAt         string        `json:"quota_expires_at"`         // 额度过期时间
-	QuotaWarning           bool          `json:"quota_warning"`            // 额度预警开关
-	WarningThreshold       int           `json:"warning_threshold"`        // 预警阈值, 单位: $
-	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold"` // 过期预警阈值, 单位: 天
+	Quota                  float64       `json:"quota,omitempty"`                    // 剩余额度
+	UsedQuota              float64       `json:"used_quota,omitempty"`               // 已用额度
+	AllocatedQuota         float64       `json:"allocated_quota,omitempty"`          // 已分配额度
+	ToBeAllocatedQuota     float64       `json:"to_be_allocated_quota,omitempty"`    // 待分配额度
+	QuotaExpiresAt         string        `json:"quota_expires_at,omitempty"`         // 额度过期时间
+	QuotaWarning           bool          `json:"quota_warning,omitempty"`            // 额度预警开关
+	WarningThreshold       int           `json:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
+	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold,omitempty"` // 过期预警阈值, 单位: 天
 }
 
 // 数据TOP
@@ -133,15 +131,15 @@ type DataTop struct {
 	AppId  int    `json:"app_id,omitempty"`  // 应用ID
 	AppKey string `json:"app_key,omitempty"` // 应用密钥
 	Model  string `json:"model,omitempty"`   // 模型
-	Call   int    `json:"call"`              // 调用数
-	Models int    `json:"models"`            // 模型数
-	Tokens int    `json:"tokens"`            // 令牌数
-	User   int    `json:"user"`              // 用户数
-	App    int    `json:"app"`               // 应用数
+	Call   int    `json:"call,omitempty"`    // 调用数
+	Models int    `json:"models,omitempty"`  // 模型数
+	Tokens int    `json:"tokens,omitempty"`  // 令牌数
+	User   int    `json:"user,omitempty"`    // 用户数
+	App    int    `json:"app,omitempty"`     // 应用数
 }
 
 // 模型占比
 type ModelPercent struct {
-	Name  string `json:"name"`  // 模型
-	Value int    `json:"value"` // 调用数
+	Name  string `json:"name,omitempty"`  // 模型
+	Value int    `json:"value,omitempty"` // 调用数
 }

@@ -20,7 +20,7 @@ type ForwardConfig struct {
 	Keywords          []string `bson:"keywords,omitempty"       json:"keywords,omitempty"`            // 转发规则为2时的关键字
 	TargetModels      []string `bson:"target_models,omitempty"  json:"target_models,omitempty"`       // 转发规则为2时的目标模型
 	ContentLength     int      `bson:"content_length,omitempty" json:"content_length,omitempty"`      // 转发规则为3时的内容长度
-	UsedQuota         int      `bson:"used_quota,omitempty"     json:"used_quota,omitempty"`          // 转发规则为4时的已用额度
+	UsedQuota         float64  `bson:"used_quota,omitempty"     json:"used_quota,omitempty"`          // 转发规则为4时的已用额度
 	TargetModelName   string   `bson:"-"                        json:"target_model_name,omitempty"`   // 转发规则为[1,3,4]时的目标模型名称
 	DecisionModelName string   `bson:"-"                        json:"decision_model_name,omitempty"` // 转发规则为2时并且匹配规则为1时的判定模型名称
 	TargetModelNames  []string `bson:"-"                        json:"target_model_names,omitempty"`  // 转发规则为2时的目标模型名称
@@ -57,12 +57,12 @@ type ImageData struct {
 }
 
 type ModelStat struct {
-	ModelId        string `bson:"model_id,omitempty"        json:"model_id,omitempty"`        // 模型ID
-	Model          string `bson:"model,omitempty"           json:"model,omitempty"`           // 模型
-	Total          int    `bson:"total,omitempty"           json:"total,omitempty"`           // 总数
-	Tokens         int    `bson:"tokens,omitempty"          json:"tokens,omitempty"`          // 令牌数
-	Abnormal       int    `bson:"abnormal,omitempty"        json:"abnormal,omitempty"`        // 异常数
-	AbnormalTokens int    `bson:"abnormal_tokens,omitempty" json:"abnormal_tokens,omitempty"` // 异常令牌数
+	ModelId        string  `bson:"model_id,omitempty"        json:"model_id,omitempty"`        // 模型ID
+	Model          string  `bson:"model,omitempty"           json:"model,omitempty"`           // 模型
+	Total          int     `bson:"total,omitempty"           json:"total,omitempty"`           // 总数
+	Tokens         float64 `bson:"tokens,omitempty"          json:"tokens,omitempty"`          // 令牌数
+	Abnormal       int     `bson:"abnormal,omitempty"        json:"abnormal,omitempty"`        // 异常数
+	AbnormalTokens float64 `bson:"abnormal_tokens,omitempty" json:"abnormal_tokens,omitempty"` // 异常令牌数
 }
 
 type Carousel struct {

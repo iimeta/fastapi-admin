@@ -21,7 +21,7 @@ type AppKeyConfigReq struct {
 	BillingMethods      []int    `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
 	Models              []string `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`           // 是否限制额度
-	Quota               int      `json:"quota,omitempty"`                    // 额度
+	Quota               float64  `json:"quota,omitempty"`                    // 额度
 	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty" d:"1"` // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
@@ -77,7 +77,7 @@ type AppKeyBatchOperateReq struct {
 	N                   int           `json:"n,omitempty"`                        // 数量
 	Models              []string      `json:"models,omitempty"`                   // 模型权限
 	IsLimitQuota        bool          `json:"is_limit_quota,omitempty"`           // 是否限制额度
-	Quota               int           `json:"quota,omitempty"`                    // 额度
+	Quota               float64       `json:"quota,omitempty"`                    // 额度
 	QuotaExpiresRule    int           `json:"quota_expires_rule,omitempty" d:"1"` // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string        `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	QuotaExpiresMinutes int64         `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
@@ -129,13 +129,13 @@ type AppKey struct {
 	BillingMethods      []int    `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Models              []string `json:"models,omitempty"`                // 模型权限
 	ModelNames          []string `json:"model_names,omitempty"`           // 模型名称
-	IsLimitQuota        bool     `json:"is_limit_quota"`                  // 是否限制额度
-	Quota               int      `json:"quota"`                           // 剩余额度
-	UsedQuota           int      `json:"used_quota"`                      // 已用额度
+	IsLimitQuota        bool     `json:"is_limit_quota,omitempty"`        // 是否限制额度
+	Quota               float64  `json:"quota,omitempty"`                 // 剩余额度
+	UsedQuota           float64  `json:"used_quota,omitempty"`            // 已用额度
 	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty"`    // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`      // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"` // 额度过期分钟数
-	IsBindGroup         bool     `json:"is_bind_group"`                   // 是否绑定分组
+	IsBindGroup         bool     `json:"is_bind_group,omitempty"`         // 是否绑定分组
 	Group               string   `json:"group,omitempty"`                 // 绑定分组
 	GroupName           string   `json:"group_name,omitempty"`            // 绑定分组名称
 	IpWhitelist         []string `json:"ip_whitelist,omitempty"`          // IP白名单

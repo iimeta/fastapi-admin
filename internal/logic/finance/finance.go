@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
-	common2 "github.com/iimeta/fastapi-admin/internal/logic/common"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/internal/model/common"
+	mcommon "github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -45,9 +44,14 @@ func (s *sFinance) BillDetail(ctx context.Context, id string) (*model.Statistics
 		return nil, errors.New("Unauthorized")
 	}
 
-	slices.SortFunc(statisticsUser.ModelStats, func(s1, s2 *common.ModelStat) int {
+	slices.SortFunc(statisticsUser.ModelStats, func(s1, s2 *mcommon.ModelStat) int {
 		return cmp.Compare(s2.Tokens, s1.Tokens)
 	})
+
+	for _, modelStat := range statisticsUser.ModelStats {
+		modelStat.Tokens = common.ConvQuotaUnitReverse(int(modelStat.Tokens))
+		modelStat.AbnormalTokens = common.ConvQuotaUnitReverse(int(modelStat.AbnormalTokens))
+	}
 
 	return &model.StatisticsUser{
 		Id:             statisticsUser.Id,
@@ -55,9 +59,9 @@ func (s *sFinance) BillDetail(ctx context.Context, id string) (*model.Statistics
 		StatDate:       statisticsUser.StatDate,
 		StatTime:       statisticsUser.StatTime,
 		Total:          statisticsUser.Total,
-		Tokens:         statisticsUser.Tokens,
+		Tokens:         common.ConvQuotaUnitReverse(statisticsUser.Tokens),
 		Abnormal:       statisticsUser.Abnormal,
-		AbnormalTokens: statisticsUser.AbnormalTokens,
+		AbnormalTokens: common.ConvQuotaUnitReverse(statisticsUser.AbnormalTokens),
 		ModelStats:     statisticsUser.ModelStats,
 	}, nil
 }
@@ -101,7 +105,7 @@ func (s *sFinance) BillPage(ctx context.Context, params model.FinanceBillPageReq
 			Id:       result.Id,
 			UserId:   result.UserId,
 			Total:    result.Total,
-			Tokens:   result.Tokens,
+			Tokens:   common.ConvQuotaUnitReverse(result.Tokens),
 			Models:   len(result.ModelStats),
 			StatDate: result.StatDate,
 		})
@@ -169,7 +173,7 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 	values := make([]interface{}, 0)
 	for _, result := range results {
 
-		slices.SortFunc(result.ModelStats, func(s1, s2 *common.ModelStat) int {
+		slices.SortFunc(result.ModelStats, func(s1, s2 *mcommon.ModelStat) int {
 			return cmp.Compare(s2.Tokens, s1.Tokens)
 		})
 
@@ -179,7 +183,7 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 				UserId:   result.UserId,
 				Model:    modelStat.Model,
 				Total:    modelStat.Total,
-				Tokens:   gconv.String(common2.ConvQuota(modelStat.Tokens)),
+				Tokens:   common.ConvQuotaUnitReverse(int(modelStat.Tokens)),
 			})
 		}
 	}
@@ -245,7 +249,7 @@ func (s *sFinance) DealRecordPage(ctx context.Context, params model.FinanceDealR
 		items = append(items, &model.DealRecord{
 			Id:        result.Id,
 			UserId:    result.UserId,
-			Quota:     result.Quota,
+			Quota:     common.ConvQuotaUnitReverse(result.Quota),
 			Type:      result.Type,
 			Remark:    result.Remark,
 			Status:    result.Status,

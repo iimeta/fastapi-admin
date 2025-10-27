@@ -9,7 +9,7 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/internal/model/common"
+	mcommon "github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 )
 
@@ -36,7 +36,7 @@ type (
 		// 密钥模型权限
 		Models(ctx context.Context, params model.KeyModelsReq) error
 		// 检查任务
-		CheckTask(ctx context.Context, enableError common.EnableError)
+		CheckTask(ctx context.Context, enableError mcommon.EnableError)
 	}
 )
 

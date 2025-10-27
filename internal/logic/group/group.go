@@ -11,6 +11,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
@@ -47,6 +48,10 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 		}
 	}
 
+	if params.ForwardConfig != nil && params.ForwardConfig.UsedQuota > 0 {
+		params.ForwardConfig.UsedQuota = float64(common.ConvQuotaUnit(params.ForwardConfig.UsedQuota))
+	}
+
 	id, err := dao.Group.Insert(ctx, &do.Group{
 		Name:               params.Name,
 		Discount:           params.Discount,
@@ -56,8 +61,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 		ModelAgents:        params.ModelAgents,
 		IsDefault:          params.IsDefault,
 		IsLimitQuota:       params.IsLimitQuota,
-		Quota:              params.Quota,
-		UsedQuota:          params.UsedQuota,
+		Quota:              common.ConvQuotaUnit(params.Quota),
 		IsEnableForward:    params.IsEnableForward,
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
@@ -201,6 +205,10 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		}
 	}
 
+	if params.ForwardConfig != nil && params.ForwardConfig.UsedQuota > 0 {
+		params.ForwardConfig.UsedQuota = float64(common.ConvQuotaUnit(params.ForwardConfig.UsedQuota))
+	}
+
 	group := &do.Group{
 		Name:               params.Name,
 		Discount:           params.Discount,
@@ -210,8 +218,7 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		ModelAgents:        params.ModelAgents,
 		IsDefault:          params.IsDefault,
 		IsLimitQuota:       params.IsLimitQuota,
-		Quota:              params.Quota,
-		UsedQuota:          params.UsedQuota,
+		Quota:              common.ConvQuotaUnit(params.Quota),
 		IsEnableForward:    params.IsEnableForward,
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
@@ -771,6 +778,10 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		}
 	}
 
+	if group.ForwardConfig != nil && group.ForwardConfig.UsedQuota > 0 {
+		group.ForwardConfig.UsedQuota = float64(common.ConvQuotaUnit(group.ForwardConfig.UsedQuota))
+	}
+
 	detail := &model.Group{
 		Id:                 group.Id,
 		Name:               group.Name,
@@ -783,8 +794,8 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		ModelAgents:        group.ModelAgents,
 		IsDefault:          group.IsDefault,
 		IsLimitQuota:       group.IsLimitQuota,
-		Quota:              group.Quota,
-		UsedQuota:          group.UsedQuota,
+		Quota:              common.ConvQuotaUnitReverse(group.Quota),
+		UsedQuota:          common.ConvQuotaUnitReverse(group.UsedQuota),
 		IsEnableForward:    group.IsEnableForward,
 		ForwardConfig:      group.ForwardConfig,
 		IsPublic:           group.IsPublic,
@@ -969,7 +980,7 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 
 		if service.Session().IsAdminRole(ctx) {
 
-			group.UsedQuota = result.UsedQuota
+			group.UsedQuota = common.ConvQuotaUnitReverse(result.UsedQuota)
 			group.IsPublic = result.IsPublic
 
 			if result.IsEnableModelAgent {

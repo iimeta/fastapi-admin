@@ -8,6 +8,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -229,8 +230,8 @@ func (s *sReseller) GetResellerByUserId(ctx context.Context, userId int) (*model
 		Avatar:                 reseller.Avatar,
 		Email:                  reseller.Email,
 		Phone:                  reseller.Phone,
-		Quota:                  reseller.Quota,
-		UsedQuota:              reseller.UsedQuota,
+		Quota:                  common.ConvQuotaUnitReverse(reseller.Quota),
+		UsedQuota:              common.ConvQuotaUnitReverse(reseller.UsedQuota),
 		QuotaExpiresAt:         util.FormatDateTime(reseller.QuotaExpiresAt),
 		Groups:                 reseller.Groups,
 		QuotaWarning:           reseller.QuotaWarning,

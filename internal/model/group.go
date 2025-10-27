@@ -12,8 +12,7 @@ type GroupCreateReq struct {
 	ModelAgents        []string              `json:"model_agents,omitempty" d:"[]"`   // 模型代理
 	IsDefault          bool                  `json:"is_default,omitempty"`            // 是否默认分组
 	IsLimitQuota       bool                  `json:"is_limit_quota,omitempty"`        // 是否限制额度
-	Quota              int                   `json:"quota,omitempty"`                 // 剩余额度
-	UsedQuota          int                   `json:"used_quota,omitempty"`            // 已用额度
+	Quota              float64               `json:"quota,omitempty"`                 // 额度
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
@@ -34,8 +33,7 @@ type GroupUpdateReq struct {
 	ModelAgents        []string              `json:"model_agents,omitempty" d:"[]"`   // 模型代理
 	IsDefault          bool                  `json:"is_default,omitempty"`            // 是否默认分组
 	IsLimitQuota       bool                  `json:"is_limit_quota,omitempty"`        // 是否限制额度
-	Quota              int                   `json:"quota,omitempty"`                 // 剩余额度
-	UsedQuota          int                   `json:"used_quota,omitempty"`            // 已用额度
+	Quota              float64               `json:"quota,omitempty"`                 // 额度
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
@@ -114,8 +112,8 @@ type Group struct {
 	ModelAgentNames    []string              `json:"model_agent_names,omitempty"`     // 模型代理名称
 	IsDefault          bool                  `json:"is_default,omitempty"`            // 是否默认分组
 	IsLimitQuota       bool                  `json:"is_limit_quota,omitempty"`        // 是否限制额度
-	Quota              int                   `json:"quota,omitempty"`                 // 剩余额度
-	UsedQuota          int                   `json:"used_quota,omitempty"`            // 已用额度
+	Quota              float64               `json:"quota,omitempty"`                 // 剩余额度
+	UsedQuota          float64               `json:"used_quota,omitempty"`            // 已用额度
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开

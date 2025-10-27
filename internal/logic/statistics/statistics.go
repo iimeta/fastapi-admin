@@ -167,13 +167,13 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		}
 
 		user.Total += 1
-		user.Tokens += result.Spend.TotalSpendTokens
+		user.Tokens += int(result.Spend.TotalSpendTokens)
 		userModelStat.Total += 1
 		userModelStat.Tokens += result.Spend.TotalSpendTokens
 
 		if result.Status != 1 {
 			user.Abnormal += 1
-			user.AbnormalTokens += result.Spend.TotalSpendTokens
+			user.AbnormalTokens += int(result.Spend.TotalSpendTokens)
 			userModelStat.Abnormal += 1
 			userModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
@@ -217,13 +217,13 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		}
 
 		app.Total += 1
-		app.Tokens += result.Spend.TotalSpendTokens
+		app.Tokens += int(result.Spend.TotalSpendTokens)
 		appModelStat.Total += 1
 		appModelStat.Tokens += result.Spend.TotalSpendTokens
 
 		if result.Status != 1 {
 			app.Abnormal += 1
-			app.AbnormalTokens += result.Spend.TotalSpendTokens
+			app.AbnormalTokens += int(result.Spend.TotalSpendTokens)
 			appModelStat.Abnormal += 1
 			appModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
@@ -268,13 +268,13 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		}
 
 		appKey.Total += 1
-		appKey.Tokens += result.Spend.TotalSpendTokens
+		appKey.Tokens += int(result.Spend.TotalSpendTokens)
 		appKeyModelStat.Total += 1
 		appKeyModelStat.Tokens += result.Spend.TotalSpendTokens
 
 		if result.Status != 1 {
 			appKey.Abnormal += 1
-			appKey.AbnormalTokens += result.Spend.TotalSpendTokens
+			appKey.AbnormalTokens += int(result.Spend.TotalSpendTokens)
 			appKeyModelStat.Abnormal += 1
 			appKeyModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}

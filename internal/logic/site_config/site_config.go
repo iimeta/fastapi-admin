@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
@@ -51,7 +52,7 @@ func (s *sSiteConfig) Create(ctx context.Context, params model.SiteConfigCreateR
 		IcpBeian:            params.IcpBeian,
 		GaBeian:             params.GaBeian,
 		RegisterTips:        params.RegisterTips,
-		GrantQuota:          params.GrantQuota,
+		GrantQuota:          common.ConvQuotaUnit(params.GrantQuota),
 		QuotaExpiresAt:      params.QuotaExpiresAt,
 		SupportEmailSuffix:  params.SupportEmailSuffix,
 		RegisterWelcome:     params.RegisterWelcome,
@@ -105,7 +106,7 @@ func (s *sSiteConfig) Update(ctx context.Context, params model.SiteConfigUpdateR
 		IcpBeian:            params.IcpBeian,
 		GaBeian:             params.GaBeian,
 		RegisterTips:        params.RegisterTips,
-		GrantQuota:          params.GrantQuota,
+		GrantQuota:          common.ConvQuotaUnit(params.GrantQuota),
 		QuotaExpiresAt:      params.QuotaExpiresAt,
 		SupportEmailSuffix:  params.SupportEmailSuffix,
 		RegisterWelcome:     params.RegisterWelcome,
@@ -215,7 +216,7 @@ func (s *sSiteConfig) Detail(ctx context.Context, params model.SiteConfigDetailR
 		IcpBeian:            siteConfig.IcpBeian,
 		GaBeian:             siteConfig.GaBeian,
 		RegisterTips:        siteConfig.RegisterTips,
-		GrantQuota:          siteConfig.GrantQuota,
+		GrantQuota:          common.ConvQuotaUnitReverse(siteConfig.GrantQuota),
 		QuotaExpiresAt:      siteConfig.QuotaExpiresAt,
 		SupportEmailSuffix:  siteConfig.SupportEmailSuffix,
 		RegisterWelcome:     siteConfig.RegisterWelcome,

@@ -71,7 +71,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 			Id:             id,
 			Name:           params.Name,
 			Email:          params.Email,
-			Quota:          params.Quota,
+			Quota:          common.ConvQuotaUnit(params.Quota),
 			QuotaExpiresAt: util.ConvTimestampMilli(params.QuotaExpiresAt),
 			Groups:         params.Groups,
 			Remark:         params.Remark,
@@ -130,7 +130,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 		// 交易记录
 		if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
 			UserId: user.UserId,
-			Quota:  params.Quota,
+			Quota:  common.ConvQuotaUnit(params.Quota),
 			Type:   params.QuotaType,
 			Status: 1,
 		}); err != nil {
@@ -225,7 +225,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 
 			data["name"] = newData.Name
 			data["account"] = params.Account
-			data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(newData.Quota))
+			data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(newData.Quota))
 			data["quota_expires_at"] = "无期限"
 			if newData.QuotaExpiresAt > 0 {
 				data["quota_expires_at"] = util.FormatDateTime(newData.QuotaExpiresAt)
@@ -516,8 +516,8 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		Name:                   user.Name,
 		Phone:                  user.Phone,
 		Email:                  user.Email,
-		Quota:                  user.Quota,
-		UsedQuota:              user.UsedQuota,
+		Quota:                  common.ConvQuotaUnitReverse(user.Quota),
+		UsedQuota:              common.ConvQuotaUnitReverse(user.UsedQuota),
 		QuotaExpiresAt:         util.FormatDateTime(user.QuotaExpiresAt),
 		Groups:                 user.Groups,
 		GroupNames:             groupNames,
@@ -624,8 +624,8 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			Name:           result.Name,
 			Email:          result.Email,
 			Phone:          result.Phone,
-			Quota:          result.Quota,
-			UsedQuota:      result.UsedQuota,
+			Quota:          common.ConvQuotaUnitReverse(result.Quota),
+			UsedQuota:      common.ConvQuotaUnitReverse(result.UsedQuota),
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
 			Groups:         result.Groups,
 			Account:        accountMap[result.UserId].Account,
@@ -670,8 +670,8 @@ func (s *sAdminUser) List(ctx context.Context, params model.UserListReq) ([]*mod
 			Name:      result.Name,
 			Email:     result.Email,
 			Phone:     result.Phone,
-			Quota:     result.Quota,
-			UsedQuota: result.UsedQuota,
+			Quota:     common.ConvQuotaUnitReverse(result.Quota),
+			UsedQuota: common.ConvQuotaUnitReverse(result.UsedQuota),
 			Groups:    result.Groups,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
@@ -695,6 +695,8 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		return errors.New("Unauthorized")
 	}
 
+	params.Quota = float64(common.ConvQuotaUnit(params.Quota))
+
 	if params.QuotaType == 2 {
 		params.Quota = -params.Quota
 	}
@@ -710,9 +712,9 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		totalQuota := params.Quota
 		for _, user := range users {
 			if user.UserId == oldData.UserId {
-				totalQuota += user.Quota
+				totalQuota += float64(user.Quota)
 			} else if user.Quota > 0 {
-				totalQuota += user.Quota
+				totalQuota += float64(user.Quota)
 			}
 		}
 
@@ -722,7 +724,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 			return err
 		}
 
-		if oldData.Quota+params.Quota > 0 && totalQuota > reseller.Quota {
+		if float64(oldData.Quota)+params.Quota > 0 && totalQuota > float64(reseller.Quota) {
 			return errors.New("所有用户累计额度已超过账户额度")
 		}
 	}
@@ -750,7 +752,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 	// 交易记录
 	if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
 		UserId: params.UserId,
-		Quota:  params.Quota,
+		Quota:  int(params.Quota),
 		Type:   params.QuotaType,
 		Status: 1,
 		Rid:    newData.Rid,
@@ -845,15 +847,15 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 				data["name"] = newData.Name
 
 				if params.Quota < 0 {
-					data["recharge_quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(params.Quota)))))
+					data["recharge_quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(params.Quota))))
 				} else {
-					data["recharge_quota"] = fmt.Sprintf("$%f", common.ConvQuota(params.Quota))
+					data["recharge_quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(int(params.Quota)))
 				}
 
 				if newData.Quota < 0 {
-					data["quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(newData.Quota)))))
+					data["quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(float64(newData.Quota)))))
 				} else {
-					data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(newData.Quota))
+					data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(newData.Quota))
 				}
 
 				data["quota_expires_at"] = "无期限"
@@ -937,7 +939,7 @@ func (s *sAdminUser) BatchOperate(ctx context.Context, params model.UserBatchOpe
 
 			if err := s.Recharge(ctx, model.UserRechargeReq{
 				UserId:         user.UserId,
-				Quota:          gconv.Int(params.Value),
+				Quota:          gconv.Float64(params.Value),
 				QuotaType:      params.QuotaType,
 				QuotaExpiresAt: quotaExpiresAt,
 				IsSendNotice:   params.IsSendNotice,

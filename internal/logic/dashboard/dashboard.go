@@ -244,7 +244,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 	for _, res := range result {
 		resultMap[gconv.String(res["_id"])] = &model.CallData{
 			Date:     gconv.String(res["_id"])[5:],
-			Spend:    common.ConvQuota(gconv.Int(res["tokens"])),
+			Spend:    common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			Call:     gconv.Int(res["count"]),
 			Tokens:   gconv.Int(res["tokens"]),
 			Abnormal: gconv.Int(res["abnormal"]),
@@ -271,10 +271,10 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
 	var (
-		quota                  int
-		usedQuota              int
-		allocatedQuota         int
-		toBeAllocated          int
+		quota                  float64
+		usedQuota              float64
+		allocatedQuota         float64
+		toBeAllocatedQuota     float64
 		quotaExpiresAt         string
 		quotaWarning           bool
 		warningThreshold       int
@@ -305,13 +305,13 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 		for _, user := range users {
 
 			if user.Quota > 0 {
-				allocatedQuota += user.Quota
+				allocatedQuota += common.ConvQuotaUnitReverse(user.Quota)
 			}
 
-			allocatedQuota += user.UsedQuota
+			allocatedQuota += common.ConvQuotaUnitReverse(user.UsedQuota)
 		}
 
-		toBeAllocated = quota + usedQuota - allocatedQuota
+		toBeAllocatedQuota = quota + usedQuota - allocatedQuota
 	}
 
 	if service.Session().IsUserRole(ctx) {
@@ -338,11 +338,9 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
 	return &model.Expense{
 		Quota:                  quota,
-		QuotaUSD:               common.ConvQuota(quota, 4),
 		UsedQuota:              usedQuota,
-		UsedQuotaUSD:           common.ConvQuota(usedQuota, 4),
 		AllocatedQuota:         allocatedQuota,
-		ToBeAllocated:          toBeAllocated,
+		ToBeAllocatedQuota:     toBeAllocatedQuota,
 		QuotaExpiresAt:         quotaExpiresAt,
 		QuotaWarning:           quotaWarning,
 		WarningThreshold:       warningThreshold / consts.QUOTA_DEFAULT_UNIT,

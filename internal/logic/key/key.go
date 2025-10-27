@@ -16,8 +16,9 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/internal/model/common"
+	mcommon "github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -267,7 +268,7 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		ModelAgentNames:    modelAgentNames,
 		IsAgentsOnly:       key.IsAgentsOnly,
 		IsNeverDisable:     key.IsNeverDisable,
-		UsedQuota:          key.UsedQuota,
+		UsedQuota:          common.ConvQuotaUnitReverse(key.UsedQuota),
 		Remark:             key.Remark,
 		Status:             key.Status,
 		IsAutoDisabled:     key.IsAutoDisabled,
@@ -366,7 +367,7 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 			Models:       result.Models,
 			ModelAgents:  result.ModelAgents,
 			IsAgentsOnly: result.IsAgentsOnly,
-			UsedQuota:    result.UsedQuota,
+			UsedQuota:    common.ConvQuotaUnitReverse(result.UsedQuota),
 			Remark:       result.Remark,
 			Status:       result.Status,
 			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
@@ -608,7 +609,7 @@ func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
 }
 
 // 检查任务
-func (s *sKey) CheckTask(ctx context.Context, enableError common.EnableError) {
+func (s *sKey) CheckTask(ctx context.Context, enableError mcommon.EnableError) {
 
 	logger.Infof(ctx, "sKey CheckTask enableError: %s start", enableError.Error)
 

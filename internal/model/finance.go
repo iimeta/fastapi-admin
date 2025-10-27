@@ -27,21 +27,21 @@ type FinanceBillExportReq struct {
 
 // 账单明细
 type Bill struct {
-	Id       string `json:"id"`        // ID
-	UserId   int    `json:"user_id"`   // 用户ID
-	Total    int    `json:"total"`     // 总数
-	Tokens   int    `json:"tokens"`    // 令牌数
-	Models   int    `json:"models"`    // 模型数
-	StatDate string `json:"stat_date"` // 统计日期
+	Id       string  `json:"id"`        // ID
+	UserId   int     `json:"user_id"`   // 用户ID
+	Total    int     `json:"total"`     // 总数
+	Tokens   float64 `json:"tokens"`    // 令牌数
+	Models   int     `json:"models"`    // 模型数
+	StatDate string  `json:"stat_date"` // 统计日期
 }
 
 // 账单明细导出
 type BillExport struct {
-	StatDate string `json:"stat_date"` // 统计日期
-	UserId   int    `json:"user_id"`   // 用户ID
-	Model    string `json:"model"`     // 模型
-	Total    int    `json:"total"`     // 总数
-	Tokens   any    `json:"tokens"`    // 令牌数
+	StatDate string  `json:"stat_date"` // 统计日期
+	UserId   int     `json:"user_id"`   // 用户ID
+	Model    string  `json:"model"`     // 模型
+	Total    int     `json:"total"`     // 总数
+	Tokens   float64 `json:"tokens"`    // 令牌数
 }
 
 // 交易记录分页列表接口请求参数
@@ -62,14 +62,14 @@ type FinanceDealRecordPageRes struct {
 
 // 交易记录
 type DealRecord struct {
-	Id        string `json:"id,omitempty"`         // ID
-	UserId    int    `json:"user_id,omitempty"`    // 用户ID
-	Quota     int    `json:"quota,omitempty"`      // 额度
-	Type      int    `json:"type,omitempty"`       // 交易类型[1:充值, 2:扣除, 3:赠送, 4:过期]
-	Remark    string `json:"remark,omitempty"`     // 备注
-	Status    int    `json:"status,omitempty"`     // 状态[1:成功, 2:退款, 3:失败, -1:删除]
-	Creator   string `json:"creator,omitempty"`    // 创建人
-	Updater   string `json:"updater,omitempty"`    // 更新人
-	CreatedAt string `json:"created_at,omitempty"` // 创建时间
-	UpdatedAt string `json:"updated_at,omitempty"` // 更新时间
+	Id        string  `json:"id,omitempty"`         // ID
+	UserId    int     `json:"user_id,omitempty"`    // 用户ID
+	Quota     float64 `json:"quota,omitempty"`      // 额度
+	Type      int     `json:"type,omitempty"`       // 交易类型[1:充值, 2:扣除, 3:赠送, 4:过期]
+	Remark    string  `json:"remark,omitempty"`     // 备注
+	Status    int     `json:"status,omitempty"`     // 状态[1:成功, 2:退款, 3:失败, -1:删除]
+	Creator   string  `json:"creator,omitempty"`    // 创建人
+	Updater   string  `json:"updater,omitempty"`    // 更新人
+	CreatedAt string  `json:"created_at,omitempty"` // 创建时间
+	UpdatedAt string  `json:"updated_at,omitempty"` // 更新时间
 }

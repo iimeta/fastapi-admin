@@ -15,9 +15,9 @@ type StatisticsDataReq struct {
 
 // 统计数据接口响应参数
 type StatisticsDataRes struct {
-	Total    int `json:"total"`    // 总数
-	Tokens   int `json:"tokens"`   // 令牌数
-	Abnormal int `json:"abnormal"` // 异常数
+	Total    int     `json:"total,omitempty"`    // 总数
+	Tokens   float64 `json:"tokens,omitempty"`   // 令牌数
+	Abnormal int     `json:"abnormal,omitempty"` // 异常数
 }
 
 type StatisticsUser struct {
@@ -26,9 +26,9 @@ type StatisticsUser struct {
 	StatDate       string              `json:"stat_date,omitempty"`       // 统计日期
 	StatTime       int64               `json:"stat_time,omitempty"`       // 统计时间
 	Total          int                 `json:"total,omitempty"`           // 总数
-	Tokens         int                 `json:"tokens,omitempty"`          // 令牌数
+	Tokens         float64             `json:"tokens,omitempty"`          // 令牌数
 	Abnormal       int                 `json:"abnormal,omitempty"`        // 异常数
-	AbnormalTokens int                 `json:"abnormal_tokens,omitempty"` // 异常令牌数
+	AbnormalTokens float64             `json:"abnormal_tokens,omitempty"` // 异常令牌数
 	ModelStats     []*common.ModelStat `json:"model_stats,omitempty"`     // 模型统计数据
 	Creator        string              `json:"creator,omitempty"`         // 创建人
 	Updater        string              `json:"updater,omitempty"`         // 更新人

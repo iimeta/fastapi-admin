@@ -131,6 +131,9 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 	case "notice":
 		sysConfig = &do.SysConfig{Notice: params.Notice}
 	case "quota":
+		if params.Quota != nil {
+			params.Quota.Threshold *= consts.QUOTA_DEFAULT_UNIT
+		}
 		sysConfig = &do.SysConfig{Quota: params.Quota}
 	case "quota_task":
 		sysConfig = &do.SysConfig{QuotaTask: params.QuotaTask}
@@ -171,6 +174,10 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	if sysConfig.Quota != nil {
+		sysConfig.Quota.Threshold /= consts.QUOTA_DEFAULT_UNIT
 	}
 
 	return &model.SysConfig{

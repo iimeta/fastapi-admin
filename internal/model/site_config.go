@@ -17,7 +17,7 @@ type SiteConfigCreateReq struct {
 	IcpBeian            string                `json:"icp_beian,omitempty"`             // ICP备案
 	GaBeian             string                `json:"ga_beian,omitempty"`              // 公安备案
 	RegisterTips        string                `json:"register_tips,omitempty"`         // 注册提示
-	GrantQuota          int                   `json:"grant_quota,omitempty"`           // 注册授予额度
+	GrantQuota          float64               `json:"grant_quota,omitempty"`           // 注册授予额度
 	QuotaExpiresAt      int                   `json:"quota_expires_at,omitempty"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `json:"support_email_suffix,omitempty"`  // 注册支持的邮箱后缀
 	RegisterWelcome     string                `json:"register_welcome,omitempty"`      // 注册欢迎语
@@ -57,7 +57,7 @@ type SiteConfigUpdateReq struct {
 	IcpBeian            string                `json:"icp_beian,omitempty"`             // ICP备案
 	GaBeian             string                `json:"ga_beian,omitempty"`              // 公安备案
 	RegisterTips        string                `json:"register_tips,omitempty"`         // 注册提示
-	GrantQuota          int                   `json:"grant_quota,omitempty"`           // 注册授予额度
+	GrantQuota          float64               `json:"grant_quota,omitempty"`           // 注册授予额度
 	QuotaExpiresAt      int                   `json:"quota_expires_at,omitempty"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `json:"support_email_suffix,omitempty"`  // 注册支持的邮箱后缀
 	RegisterWelcome     string                `json:"register_welcome,omitempty"`      // 注册欢迎语
@@ -137,7 +137,7 @@ type SiteConfig struct {
 	IcpBeian            string                `json:"icp_beian,omitempty"`             // ICP备案
 	GaBeian             string                `json:"ga_beian,omitempty"`              // 公安备案
 	RegisterTips        string                `json:"register_tips,omitempty"`         // 注册提示
-	GrantQuota          int                   `json:"grant_quota,omitempty"`           // 注册授予额度
+	GrantQuota          float64               `json:"grant_quota,omitempty"`           // 注册授予额度
 	QuotaExpiresAt      int                   `json:"quota_expires_at,omitempty"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `json:"support_email_suffix,omitempty"`  // 注册支持的邮箱后缀
 	RegisterWelcome     string                `json:"register_welcome,omitempty"`      // 注册欢迎语

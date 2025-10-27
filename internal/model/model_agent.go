@@ -97,7 +97,7 @@ type ModelAgent struct {
 	Name                 string   `json:"name,omitempty"`                    // 模型代理名称
 	BaseUrl              string   `json:"base_url,omitempty"`                // 模型代理地址
 	Path                 string   `json:"path,omitempty"`                    // 模型代理地址路径
-	Weight               int      `json:"weight"`                            // 权重
+	Weight               int      `json:"weight,omitempty"`                  // 权重
 	Models               []string `json:"models,omitempty"`                  // 绑定模型
 	ModelNames           []string `json:"model_names,omitempty"`             // 模型名称
 	FallbackModels       []string `json:"fallback_models,omitempty"`         // 后备模型

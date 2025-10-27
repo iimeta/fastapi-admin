@@ -155,9 +155,9 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 			data["name"] = user.Name
 
 			if user.Quota < 0 {
-				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(user.Quota)))))
+				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(float64(user.Quota)))))
 			} else {
-				data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(user.Quota))
+				data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(user.Quota))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
@@ -269,9 +269,9 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 			data["name"] = reseller.Name
 
 			if reseller.Quota < 0 {
-				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(reseller.Quota)))))
+				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(float64(reseller.Quota)))))
 			} else {
-				data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(reseller.Quota))
+				data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(reseller.Quota))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {

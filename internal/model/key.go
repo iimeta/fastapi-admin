@@ -102,14 +102,14 @@ type Key struct {
 	ProviderId         string   `json:"provider_id,omitempty"`          // 提供商ID
 	ProviderName       string   `json:"provider_name,omitempty"`        // 提供商名称
 	Key                string   `json:"key,omitempty"`                  // 密钥
-	Weight             int      `json:"weight"`                         // 权重
+	Weight             int      `json:"weight,omitempty"`               // 权重
 	Models             []string `json:"models,omitempty"`               // 模型
 	ModelNames         []string `json:"model_names,omitempty"`          // 模型名称
 	ModelAgents        []string `json:"model_agents,omitempty"`         // 模型代理
 	ModelAgentNames    []string `json:"model_agent_names,omitempty"`    // 模型代理名称
-	IsAgentsOnly       bool     `json:"is_agents_only"`                 // 是否代理专用
+	IsAgentsOnly       bool     `json:"is_agents_only,omitempty"`       // 是否代理专用
 	IsNeverDisable     bool     `json:"is_never_disable,omitempty"`     // 是否永不禁用
-	UsedQuota          int      `json:"used_quota"`                     // 已用额度
+	UsedQuota          float64  `json:"used_quota,omitempty"`           // 已用额度
 	Remark             string   `json:"remark,omitempty"`               // 备注
 	Status             int      `json:"status,omitempty"`               // 状态[1:正常, 2:禁用, -1:删除]
 	IsAutoDisabled     bool     `json:"is_auto_disabled,omitempty"`     // 是否自动禁用

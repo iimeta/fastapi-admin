@@ -8,6 +8,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -229,8 +230,8 @@ func (s *sUser) GetUserByUserId(ctx context.Context, userId int) (*model.User, e
 		Avatar:                 user.Avatar,
 		Email:                  user.Email,
 		Phone:                  user.Phone,
-		Quota:                  user.Quota,
-		UsedQuota:              user.UsedQuota,
+		Quota:                  common.ConvQuotaUnitReverse(user.Quota),
+		UsedQuota:              common.ConvQuotaUnitReverse(user.UsedQuota),
 		QuotaExpiresAt:         util.FormatDateTime(user.QuotaExpiresAt),
 		Groups:                 user.Groups,
 		QuotaWarning:           user.QuotaWarning,

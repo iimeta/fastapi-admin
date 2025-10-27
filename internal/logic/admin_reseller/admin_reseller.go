@@ -69,7 +69,7 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 			UserId:         core.IncrResellerId(ctx),
 			Name:           params.Name,
 			Email:          params.Email,
-			Quota:          params.Quota,
+			Quota:          common.ConvQuotaUnit(params.Quota),
 			QuotaExpiresAt: util.ConvTimestampMilli(params.QuotaExpiresAt),
 			Groups:         params.Groups,
 			Remark:         params.Remark,
@@ -102,7 +102,7 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 		// 交易记录
 		if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
 			UserId: reseller.UserId,
-			Quota:  params.Quota,
+			Quota:  common.ConvQuotaUnit(params.Quota),
 			Type:   params.QuotaType,
 			Status: 1,
 			Rid:    reseller.UserId,
@@ -157,7 +157,7 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 
 			data["name"] = newData.Name
 			data["account"] = params.Account
-			data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(newData.Quota))
+			data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(newData.Quota))
 			data["quota_expires_at"] = "无期限"
 			if newData.QuotaExpiresAt > 0 {
 				data["quota_expires_at"] = util.FormatDateTime(newData.QuotaExpiresAt)
@@ -488,7 +488,7 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 		allocatedQuota += user.UsedQuota
 	}
 
-	toBeAllocated := reseller.Quota + reseller.UsedQuota - allocatedQuota
+	toBeAllocatedQuota := reseller.Quota + reseller.UsedQuota - allocatedQuota
 
 	return &model.Reseller{
 		Id:                     reseller.Id,
@@ -497,10 +497,10 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 		Name:                   reseller.Name,
 		Phone:                  reseller.Phone,
 		Email:                  reseller.Email,
-		Quota:                  reseller.Quota,
-		UsedQuota:              reseller.UsedQuota,
-		AllocatedQuota:         allocatedQuota,
-		ToBeAllocated:          toBeAllocated,
+		Quota:                  common.ConvQuotaUnitReverse(reseller.Quota),
+		UsedQuota:              common.ConvQuotaUnitReverse(reseller.UsedQuota),
+		AllocatedQuota:         common.ConvQuotaUnitReverse(allocatedQuota),
+		ToBeAllocated:          common.ConvQuotaUnitReverse(toBeAllocatedQuota),
 		QuotaExpiresAt:         util.FormatDateTime(reseller.QuotaExpiresAt),
 		Groups:                 reseller.Groups,
 		GroupNames:             groupNames,
@@ -613,7 +613,7 @@ func (s *sAdminReseller) Page(ctx context.Context, params model.ResellerPageReq)
 			allocatedQuota += user.UsedQuota
 		}
 
-		toBeAllocated := result.Quota + result.UsedQuota - allocatedQuota
+		toBeAllocatedQuota := result.Quota + result.UsedQuota - allocatedQuota
 
 		items = append(items, &model.Reseller{
 			Id:             result.Id,
@@ -621,10 +621,10 @@ func (s *sAdminReseller) Page(ctx context.Context, params model.ResellerPageReq)
 			Name:           result.Name,
 			Email:          result.Email,
 			Phone:          result.Phone,
-			Quota:          result.Quota,
-			UsedQuota:      result.UsedQuota,
-			AllocatedQuota: allocatedQuota,
-			ToBeAllocated:  toBeAllocated,
+			Quota:          common.ConvQuotaUnitReverse(result.Quota),
+			UsedQuota:      common.ConvQuotaUnitReverse(result.UsedQuota),
+			AllocatedQuota: common.ConvQuotaUnitReverse(allocatedQuota),
+			ToBeAllocated:  common.ConvQuotaUnitReverse(toBeAllocatedQuota),
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
 			Groups:         result.Groups,
 			Account:        accountMap[result.UserId].Account,
@@ -664,8 +664,8 @@ func (s *sAdminReseller) List(ctx context.Context, params model.ResellerListReq)
 			Name:      result.Name,
 			Email:     result.Email,
 			Phone:     result.Phone,
-			Quota:     result.Quota,
-			UsedQuota: result.UsedQuota,
+			Quota:     common.ConvQuotaUnitReverse(result.Quota),
+			UsedQuota: common.ConvQuotaUnitReverse(result.UsedQuota),
 			Groups:    result.Groups,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
@@ -684,6 +684,8 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 		logger.Error(ctx, err)
 		return err
 	}
+
+	params.Quota = float64(common.ConvQuotaUnit(params.Quota))
 
 	if params.QuotaType == 2 {
 		params.Quota = -params.Quota
@@ -712,7 +714,7 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 	// 交易记录
 	if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
 		UserId: params.UserId,
-		Quota:  params.Quota,
+		Quota:  int(params.Quota),
 		Type:   params.QuotaType,
 		Status: 1,
 		Rid:    params.UserId,
@@ -779,15 +781,15 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 				data["name"] = newData.Name
 
 				if params.Quota < 0 {
-					data["recharge_quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(params.Quota)))))
+					data["recharge_quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(params.Quota))))
 				} else {
-					data["recharge_quota"] = fmt.Sprintf("$%f", common.ConvQuota(params.Quota))
+					data["recharge_quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(int(params.Quota)))
 				}
 
 				if newData.Quota < 0 {
-					data["quota"] = fmt.Sprintf("-$%f", common.ConvQuota(int(math.Abs(float64(newData.Quota)))))
+					data["quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(float64(newData.Quota)))))
 				} else {
-					data["quota"] = fmt.Sprintf("$%f", common.ConvQuota(newData.Quota))
+					data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(newData.Quota))
 				}
 
 				data["quota_expires_at"] = "无期限"
@@ -891,7 +893,7 @@ func (s *sAdminReseller) BatchOperate(ctx context.Context, params model.Reseller
 
 			if err := s.Recharge(ctx, model.ResellerRechargeReq{
 				UserId:         reseller.UserId,
-				Quota:          gconv.Int(params.Value),
+				Quota:          gconv.Float64(params.Value),
 				QuotaType:      params.QuotaType,
 				QuotaExpiresAt: quotaExpiresAt,
 				IsSendNotice:   params.IsSendNotice,
