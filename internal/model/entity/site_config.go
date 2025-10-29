@@ -25,6 +25,8 @@ type SiteConfig struct {
 	QuotaExpiresAt      int                   `bson:"quota_expires_at,omitempty"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `bson:"support_email_suffix,omitempty"`  // 注册支持的邮箱后缀
 	RegisterWelcome     string                `bson:"register_welcome,omitempty"`      // 注册欢迎语
+	DefaultLanguage     string                `bson:"default_language,omitempty"`      // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
+	CurrencySymbol      string                `bson:"currency_symbol,omitempty"`       // 货币符号
 	Host                string                `bson:"host,omitempty"`                  // 发信服务器
 	Port                int                   `bson:"port,omitempty"`                  // 发信端口号
 	UserName            string                `bson:"user_name,omitempty"`             // 发信账号

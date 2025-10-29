@@ -21,6 +21,8 @@ type SiteConfigCreateReq struct {
 	QuotaExpiresAt      int                   `json:"quota_expires_at,omitempty"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `json:"support_email_suffix,omitempty"`  // 注册支持的邮箱后缀
 	RegisterWelcome     string                `json:"register_welcome,omitempty"`      // 注册欢迎语
+	DefaultLanguage     string                `json:"default_language,omitempty"`      // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
+	CurrencySymbol      string                `json:"currency_symbol,omitempty"`       // 货币符号
 	Host                string                `json:"host,omitempty"`                  // 发信服务器
 	Port                int                   `json:"port,omitempty"`                  // 发信端口号
 	UserName            string                `json:"user_name,omitempty"`             // 发信账号
@@ -61,6 +63,8 @@ type SiteConfigUpdateReq struct {
 	QuotaExpiresAt      int                   `json:"quota_expires_at,omitempty"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `json:"support_email_suffix,omitempty"`  // 注册支持的邮箱后缀
 	RegisterWelcome     string                `json:"register_welcome,omitempty"`      // 注册欢迎语
+	DefaultLanguage     string                `json:"default_language,omitempty"`      // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
+	CurrencySymbol      string                `json:"currency_symbol,omitempty"`       // 货币符号
 	Host                string                `json:"host,omitempty"`                  // 发信服务器
 	Port                int                   `json:"port,omitempty"`                  // 发信端口号
 	UserName            string                `json:"user_name,omitempty"`             // 发信账号
@@ -141,6 +145,8 @@ type SiteConfig struct {
 	QuotaExpiresAt      int                   `json:"quota_expires_at,omitempty"`      // 注册授予额度过期时间, 单位: 分钟
 	SupportEmailSuffix  []string              `json:"support_email_suffix,omitempty"`  // 注册支持的邮箱后缀
 	RegisterWelcome     string                `json:"register_welcome,omitempty"`      // 注册欢迎语
+	DefaultLanguage     string                `json:"default_language,omitempty"`      // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
+	CurrencySymbol      string                `json:"currency_symbol,omitempty"`       // 货币符号
 	Host                string                `json:"host,omitempty"`                  // 发信服务器
 	Port                int                   `json:"port,omitempty"`                  // 发信端口号
 	UserName            string                `json:"user_name,omitempty"`             // 发信账号
