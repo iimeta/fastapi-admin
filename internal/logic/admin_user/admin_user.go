@@ -14,6 +14,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -507,6 +508,12 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	if user.WarningThreshold == 0 {
+		user.QuotaWarning = config.Cfg.Quota.Warning
+		user.WarningThreshold = config.Cfg.Quota.Threshold
+		user.ExpireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 	}
 
 	return &model.User{

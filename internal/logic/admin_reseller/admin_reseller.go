@@ -15,6 +15,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/core"
 	"github.com/iimeta/fastapi-admin/internal/dao"
@@ -489,6 +490,12 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 	}
 
 	toBeAllocatedQuota := reseller.Quota + reseller.UsedQuota - allocatedQuota
+
+	if reseller.WarningThreshold == 0 {
+		reseller.QuotaWarning = config.Cfg.Quota.Warning
+		reseller.WarningThreshold = config.Cfg.Quota.Threshold
+		reseller.ExpireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
+	}
 
 	return &model.Reseller{
 		Id:                     reseller.Id,
