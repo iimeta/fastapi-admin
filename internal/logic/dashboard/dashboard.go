@@ -295,6 +295,7 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 		quotaWarning = reseller.QuotaWarning
 		warningThreshold = reseller.WarningThreshold
 		expireWarningThreshold = reseller.ExpireWarningThreshold
+		totalQuota := 0.0
 
 		users, err := dao.User.Find(ctx, bson.M{"rid": reseller.UserId})
 		if err != nil {
@@ -306,12 +307,17 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
 			if user.Quota > 0 {
 				allocatedQuota += common.ConvQuotaUnitReverse(user.Quota)
+				totalQuota += common.ConvQuotaUnitReverse(user.Quota)
 			}
 
 			allocatedQuota += common.ConvQuotaUnitReverse(user.UsedQuota)
 		}
 
-		toBeAllocatedQuota = quota + usedQuota - allocatedQuota
+		toBeAllocatedQuota = quota - totalQuota
+
+		if toBeAllocatedQuota > quota {
+			toBeAllocatedQuota = quota + usedQuota - allocatedQuota
+		}
 	}
 
 	if service.Session().IsUserRole(ctx) {

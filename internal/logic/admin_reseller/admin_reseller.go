@@ -479,17 +479,23 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 	}
 
 	allocatedQuota := 0
+	totalQuota := 0
 
 	for _, user := range users {
 
 		if user.Quota > 0 {
 			allocatedQuota += user.Quota
+			totalQuota += user.Quota
 		}
 
 		allocatedQuota += user.UsedQuota
 	}
 
-	toBeAllocatedQuota := reseller.Quota + reseller.UsedQuota - allocatedQuota
+	toBeAllocatedQuota := reseller.Quota - totalQuota
+
+	if toBeAllocatedQuota > reseller.Quota {
+		toBeAllocatedQuota = reseller.Quota + reseller.UsedQuota - allocatedQuota
+	}
 
 	if reseller.WarningThreshold == 0 {
 		reseller.QuotaWarning = config.Cfg.Quota.Warning
@@ -610,17 +616,23 @@ func (s *sAdminReseller) Page(ctx context.Context, params model.ResellerPageReq)
 		}
 
 		allocatedQuota := 0
+		totalQuota := 0
 
 		for _, user := range users {
 
 			if user.Quota > 0 {
 				allocatedQuota += user.Quota
+				totalQuota += user.Quota
 			}
 
 			allocatedQuota += user.UsedQuota
 		}
 
-		toBeAllocatedQuota := result.Quota + result.UsedQuota - allocatedQuota
+		toBeAllocatedQuota := result.Quota - totalQuota
+
+		if toBeAllocatedQuota > result.Quota {
+			toBeAllocatedQuota = result.Quota + result.UsedQuota - allocatedQuota
+		}
 
 		items = append(items, &model.Reseller{
 			Id:                 result.Id,

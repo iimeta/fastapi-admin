@@ -732,7 +732,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		}
 
 		if float64(oldData.Quota)+params.Quota > 0 && totalQuota > float64(reseller.Quota) {
-			return errors.New("所有用户累计额度已超过账户额度")
+			return errors.New("已超过账户可分配额度")
 		}
 	}
 
