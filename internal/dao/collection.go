@@ -15,7 +15,7 @@ const (
 	NOTICE             = "notice"
 	NOTICE_TEMPLATE    = "notice_template"
 	DEAL_RECORD        = "deal_record"
-	CHAT               = "chat"
+	TEXT               = "text"
 	IMAGE              = "image"
 	AUDIO              = "audio"
 	MIDJOURNEY         = "midjourney"

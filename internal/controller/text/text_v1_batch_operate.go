@@ -1,15 +1,15 @@
-package chat
+package text
 
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/chat/v1"
+	"github.com/iimeta/fastapi-admin/api/text/v1"
 	"github.com/iimeta/fastapi-admin/internal/service"
 )
 
 func (c *ControllerV1) BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error) {
 
-	err = service.Chat().BatchOperate(ctx, req.ChatBatchOperateReq)
+	err = service.Text().BatchOperate(ctx, req.TextBatchOperateReq)
 
 	return
 }

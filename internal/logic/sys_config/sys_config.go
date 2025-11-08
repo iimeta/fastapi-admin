@@ -428,14 +428,14 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		//},
 		Log: &common.Log{
 			Open: true,
-			ChatRecords: []string{
+			TextRecords: []string{
 				"prompt",
 				"completion",
 				"messages",
 				"image",
 				"audio",
 			},
-			ChatReserve:  90,
+			TextReserve:  90,
 			ImageReserve: 90,
 			AudioReserve: 90,
 			Status:       []int{1, 2, 3, -1},

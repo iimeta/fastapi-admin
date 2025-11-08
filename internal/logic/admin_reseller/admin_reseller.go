@@ -431,7 +431,7 @@ func (s *sAdminReseller) Delete(ctx context.Context, params model.ResellerDelete
 	if slices.Contains(params.Data, 5) {
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-			if _, err := dao.Chat.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
+			if _, err := dao.Text.DeleteMany(ctx, bson.M{"rid": reseller.UserId}); err != nil {
 				logger.Error(ctx, err)
 			}
 

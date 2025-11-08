@@ -5,7 +5,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-type Chat struct {
+type Text struct {
 	gmeta.Meta           `role:"*" bson:"-"`
 	Id                   string                 `bson:"_id,omitempty"`                     // ID
 	TraceId              string                 `bson:"trace_id,omitempty"`                // 日志ID

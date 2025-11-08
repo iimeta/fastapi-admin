@@ -11,7 +11,6 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/app_key"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/audio"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/auth"
-	_ "github.com/iimeta/fastapi-admin/internal/logic/chat"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/common"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/dashboard"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/finance"
@@ -32,5 +31,6 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/statistics"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_admin"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_config"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/text"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/user"
 )

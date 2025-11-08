@@ -1,16 +1,16 @@
-package chat
+package text
 
 import (
 	"context"
 
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/iimeta/fastapi-admin/api/chat/v1"
+	"github.com/iimeta/fastapi-admin/api/text/v1"
 	"github.com/iimeta/fastapi-admin/internal/service"
 )
 
 func (c *ControllerV1) Export(ctx context.Context, req *v1.ExportReq) (res *v1.ExportRes, err error) {
 
-	filePath, err := service.Chat().Export(ctx, req.ChatExportReq)
+	filePath, err := service.Text().Export(ctx, req.TextExportReq)
 	if err != nil {
 		return nil, err
 	}

@@ -5,19 +5,19 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/db"
 )
 
-var Chat = NewChatDao()
+var Text = NewTextDao()
 
-type ChatDao struct {
-	*MongoDB[entity.Chat]
+type TextDao struct {
+	*MongoDB[entity.Text]
 }
 
-func NewChatDao(database ...string) *ChatDao {
+func NewTextDao(database ...string) *TextDao {
 
 	if len(database) == 0 {
 		database = append(database, db.DefaultDatabase)
 	}
 
-	return &ChatDao{
-		MongoDB: NewMongoDB[entity.Chat](database[0], CHAT),
+	return &TextDao{
+		MongoDB: NewMongoDB[entity.Text](database[0], TEXT),
 	}
 }

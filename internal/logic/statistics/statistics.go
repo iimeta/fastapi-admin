@@ -58,8 +58,8 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 		logger.Debugf(ctx, "sStatistics StatisticsTask end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	// 统计聊天数据
-	s.StatisticsData(ctx, dao.CHAT, "updated_at_1_is_smart_match_-1_is_retry_-1", consts.STATISTICS_CHAT_LAST_TIME_KEY, consts.STATISTICS_CHAT_LAST_ID_KEY)
+	// 统计文本数据
+	s.StatisticsData(ctx, dao.TEXT, "updated_at_1_is_smart_match_-1_is_retry_-1", consts.STATISTICS_TEXT_LAST_TIME_KEY, consts.STATISTICS_TEXT_LAST_ID_KEY)
 	// 统计绘图数据
 	s.StatisticsData(ctx, dao.IMAGE, "", consts.STATISTICS_IMAGE_LAST_TIME_KEY, consts.STATISTICS_IMAGE_LAST_ID_KEY)
 	// 统计音频数据

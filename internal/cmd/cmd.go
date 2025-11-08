@@ -21,7 +21,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/app_key"
 	"github.com/iimeta/fastapi-admin/internal/controller/audio"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
-	"github.com/iimeta/fastapi-admin/internal/controller/chat"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
 	"github.com/iimeta/fastapi-admin/internal/controller/finance"
@@ -40,6 +39,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
+	"github.com/iimeta/fastapi-admin/internal/controller/text"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -99,7 +99,7 @@ var (
 			s.AddStaticPath("/notice/template/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
-			s.AddStaticPath("/log/chat", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/text", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/list", "./resource/fastapi-web/")
@@ -234,9 +234,9 @@ var (
 					)
 				})
 
-				v1.Group("/log/chat", func(g *ghttp.RouterGroup) {
+				v1.Group("/log/text", func(g *ghttp.RouterGroup) {
 					g.Bind(
-						chat.NewV1(),
+						text.NewV1(),
 					)
 				})
 

@@ -54,11 +54,11 @@ func (s *sLog) DelTask(ctx context.Context) {
 		logger.Debugf(ctx, "sLog DelTask end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	if config.Cfg.Log.ChatReserve > 0 {
+	if config.Cfg.Log.TextReserve > 0 {
 
 		filter := bson.M{
 			"req_time": bson.M{
-				"$lte": gtime.Now().StartOfDay().TimestampMilli() - (config.Cfg.Log.ChatReserve * gtime.D).Milliseconds() - 1,
+				"$lte": gtime.Now().StartOfDay().TimestampMilli() - (config.Cfg.Log.TextReserve * gtime.D).Milliseconds() - 1,
 			},
 		}
 
@@ -66,8 +66,8 @@ func (s *sLog) DelTask(ctx context.Context) {
 			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
 		}
 
-		if deletedCount, err := dao.Chat.DeleteMany(ctx, filter); err == nil {
-			logger.Infof(ctx, "聊天日志已删除 %d 条记录", deletedCount)
+		if deletedCount, err := dao.Text.DeleteMany(ctx, filter); err == nil {
+			logger.Infof(ctx, "文本日志已删除 %d 条记录", deletedCount)
 		} else {
 			logger.Error(ctx, err)
 		}

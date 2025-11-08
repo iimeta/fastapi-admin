@@ -619,7 +619,7 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 	}
 
 	result := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+	if err := dao.Text.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return 0, 0, err
 	}
@@ -701,7 +701,7 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	}
 
 	result := make([]map[string]interface{}, 0)
-	if err := dao.Chat.Aggregate(ctx, pipeline, &result); err != nil {
+	if err := dao.Text.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return 0, 0, err
 	}

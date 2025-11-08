@@ -4,13 +4,13 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-// 聊天详情接口响应参数
-type ChatDetailRes struct {
-	*Chat
+// 文本详情接口响应参数
+type TextDetailRes struct {
+	*Text
 }
 
-// 聊天分页列表接口请求参数
-type ChatPageReq struct {
+// 文本分页列表接口请求参数
+type TextPageReq struct {
 	Paging
 	TraceId     string   `json:"trace_id,omitempty"`     // 日志ID
 	UserId      int      `json:"user_id,omitempty"`      // 用户ID
@@ -23,21 +23,21 @@ type ChatPageReq struct {
 	ReqTime     []string `json:"req_time,omitempty"`     // 请求时间
 }
 
-// 聊天分页列表接口响应参数
-type ChatPageRes struct {
-	Items  []*Chat `json:"items"`
+// 文本分页列表接口响应参数
+type TextPageRes struct {
+	Items  []*Text `json:"items"`
 	Paging *Paging `json:"paging"`
 }
 
-// 聊天导出接口请求参数
-type ChatExportReq struct {
+// 文本导出接口请求参数
+type TextExportReq struct {
 	Ids     []string `json:"ids,omitempty"`      // 主键Ids
 	ReqTime []string `json:"req_time,omitempty"` // 请求时间
 	UserId  int      `json:"user_id"`            // 用户ID
 }
 
-// 聊天批量操作接口请求参数
-type ChatBatchOperateReq struct {
+// 文本批量操作接口请求参数
+type TextBatchOperateReq struct {
 	Action string   `json:"action"`  // 动作
 	Ids    []string `json:"ids"`     // 主键Ids
 	Value  any      `json:"value"`   // 值
@@ -45,18 +45,18 @@ type ChatBatchOperateReq struct {
 	Status []int    `json:"status"`  // 状态
 }
 
-// 聊天日志详情复制字段值接口请求参数
-type ChatCopyFieldReq struct {
+// 文本日志详情复制字段值接口请求参数
+type TextCopyFieldReq struct {
 	Id    string `json:"id"`
 	Field string `json:"field"`
 }
 
-// 聊天日志详情复制字段值接口响应参数
-type ChatCopyFieldRes struct {
+// 文本日志详情复制字段值接口响应参数
+type TextCopyFieldRes struct {
 	Value string `json:"value"`
 }
 
-type Chat struct {
+type Text struct {
 	Id                   string                 `json:"id,omitempty"`                      // ID
 	TraceId              string                 `json:"trace_id,omitempty"`                // 日志ID
 	UserId               int                    `json:"user_id,omitempty"`                 // 用户ID
@@ -106,7 +106,7 @@ type Chat struct {
 	UpdatedAt            string                 `json:"updated_at,omitempty"`              // 更新时间
 }
 
-type ChatExport struct {
+type TextExport struct {
 	UserId       int    `json:"user_id,omitempty"`       // 用户ID
 	AppId        int    `json:"app_id,omitempty"`        // 应用ID
 	Name         string `json:"name,omitempty"`          // 模型名称

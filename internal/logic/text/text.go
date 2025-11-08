@@ -1,4 +1,4 @@
-package chat
+package text
 
 import (
 	"context"
@@ -23,20 +23,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type sChat struct{}
+type sText struct{}
 
 func init() {
-	service.RegisterChat(New())
+	service.RegisterText(New())
 }
 
-func New() service.IChat {
-	return &sChat{}
+func New() service.IText {
+	return &sText{}
 }
 
-// 聊天日志详情
-func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
+// 文本日志详情
+func (s *sText) Detail(ctx context.Context, id string) (*model.Text, error) {
 
-	result, err := dao.Chat.FindById(ctx, id)
+	result, err := dao.Text.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -50,7 +50,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	chat := &model.Chat{
+	text := &model.Text{
 		Id:           result.Id,
 		TraceId:      result.TraceId,
 		UserId:       result.UserId,
@@ -74,16 +74,16 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	if chat.Status == -1 {
+	if text.Status == -1 {
 
-		chat.ErrMsg = result.ErrMsg
+		text.ErrMsg = result.ErrMsg
 
 		// 代理商屏蔽错误
 		if service.Session().IsResellerRole(ctx) {
 			if config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
 				for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
-					if gstr.Contains(chat.ErrMsg, shieldError) {
-						chat.ErrMsg = "详细错误信息请联系管理员..."
+					if gstr.Contains(text.ErrMsg, shieldError) {
+						text.ErrMsg = "详细错误信息请联系管理员..."
 						break
 					}
 				}
@@ -94,41 +94,41 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		if service.Session().IsUserRole(ctx) {
 			if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
 				for _, shieldError := range config.Cfg.UserShieldError.Errors {
-					if gstr.Contains(chat.ErrMsg, shieldError) {
-						chat.ErrMsg = "详细错误信息请联系管理员..."
+					if gstr.Contains(text.ErrMsg, shieldError) {
+						text.ErrMsg = "详细错误信息请联系管理员..."
 						break
 					}
 				}
 			}
 		}
 
-		chat.ErrMsg = gstr.Split(chat.ErrMsg, " TraceId")[0]
-		chat.ErrMsg = gstr.Split(chat.ErrMsg, " (request id:")[0]
+		text.ErrMsg = gstr.Split(text.ErrMsg, " TraceId")[0]
+		text.ErrMsg = gstr.Split(text.ErrMsg, " (request id:")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {
-		chat.ProviderId = result.ProviderId
-		chat.ModelId = result.ModelId
-		chat.ModelName = result.ModelName
-		chat.Key = util.Desensitize(result.Key)
-		chat.IsEnablePresetConfig = result.IsEnablePresetConfig
-		chat.IsEnableModelAgent = result.IsEnableModelAgent
-		chat.ModelAgentId = result.ModelAgentId
-		chat.IsEnableForward = result.IsEnableForward
-		chat.ForwardConfig = result.ForwardConfig
-		chat.IsSmartMatch = result.IsSmartMatch
-		chat.IsEnableFallback = result.IsEnableFallback
-		chat.FallbackConfig = result.FallbackConfig
-		chat.RealModelId = result.RealModelId
-		chat.RealModelName = result.RealModelName
-		chat.RealModel = result.RealModel
-		chat.RemoteIp = result.RemoteIp
-		chat.LocalIp = result.LocalIp
-		chat.InternalTime = result.InternalTime
-		chat.ErrMsg = result.ErrMsg
-		chat.IsRetry = result.IsRetry
-		chat.CreatedAt = util.FormatDateTime(result.CreatedAt)
-		chat.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
+		text.ProviderId = result.ProviderId
+		text.ModelId = result.ModelId
+		text.ModelName = result.ModelName
+		text.Key = util.Desensitize(result.Key)
+		text.IsEnablePresetConfig = result.IsEnablePresetConfig
+		text.IsEnableModelAgent = result.IsEnableModelAgent
+		text.ModelAgentId = result.ModelAgentId
+		text.IsEnableForward = result.IsEnableForward
+		text.ForwardConfig = result.ForwardConfig
+		text.IsSmartMatch = result.IsSmartMatch
+		text.IsEnableFallback = result.IsEnableFallback
+		text.FallbackConfig = result.FallbackConfig
+		text.RealModelId = result.RealModelId
+		text.RealModelName = result.RealModelName
+		text.RealModel = result.RealModel
+		text.RemoteIp = result.RemoteIp
+		text.LocalIp = result.LocalIp
+		text.InternalTime = result.InternalTime
+		text.ErrMsg = result.ErrMsg
+		text.IsRetry = result.IsRetry
+		text.CreatedAt = util.FormatDateTime(result.CreatedAt)
+		text.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 
 		if result.ModelAgent != nil {
 
@@ -137,7 +137,7 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 				providerName = provider.Name
 			}
 
-			chat.ModelAgent = &model.ModelAgent{
+			text.ModelAgent = &model.ModelAgent{
 				ProviderId:   result.ModelAgent.ProviderId,
 				ProviderName: providerName,
 				Name:         result.ModelAgent.Name,
@@ -149,11 +149,11 @@ func (s *sChat) Detail(ctx context.Context, id string) (*model.Chat, error) {
 		}
 	}
 
-	return chat, nil
+	return text, nil
 }
 
-// 聊天日志分页列表
-func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.ChatPageRes, error) {
+// 文本日志分页列表
+func (s *sText) Page(ctx context.Context, params model.TextPageReq) (*model.TextPageRes, error) {
 
 	paging := &db.Paging{
 		Page:     params.Page,
@@ -236,16 +236,16 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match"},
 	}
 
-	results, err := dao.Chat.FindByPage(ctx, paging, filter, findOptions)
+	results, err := dao.Text.FindByPage(ctx, paging, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	items := make([]*model.Chat, 0)
+	items := make([]*model.Text, 0)
 	for _, result := range results {
 
-		chat := &model.Chat{
+		text := &model.Text{
 			Id:        result.Id,
 			UserId:    result.UserId,
 			AppId:     result.AppId,
@@ -261,14 +261,14 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 		}
 
 		if service.Session().IsAdminRole(ctx) {
-			chat.InternalTime = result.InternalTime
-			chat.IsSmartMatch = result.IsSmartMatch
+			text.InternalTime = result.InternalTime
+			text.IsSmartMatch = result.IsSmartMatch
 		}
 
-		items = append(items, chat)
+		items = append(items, text)
 	}
 
-	return &model.ChatPageRes{
+	return &model.TextPageRes{
 		Items: items,
 		Paging: &model.Paging{
 			Page:     paging.Page,
@@ -278,8 +278,8 @@ func (s *sChat) Page(ctx context.Context, params model.ChatPageReq) (*model.Chat
 	}, nil
 }
 
-// 聊天导出
-func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string, error) {
+// 文本导出
+func (s *sText) Export(ctx context.Context, params model.TextExportReq) (string, error) {
 
 	filter := bson.M{
 		"status": bson.M{"$in": []int{1, -1, 2}},
@@ -311,7 +311,7 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 		IncludeFields: []string{"user_id", "app_id", "model", "spend", "req_time", "key", "creator"},
 	}
 
-	results, err := dao.Chat.Find(ctx, filter, findOptions)
+	results, err := dao.Text.Find(ctx, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
@@ -343,12 +343,12 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 		colFieldMap["密钥"] = "Key"
 	}
 
-	filePath := fmt.Sprintf("./resource/export/chat_%d.xlsx", gtime.TimestampMilli())
+	filePath := fmt.Sprintf("./resource/export/text_%d.xlsx", gtime.TimestampMilli())
 
 	values := make([]interface{}, 0)
 	for _, result := range results {
 
-		value := &model.ChatExport{
+		value := &model.TextExport{
 			ReqTime:     util.FormatDateTime(result.ReqTime),
 			UserId:      result.UserId,
 			AppId:       result.AppId,
@@ -369,15 +369,15 @@ func (s *sChat) Export(ctx context.Context, params model.ChatExportReq) (string,
 		values = append(values, value)
 	}
 
-	if err = util.ExcelExport("聊天日志", titleCols, colFieldMap, values, filePath); err != nil {
+	if err = util.ExcelExport("文本日志", titleCols, colFieldMap, values, filePath); err != nil {
 		return "", err
 	}
 
 	return filePath, nil
 }
 
-// 聊天批量操作
-func (s *sChat) BatchOperate(ctx context.Context, params model.ChatBatchOperateReq) error {
+// 文本批量操作
+func (s *sText) BatchOperate(ctx context.Context, params model.TextBatchOperateReq) error {
 
 	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
@@ -400,12 +400,12 @@ func (s *sChat) BatchOperate(ctx context.Context, params model.ChatBatchOperateR
 				filter["status"] = bson.M{"$in": params.Status}
 			}
 
-			if _, err := dao.Chat.DeleteMany(ctx, filter); err != nil {
+			if _, err := dao.Text.DeleteMany(ctx, filter); err != nil {
 				logger.Error(ctx, err)
 			}
 
 		case consts.ACTION_DELETE:
-			if _, err := dao.Chat.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": params.Ids}}); err != nil {
+			if _, err := dao.Text.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": params.Ids}}); err != nil {
 				logger.Error(ctx, err)
 			}
 		}
@@ -418,10 +418,10 @@ func (s *sChat) BatchOperate(ctx context.Context, params model.ChatBatchOperateR
 	return nil
 }
 
-// 聊天日志详情复制字段值
-func (s *sChat) CopyField(ctx context.Context, params model.ChatCopyFieldReq) (string, error) {
+// 文本日志详情复制字段值
+func (s *sText) CopyField(ctx context.Context, params model.TextCopyFieldReq) (string, error) {
 
-	result, err := dao.Chat.FindById(ctx, params.Id)
+	result, err := dao.Text.FindById(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
