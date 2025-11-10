@@ -465,15 +465,15 @@ func (s *sAdminUser) Delete(ctx context.Context, params model.UserDeleteReq) err
 	if slices.Contains(params.Data, 5) {
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-			if _, err := dao.Text.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			if _, err := dao.LogText.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
 				logger.Error(ctx, err)
 			}
 
-			if _, err := dao.Image.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			if _, err := dao.LogImage.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
 				logger.Error(ctx, err)
 			}
 
-			if _, err := dao.Audio.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+			if _, err := dao.LogAudio.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
 				logger.Error(ctx, err)
 			}
 

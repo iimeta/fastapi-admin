@@ -66,7 +66,7 @@ func (s *sLog) DelTask(ctx context.Context) {
 			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
 		}
 
-		if deletedCount, err := dao.Text.DeleteMany(ctx, filter); err == nil {
+		if deletedCount, err := dao.LogText.DeleteMany(ctx, filter); err == nil {
 			logger.Infof(ctx, "文本日志已删除 %d 条记录", deletedCount)
 		} else {
 			logger.Error(ctx, err)
@@ -85,7 +85,7 @@ func (s *sLog) DelTask(ctx context.Context) {
 			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
 		}
 
-		if deletedCount, err := dao.Image.DeleteMany(ctx, filter); err == nil {
+		if deletedCount, err := dao.LogImage.DeleteMany(ctx, filter); err == nil {
 			logger.Infof(ctx, "绘图日志已删除 %d 条记录", deletedCount)
 		} else {
 			logger.Error(ctx, err)
@@ -104,7 +104,7 @@ func (s *sLog) DelTask(ctx context.Context) {
 			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
 		}
 
-		if deletedCount, err := dao.Audio.DeleteMany(ctx, filter); err == nil {
+		if deletedCount, err := dao.LogAudio.DeleteMany(ctx, filter); err == nil {
 			logger.Infof(ctx, "音频日志已删除 %d 条记录", deletedCount)
 		} else {
 			logger.Error(ctx, err)

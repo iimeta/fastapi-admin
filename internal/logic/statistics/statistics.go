@@ -59,11 +59,11 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 	}()
 
 	// 统计文本数据
-	s.StatisticsData(ctx, dao.TEXT, "updated_at_1_is_smart_match_-1_is_retry_-1", consts.STATISTICS_TEXT_LAST_TIME_KEY, consts.STATISTICS_TEXT_LAST_ID_KEY)
+	s.StatisticsData(ctx, dao.LOG_TEXT, "updated_at_1_is_smart_match_-1_is_retry_-1", consts.STATISTICS_LOG_TEXT_LAST_TIME_KEY, consts.STATISTICS_LOG_TEXT_LAST_ID_KEY)
 	// 统计绘图数据
-	s.StatisticsData(ctx, dao.IMAGE, "", consts.STATISTICS_IMAGE_LAST_TIME_KEY, consts.STATISTICS_IMAGE_LAST_ID_KEY)
+	s.StatisticsData(ctx, dao.LOG_IMAGE, "", consts.STATISTICS_LOG_IMAGE_LAST_TIME_KEY, consts.STATISTICS_LOG_IMAGE_LAST_ID_KEY)
 	// 统计音频数据
-	s.StatisticsData(ctx, dao.AUDIO, "", consts.STATISTICS_AUDIO_LAST_TIME_KEY, consts.STATISTICS_AUDIO_LAST_ID_KEY)
+	s.StatisticsData(ctx, dao.LOG_AUDIO, "", consts.STATISTICS_LOG_AUDIO_LAST_TIME_KEY, consts.STATISTICS_LOG_AUDIO_LAST_ID_KEY)
 
 	if _, err := redis.Set(ctx, consts.TASK_STATISTICS_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)

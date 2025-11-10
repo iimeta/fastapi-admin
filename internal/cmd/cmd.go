@@ -19,16 +19,17 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/admin_user"
 	"github.com/iimeta/fastapi-admin/internal/controller/app"
 	"github.com/iimeta/fastapi-admin/internal/controller/app_key"
-	"github.com/iimeta/fastapi-admin/internal/controller/audio"
 	"github.com/iimeta/fastapi-admin/internal/controller/auth"
 	"github.com/iimeta/fastapi-admin/internal/controller/common"
 	"github.com/iimeta/fastapi-admin/internal/controller/dashboard"
 	"github.com/iimeta/fastapi-admin/internal/controller/finance"
 	"github.com/iimeta/fastapi-admin/internal/controller/group"
 	"github.com/iimeta/fastapi-admin/internal/controller/health"
-	"github.com/iimeta/fastapi-admin/internal/controller/image"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
-	"github.com/iimeta/fastapi-admin/internal/controller/midjourney"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_audio"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_image"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_midjourney"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_text"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
 	"github.com/iimeta/fastapi-admin/internal/controller/notice"
@@ -39,7 +40,6 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
-	"github.com/iimeta/fastapi-admin/internal/controller/text"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -236,25 +236,25 @@ var (
 
 				v1.Group("/log/text", func(g *ghttp.RouterGroup) {
 					g.Bind(
-						text.NewV1(),
+						log_text.NewV1(),
 					)
 				})
 
 				v1.Group("/log/image", func(g *ghttp.RouterGroup) {
 					g.Bind(
-						image.NewV1(),
+						log_image.NewV1(),
 					)
 				})
 
 				v1.Group("/log/audio", func(g *ghttp.RouterGroup) {
 					g.Bind(
-						audio.NewV1(),
+						log_audio.NewV1(),
 					)
 				})
 
-				v1.Group("/log/mj", func(g *ghttp.RouterGroup) {
+				v1.Group("/log/midjourney", func(g *ghttp.RouterGroup) {
 					g.Bind(
-						midjourney.NewV1(),
+						log_midjourney.NewV1(),
 					)
 				})
 

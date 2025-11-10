@@ -7,7 +7,7 @@ import (
 
 // 新建应用密钥接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"新建应用密钥接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"新建应用密钥接口"`
 	model.AppKeyCreateReq
 }
 
@@ -19,7 +19,7 @@ type CreateRes struct {
 
 // 应用密钥配置接口请求参数
 type ConfigReq struct {
-	g.Meta `path:"/config" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用密钥配置接口"`
+	g.Meta `path:"/config" method:"post" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"应用密钥配置接口"`
 	model.AppKeyConfigReq
 }
 
@@ -31,7 +31,7 @@ type ConfigRes struct {
 
 // 更改应用密钥状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" method:"post" auth:"true" role:"reseller,user,admin" tags:"key" summary:"更改应用密钥状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"更改应用密钥状态接口"`
 	model.AppKeyChangeStatusReq
 }
 
@@ -42,7 +42,7 @@ type ChangeStatusRes struct {
 
 // 删除应用密钥接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,user,admin" tags:"key" summary:"删除应用密钥接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"删除应用密钥接口"`
 	Id     string `json:"id"`
 }
 
@@ -53,7 +53,7 @@ type DeleteRes struct {
 
 // 应用密钥详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" method:"get" auth:"true" role:"reseller,user,admin" tags:"key" summary:"应用密钥详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"应用密钥详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -65,7 +65,7 @@ type DetailRes struct {
 
 // 应用密钥分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,user,admin" tags:"key" summary:"应用密钥分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"应用密钥分页列表接口"`
 	model.AppKeyPageReq
 }
 
@@ -77,7 +77,7 @@ type PageRes struct {
 
 // 应用密钥批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用密钥批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"应用密钥批量操作接口"`
 	model.AppKeyBatchOperateReq
 }
 
@@ -89,7 +89,7 @@ type BatchOperateRes struct {
 
 // 应用密钥导出接口请求参数
 type ExportReq struct {
-	g.Meta `path:"/export" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用密钥导出接口"`
+	g.Meta `path:"/export" method:"post" auth:"true" role:"reseller,user,admin" tags:"app_key" summary:"应用密钥导出接口"`
 	model.AppKeyExportReq
 }
 
