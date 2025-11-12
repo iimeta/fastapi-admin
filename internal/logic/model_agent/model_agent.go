@@ -4,6 +4,9 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -88,6 +91,41 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}); err != nil {
 		logger.Error(ctx, err)
 		return "", err
+	}
+
+	if len(params.Groups) > 0 {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			for _, groupId := range params.Groups {
+
+				oldData, err := dao.Group.FindById(ctx, groupId)
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				newData, err := dao.Group.FindOneAndUpdateById(ctx, groupId, bson.M{
+					"$push": bson.M{
+						"model_agents": id,
+					},
+				})
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_GROUP, model.PubMessage{
+					Action:  consts.ACTION_UPDATE,
+					OldData: oldData,
+					NewData: newData,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 
 	return id, nil
@@ -220,6 +258,78 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		return err
 	}
 
+	oldGroups := gset.NewStrSetFrom(oldData.Groups)
+	newGroups := gset.NewStrSetFrom(params.Groups)
+
+	if !oldGroups.Equal(newGroups) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			allGroups := gset.NewStrSet()
+			allGroups.Add(oldGroups.Slice()...)
+			allGroups.Add(newGroups.Slice()...)
+
+			for _, group := range allGroups.Slice() {
+
+				// 新的有, 旧的没有, 说明新增了
+				if newGroups.Contains(group) && !oldGroups.Contains(group) {
+
+					oldData, err := dao.Group.FindById(ctx, group)
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+
+					newData, err := dao.Group.FindOneAndUpdateById(ctx, group, bson.M{
+						"$push": bson.M{
+							"model_agents": params.Id,
+						},
+					})
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+
+					if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_GROUP, model.PubMessage{
+						Action:  consts.ACTION_UPDATE,
+						OldData: oldData,
+						NewData: newData,
+					}); err != nil {
+						logger.Error(ctx, err)
+					}
+
+				} else if oldGroups.Contains(group) && !newGroups.Contains(group) { // 旧的有, 新的没有, 说明移除了
+
+					oldData, err := dao.Group.FindById(ctx, group)
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+
+					newData, err := dao.Group.FindOneAndUpdateById(ctx, group, bson.M{
+						"$pull": bson.M{
+							"model_agents": params.Id,
+						},
+					})
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+
+					if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_GROUP, model.PubMessage{
+						Action:  consts.ACTION_UPDATE,
+						OldData: oldData,
+						NewData: newData,
+					}); err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
 	return nil
 }
 
@@ -283,6 +393,47 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	groups, err := dao.Group.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if len(groups) > 0 {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			for _, group := range groups {
+
+				oldData, err := dao.Group.FindById(ctx, group)
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				newData, err := dao.Group.FindOneAndUpdateById(ctx, group, bson.M{
+					"$pull": bson.M{
+						"model_agents": id,
+					},
+				})
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_GROUP, model.PubMessage{
+					Action:  consts.ACTION_UPDATE,
+					OldData: oldData,
+					NewData: newData,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
 	return nil
 }
 
@@ -336,6 +487,19 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		keys = append(keys, key.Key)
 	}
 
+	groups, err := dao.Group.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	groupIds := make([]string, 0)
+	groupNames := make([]string, 0)
+	for _, group := range groups {
+		groupIds = append(groupIds, group.Id)
+		groupNames = append(groupNames, group.Name)
+	}
+
 	return &model.ModelAgent{
 		Id:                   modelAgent.Id,
 		ProviderId:           modelAgent.ProviderId,
@@ -344,6 +508,8 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		BaseUrl:              modelAgent.BaseUrl,
 		Path:                 modelAgent.Path,
 		Weight:               modelAgent.Weight,
+		Groups:               groupIds,
+		GroupNames:           groupNames,
 		Models:               modelAgent.Models,
 		ModelNames:           modelNames,
 		FallbackModels:       fallbackModels,
