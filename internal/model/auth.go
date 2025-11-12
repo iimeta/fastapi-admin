@@ -6,7 +6,7 @@ type LoginReq struct {
 	Password string `json:"password,omitempty"`                                        // 密码
 	Code     string `json:"code,omitempty"`                                            // 验证码
 	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
-	Channel  string `json:"channel,omitempty" v:"required|in:reseller,user,admin"`     // 渠道
+	Channel  string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
 	Method   string `json:"method,omitempty" v:"required|in:account,code"`             // 登录方式
 	Domain   string `json:"domain,omitempty"`                                          // 域名
 }
@@ -23,7 +23,7 @@ type RegisterReq struct {
 	Account  string `json:"account,omitempty" v:"required"`                            // 账号
 	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
 	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
-	Channel  string `json:"channel,omitempty" v:"required|in:reseller,user,admin"`     // 渠道
+	Channel  string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
 	Code     string `json:"code,omitempty" v:"required"`                               // 验证码
 	Domain   string `json:"domain,omitempty"`                                          // 域名
 }
@@ -40,7 +40,7 @@ type ForgetReq struct {
 	Account  string `json:"account,omitempty" v:"required"`                            // 账号
 	Password string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
 	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
-	Channel  string `json:"channel,omitempty" v:"required|in:reseller,user,admin"`     // 渠道
+	Channel  string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
 	Code     string `json:"code,omitempty" v:"required"`                               // 验证码
 	Domain   string `json:"domain,omitempty"`                                          // 域名
 }

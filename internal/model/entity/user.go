@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	gmeta.Meta             `role:"reseller,user,admin" bson:"-"`
+	gmeta.Meta             `role:"user,reseller,admin" bson:"-"`
 	Id                     string        `bson:"_id,omitempty"`                      // ID
 	UserId                 int           `bson:"user_id,omitempty"`                  // 用户ID
 	Name                   string        `bson:"name,omitempty"`                     // 姓名

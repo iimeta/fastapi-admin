@@ -89,7 +89,7 @@ type PerMinuteRes struct {
 
 // 额度预警接口请求参数
 type QuotaWarningReq struct {
-	g.Meta `path:"/quota/warning" method:"post" auth:"true" role:"reseller,user" tags:"dashboard" summary:"额度预警接口"`
+	g.Meta `path:"/quota/warning" method:"post" auth:"true" role:"user,reseller" tags:"dashboard" summary:"额度预警接口"`
 	model.DashboardQuotaWarningReq
 }
 
