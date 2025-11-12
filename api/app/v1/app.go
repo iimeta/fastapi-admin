@@ -7,7 +7,7 @@ import (
 
 // 新建应用接口请求参数
 type CreateReq struct {
-	g.Meta `path:"/create" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"新建应用接口"`
+	g.Meta `path:"/create" method:"post" auth:"true" role:"user,reseller,admin" tags:"app" summary:"新建应用接口"`
 	model.AppCreateReq
 }
 
@@ -19,7 +19,7 @@ type CreateRes struct {
 
 // 更新应用接口请求参数
 type UpdateReq struct {
-	g.Meta `path:"/update" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"更新应用接口"`
+	g.Meta `path:"/update" method:"post" auth:"true" role:"user,reseller,admin" tags:"app" summary:"更新应用接口"`
 	model.AppUpdateReq
 }
 
@@ -30,7 +30,7 @@ type UpdateRes struct {
 
 // 更改应用状态接口请求参数
 type ChangeStatusReq struct {
-	g.Meta `path:"/change/status" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"更改应用状态接口"`
+	g.Meta `path:"/change/status" method:"post" auth:"true" role:"user,reseller,admin" tags:"app" summary:"更改应用状态接口"`
 	model.AppChangeStatusReq
 }
 
@@ -41,7 +41,7 @@ type ChangeStatusRes struct {
 
 // 删除应用接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"删除应用接口"`
+	g.Meta `path:"/delete" method:"post" auth:"true" role:"user,reseller,admin" tags:"app" summary:"删除应用接口"`
 	Id     string `json:"id"`
 }
 
@@ -52,7 +52,7 @@ type DeleteRes struct {
 
 // 应用详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" method:"get" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"user,reseller,admin" tags:"app" summary:"应用详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -64,7 +64,7 @@ type DetailRes struct {
 
 // 应用分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"app" summary:"应用分页列表接口"`
 	model.AppPageReq
 }
 
@@ -76,7 +76,7 @@ type PageRes struct {
 
 // 应用列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" method:"get" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"user,reseller,admin" tags:"app" summary:"应用列表接口"`
 	model.AppListReq
 }
 
@@ -88,7 +88,7 @@ type ListRes struct {
 
 // 应用批量操作接口请求参数
 type BatchOperateReq struct {
-	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"reseller,user,admin" tags:"app" summary:"应用批量操作接口"`
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"user,reseller,admin" tags:"app" summary:"应用批量操作接口"`
 	model.AppBatchOperateReq
 }
 

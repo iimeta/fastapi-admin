@@ -7,7 +7,7 @@ import (
 
 // Midjourney日志详情接口请求参数
 type DetailReq struct {
-	g.Meta `path:"/detail" method:"get" auth:"true" role:"reseller,user,admin" tags:"log_midjourney" summary:"Midjourney日志详情接口"`
+	g.Meta `path:"/detail" method:"get" auth:"true" role:"user,reseller,admin" tags:"log_midjourney" summary:"Midjourney日志详情接口"`
 	Id     string `json:"id"`
 }
 
@@ -19,7 +19,7 @@ type DetailRes struct {
 
 // Midjourney日志分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,user,admin" tags:"log_midjourney" summary:"Midjourney日志分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"log_midjourney" summary:"Midjourney日志分页列表接口"`
 	model.LogMidjourneyPageReq
 }
 

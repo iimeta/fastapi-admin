@@ -85,7 +85,7 @@ type DetailRes struct {
 
 // 分组分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,user,admin" tags:"group" summary:"分组分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"group" summary:"分组分页列表接口"`
 	model.GroupPageReq
 }
 
@@ -97,7 +97,7 @@ type PageRes struct {
 
 // 分组列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" method:"get" auth:"true" role:"reseller,user,admin" tags:"group" summary:"分组列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"user,reseller,admin" tags:"group" summary:"分组列表接口"`
 	model.GroupListReq
 }
 

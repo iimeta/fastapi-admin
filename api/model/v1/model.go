@@ -63,7 +63,7 @@ type DetailRes struct {
 
 // 模型分页列表接口请求参数
 type PageReq struct {
-	g.Meta `path:"/page" method:"post" auth:"true" role:"reseller,user,admin" tags:"model" summary:"模型分页列表接口"`
+	g.Meta `path:"/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"model" summary:"模型分页列表接口"`
 	model.ModelPageReq
 }
 
@@ -75,7 +75,7 @@ type PageRes struct {
 
 // 模型列表接口请求参数
 type ListReq struct {
-	g.Meta `path:"/list" method:"get" auth:"true" role:"reseller,user,admin" tags:"model" summary:"模型列表接口"`
+	g.Meta `path:"/list" method:"get" auth:"true" role:"user,reseller,admin" tags:"model" summary:"模型列表接口"`
 	model.ModelListReq
 }
 
@@ -98,7 +98,7 @@ type BatchOperateRes struct {
 
 // 模型权限列表接口请求参数
 type PermissionsReq struct {
-	g.Meta `path:"/permissions" method:"post" auth:"true" role:"reseller,user,admin" tags:"model" summary:"模型权限列表接口"`
+	g.Meta `path:"/permissions" method:"post" auth:"true" role:"user,reseller,admin" tags:"model" summary:"模型权限列表接口"`
 	model.ModelPermissionsReq
 }
 
@@ -121,7 +121,7 @@ type InitSyncRes struct {
 
 // 模型树接口请求参数
 type TreeReq struct {
-	g.Meta `path:"/tree" method:"get" auth:"true" role:"reseller,user,admin" tags:"model" summary:"模型树接口"`
+	g.Meta `path:"/tree" method:"get" auth:"true" role:"user,reseller,admin" tags:"model" summary:"模型树接口"`
 	model.ModelTreeReq
 }
 
