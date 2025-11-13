@@ -1059,13 +1059,20 @@ func (s *sGroup) List(ctx context.Context, params model.GroupListReq) ([]*model.
 
 	items := make([]*model.Group, 0)
 	for _, result := range results {
-		items = append(items, &model.Group{
+
+		group := &model.Group{
 			Id:     result.Id,
 			Name:   result.Name,
 			Models: result.Models,
 			Remark: result.Remark,
 			Status: result.Status,
-		})
+		}
+
+		if service.Session().IsAdminRole(ctx) {
+			group.ModelAgents = result.ModelAgents
+		}
+
+		items = append(items, group)
 	}
 
 	return items, nil

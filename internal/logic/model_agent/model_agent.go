@@ -3,6 +3,7 @@ package model_agent
 import (
 	"context"
 	"regexp"
+	"slices"
 
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -605,6 +606,12 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		return t.Id
 	})
 
+	groups, err := service.Group().List(ctx, model.GroupListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
 	modelList, err := service.Model().List(ctx, model.ModelListReq{})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -638,6 +645,15 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			providerName = providerMap[result.ProviderId].Name
 		}
 
+		groupIds := make([]string, 0)
+		groupNames := make([]string, 0)
+		for _, group := range groups {
+			if slices.Contains(group.ModelAgents, result.Id) {
+				groupIds = append(groupIds, group.Id)
+				groupNames = append(groupNames, group.Name)
+			}
+		}
+
 		items = append(items, &model.ModelAgent{
 			Id:                 result.Id,
 			ProviderId:         result.ProviderId,
@@ -647,6 +663,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Path:               result.Path,
 			Weight:             result.Weight,
 			LbStrategy:         result.LbStrategy,
+			Groups:             groupIds,
+			GroupNames:         groupNames,
 			Models:             modelMap[result.Id],
 			ModelNames:         modelNameMap[result.Id],
 			FallbackModels:     fallbackModelMap[result.Id],
