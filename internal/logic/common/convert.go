@@ -55,14 +55,18 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 
 	// 文本
 	if pricing.Text != nil {
-		pricing.Text.InputRatio = ConvRatio(pricing.Text.InputRatio)
-		pricing.Text.OutputRatio = ConvRatio(pricing.Text.OutputRatio)
+		for i, text := range pricing.Text {
+			pricing.Text[i].InputRatio = ConvRatio(text.InputRatio)
+			pricing.Text[i].OutputRatio = ConvRatio(text.OutputRatio)
+		}
 	}
 
 	// 文本缓存
 	if pricing.TextCache != nil {
-		pricing.TextCache.ReadRatio = ConvRatio(pricing.TextCache.ReadRatio)
-		pricing.TextCache.WriteRatio = ConvRatio(pricing.TextCache.WriteRatio)
+		for i, textCache := range pricing.TextCache {
+			pricing.TextCache[i].ReadRatio = ConvRatio(textCache.ReadRatio)
+			pricing.TextCache[i].WriteRatio = ConvRatio(textCache.WriteRatio)
+		}
 	}
 
 	// 阶梯文本
@@ -117,14 +121,18 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 
 	// 文本
 	if pricing.Text != nil {
-		pricing.Text.InputRatio = ConvPrice(pricing.Text.InputRatio)
-		pricing.Text.OutputRatio = ConvPrice(pricing.Text.OutputRatio)
+		for i, text := range pricing.Text {
+			pricing.Text[i].InputRatio = ConvPrice(text.InputRatio)
+			pricing.Text[i].OutputRatio = ConvPrice(text.OutputRatio)
+		}
 	}
 
 	// 文本缓存
 	if pricing.TextCache != nil {
-		pricing.TextCache.ReadRatio = ConvPrice(pricing.TextCache.ReadRatio)
-		pricing.TextCache.WriteRatio = ConvPrice(pricing.TextCache.WriteRatio)
+		for i, textCache := range pricing.TextCache {
+			pricing.TextCache[i].ReadRatio = ConvPrice(textCache.ReadRatio)
+			pricing.TextCache[i].WriteRatio = ConvPrice(textCache.WriteRatio)
+		}
 	}
 
 	// 阶梯文本
