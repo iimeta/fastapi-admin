@@ -882,15 +882,15 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 	colFieldMap["应用ID"] = "AppId"
 	colFieldMap["应用名称"] = "AppName"
 	colFieldMap["应用密钥"] = "Key"
-	colFieldMap["额度($)"] = "Quota"
+	colFieldMap["额度"] = "Quota"
 	colFieldMap["额度过期时间"] = "QuotaExpiresAt"
 	colFieldMap["备注"] = "Remark"
 
 	var titleCols []string
 	if service.Session().IsUserRole(ctx) {
-		titleCols = append(titleCols, "应用ID", "应用名称", "应用密钥", "额度($)", "额度过期时间", "备注")
+		titleCols = append(titleCols, "应用ID", "应用名称", "应用密钥", "额度", "额度过期时间", "备注")
 	} else {
-		titleCols = append(titleCols, "用户ID", "应用ID", "应用名称", "应用密钥", "额度($)", "额度过期时间", "备注")
+		titleCols = append(titleCols, "用户ID", "应用ID", "应用名称", "应用密钥", "额度", "额度过期时间", "备注")
 		colFieldMap["用户ID"] = "UserId"
 	}
 

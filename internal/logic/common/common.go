@@ -332,6 +332,10 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 	userAttribute := make(map[string]any)
 	resellerAttribute := make(map[string]any)
 	siteAttribute := make(map[string]any)
+	currencySymbol := "$"
+	if siteConfig != nil && siteConfig.CurrencySymbol != "" {
+		currencySymbol = siteConfig.CurrencySymbol
+	}
 
 	for _, variable := range variables {
 
@@ -354,12 +358,12 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 				userAttribute[parts[1]] = user.Phone
 			case consts.ATTRIBUTE_QUOTA:
 				if user.Quota < 0 {
-					userAttribute[parts[1]] = fmt.Sprintf("-$%f", ConvQuotaUnitReverse(int(math.Abs(float64(user.Quota)))))
+					userAttribute[parts[1]] = fmt.Sprintf("-%s%f", currencySymbol, ConvQuotaUnitReverse(int(math.Abs(float64(user.Quota)))))
 				} else {
-					userAttribute[parts[1]] = fmt.Sprintf("$%f", ConvQuotaUnitReverse(user.Quota))
+					userAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(user.Quota))
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
-				userAttribute[parts[1]] = fmt.Sprintf("$%f", ConvQuotaUnitReverse(user.UsedQuota))
+				userAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(user.UsedQuota))
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
 				quotaExpiresAt := util.FormatDateTime(user.QuotaExpiresAt)
 				if quotaExpiresAt == "" {
@@ -367,7 +371,7 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 				}
 				userAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
-				userAttribute[parts[1]] = fmt.Sprintf("$%f", ConvQuotaUnitReverse(user.WarningThreshold))
+				userAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(user.WarningThreshold))
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
 				expireWarningThreshold := user.ExpireWarningThreshold
 				if expireWarningThreshold == 0 {
@@ -395,12 +399,12 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 				resellerAttribute[parts[1]] = reseller.Phone
 			case consts.ATTRIBUTE_QUOTA:
 				if reseller.Quota < 0 {
-					resellerAttribute[parts[1]] = fmt.Sprintf("-$%f", ConvQuotaUnitReverse(int(math.Abs(float64(reseller.Quota)))))
+					resellerAttribute[parts[1]] = fmt.Sprintf("-%s%f", currencySymbol, ConvQuotaUnitReverse(int(math.Abs(float64(reseller.Quota)))))
 				} else {
-					resellerAttribute[parts[1]] = fmt.Sprintf("$%f", ConvQuotaUnitReverse(reseller.Quota))
+					resellerAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(reseller.Quota))
 				}
 			case consts.ATTRIBUTE_USED_QUOTA:
-				resellerAttribute[parts[1]] = fmt.Sprintf("$%f", ConvQuotaUnitReverse(reseller.UsedQuota))
+				resellerAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(reseller.UsedQuota))
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
 				quotaExpiresAt := util.FormatDateTime(reseller.QuotaExpiresAt)
 				if quotaExpiresAt == "" {
@@ -408,7 +412,7 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 				}
 				resellerAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
-				resellerAttribute[parts[1]] = fmt.Sprintf("$%f", ConvQuotaUnitReverse(reseller.WarningThreshold))
+				resellerAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(reseller.WarningThreshold))
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
 				expireWarningThreshold := reseller.ExpireWarningThreshold
 				if expireWarningThreshold == 0 {

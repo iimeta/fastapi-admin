@@ -322,23 +322,23 @@ func (s *sLogText) Export(ctx context.Context, params model.LogTextExportReq) (s
 	colFieldMap["模型"] = "Model"
 	colFieldMap["输入Token数"] = "InputTokens"
 	colFieldMap["输出Token数"] = "OutputTokens"
-	colFieldMap["花费($)"] = "TotalTokens"
+	colFieldMap["花费"] = "TotalTokens"
 
 	var titleCols []string
 
 	if service.Session().IsResellerRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费($)")
+		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费")
 		colFieldMap["用户ID"] = "UserId"
 	}
 
 	if service.Session().IsUserRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "应用ID", "密钥", "模型", "输入Token数", "输出Token数", "花费($)")
+		titleCols = append(titleCols, "请求时间", "应用ID", "密钥", "模型", "输入Token数", "输出Token数", "花费")
 		colFieldMap["应用ID"] = "AppId"
 		colFieldMap["密钥"] = "Creator"
 	}
 
 	if service.Session().IsAdminRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费($)", "密钥")
+		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费", "密钥")
 		colFieldMap["用户ID"] = "UserId"
 		colFieldMap["密钥"] = "Key"
 	}

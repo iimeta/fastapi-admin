@@ -251,11 +251,16 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 						}
 					}
 
+					currencySymbol := "$"
+					if siteConfig != nil && siteConfig.CurrencySymbol != "" {
+						currencySymbol = siteConfig.CurrencySymbol
+					}
+
 					data := common.GetVariableData(ctx, user, nil, siteConfig, noticeTemplate.Variables)
 
 					data["name"] = user.Name
 					data["account"] = params.Account
-					data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(user.Quota))
+					data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(user.Quota))
 					data["quota_expires_at"] = "无期限"
 					if user.QuotaExpiresAt > 0 {
 						data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
@@ -356,11 +361,16 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 						logger.Infof(ctx, "sAuth Register 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", params.Domain)
 					}
 
+					currencySymbol := "$"
+					if siteConfig.CurrencySymbol != "" {
+						currencySymbol = siteConfig.CurrencySymbol
+					}
+
 					data := common.GetVariableData(ctx, nil, reseller, siteConfig, noticeTemplate.Variables)
 
 					data["name"] = reseller.Name
 					data["account"] = params.Account
-					data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(reseller.Quota))
+					data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(reseller.Quota))
 					data["quota_expires_at"] = "无期限"
 					if reseller.QuotaExpiresAt > 0 {
 						data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)

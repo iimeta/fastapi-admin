@@ -65,6 +65,7 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 				noticeTemplate         *model.NoticeTemplate
 				siteConfig             *entity.SiteConfig
 				dialer                 = email.NewDefaultDialer()
+				currencySymbol         = "$"
 			)
 
 			if warningThreshold == 0 {
@@ -150,18 +151,22 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 				continue
 			}
 
+			if siteConfig != nil && siteConfig.CurrencySymbol != "" {
+				currencySymbol = siteConfig.CurrencySymbol
+			}
+
 			data := common.GetVariableData(ctx, user, nil, siteConfig, noticeTemplate.Variables)
 
 			data["name"] = user.Name
 
 			if user.Quota < 0 {
-				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(float64(user.Quota)))))
+				data["quota"] = fmt.Sprintf("-%s%f", currencySymbol, common.ConvQuotaUnitReverse(int(math.Abs(float64(user.Quota)))))
 			} else {
-				data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(user.Quota))
+				data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(user.Quota))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
-				data["warning_threshold"] = fmt.Sprintf("$%d", warningThreshold/consts.QUOTA_DEFAULT_UNIT)
+				data["warning_threshold"] = fmt.Sprintf("%s%d", currencySymbol, warningThreshold/consts.QUOTA_DEFAULT_UNIT)
 			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
 			}
@@ -207,6 +212,7 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 				noticeTemplate         *model.NoticeTemplate
 				siteConfig             *entity.SiteConfig
 				dialer                 = email.NewDefaultDialer()
+				currencySymbol         = "$"
 			)
 
 			if warningThreshold == 0 {
@@ -264,18 +270,22 @@ func (s *sQuota) NoticeTask(ctx context.Context) {
 				continue
 			}
 
+			if siteConfig != nil && siteConfig.CurrencySymbol != "" {
+				currencySymbol = siteConfig.CurrencySymbol
+			}
+
 			data := common.GetVariableData(ctx, nil, reseller, siteConfig, noticeTemplate.Variables)
 
 			data["name"] = reseller.Name
 
 			if reseller.Quota < 0 {
-				data["quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(float64(reseller.Quota)))))
+				data["quota"] = fmt.Sprintf("-%s%f", currencySymbol, common.ConvQuotaUnitReverse(int(math.Abs(float64(reseller.Quota)))))
 			} else {
-				data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(reseller.Quota))
+				data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(reseller.Quota))
 			}
 
 			if scene == consts.SCENE_QUOTA_WARNING {
-				data["warning_threshold"] = fmt.Sprintf("$%d", warningThreshold/consts.QUOTA_DEFAULT_UNIT)
+				data["warning_threshold"] = fmt.Sprintf("%s%d", currencySymbol, warningThreshold/consts.QUOTA_DEFAULT_UNIT)
 			} else if scene == consts.SCENE_QUOTA_EXPIRE_WARNING || scene == consts.SCENE_QUOTA_EXPIRE {
 				data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
 			}

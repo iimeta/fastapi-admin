@@ -140,6 +140,7 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 		} else {
 
 			dialer := email.NewDefaultDialer()
+			currencySymbol := "$"
 
 			siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, g.RequestFromCtx(ctx).GetHost())
 			if siteConfig == nil {
@@ -154,11 +155,15 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 				logger.Infof(ctx, "sAdminReseller Create 因站点 %s 未配置邮箱, 默认使用系统配置邮箱", g.RequestFromCtx(ctx).GetHost())
 			}
 
+			if siteConfig != nil && siteConfig.CurrencySymbol != "" {
+				currencySymbol = siteConfig.CurrencySymbol
+			}
+
 			data := common.GetVariableData(ctx, nil, newData, siteConfig, noticeTemplate.Variables)
 
 			data["name"] = newData.Name
 			data["account"] = params.Account
-			data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(newData.Quota))
+			data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(newData.Quota))
 			data["quota_expires_at"] = "无期限"
 			if newData.QuotaExpiresAt > 0 {
 				data["quota_expires_at"] = util.FormatDateTime(newData.QuotaExpiresAt)
@@ -760,8 +765,9 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 			if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
 				var (
-					dialer     = email.NewDefaultDialer()
-					siteConfig *entity.SiteConfig
+					dialer         = email.NewDefaultDialer()
+					siteConfig     *entity.SiteConfig
+					currencySymbol = "$"
 				)
 
 				account, err := dao.ResellerAccount.FindOne(ctx, bson.M{"user_id": newData.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
@@ -794,21 +800,25 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 					return
 				}
 
+				if siteConfig != nil && siteConfig.CurrencySymbol != "" {
+					currencySymbol = siteConfig.CurrencySymbol
+				}
+
 				data := common.GetVariableData(ctx, nil, newData, siteConfig, noticeTemplate.Variables)
 
 				data["quota_type"] = consts.QUOTA_TYPE[params.QuotaType]
 				data["name"] = newData.Name
 
 				if params.Quota < 0 {
-					data["recharge_quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(params.Quota))))
+					data["recharge_quota"] = fmt.Sprintf("-%s%f", currencySymbol, common.ConvQuotaUnitReverse(int(math.Abs(params.Quota))))
 				} else {
-					data["recharge_quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(int(params.Quota)))
+					data["recharge_quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(int(params.Quota)))
 				}
 
 				if newData.Quota < 0 {
-					data["quota"] = fmt.Sprintf("-$%f", common.ConvQuotaUnitReverse(int(math.Abs(float64(newData.Quota)))))
+					data["quota"] = fmt.Sprintf("-%s%f", currencySymbol, common.ConvQuotaUnitReverse(int(math.Abs(float64(newData.Quota)))))
 				} else {
-					data["quota"] = fmt.Sprintf("$%f", common.ConvQuotaUnitReverse(newData.Quota))
+					data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(newData.Quota))
 				}
 
 				data["quota_expires_at"] = "无期限"

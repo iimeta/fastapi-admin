@@ -105,7 +105,7 @@ type Dashboard struct {
 // 调用数据
 type CallData struct {
 	Date     string  `json:"date,omitempty"`     // 日期
-	Spend    float64 `json:"spend,omitempty"`    // 花费($)
+	Spend    float64 `json:"spend,omitempty"`    // 花费
 	Call     int     `json:"call,omitempty"`     // 调用数
 	Tokens   int     `json:"tokens,omitempty"`   // 令牌数
 	User     int     `json:"user,omitempty"`     // 用户数

@@ -158,13 +158,13 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 	colFieldMap["账单日期"] = "StatDate"
 	colFieldMap["模型"] = "Model"
 	colFieldMap["调用数"] = "Total"
-	colFieldMap["花费($)"] = "Tokens"
+	colFieldMap["花费"] = "Tokens"
 
 	var titleCols []string
 	if service.Session().IsUserRole(ctx) {
-		titleCols = append(titleCols, "账单日期", "模型", "调用数", "花费($)")
+		titleCols = append(titleCols, "账单日期", "模型", "调用数", "花费")
 	} else {
-		titleCols = append(titleCols, "账单日期", "用户ID", "模型", "调用数", "花费($)")
+		titleCols = append(titleCols, "账单日期", "用户ID", "模型", "调用数", "花费")
 		colFieldMap["用户ID"] = "UserId"
 	}
 
