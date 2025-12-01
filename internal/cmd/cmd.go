@@ -40,6 +40,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
+	"github.com/iimeta/fastapi-admin/internal/controller/task_video"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/logger"
@@ -99,6 +100,7 @@ var (
 			s.AddStaticPath("/notice/template/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
+			s.AddStaticPath("/task/video", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/text", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
@@ -231,6 +233,12 @@ var (
 				v1.Group("/statistics", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						statistics.NewV1(),
+					)
+				})
+
+				v1.Group("/task/video", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						task_video.NewV1(),
 					)
 				})
 

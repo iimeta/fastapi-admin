@@ -1,7 +1,7 @@
 package common
 
 import (
-	sdkm "github.com/iimeta/fastapi-sdk/model"
+	smodel "github.com/iimeta/fastapi-sdk/model"
 )
 
 type PresetConfig struct {
@@ -34,14 +34,14 @@ type FallbackConfig struct {
 }
 
 type Message struct {
-	Role         string             `bson:"role,omitempty"          json:"role,omitempty"`    // 角色
-	Content      string             `bson:"content,omitempty"       json:"content,omitempty"` // 内容
-	Refusal      string             `bson:"refusal,omitempty"       json:"refusal,omitempty"`
-	Name         string             `bson:"name,omitempty"          json:"name,omitempty"`
-	FunctionCall *sdkm.FunctionCall `bson:"function_call,omitempty" json:"function_call,omitempty"`
-	ToolCalls    []sdkm.ToolCall    `bson:"tool_calls,omitempty"    json:"tool_calls,omitempty"`
-	ToolCallId   string             `bson:"tool_call_id,omitempty"  json:"tool_call_id,omitempty"`
-	Audio        *sdkm.Audio        `bson:"audio,omitempty"         json:"audio,omitempty"`
+	Role         string               `bson:"role,omitempty"          json:"role,omitempty"`    // 角色
+	Content      string               `bson:"content,omitempty"       json:"content,omitempty"` // 内容
+	Refusal      string               `bson:"refusal,omitempty"       json:"refusal,omitempty"`
+	Name         string               `bson:"name,omitempty"          json:"name,omitempty"`
+	FunctionCall *smodel.FunctionCall `bson:"function_call,omitempty" json:"function_call,omitempty"`
+	ToolCalls    []smodel.ToolCall    `bson:"tool_calls,omitempty"    json:"tool_calls,omitempty"`
+	ToolCallId   string               `bson:"tool_call_id,omitempty"  json:"tool_call_id,omitempty"`
+	Audio        *smodel.Audio        `bson:"audio,omitempty"         json:"audio,omitempty"`
 }
 
 type Retry struct {

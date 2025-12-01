@@ -32,5 +32,6 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/statistics"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_admin"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_config"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/task_video"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/user"
 )

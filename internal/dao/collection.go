@@ -15,6 +15,7 @@ const (
 	NOTICE             = "notice"
 	NOTICE_TEMPLATE    = "notice_template"
 	DEAL_RECORD        = "deal_record"
+	TASK_VIDEO         = "task_video"
 	LOG_TEXT           = "log_text"
 	LOG_IMAGE          = "log_image"
 	LOG_AUDIO          = "log_audio"
