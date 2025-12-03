@@ -20,6 +20,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_image"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_midjourney"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_text"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/log_video"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/model_agent"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/notice"

@@ -30,6 +30,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/log_image"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_midjourney"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_text"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_video"
 	"github.com/iimeta/fastapi-admin/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/internal/controller/model_agent"
 	"github.com/iimeta/fastapi-admin/internal/controller/notice"
@@ -104,6 +105,7 @@ var (
 			s.AddStaticPath("/log/text", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/video", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/update", "./resource/fastapi-web/")
@@ -257,6 +259,12 @@ var (
 				v1.Group("/log/audio", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						log_audio.NewV1(),
+					)
+				})
+
+				v1.Group("/log/video", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						log_video.NewV1(),
 					)
 				})
 

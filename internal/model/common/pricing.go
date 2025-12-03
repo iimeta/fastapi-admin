@@ -151,6 +151,7 @@ type AudioSpend struct {
 
 type VideoSpend struct {
 	Pricing     *VideoPricing `bson:"pricing,omitempty"      json:"pricing,omitempty"`      // 定价
+	Seconds     int           `bson:"seconds,omitempty"      json:"seconds,omitempty"`      // 秒数
 	SpendTokens float64       `bson:"spend_tokens,omitempty" json:"spend_tokens,omitempty"` // 花费Token数
 }
 
