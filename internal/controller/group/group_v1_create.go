@@ -11,7 +11,7 @@ func (c *ControllerV1) Create(ctx context.Context, req *v1.CreateReq) (res *v1.C
 
 	req.Discount /= 100
 
-	err = service.Group().Create(ctx, req.GroupCreateReq)
+	_, err = service.Group().Create(ctx, req.GroupCreateReq)
 
 	return
 }

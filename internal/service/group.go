@@ -14,7 +14,7 @@ import (
 type (
 	IGroup interface {
 		// 新建分组
-		Create(ctx context.Context, params model.GroupCreateReq) (err error)
+		Create(ctx context.Context, params model.GroupCreateReq) (id string, err error)
 		// 更新分组
 		Update(ctx context.Context, params model.GroupUpdateReq) error
 		// 更改过期时间

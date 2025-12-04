@@ -34,7 +34,7 @@ func New() service.IGroup {
 }
 
 // 新建分组
-func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err error) {
+func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id string, err error) {
 
 	var defaultGroup *entity.Group
 	if params.IsDefault {
@@ -43,7 +43,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 	} else {
 		if groups, err := dao.Group.Find(ctx, bson.M{"weight": params.Weight}, &dao.FindOptions{SortFields: []string{"-is_default"}}); err == nil && len(groups) > 0 {
 			if len(groups) > 1 || !groups[0].IsDefault {
-				return errors.Newf("排序: %d 已被占用, 请重新输入排序", params.Weight)
+				return "", errors.Newf("排序: %d 已被占用, 请重新输入排序", params.Weight)
 			}
 		}
 	}
@@ -52,7 +52,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 		params.ForwardConfig.UsedQuota = float64(common.ConvQuotaUnit(params.ForwardConfig.UsedQuota))
 	}
 
-	id, err := dao.Group.Insert(ctx, &do.Group{
+	id, err = dao.Group.Insert(ctx, &do.Group{
 		Name:               params.Name,
 		Discount:           params.Discount,
 		Models:             params.Models,
@@ -72,19 +72,19 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 	})
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	group, err := dao.Group.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	if group.IsLimitQuota {
 		if _, err = redis.HSetInt(ctx, consts.API_GROUP_USAGE_KEY, group.Id, group.Quota); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 	}
 
@@ -93,7 +93,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 		NewData: group,
 	}); err != nil {
 		logger.Error(ctx, err)
-		return err
+		return "", err
 	}
 
 	if defaultGroup != nil {
@@ -103,7 +103,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 		})
 		if err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 
 		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_GROUP, model.PubMessage{
@@ -112,7 +112,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 			NewData: group,
 		}); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 	}
 
@@ -121,7 +121,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 		resellerList, err := dao.Reseller.Find(ctx, bson.M{})
 		if err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 
 		if err = dao.Reseller.UpdateMany(ctx, bson.M{}, bson.M{
@@ -130,7 +130,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 			},
 		}); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 
 		for _, reseller := range resellerList {
@@ -145,14 +145,14 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 				NewData: newResellerData,
 			}); err != nil {
 				logger.Error(ctx, err)
-				return err
+				return "", err
 			}
 		}
 
 		userList, err := dao.User.Find(ctx, bson.M{})
 		if err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 
 		if err = dao.User.UpdateMany(ctx, bson.M{}, bson.M{
@@ -161,7 +161,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 			},
 		}); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return "", err
 		}
 
 		for _, user := range userList {
@@ -176,12 +176,12 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (err e
 				NewData: newUserData,
 			}); err != nil {
 				logger.Error(ctx, err)
-				return err
+				return "", err
 			}
 		}
 	}
 
-	return nil
+	return id, nil
 }
 
 // 更新分组

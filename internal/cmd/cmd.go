@@ -27,6 +27,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/health"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_audio"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_general"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_image"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_midjourney"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_text"
@@ -106,6 +107,7 @@ var (
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/video", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/general", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/update", "./resource/fastapi-web/")
@@ -271,6 +273,12 @@ var (
 				v1.Group("/log/midjourney", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						log_midjourney.NewV1(),
+					)
+				})
+
+				v1.Group("/log/general", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						log_general.NewV1(),
 					)
 				})
 

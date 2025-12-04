@@ -17,6 +17,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/key"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_audio"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/log_general"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_image"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_midjourney"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_text"

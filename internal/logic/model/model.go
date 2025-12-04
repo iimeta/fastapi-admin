@@ -80,10 +80,27 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 	}
 
 	if params.IsPublic && len(params.Groups) == 0 {
+
 		params.Groups, err = service.Group().PublicGroups(ctx)
 		if err != nil {
 			logger.Error(ctx, err)
 			return err
+		}
+
+		if len(params.Groups) == 0 {
+			if id, err := service.Group().Create(ctx, model.GroupCreateReq{
+				Name:     "系统自动创建分组",
+				Discount: 1,
+				Models:   []string{},
+				IsPublic: true,
+				Remark:   "此分组为系统自动创建, 可对其修改和删除",
+				Status:   1,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			} else {
+				params.Groups = append(params.Groups, id)
+			}
 		}
 	}
 
@@ -1590,12 +1607,12 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 	modelAgentId := ""
 	if params.IsConfigModelAgent {
 
-		if modelAgent, err := dao.ModelAgent.FindOne(ctx, bson.M{"name": "FastAPI"}); err != nil {
+		if modelAgent, err := dao.ModelAgent.FindOne(ctx, bson.M{"name": "智元 Fast API"}); err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 
 				if providerCodeMap["FastAPI"] == "" {
 					if providerCodeMap["FastAPI"], err = service.Provider().Create(ctx, model.ProviderCreateReq{
-						Name:     "FastAPI",
+						Name:     "智元 Fast API",
 						Code:     "FastAPI",
 						IsPublic: true,
 						Status:   1,
@@ -1607,8 +1624,9 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 				if modelAgentId, err = service.ModelAgent().Create(ctx, model.ModelAgentCreateReq{
 					ProviderId:   providerCodeMap["FastAPI"],
-					Name:         "FastAPI",
+					Name:         "智元 Fast API",
 					BaseUrl:      gstr.Replace(params.Url, "/models", ""),
+					Models:       []string{},
 					Key:          params.Key,
 					IsAgentsOnly: true,
 					Status:       1,
@@ -1624,6 +1642,26 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 		} else {
 			modelAgentId = modelAgent.Id
+		}
+	}
+
+	groups, err := service.Group().PublicGroups(ctx)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if len(groups) == 0 {
+		if _, err = service.Group().Create(ctx, model.GroupCreateReq{
+			Name:     "系统自动创建分组",
+			Discount: 1,
+			Models:   []string{},
+			IsPublic: true,
+			Remark:   "此分组为系统自动创建, 可对其修改和删除",
+			Status:   1,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
 		}
 	}
 

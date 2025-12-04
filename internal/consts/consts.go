@@ -49,15 +49,18 @@ const (
 )
 
 const (
-	STATISTICS_LOG_TEXT_LAST_ID_KEY    = "statistics:log:text:last_id"
-	STATISTICS_LOG_TEXT_LAST_TIME_KEY  = "statistics:log:text:last_time"
-	STATISTICS_LOG_IMAGE_LAST_ID_KEY   = "statistics:log:image:last_id"
-	STATISTICS_LOG_IMAGE_LAST_TIME_KEY = "statistics:log:image:last_time"
-	STATISTICS_LOG_AUDIO_LAST_ID_KEY   = "statistics:log:audio:last_id"
-	STATISTICS_LOG_AUDIO_LAST_TIME_KEY = "statistics:log:audio:last_time"
+	STATISTICS_LOG_TEXT_LAST_ID_KEY      = "statistics:log:text:last_id"
+	STATISTICS_LOG_TEXT_LAST_TIME_KEY    = "statistics:log:text:last_time"
+	STATISTICS_LOG_IMAGE_LAST_ID_KEY     = "statistics:log:image:last_id"
+	STATISTICS_LOG_IMAGE_LAST_TIME_KEY   = "statistics:log:image:last_time"
+	STATISTICS_LOG_AUDIO_LAST_ID_KEY     = "statistics:log:audio:last_id"
+	STATISTICS_LOG_AUDIO_LAST_TIME_KEY   = "statistics:log:audio:last_time"
+	STATISTICS_LOG_VIDEO_LAST_ID_KEY     = "statistics:log:video:last_id"
+	STATISTICS_LOG_VIDEO_LAST_TIME_KEY   = "statistics:log:video:last_time"
+	STATISTICS_LOG_GENERAL_LAST_ID_KEY   = "statistics:log:general:last_id"
+	STATISTICS_LOG_GENERAL_LAST_TIME_KEY = "statistics:log:general:last_time"
 )
 
-// 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:文生视频, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 var MODEL_TYPES = []int{
 	1,
 	2,
@@ -71,22 +74,23 @@ var MODEL_TYPES = []int{
 	101,
 	102,
 	103,
+	10000,
 }
 
-// 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:文生视频, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化]
 var MODEL_TYPE = map[int]string{
-	1:   "文生文",
-	2:   "文生图",
-	3:   "图生文",
-	4:   "图生图",
-	5:   "文生语音",
-	6:   "语音生文",
-	7:   "文本向量化",
-	8:   "文生视频",
-	100: "多模态",
-	101: "多模态实时",
-	102: "多模态语音",
-	103: "多模态向量化",
+	1:     "文生文",
+	2:     "文生图",
+	3:     "图生文",
+	4:     "图生图",
+	5:     "文生语音",
+	6:     "语音生文",
+	7:     "文本向量化",
+	8:     "文生视频",
+	100:   "多模态",
+	101:   "多模态实时",
+	102:   "多模态语音",
+	103:   "多模态向量化",
+	10000: "通用",
 }
 
 // 额度类型

@@ -64,6 +64,10 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 	s.StatisticsData(ctx, dao.LOG_IMAGE, "", consts.STATISTICS_LOG_IMAGE_LAST_TIME_KEY, consts.STATISTICS_LOG_IMAGE_LAST_ID_KEY)
 	// 统计音频数据
 	s.StatisticsData(ctx, dao.LOG_AUDIO, "", consts.STATISTICS_LOG_AUDIO_LAST_TIME_KEY, consts.STATISTICS_LOG_AUDIO_LAST_ID_KEY)
+	// 统计视频数据
+	s.StatisticsData(ctx, dao.LOG_VIDEO, "", consts.STATISTICS_LOG_VIDEO_LAST_TIME_KEY, consts.STATISTICS_LOG_VIDEO_LAST_ID_KEY)
+	// 统计通用数据
+	s.StatisticsData(ctx, dao.LOG_GENERAL, "", consts.STATISTICS_LOG_GENERAL_LAST_TIME_KEY, consts.STATISTICS_LOG_GENERAL_LAST_ID_KEY)
 
 	if _, err := redis.Set(ctx, consts.TASK_STATISTICS_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
