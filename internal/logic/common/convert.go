@@ -113,6 +113,18 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 		pricing.AudioCache.WriteRatio = ConvRatio(pricing.AudioCache.WriteRatio)
 	}
 
+	// 视频
+	if pricing.Video != nil {
+		pricing.Video.InputRatio = ConvRatio(pricing.Video.InputRatio)
+		pricing.Video.OutputRatio = ConvRatio(pricing.Video.OutputRatio)
+	}
+
+	// 视频缓存
+	if pricing.VideoCache != nil {
+		pricing.VideoCache.ReadRatio = ConvRatio(pricing.VideoCache.ReadRatio)
+		pricing.VideoCache.WriteRatio = ConvRatio(pricing.VideoCache.WriteRatio)
+	}
+
 	return pricing
 }
 
@@ -177,6 +189,18 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 	if pricing.AudioCache != nil {
 		pricing.AudioCache.ReadRatio = ConvPrice(pricing.AudioCache.ReadRatio)
 		pricing.AudioCache.WriteRatio = ConvPrice(pricing.AudioCache.WriteRatio)
+	}
+
+	// 视频
+	if pricing.Video != nil {
+		pricing.Video.InputRatio = ConvPrice(pricing.Video.InputRatio)
+		pricing.Video.OutputRatio = ConvPrice(pricing.Video.OutputRatio)
+	}
+
+	// 视频缓存
+	if pricing.VideoCache != nil {
+		pricing.VideoCache.ReadRatio = ConvPrice(pricing.VideoCache.ReadRatio)
+		pricing.VideoCache.WriteRatio = ConvPrice(pricing.VideoCache.WriteRatio)
 	}
 
 	return pricing
@@ -289,7 +313,29 @@ func ConvSpend(spend common.Spend) common.Spend {
 
 	// 视频
 	if spend.Video != nil {
+
+		if spend.Video.Pricing != nil {
+			spend.Video.Pricing.InputRatio = ConvPrice(spend.Video.Pricing.InputRatio)
+			spend.Video.Pricing.OutputRatio = ConvPrice(spend.Video.Pricing.OutputRatio)
+		}
+
 		spend.Video.SpendTokens = ConvQuotaUnitReverse(int(spend.Video.SpendTokens))
+	}
+
+	// 视频生成
+	if spend.VideoGeneration != nil {
+		spend.VideoGeneration.SpendTokens = ConvQuotaUnitReverse(int(spend.VideoGeneration.SpendTokens))
+	}
+
+	// 视频缓存
+	if spend.VideoCache != nil {
+
+		if spend.VideoCache.Pricing != nil {
+			spend.VideoCache.Pricing.ReadRatio = ConvPrice(spend.VideoCache.Pricing.ReadRatio)
+			spend.VideoCache.Pricing.WriteRatio = ConvPrice(spend.VideoCache.Pricing.WriteRatio)
+		}
+
+		spend.VideoCache.SpendTokens = ConvQuotaUnitReverse(int(spend.VideoCache.SpendTokens))
 	}
 
 	// 搜索
