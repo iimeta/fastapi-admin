@@ -345,7 +345,7 @@ func (s *sLogText) Export(ctx context.Context, params model.LogTextExportReq) (s
 
 	filePath := fmt.Sprintf("./resource/export/text_%d.xlsx", gtime.TimestampMilli())
 
-	values := make([]interface{}, 0)
+	values := make([]any, 0)
 	for _, result := range results {
 
 		value := &model.LogTextExport{
@@ -384,7 +384,7 @@ func (s *sLogText) BatchOperate(ctx context.Context, params model.LogTextBatchOp
 		switch params.Action {
 		case consts.ACTION_TIME:
 
-			reqTime := params.Value.([]interface{})
+			reqTime := params.Value.([]any)
 			filter := bson.M{
 				"req_time": bson.M{
 					"$gte": gtime.NewFromStrFormat(gconv.String(reqTime[0]), time.DateTime).TimestampMilli(),

@@ -17,7 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type IMongoDB interface{}
+type IMongoDB any
 
 type MongoDB[T IMongoDB] struct {
 	*db.MongoDB
@@ -38,7 +38,7 @@ func NewMongoDB[T IMongoDB](database, collection string) *MongoDB[T] {
 		}}
 }
 
-func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, findOptions ...*FindOptions) ([]*T, error) {
+func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]any, findOptions ...*FindOptions) ([]*T, error) {
 
 	var result []*T
 
@@ -83,7 +83,7 @@ func (m *MongoDB[T]) Find(ctx context.Context, filter map[string]interface{}, fi
 	return result, nil
 }
 
-func find(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, findOptions ...*FindOptions) error {
+func find(ctx context.Context, database, collection string, filter map[string]any, result any, findOptions ...*FindOptions) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -101,7 +101,7 @@ func find(ctx context.Context, database, collection string, filter map[string]in
 	return m.Find(ctx, result)
 }
 
-func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{}, findOptions ...*FindOptions) (*T, error) {
+func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]any, findOptions ...*FindOptions) (*T, error) {
 
 	var result *T
 
@@ -146,7 +146,7 @@ func (m *MongoDB[T]) FindOne(ctx context.Context, filter map[string]interface{},
 	return result, nil
 }
 
-func findOne(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}, findOptions ...*FindOptions) error {
+func findOne(ctx context.Context, database, collection string, filter map[string]any, result any, findOptions ...*FindOptions) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -164,7 +164,7 @@ func findOne(ctx context.Context, database, collection string, filter map[string
 	return m.FindOne(ctx, result)
 }
 
-func (m *MongoDB[T]) FindById(ctx context.Context, id interface{}, findOptions ...*FindOptions) (*T, error) {
+func (m *MongoDB[T]) FindById(ctx context.Context, id any, findOptions ...*FindOptions) (*T, error) {
 
 	var result *T
 	if err := findById(ctx, m.Database, m.Collection, id, &result, findOptions...); err != nil {
@@ -174,7 +174,7 @@ func (m *MongoDB[T]) FindById(ctx context.Context, id interface{}, findOptions .
 	return result, nil
 }
 
-func findById(ctx context.Context, database, collection string, id, result interface{}, findOptions ...*FindOptions) error {
+func findById(ctx context.Context, database, collection string, id, result any, findOptions ...*FindOptions) error {
 
 	filter := bson.M{"_id": id}
 
@@ -220,7 +220,7 @@ func findById(ctx context.Context, database, collection string, id, result inter
 	return m.FindOne(ctx, result)
 }
 
-func (m *MongoDB[T]) FindByIds(ctx context.Context, ids interface{}, findOptions ...*FindOptions) ([]*T, error) {
+func (m *MongoDB[T]) FindByIds(ctx context.Context, ids any, findOptions ...*FindOptions) ([]*T, error) {
 
 	var result []*T
 	if err := findByIds(ctx, m.Database, m.Collection, ids, &result, findOptions...); err != nil {
@@ -230,7 +230,7 @@ func (m *MongoDB[T]) FindByIds(ctx context.Context, ids interface{}, findOptions
 	return result, nil
 }
 
-func findByIds(ctx context.Context, database, collection string, ids, result interface{}, findOptions ...*FindOptions) error {
+func findByIds(ctx context.Context, database, collection string, ids, result any, findOptions ...*FindOptions) error {
 
 	filter := bson.M{"_id": bson.M{"$in": ids}}
 
@@ -276,7 +276,7 @@ func findByIds(ctx context.Context, database, collection string, ids, result int
 	return m.Find(ctx, result)
 }
 
-func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter map[string]interface{}, findOptions ...*FindOptions) ([]*T, error) {
+func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter map[string]any, findOptions ...*FindOptions) ([]*T, error) {
 
 	var result []*T
 
@@ -321,7 +321,7 @@ func (m *MongoDB[T]) FindByPage(ctx context.Context, paging *db.Paging, filter m
 	return result, nil
 }
 
-func findByPage(ctx context.Context, database, collection string, paging *db.Paging, filter map[string]interface{}, result interface{}, findOptions ...*FindOptions) error {
+func findByPage(ctx context.Context, database, collection string, paging *db.Paging, filter map[string]any, result any, findOptions ...*FindOptions) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -339,11 +339,11 @@ func findByPage(ctx context.Context, database, collection string, paging *db.Pag
 	return m.FindByPage(ctx, paging, result)
 }
 
-func (m *MongoDB[T]) Insert(ctx context.Context, document interface{}) (string, error) {
+func (m *MongoDB[T]) Insert(ctx context.Context, document any) (string, error) {
 	return insert(ctx, m.Database, document)
 }
 
-func insert(ctx context.Context, database string, document interface{}) (string, error) {
+func insert(ctx context.Context, database string, document any) (string, error) {
 
 	collection := gmeta.Get(document, "collection").String()
 	if collection == "" {
@@ -396,18 +396,18 @@ func insert(ctx context.Context, database string, document interface{}) (string,
 	return gconv.String(id), nil
 }
 
-func (m *MongoDB[T]) Inserts(ctx context.Context, documents []interface{}) ([]string, error) {
+func (m *MongoDB[T]) Inserts(ctx context.Context, documents []any) ([]string, error) {
 	return inserts(ctx, m.Database, documents)
 }
 
-func inserts(ctx context.Context, database string, documents []interface{}) ([]string, error) {
+func inserts(ctx context.Context, database string, documents []any) ([]string, error) {
 
 	collection := gmeta.Get(documents[0], "collection").String()
 	if collection == "" {
 		return nil, errors.New("collection meta undefined")
 	}
 
-	values := make([]interface{}, 0)
+	values := make([]any, 0)
 	for _, document := range documents {
 
 		bytes, err := bson.Marshal(document)
@@ -459,11 +459,11 @@ func inserts(ctx context.Context, database string, documents []interface{}) ([]s
 	return gconv.Strings(ids), nil
 }
 
-func (m *MongoDB[T]) UpdateById(ctx context.Context, id, update interface{}, isUpsert ...bool) error {
+func (m *MongoDB[T]) UpdateById(ctx context.Context, id, update any, isUpsert ...bool) error {
 	return m.UpdateOne(ctx, bson.M{"_id": id}, update, isUpsert...)
 }
 
-func (m *MongoDB[T]) UpdateOne(ctx context.Context, filter map[string]interface{}, update interface{}, isUpsert ...bool) error {
+func (m *MongoDB[T]) UpdateOne(ctx context.Context, filter map[string]any, update any, isUpsert ...bool) error {
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
@@ -502,7 +502,7 @@ func (m *MongoDB[T]) UpdateOne(ctx context.Context, filter map[string]interface{
 	return updateOne(ctx, m.Database, m.Collection, filter, update, isUpsert...)
 }
 
-func updateOne(ctx context.Context, database, collection string, filter map[string]interface{}, update interface{}, isUpsert ...bool) error {
+func updateOne(ctx context.Context, database, collection string, filter map[string]any, update any, isUpsert ...bool) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -595,7 +595,7 @@ func updateOne(ctx context.Context, database, collection string, filter map[stri
 	return m.UpdateOne(ctx, update, opt)
 }
 
-func (m *MongoDB[T]) UpdateMany(ctx context.Context, filter map[string]interface{}, update interface{}, isUpsert ...bool) error {
+func (m *MongoDB[T]) UpdateMany(ctx context.Context, filter map[string]any, update any, isUpsert ...bool) error {
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
@@ -634,7 +634,7 @@ func (m *MongoDB[T]) UpdateMany(ctx context.Context, filter map[string]interface
 	return updateMany(ctx, m.Database, m.Collection, filter, update, isUpsert...)
 }
 
-func updateMany(ctx context.Context, database, collection string, filter map[string]interface{}, update interface{}, isUpsert ...bool) error {
+func updateMany(ctx context.Context, database, collection string, filter map[string]any, update any, isUpsert ...bool) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -727,11 +727,11 @@ func updateMany(ctx context.Context, database, collection string, filter map[str
 	return m.UpdateMany(ctx, update, opt)
 }
 
-func (m *MongoDB[T]) FindOneAndUpdateById(ctx context.Context, id interface{}, update interface{}, isUpsert ...bool) (*T, error) {
+func (m *MongoDB[T]) FindOneAndUpdateById(ctx context.Context, id any, update any, isUpsert ...bool) (*T, error) {
 	return m.FindOneAndUpdate(ctx, bson.M{"_id": id}, update, isUpsert...)
 }
 
-func (m *MongoDB[T]) FindOneAndUpdate(ctx context.Context, filter map[string]interface{}, update interface{}, isUpsert ...bool) (*T, error) {
+func (m *MongoDB[T]) FindOneAndUpdate(ctx context.Context, filter map[string]any, update any, isUpsert ...bool) (*T, error) {
 
 	var result *T
 
@@ -776,7 +776,7 @@ func (m *MongoDB[T]) FindOneAndUpdate(ctx context.Context, filter map[string]int
 	return result, nil
 }
 
-func findOneAndUpdate(ctx context.Context, database, collection string, filter map[string]interface{}, update interface{}, result interface{}, isUpsert ...bool) error {
+func findOneAndUpdate(ctx context.Context, database, collection string, filter map[string]any, update any, result any, isUpsert ...bool) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -871,11 +871,11 @@ func findOneAndUpdate(ctx context.Context, database, collection string, filter m
 	return m.FindOneAndUpdate(ctx, update, result, opt)
 }
 
-func (m *MongoDB[T]) DeleteById(ctx context.Context, id interface{}) (int64, error) {
+func (m *MongoDB[T]) DeleteById(ctx context.Context, id any) (int64, error) {
 	return m.DeleteOne(ctx, bson.M{"_id": id})
 }
 
-func (m *MongoDB[T]) DeleteOne(ctx context.Context, filter map[string]interface{}) (int64, error) {
+func (m *MongoDB[T]) DeleteOne(ctx context.Context, filter map[string]any) (int64, error) {
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
@@ -914,7 +914,7 @@ func (m *MongoDB[T]) DeleteOne(ctx context.Context, filter map[string]interface{
 	return deleteOne(ctx, m.Database, m.Collection, filter)
 }
 
-func deleteOne(ctx context.Context, database, collection string, filter map[string]interface{}) (int64, error) {
+func deleteOne(ctx context.Context, database, collection string, filter map[string]any) (int64, error) {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -925,7 +925,7 @@ func deleteOne(ctx context.Context, database, collection string, filter map[stri
 	return m.DeleteOne(ctx)
 }
 
-func (m *MongoDB[T]) DeleteMany(ctx context.Context, filter map[string]interface{}) (int64, error) {
+func (m *MongoDB[T]) DeleteMany(ctx context.Context, filter map[string]any) (int64, error) {
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
@@ -964,7 +964,7 @@ func (m *MongoDB[T]) DeleteMany(ctx context.Context, filter map[string]interface
 	return deleteMany(ctx, m.Database, m.Collection, filter)
 }
 
-func deleteMany(ctx context.Context, database, collection string, filter map[string]interface{}) (int64, error) {
+func deleteMany(ctx context.Context, database, collection string, filter map[string]any) (int64, error) {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -975,11 +975,11 @@ func deleteMany(ctx context.Context, database, collection string, filter map[str
 	return m.DeleteMany(ctx)
 }
 
-func (m *MongoDB[T]) FindOneAndDeleteById(ctx context.Context, id interface{}) (*T, error) {
+func (m *MongoDB[T]) FindOneAndDeleteById(ctx context.Context, id any) (*T, error) {
 	return m.FindOneAndDelete(ctx, bson.M{"_id": id})
 }
 
-func (m *MongoDB[T]) FindOneAndDelete(ctx context.Context, filter map[string]interface{}) (*T, error) {
+func (m *MongoDB[T]) FindOneAndDelete(ctx context.Context, filter map[string]any) (*T, error) {
 
 	var result *T
 
@@ -1024,7 +1024,7 @@ func (m *MongoDB[T]) FindOneAndDelete(ctx context.Context, filter map[string]int
 	return result, nil
 }
 
-func findOneAndDelete(ctx context.Context, database, collection string, filter map[string]interface{}, result interface{}) error {
+func findOneAndDelete(ctx context.Context, database, collection string, filter map[string]any, result any) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -1035,7 +1035,7 @@ func findOneAndDelete(ctx context.Context, database, collection string, filter m
 	return m.FindOneAndDelete(ctx, result)
 }
 
-func (m *MongoDB[T]) CountDocuments(ctx context.Context, filter map[string]interface{}) (int64, error) {
+func (m *MongoDB[T]) CountDocuments(ctx context.Context, filter map[string]any) (int64, error) {
 
 	role := gmeta.Get(new(T), "role").String()
 	if role != "*" {
@@ -1074,7 +1074,7 @@ func (m *MongoDB[T]) CountDocuments(ctx context.Context, filter map[string]inter
 	return countDocuments(ctx, m.Database, m.Collection, filter)
 }
 
-func countDocuments(ctx context.Context, database, collection string, filter map[string]interface{}) (int64, error) {
+func countDocuments(ctx context.Context, database, collection string, filter map[string]any) (int64, error) {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -1099,11 +1099,11 @@ func estimatedDocumentCount(ctx context.Context, database, collection string) (i
 	return m.EstimatedDocumentCount(ctx)
 }
 
-func (m *MongoDB[T]) Aggregate(ctx context.Context, pipeline []bson.M, result interface{}) error {
+func (m *MongoDB[T]) Aggregate(ctx context.Context, pipeline []bson.M, result any) error {
 	return Aggregate(ctx, m.Database, m.Collection, pipeline, result)
 }
 
-func Aggregate(ctx context.Context, database, collection string, pipeline []bson.M, result interface{}) error {
+func Aggregate(ctx context.Context, database, collection string, pipeline []bson.M, result any) error {
 
 	m := &db.MongoDB{
 		Database:   database,
@@ -1114,11 +1114,11 @@ func Aggregate(ctx context.Context, database, collection string, pipeline []bson
 	return m.Aggregate(ctx, result)
 }
 
-func (m *MongoDB[T]) AggregateByPage(ctx context.Context, countField string, paging *db.Paging, countPipeline, pipeline []bson.M, result interface{}) error {
+func (m *MongoDB[T]) AggregateByPage(ctx context.Context, countField string, paging *db.Paging, countPipeline, pipeline []bson.M, result any) error {
 	return AggregateByPage(ctx, m.Database, m.Collection, countField, paging, countPipeline, pipeline, result)
 }
 
-func AggregateByPage(ctx context.Context, database, collection, countField string, paging *db.Paging, countPipeline, pipeline []bson.M, result interface{}) error {
+func AggregateByPage(ctx context.Context, database, collection, countField string, paging *db.Paging, countPipeline, pipeline []bson.M, result any) error {
 
 	m := &db.MongoDB{
 		Database:      database,
@@ -1127,7 +1127,7 @@ func AggregateByPage(ctx context.Context, database, collection, countField strin
 		CountPipeline: countPipeline,
 	}
 
-	countResult := make([]map[string]interface{}, 0)
+	countResult := make([]map[string]any, 0)
 	if err := m.AggregateByPage(ctx, &countResult, result); err != nil {
 		return err
 	}
@@ -1141,7 +1141,7 @@ func AggregateByPage(ctx context.Context, database, collection, countField strin
 }
 
 // 判断底层类型是否为Struct
-func isStruct(value interface{}) bool {
+func isStruct(value any) bool {
 
 	// 获取值的类型
 	valueType := reflect.TypeOf(value)

@@ -19,7 +19,7 @@ func New(text string) error {
 	return errors.New(text)
 }
 
-func Newf(format string, args ...interface{}) error {
+func Newf(format string, args ...any) error {
 	return errors.New(fmt.Sprintf(format, args...))
 }
 

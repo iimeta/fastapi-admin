@@ -170,7 +170,7 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 
 	filePath := fmt.Sprintf("./resource/export/bill_%d.xlsx", gtime.TimestampMilli())
 
-	values := make([]interface{}, 0)
+	values := make([]any, 0)
 	for _, result := range results {
 
 		slices.SortFunc(result.ModelStats, func(s1, s2 *mcommon.ModelStat) int {

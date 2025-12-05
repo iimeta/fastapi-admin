@@ -16,7 +16,7 @@ import (
 	"github.com/iimeta/fastapi-admin/utility/logger"
 )
 
-func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL ...string) error {
+func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result any, proxyURL ...string) error {
 
 	logger.Infof(ctx, "HttpGet url: %s, header: %+v, data: %+v, proxyURL: %v", url, header, data, proxyURL)
 
@@ -57,7 +57,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 	return nil
 }
 
-func HttpPostJson(ctx context.Context, url string, header map[string]string, data, result interface{}, proxyURL ...string) error {
+func HttpPostJson(ctx context.Context, url string, header map[string]string, data, result any, proxyURL ...string) error {
 
 	logger.Infof(ctx, "HttpPostJson url: %s, header: %+v, data: %+v, proxyURL: %v", url, header, data, proxyURL)
 
@@ -98,7 +98,7 @@ func HttpPostJson(ctx context.Context, url string, header map[string]string, dat
 	return nil
 }
 
-func HttpPost(ctx context.Context, url string, header map[string]string, data, result interface{}, proxyURL ...string) error {
+func HttpPost(ctx context.Context, url string, header map[string]string, data, result any, proxyURL ...string) error {
 
 	logger.Infof(ctx, "HttpPost url: %s, header: %+v, data: %+v, proxyURL: %v", url, header, data, proxyURL)
 

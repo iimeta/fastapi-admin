@@ -9,7 +9,7 @@ import (
 
 const COL_A = 65
 
-func ExcelExport(sheetName string, titleCols []string, colFieldMap map[string]string, values []interface{}, saveExcelFilePath string) error {
+func ExcelExport(sheetName string, titleCols []string, colFieldMap map[string]string, values []any, saveExcelFilePath string) error {
 
 	f := excelize.NewFile()
 

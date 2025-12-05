@@ -11,7 +11,9 @@ import (
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
@@ -312,8 +314,18 @@ var (
 )
 
 func beforeServeHook(r *ghttp.Request) {
+
+	ctx := gctx.WithSpan(r.GetCtx(), "gctx.WithSpan")
+
+	if traceId := r.Header.Get(consts.TRACE_ID); traceId != "" {
+		ctx, _ = gtrace.WithTraceID(ctx, traceId)
+	}
+
+	r.SetCtx(ctx)
 	r.SetCtxVar(consts.SESSION_HOST, r.GetHost())
+
 	logger.Infof(r.GetCtx(), "beforeServeHook ClientIp: %s, RemoteIp: %s, IsFile: %t, URI: %s", r.GetClientIp(), r.GetRemoteIp(), r.IsFileRequest(), r.RequestURI)
+
 	r.Response.CORSDefault()
 }
 

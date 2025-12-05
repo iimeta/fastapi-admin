@@ -896,7 +896,7 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 
 	filePath := fmt.Sprintf("./resource/export/app_key_%d.xlsx", gtime.TimestampMilli())
 
-	values := make([]interface{}, 0)
+	values := make([]any, 0)
 	for _, result := range results {
 
 		appKeyExport := &model.AppKeyExport{

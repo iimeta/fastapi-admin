@@ -53,7 +53,7 @@ func (s *sDashboard) BaseData(ctx context.Context) (dashboard model.Dashboard, e
 		match["user_id"] = service.Session().GetUserId(ctx)
 	}
 
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]any, 0)
 	if err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return dashboard, err
@@ -226,7 +226,7 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 		delete(group, "user")
 	}
 
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]any, 0)
 
 	if service.Session().IsUserRole(ctx) {
 		if err := dao.StatisticsApp.Aggregate(ctx, pipeline, &result); err != nil {
@@ -421,7 +421,7 @@ func (s *sDashboard) DataTop(ctx context.Context, params model.DashboardDataTopR
 		match["user_id"] = service.Session().GetUserId(ctx)
 	}
 
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]any, 0)
 	switch params.DataType {
 	case "user":
 		if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
@@ -537,7 +537,7 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 		match["user_id"] = service.Session().GetUserId(ctx)
 	}
 
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]any, 0)
 	if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return nil, nil, err
@@ -618,7 +618,7 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 		}
 	}
 
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]any, 0)
 	if err := dao.LogText.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return 0, 0, err
@@ -700,7 +700,7 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 		}
 	}
 
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]any, 0)
 	if err := dao.LogText.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
 		return 0, 0, err
