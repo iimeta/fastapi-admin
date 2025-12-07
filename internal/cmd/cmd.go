@@ -349,8 +349,11 @@ func authMiddleware(r *ghttp.Request) {
 	}
 
 	token := strings.TrimSpace(strings.TrimPrefix(r.GetHeader("Authorization"), "Bearer"))
+
 	if token == "" {
-		token = r.Get("token").String()
+		if v := r.Get("token"); v != nil {
+			token = v.String()
+		}
 	}
 
 	if token == "" {
