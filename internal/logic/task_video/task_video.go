@@ -53,11 +53,15 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 		filter["app_id"] = params.AppId
 	}
 
-	if params.TaskId != "" {
-		filter["task_id"] = params.TaskId
+	if params.VideoId != "" {
+		filter["video_id"] = params.VideoId
 	}
 
-	if params.Status != 0 {
+	if params.VideoUrl != "" {
+		filter["video_url"] = params.VideoUrl
+	}
+
+	if params.Status != "" {
 		filter["status"] = params.Status
 	}
 
@@ -84,9 +88,12 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 			TraceId:   result.TraceId,
 			UserId:    result.UserId,
 			AppId:     result.AppId,
-			TaskId:    result.TaskId,
+			Model:     result.Model,
+			VideoId:   result.VideoId,
+			Width:     result.Width,
+			Height:    result.Height,
+			Seconds:   result.Seconds,
 			VideoUrl:  result.VideoUrl,
-			VideoTime: result.VideoTime,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
 		}

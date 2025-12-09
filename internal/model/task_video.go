@@ -1,13 +1,16 @@
 package model
 
+import smodel "github.com/iimeta/fastapi-sdk/model"
+
 // 视频任务分页列表接口请求参数
 type TaskVideoPageReq struct {
 	Paging
 	UserId    int      `json:"user_id,omitempty"`    // 用户ID
 	AppId     int      `json:"app_id,omitempty"`     // 应用ID
 	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
-	TaskId    string   `json:"task_id,omitempty"`    // 任务ID
-	Status    int      `json:"status,omitempty"`     // 状态
+	VideoId   string   `json:"video_id,omitempty"`   // 视频ID
+	VideoUrl  string   `json:"video_url,omitempty"`  // 视频地址
+	Status    string   `json:"status,omitempty"`     // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期]
 	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
 }
 
@@ -18,16 +21,20 @@ type TaskVideoPageRes struct {
 }
 
 type TaskVideo struct {
-	Id        string  `json:"id,omitempty"`         // ID
-	TraceId   string  `json:"trace_id,omitempty"`   // 日志ID
-	UserId    int     `json:"user_id,omitempty"`    // 用户ID
-	AppId     int     `json:"app_id,omitempty"`     // 应用ID
-	TaskId    string  `json:"task_id,omitempty"`    // 任务ID
-	VideoUrl  string  `json:"video_url,omitempty"`  // 视频地址
-	VideoTime float64 `json:"video_time,omitempty"` // 视频时长(秒)
-	Status    int     `json:"status,omitempty"`     // 状态
-	Creator   string  `json:"creator,omitempty"`    // 创建人
-	Updater   string  `json:"updater,omitempty"`    // 更新人
-	CreatedAt string  `json:"created_at,omitempty"` // 创建时间
-	UpdatedAt string  `json:"updated_at,omitempty"` // 更新时间
+	Id        string             `json:"id,omitempty"`         // ID
+	TraceId   string             `json:"trace_id,omitempty"`   // 日志ID
+	UserId    int                `json:"user_id,omitempty"`    // 用户ID
+	AppId     int                `json:"app_id,omitempty"`     // 应用ID
+	Model     string             `json:"model,omitempty"`      // 模型
+	VideoId   string             `json:"video_id,omitempty"`   // 视频ID
+	Width     int                `json:"width,omitempty"`      // 宽度
+	Height    int                `json:"height,omitempty"`     // 高度
+	Seconds   int                `json:"seconds,omitempty"`    // 秒数
+	VideoUrl  string             `json:"video_url,omitempty"`  // 视频地址
+	Status    string             `json:"status,omitempty"`     // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期]
+	Error     *smodel.VideoError `json:"error,omitempty"`      // 错误信息
+	Creator   string             `json:"creator,omitempty"`    // 创建人
+	Updater   string             `json:"updater,omitempty"`    // 更新人
+	CreatedAt string             `json:"created_at,omitempty"` // 创建时间
+	UpdatedAt string             `json:"updated_at,omitempty"` // 更新时间
 }

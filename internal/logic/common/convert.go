@@ -58,6 +58,7 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 		for i, text := range pricing.Text {
 			pricing.Text[i].InputRatio = ConvRatio(text.InputRatio)
 			pricing.Text[i].OutputRatio = ConvRatio(text.OutputRatio)
+			pricing.Text[i].ReasoningRatio = ConvRatio(text.ReasoningRatio)
 		}
 	}
 
@@ -76,6 +77,7 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 			pricing.TieredText[i].Lte *= 1000
 			pricing.TieredText[i].InputRatio = ConvRatio(tieredText.InputRatio)
 			pricing.TieredText[i].OutputRatio = ConvRatio(tieredText.OutputRatio)
+			pricing.TieredText[i].ReasoningRatio = ConvRatio(tieredText.ReasoningRatio)
 		}
 	}
 
@@ -136,6 +138,7 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 		for i, text := range pricing.Text {
 			pricing.Text[i].InputRatio = ConvPrice(text.InputRatio)
 			pricing.Text[i].OutputRatio = ConvPrice(text.OutputRatio)
+			pricing.Text[i].ReasoningRatio = ConvPrice(text.ReasoningRatio)
 		}
 	}
 
@@ -154,6 +157,7 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 			pricing.TieredText[i].Lte /= 1000
 			pricing.TieredText[i].InputRatio = ConvPrice(tieredText.InputRatio)
 			pricing.TieredText[i].OutputRatio = ConvPrice(tieredText.OutputRatio)
+			pricing.TieredText[i].ReasoningRatio = ConvPrice(tieredText.ReasoningRatio)
 		}
 	}
 
@@ -215,6 +219,7 @@ func ConvSpend(spend common.Spend) common.Spend {
 		if spend.Text.Pricing != nil {
 			spend.Text.Pricing.InputRatio = ConvPrice(spend.Text.Pricing.InputRatio)
 			spend.Text.Pricing.OutputRatio = ConvPrice(spend.Text.Pricing.OutputRatio)
+			spend.Text.Pricing.ReasoningRatio = ConvPrice(spend.Text.Pricing.ReasoningRatio)
 		}
 
 		spend.Text.SpendTokens = ConvQuotaUnitReverse(int(spend.Text.SpendTokens))
@@ -239,6 +244,7 @@ func ConvSpend(spend common.Spend) common.Spend {
 			spend.TieredText.Pricing.Lte /= 1000
 			spend.TieredText.Pricing.InputRatio = ConvPrice(spend.TieredText.Pricing.InputRatio)
 			spend.TieredText.Pricing.OutputRatio = ConvPrice(spend.TieredText.Pricing.OutputRatio)
+			spend.TieredText.Pricing.ReasoningRatio = ConvPrice(spend.TieredText.Pricing.ReasoningRatio)
 		}
 
 		spend.TieredText.SpendTokens = ConvQuotaUnitReverse(int(spend.TieredText.SpendTokens))
