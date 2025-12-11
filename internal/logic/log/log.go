@@ -111,6 +111,44 @@ func (s *sLog) DelTask(ctx context.Context) {
 		}
 	}
 
+	if config.Cfg.Log.VideoReserve > 0 {
+
+		filter := bson.M{
+			"req_time": bson.M{
+				"$lte": gtime.Now().StartOfDay().TimestampMilli() - (config.Cfg.Log.VideoReserve * gtime.D).Milliseconds() - 1,
+			},
+		}
+
+		if len(config.Cfg.Log.Status) != 4 {
+			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
+		}
+
+		if deletedCount, err := dao.LogVideo.DeleteMany(ctx, filter); err == nil {
+			logger.Infof(ctx, "视频日志已删除 %d 条记录", deletedCount)
+		} else {
+			logger.Error(ctx, err)
+		}
+	}
+
+	if config.Cfg.Log.GeneralReserve > 0 {
+
+		filter := bson.M{
+			"req_time": bson.M{
+				"$lte": gtime.Now().StartOfDay().TimestampMilli() - (config.Cfg.Log.GeneralReserve * gtime.D).Milliseconds() - 1,
+			},
+		}
+
+		if len(config.Cfg.Log.Status) != 4 {
+			filter["status"] = bson.M{"$in": config.Cfg.Log.Status}
+		}
+
+		if deletedCount, err := dao.LogGeneral.DeleteMany(ctx, filter); err == nil {
+			logger.Infof(ctx, "通用日志已删除 %d 条记录", deletedCount)
+		} else {
+			logger.Error(ctx, err)
+		}
+	}
+
 	if _, err := redis.Set(ctx, consts.TASK_LOG_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
