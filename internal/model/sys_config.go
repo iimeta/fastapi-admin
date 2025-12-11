@@ -24,6 +24,7 @@ type SysConfigUpdateReq struct {
 	Notice                *common.Notice                `json:"notice,omitempty"`                  // 通知
 	Quota                 *common.Quota                 `json:"quota,omitempty"`                   // 额度
 	QuotaTask             *common.QuotaTask             `json:"quota_task,omitempty"`              // 额度任务
+	VideoTask             *common.VideoTask             `json:"video_task,omitempty"`              // 视频任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
 	Debug                 *common.Debug                 `json:"debug,omitempty"`                   // 调试
 }
@@ -70,6 +71,7 @@ type SysConfig struct {
 	Notice                *common.Notice                `json:"notice,omitempty"`                  // 通知
 	Quota                 *common.Quota                 `json:"quota,omitempty"`                   // 额度
 	QuotaTask             *common.QuotaTask             `json:"quota_task,omitempty"`              // 额度任务
+	VideoTask             *common.VideoTask             `json:"video_task,omitempty"`              // 视频任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
 	Debug                 *common.Debug                 `json:"debug,omitempty"`                   // 调试
 	Creator               string                        `json:"creator,omitempty"`                 // 创建人

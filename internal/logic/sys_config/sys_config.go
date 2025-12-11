@@ -137,6 +137,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Quota: params.Quota}
 	case "quota_task":
 		sysConfig = &do.SysConfig{QuotaTask: params.QuotaTask}
+	case "video_task":
+		sysConfig = &do.SysConfig{VideoTask: params.VideoTask}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "debug":
@@ -201,6 +203,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Notice:                sysConfig.Notice,
 		Quota:                 sysConfig.Quota,
 		QuotaTask:             sysConfig.QuotaTask,
+		VideoTask:             sysConfig.VideoTask,
 		ServiceUnavailable:    sysConfig.ServiceUnavailable,
 		Debug:                 sysConfig.Debug,
 		Creator:               sysConfig.Creator,
@@ -272,6 +275,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Quota = s.Default().Quota
 	case "quota_task":
 		sysConfigUpdateReq.QuotaTask = s.Default().QuotaTask
+	case "video_task":
+		sysConfigUpdateReq.VideoTask = s.Default().VideoTask
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	}
@@ -329,10 +334,9 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 				return nil, err
 			}
 			return dao.SysConfig.FindById(ctx, id)
-		} else {
-			logger.Error(ctx, err)
-			return nil, err
 		}
+		logger.Error(ctx, err)
+		return nil, err
 	}
 
 	if sysConfig.Core == nil {
@@ -379,6 +383,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.ServiceUnavailable == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "service_unavailable"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.VideoTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "video_task"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -550,6 +561,12 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Open:        true,
 			Cron:        "0 * * * * ?",
 			LockMinutes: 10,
+		},
+		VideoTask: &common.VideoTask{
+			Open:            true,
+			Cron:            "0 * * * * ?",
+			LockMinutes:     10,
+			IsEnableStorage: true,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{
 			Open: false,
