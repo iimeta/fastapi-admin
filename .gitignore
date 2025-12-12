@@ -22,3 +22,4 @@ bin/*.zip
 **/resource/export/*.xls
 **/resource/export/*.xlsx
 **/resource/public/avatar/*.*
+**/resource/public/video/*.*
