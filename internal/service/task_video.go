@@ -15,6 +15,8 @@ type (
 	ITaskVideo interface {
 		// 视频任务分页列表
 		Page(ctx context.Context, params model.TaskVideoPageReq) (*model.TaskVideoPageRes, error)
+		// 定时任务
+		Task(ctx context.Context)
 	}
 )
 
