@@ -6,12 +6,12 @@ replace github.com/iimeta/fastapi-sdk => ../fastapi-sdk
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/go-redsync/redsync/v4 v4.14.1
-	github.com/gogf/gf/contrib/nosql/redis/v2 v2.9.5
-	github.com/gogf/gf/v2 v2.9.5
+	github.com/go-redsync/redsync/v4 v4.15.0
+	github.com/gogf/gf/contrib/nosql/redis/v2 v2.9.6
+	github.com/gogf/gf/v2 v2.9.6
 	github.com/gorilla/websocket v1.5.3
 	github.com/iimeta/fastapi-sdk v1.7.0
-	github.com/redis/go-redis/v9 v9.17.1
+	github.com/redis/go-redis/v9 v9.17.2
 	github.com/tjfoc/gmsm v1.4.1
 	github.com/xuri/excelize/v2 v2.10.0
 	go.mongodb.org/mongo-driver v1.17.6
@@ -20,17 +20,17 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.40.0 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.3 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.14 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.14 // indirect
-	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.46.0 // indirect
-	github.com/aws/smithy-go v1.23.2 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.41.0 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.4 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.16 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.16 // indirect
+	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.47.1 // indirect
+	github.com/aws/smithy-go v1.24.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/emirpasic/gods v1.18.1 // indirect
+	github.com/emirpasic/gods/v2 v2.0.0-alpha // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
