@@ -66,6 +66,7 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 		CompletedAt:        util.FormatDateTime(taskVideo.CompletedAt),
 		ExpiresAt:          util.FormatDateTime(taskVideo.ExpiresAt),
 		Error:              taskVideo.Error,
+		Creator:            util.Desensitize(taskVideo.Creator),
 		CreatedAt:          util.FormatDateTime(taskVideo.CreatedAt),
 		UpdatedAt:          util.FormatDateTime(taskVideo.UpdatedAt),
 	}
@@ -170,6 +171,31 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 			Total:    paging.Total,
 		},
 	}, nil
+}
+
+// 视频任务详情复制字段值
+func (s *sTaskVideo) CopyField(ctx context.Context, params model.TaskVideoCopyFieldReq) (string, error) {
+
+	result, err := dao.TaskVideo.FindById(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", err
+	}
+
+	if service.Session().IsResellerRole(ctx) && result.Rid != service.Session().GetRid(ctx) {
+		return "", errors.ERR_UNAUTHORIZED
+	}
+
+	if service.Session().IsUserRole(ctx) && result.UserId != service.Session().GetUserId(ctx) {
+		return "", errors.ERR_UNAUTHORIZED
+	}
+
+	switch params.Field {
+	case "creator":
+		return result.Creator, nil
+	}
+
+	return "", nil
 }
 
 // 视频文件

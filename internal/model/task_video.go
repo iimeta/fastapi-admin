@@ -25,6 +25,17 @@ type TaskVideoPageRes struct {
 	Paging *Paging      `json:"paging"`
 }
 
+// 视频任务详情复制字段值接口请求参数
+type TaskVideoCopyFieldReq struct {
+	Id    string `json:"id"`
+	Field string `json:"field"`
+}
+
+// 视频任务详情复制字段值接口响应参数
+type TaskVideoCopyFieldRes struct {
+	Value string `json:"value"`
+}
+
 type TaskVideo struct {
 	Id                 string             `json:"id,omitempty"`                    // ID
 	TraceId            string             `json:"trace_id,omitempty"`              // 日志ID

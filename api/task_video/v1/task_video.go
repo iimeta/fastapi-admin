@@ -28,3 +28,15 @@ type VideoPageRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.TaskVideoPageRes
 }
+
+// 视频任务详情复制字段值接口请求参数
+type CopyFieldReq struct {
+	g.Meta `path:"/copy/field" method:"post" auth:"true" role:"user,reseller,admin" tags:"task_audio" summary:"视频任务详情复制字段值详情接口"`
+	model.TaskVideoCopyFieldReq
+}
+
+// 视频任务详情复制字段值接口响应参数
+type CopyFieldRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.TaskVideoCopyFieldRes
+}
