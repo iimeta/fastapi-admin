@@ -126,9 +126,10 @@ var (
 			s.Use(authMiddleware)
 			s.Use(middlewareHandlerResponse)
 
-			s.Group("/", func(g *ghttp.RouterGroup) {
+			s.Group("/open", func(g *ghttp.RouterGroup) {
 				g.Bind(
 					health.NewV1(),
+					open.NewV1(),
 				)
 			})
 

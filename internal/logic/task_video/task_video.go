@@ -12,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
+	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -37,6 +38,48 @@ func New() service.ITaskVideo {
 	return &sTaskVideo{
 		videoRedsync: redsync.New(goredis.NewPool(redis.UniversalClient)),
 	}
+}
+
+// 视频任务详情
+func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, error) {
+
+	taskVideo, err := dao.TaskVideo.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	detail := &model.TaskVideo{
+		Id:                 taskVideo.Id,
+		TraceId:            taskVideo.TraceId,
+		UserId:             taskVideo.UserId,
+		AppId:              taskVideo.AppId,
+		Model:              taskVideo.Model,
+		VideoId:            taskVideo.VideoId,
+		Width:              taskVideo.Width,
+		Height:             taskVideo.Height,
+		Seconds:            taskVideo.Seconds,
+		Prompt:             taskVideo.Prompt,
+		Progress:           taskVideo.Progress,
+		RemixedFromVideoId: taskVideo.RemixedFromVideoId,
+		Status:             taskVideo.Status,
+		CompletedAt:        util.FormatDateTime(taskVideo.CompletedAt),
+		ExpiresAt:          util.FormatDateTime(taskVideo.ExpiresAt),
+		Error:              taskVideo.Error,
+		CreatedAt:          util.FormatDateTime(taskVideo.CreatedAt),
+		UpdatedAt:          util.FormatDateTime(taskVideo.UpdatedAt),
+	}
+
+	if config.Cfg.VideoTask.IsEnableStorage && taskVideo.VideoUrl != "" {
+		detail.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + taskVideo.VideoUrl
+	}
+
+	if service.Session().IsAdminRole(ctx) {
+		detail.FileName = taskVideo.FileName
+		detail.FilePath = taskVideo.FilePath
+	}
+
+	return detail, nil
 }
 
 // 视频任务分页列表
@@ -107,9 +150,13 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 			Width:     result.Width,
 			Height:    result.Height,
 			Seconds:   result.Seconds,
-			VideoUrl:  result.VideoUrl,
+			Prompt:    result.Prompt,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+		}
+
+		if config.Cfg.VideoTask.IsEnableStorage && result.VideoUrl != "" {
+			audio.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + result.VideoUrl
 		}
 
 		items = append(items, audio)
@@ -123,6 +170,22 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 			Total:    paging.Total,
 		},
 	}, nil
+}
+
+// 视频文件
+func (s *sTaskVideo) Video(ctx context.Context, fileName string) (string, error) {
+
+	taskVideo, err := dao.TaskVideo.FindOne(ctx, bson.M{"file_name": fileName})
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", errors.New("视频文件未找到")
+	}
+
+	if taskVideo == nil || taskVideo.FilePath == "" {
+		return "", errors.New("视频文件未找到")
+	}
+
+	return taskVideo.FilePath, nil
 }
 
 // 定时任务
@@ -200,10 +263,11 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 
 		var (
 			videoUrl string
-			path     string
+			fileName string
+			filePath string
 		)
 
-		if retrieve.Status == "completed" {
+		if retrieve.Status == "completed" && config.Cfg.VideoTask.IsEnableStorage {
 
 			adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
 				Provider: provider.Code,
@@ -219,30 +283,40 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 				logger.Error(ctx, err)
 			} else {
 
-				path = config.Cfg.VideoTask.StorageDir
-				if path == "" {
-					path = "./resource/public/video/"
-				} else if !gstr.HasSuffix(path, "/") {
-					path = path + "/"
+				filePath = config.Cfg.VideoTask.StorageDir
+
+				if filePath == "" {
+					filePath = "./resource/public/video/"
+				} else if !gstr.HasSuffix(filePath, "/") {
+					filePath = filePath + "/"
 				}
 
-				videoUrl = taskVideo.VideoId + "_video.mp4"
-				path += videoUrl
+				fileName = taskVideo.VideoId + "_video.mp4"
 
-				if err = gfile.PutBytes(path, content.Data); err != nil {
+				if err = gfile.PutBytes(filePath+fileName, content.Data); err != nil {
 					logger.Error(ctx, err)
+				} else {
+					if gstr.HasPrefix(filePath, "./resource/public/") {
+						videoUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
+					} else if config.Cfg.VideoTask.StorageBaseUrl == "" {
+						videoUrl = "/open/video/" + fileName
+					} else {
+						videoUrl = fileName
+					}
 				}
 			}
 		}
 
 		if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{
-			"progress":     retrieve.Progress,
-			"status":       retrieve.Status,
-			"completed_at": retrieve.CompletedAt,
-			"expires_at":   retrieve.ExpiresAt,
-			"video_url":    videoUrl,
-			"path":         path,
-			"error":        retrieve.Error,
+			"progress":              retrieve.Progress,
+			"status":                retrieve.Status,
+			"completed_at":          retrieve.CompletedAt,
+			"expires_at":            retrieve.ExpiresAt,
+			"video_url":             videoUrl,
+			"file_name":             fileName,
+			"file_path":             filePath + fileName,
+			"remixed_from_video_id": retrieve.RemixedFromVideoId,
+			"error":                 retrieve.Error,
 		}); err != nil {
 			logger.Error(ctx, err)
 		}

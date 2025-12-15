@@ -27,3 +27,14 @@ type SiteConfigRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.SiteConfigDetailRes
 }
+
+// 视频接口请求参数
+type VideoReq struct {
+	g.Meta   `path:"/video/{file_name}" method:"get" tags:"open" summary:"视频接口"`
+	FileName string `json:"file_name"`
+}
+
+// 视频接口响应参数
+type VideoRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

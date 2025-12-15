@@ -2,6 +2,11 @@ package model
 
 import smodel "github.com/iimeta/fastapi-sdk/model"
 
+// 视频任务详情接口响应参数
+type TaskVideoDetailRes struct {
+	*TaskVideo
+}
+
 // 视频任务分页列表接口请求参数
 type TaskVideoPageReq struct {
 	Paging
@@ -37,6 +42,8 @@ type TaskVideo struct {
 	CompletedAt        string             `json:"completed_at,omitempty"`          // 完成时间
 	ExpiresAt          string             `json:"expires_at,omitempty"`            // 过期时间
 	VideoUrl           string             `json:"video_url,omitempty"`             // 视频地址
+	FileName           string             `json:"file_name,omitempty"`             // 文件名
+	FilePath           string             `json:"file_path,omitempty"`             // 文件路径
 	Error              *smodel.VideoError `json:"error,omitempty"`                 // 错误信息
 	Creator            string             `json:"creator,omitempty"`               // 创建人
 	Updater            string             `json:"updater,omitempty"`               // 更新人

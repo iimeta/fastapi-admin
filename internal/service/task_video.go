@@ -13,8 +13,12 @@ import (
 
 type (
 	ITaskVideo interface {
+		// 视频任务详情
+		Detail(ctx context.Context, id string) (*model.TaskVideo, error)
 		// 视频任务分页列表
 		Page(ctx context.Context, params model.TaskVideoPageReq) (*model.TaskVideoPageRes, error)
+		// 视频文件
+		Video(ctx context.Context, fileName string) (string, error)
 		// 定时任务
 		Task(ctx context.Context)
 	}

@@ -23,7 +23,8 @@ type TaskVideo struct {
 	CompletedAt        int64              `bson:"completed_at,omitempty"`          // 完成时间
 	ExpiresAt          int64              `bson:"expires_at,omitempty"`            // 过期时间
 	VideoUrl           string             `bson:"video_url,omitempty"`             // 视频地址
-	Path               string             `bson:"path,omitempty"`                  // 文件路径
+	FileName           string             `bson:"file_name,omitempty"`             // 文件名
+	FilePath           string             `bson:"file_path,omitempty"`             // 文件路径
 	Error              *smodel.VideoError `bson:"error,omitempty"`                 // 错误信息
 	Rid                int                `bson:"rid,omitempty"`                   // 代理商ID
 	Creator            string             `bson:"creator,omitempty"`               // 创建人
