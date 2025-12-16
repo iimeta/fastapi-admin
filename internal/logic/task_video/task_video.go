@@ -121,6 +121,8 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 
 	if params.Status != "" {
 		filter["status"] = params.Status
+	} else if !service.Session().IsAdminRole(ctx) {
+		filter["status"] = bson.M{"$ne": "deleted"}
 	}
 
 	if len(params.CreatedAt) > 0 {
@@ -238,7 +240,7 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sTaskVideo Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	taskVideos, err := dao.TaskVideo.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
+	taskVideos, err := dao.TaskVideo.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress", "completed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return
@@ -246,6 +248,15 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 
 	providerMap := make(map[string]*entity.Provider)
 	for _, taskVideo := range taskVideos {
+
+		if taskVideo.Status == "completed" {
+			if taskVideo.ExpiresAt <= now/1000 {
+				if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"status": "expired"}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+			continue
+		}
 
 		logVideo, err := dao.LogVideo.FindOne(ctx, bson.M{"trace_id": taskVideo.TraceId})
 		if err != nil {

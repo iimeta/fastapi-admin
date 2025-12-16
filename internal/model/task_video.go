@@ -15,7 +15,7 @@ type TaskVideoPageReq struct {
 	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
 	VideoId   string   `json:"video_id,omitempty"`   // 视频ID
 	VideoUrl  string   `json:"video_url,omitempty"`  // 视频地址
-	Status    string   `json:"status,omitempty"`     // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期]
+	Status    string   `json:"status,omitempty"`     // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
 	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
 }
 
@@ -49,7 +49,7 @@ type TaskVideo struct {
 	Prompt             string             `json:"prompt,omitempty"`                // 提示
 	Progress           int                `json:"progress,omitempty"`              // 进度
 	RemixedFromVideoId string             `json:"remixed_from_video_id,omitempty"` // 混合ID
-	Status             string             `json:"status,omitempty"`                // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期]
+	Status             string             `json:"status,omitempty"`                // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
 	CompletedAt        string             `json:"completed_at,omitempty"`          // 完成时间
 	ExpiresAt          string             `json:"expires_at,omitempty"`            // 过期时间
 	VideoUrl           string             `json:"video_url,omitempty"`             // 视频地址
