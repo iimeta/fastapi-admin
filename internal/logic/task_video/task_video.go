@@ -2,6 +2,8 @@ package task_video
 
 import (
 	"context"
+	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
@@ -116,7 +118,16 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 	}
 
 	if params.VideoUrl != "" {
-		filter["video_url"] = params.VideoUrl
+
+		if gstr.HasPrefix(params.VideoUrl, "http") {
+			if parse, err := url.Parse(params.VideoUrl); err == nil {
+				params.VideoUrl = parse.Path
+			}
+		}
+
+		filter["video_url"] = bson.M{
+			"$regex": regexp.QuoteMeta(params.VideoUrl),
+		}
 	}
 
 	if params.Status != "" {
