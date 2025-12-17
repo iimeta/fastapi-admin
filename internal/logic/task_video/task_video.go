@@ -74,6 +74,15 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 	}
 
 	if config.Cfg.VideoTask.IsEnableStorage && taskVideo.VideoUrl != "" {
+
+		if config.Cfg.VideoTask.StorageBaseUrl != "" {
+			if gstr.HasSuffix(config.Cfg.VideoTask.StorageBaseUrl, "/") {
+				taskVideo.VideoUrl = gstr.TrimLeft(taskVideo.VideoUrl, "/")
+			} else if !gstr.HasPrefix(taskVideo.VideoUrl, "/") {
+				taskVideo.VideoUrl = "/" + taskVideo.VideoUrl
+			}
+		}
+
 		detail.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + taskVideo.VideoUrl
 	}
 
@@ -170,6 +179,15 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 		}
 
 		if config.Cfg.VideoTask.IsEnableStorage && result.VideoUrl != "" {
+
+			if config.Cfg.VideoTask.StorageBaseUrl != "" {
+				if gstr.HasSuffix(config.Cfg.VideoTask.StorageBaseUrl, "/") {
+					result.VideoUrl = gstr.TrimLeft(result.VideoUrl, "/")
+				} else if !gstr.HasPrefix(result.VideoUrl, "/") {
+					result.VideoUrl = "/" + result.VideoUrl
+				}
+			}
+
 			audio.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + result.VideoUrl
 		}
 
@@ -269,7 +287,7 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 			continue
 		}
 
-		logVideo, err := dao.LogVideo.FindOne(ctx, bson.M{"trace_id": taskVideo.TraceId})
+		logVideo, err := dao.LogVideo.FindOne(ctx, bson.M{"trace_id": taskVideo.TraceId, "status": 1})
 		if err != nil {
 			logger.Error(ctx, err)
 			continue
