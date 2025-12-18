@@ -280,7 +280,19 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 
 		if taskVideo.Status == "completed" {
 			if taskVideo.ExpiresAt <= now/1000 {
-				if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"status": "expired"}); err != nil {
+
+				update := bson.M{"status": "expired"}
+
+				if config.Cfg.VideoTask.StorageExpiredDelete && taskVideo.FilePath != "" {
+					update["video_url"] = ""
+					update["file_name"] = ""
+					update["file_path"] = ""
+					if err := gfile.RemoveFile(taskVideo.FilePath); err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+
+				if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, update); err != nil {
 					logger.Error(ctx, err)
 				}
 			}
@@ -362,12 +374,22 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 				if err = gfile.PutBytes(filePath+fileName, content.Data); err != nil {
 					logger.Error(ctx, err)
 				} else {
+
 					if gstr.HasPrefix(filePath, "./resource/public/") {
 						videoUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
 					} else if config.Cfg.VideoTask.StorageBaseUrl == "" {
 						videoUrl = "/open/video/" + fileName
 					} else {
 						videoUrl = fileName
+					}
+
+					if config.Cfg.VideoTask.StorageExpiresAt > 0 {
+						if retrieve.CompletedAt == nil {
+							completedAt := now / 1000
+							retrieve.CompletedAt = &completedAt
+						}
+						expiresAt := gtime.NewFromTimeStamp(*retrieve.CompletedAt).Add(config.Cfg.VideoTask.StorageExpiresAt * time.Minute).Unix()
+						retrieve.ExpiresAt = &expiresAt
 					}
 				}
 			}

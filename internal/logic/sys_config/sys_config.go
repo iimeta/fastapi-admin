@@ -566,8 +566,8 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		},
 		VideoTask: &common.VideoTask{
 			Open:            true,
-			Cron:            "0 * * * * ?",
-			LockMinutes:     10,
+			Cron:            "0/20 * * * * ?",
+			LockMinutes:     30,
 			IsEnableStorage: true,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{
