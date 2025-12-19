@@ -1,6 +1,8 @@
 package common
 
 import (
+	"math"
+
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 	"github.com/iimeta/fastapi-admin/utility/util"
@@ -47,7 +49,11 @@ func ConvQuotaUnitReverse(quota int, n ...int) float64 {
 		n = []int{6}
 	}
 
-	return util.Round(float64(quota)/consts.QUOTA_DEFAULT_UNIT, n[0])
+	if quota > 0 {
+		return util.Round(float64(quota)/consts.QUOTA_DEFAULT_UNIT, n[0])
+	}
+
+	return -util.Round(math.Abs(float64(quota))/consts.QUOTA_DEFAULT_UNIT, n[0])
 }
 
 // 转换模型定价成倍率
