@@ -14,6 +14,12 @@ func Init(ctx context.Context) {
 	// 视频任务
 	videoTask(ctx)
 
+	// 文件任务
+	fileTask(ctx)
+
+	// 批处理任务
+	batchTask(ctx)
+
 	// 错误检查任务
 	errorCheckTask(ctx)
 

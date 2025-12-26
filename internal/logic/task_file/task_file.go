@@ -241,7 +241,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 
 	now := gtime.TimestampMilli()
 
-	mutex := s.fileRedsync.NewMutex(consts.TASK_VIDEO_LOCK_KEY, redsync.WithExpiry(config.Cfg.FileTask.LockMinutes*time.Minute))
+	mutex := s.fileRedsync.NewMutex(consts.TASK_FILE_LOCK_KEY, redsync.WithExpiry(config.Cfg.FileTask.LockMinutes*time.Minute))
 	if err := mutex.LockContext(ctx); err != nil {
 		logger.Info(ctx, "sTaskFile Task", err)
 		logger.Debugf(ctx, "sTaskFile Task end time: %d", gtime.TimestampMilli()-now)
@@ -358,7 +358,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 					filePath = filePath + "/"
 				}
 
-				fileName = taskFile.FileId + "_file.mp4"
+				fileName = retrieve.Filename
 
 				if err = gfile.PutBytes(filePath+fileName, content.Data); err != nil {
 					logger.Error(ctx, err)
@@ -390,7 +390,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 		}
 	}
 
-	if _, err := redis.Set(ctx, consts.TASK_VIDEO_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
+	if _, err := redis.Set(ctx, consts.TASK_FILE_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
 }

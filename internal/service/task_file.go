@@ -21,7 +21,7 @@ type (
 		CopyField(ctx context.Context, params model.TaskFileCopyFieldReq) (string, error)
 		// 文件文件
 		File(ctx context.Context, fileName string) (string, error)
-		// 定时任务
+		// 文件定时任务
 		Task(ctx context.Context)
 	}
 )

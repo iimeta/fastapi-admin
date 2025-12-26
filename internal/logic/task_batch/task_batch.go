@@ -10,11 +10,13 @@ import (
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/internal/config"
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
 	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/internal/service"
 	"github.com/iimeta/fastapi-admin/utility/db"
@@ -193,7 +195,7 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 
 	now := gtime.TimestampMilli()
 
-	mutex := s.batchRedsync.NewMutex(consts.TASK_VIDEO_LOCK_KEY, redsync.WithExpiry(config.Cfg.BatchTask.LockMinutes*time.Minute))
+	mutex := s.batchRedsync.NewMutex(consts.TASK_BATCH_LOCK_KEY, redsync.WithExpiry(config.Cfg.BatchTask.LockMinutes*time.Minute))
 	if err := mutex.LockContext(ctx); err != nil {
 		logger.Info(ctx, "sTaskBatch Task", err)
 		logger.Debugf(ctx, "sTaskBatch Task end time: %d", gtime.TimestampMilli()-now)
@@ -210,7 +212,7 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sTaskBatch Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	taskBatchs, err := dao.TaskBatch.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress", "completed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
+	taskBatchs, err := dao.TaskBatch.Find(ctx, bson.M{"status": bson.M{"$in": []string{"validating", "in_progress", "finalizing", "completed", "cancelling"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return
@@ -221,10 +223,7 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 
 		if taskBatch.Status == "completed" {
 			if taskBatch.ExpiresAt <= now/1000 {
-
-				update := bson.M{"status": "expired"}
-
-				if err = dao.TaskBatch.UpdateById(ctx, taskBatch.Id, update); err != nil {
+				if err = dao.TaskBatch.UpdateById(ctx, taskBatch.Id, bson.M{"status": "expired"}); err != nil {
 					logger.Error(ctx, err)
 				}
 			}
@@ -271,25 +270,129 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 			continue
 		}
 
-		var (
-			batchUrl string
-			fileName string
-			filePath string
-		)
+		if retrieve.Status == "completed" {
+
+			if retrieve.OutputFileId != "" {
+
+				taskFile := do.TaskFile{
+					TraceId: taskBatch.TraceId,
+					UserId:  taskBatch.UserId,
+					AppId:   taskBatch.AppId,
+					Model:   taskBatch.Model,
+					FileId:  retrieve.OutputFileId,
+					Rid:     taskBatch.Rid,
+					Creator: taskBatch.Creator,
+				}
+
+				adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
+					Provider: provider.Code,
+					Model:    logBatch.Model,
+					Key:      logBatch.Key,
+					BaseUrl:  logBatch.ModelAgent.BaseUrl,
+					Path:     logBatch.ModelAgent.Path,
+					Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+					ProxyUrl: config.Cfg.Http.ProxyUrl,
+				})
+
+				retrieve, err := adapter.FileRetrieve(ctx, smodel.FileRetrieveRequest{FileId: retrieve.OutputFileId})
+				if err != nil {
+					logger.Error(ctx, err)
+
+					if id, err := dao.TaskFile.Insert(ctx, taskFile); err != nil {
+						logger.Error(ctx, err)
+					} else {
+						if err = dao.TaskFile.UpdateById(ctx, id, bson.M{
+							"status": "failed",
+							"error":  err,
+						}); err != nil {
+							logger.Error(ctx, err)
+						}
+					}
+
+					continue
+				}
+
+				taskFile.Purpose = retrieve.Purpose
+				taskFile.FileName = retrieve.Filename
+				taskFile.Bytes = retrieve.Bytes
+				taskFile.ExpiresAt = retrieve.ExpiresAt
+				taskFile.Status = retrieve.Status
+
+				if _, err := dao.TaskFile.Insert(ctx, taskFile); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+			if retrieve.ErrorFileId != "" {
+
+				taskFile := do.TaskFile{
+					TraceId: taskBatch.TraceId,
+					UserId:  taskBatch.UserId,
+					AppId:   taskBatch.AppId,
+					Model:   taskBatch.Model,
+					FileId:  retrieve.ErrorFileId,
+					Rid:     taskBatch.Rid,
+					Creator: taskBatch.Creator,
+				}
+
+				adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
+					Provider: provider.Code,
+					Model:    logBatch.Model,
+					Key:      logBatch.Key,
+					BaseUrl:  logBatch.ModelAgent.BaseUrl,
+					Path:     logBatch.ModelAgent.Path,
+					Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+					ProxyUrl: config.Cfg.Http.ProxyUrl,
+				})
+
+				retrieve, err := adapter.FileRetrieve(ctx, smodel.FileRetrieveRequest{FileId: retrieve.ErrorFileId})
+				if err != nil {
+					logger.Error(ctx, err)
+
+					if id, err := dao.TaskFile.Insert(ctx, taskFile); err != nil {
+						logger.Error(ctx, err)
+					} else {
+						if err = dao.TaskFile.UpdateById(ctx, id, bson.M{
+							"status": "failed",
+							"error":  err,
+						}); err != nil {
+							logger.Error(ctx, err)
+						}
+					}
+
+					continue
+				}
+
+				taskFile.Purpose = retrieve.Purpose
+				taskFile.FileName = retrieve.Filename
+				taskFile.Bytes = retrieve.Bytes
+				taskFile.ExpiresAt = retrieve.ExpiresAt
+				taskFile.Status = retrieve.Status
+
+				if _, err := dao.TaskFile.Insert(ctx, taskFile); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
 
 		if err = dao.TaskBatch.UpdateById(ctx, taskBatch.Id, bson.M{
-			"status":       retrieve.Status,
-			"completed_at": retrieve.CompletedAt,
-			"expires_at":   retrieve.ExpiresAt,
-			"batch_url":    batchUrl,
-			"file_name":    fileName,
-			"file_path":    filePath + fileName,
+			"output_file_id": retrieve.OutputFileId,
+			"error_file_id":  retrieve.ErrorFileId,
+			"status":         retrieve.Status,
+			"in_progress_at": retrieve.InProgressAt,
+			"finalizing_at":  retrieve.FinalizingAt,
+			"completed_at":   retrieve.CompletedAt,
+			"expires_at":     retrieve.ExpiresAt,
+			"cancelling_at":  retrieve.CancellingAt,
+			"cancelled_at":   retrieve.CancelledAt,
+			"failed_at":      retrieve.FailedAt,
+			"response_data":  gconv.Map(retrieve.ResponseBytes),
 		}); err != nil {
 			logger.Error(ctx, err)
 		}
 	}
 
-	if _, err := redis.Set(ctx, consts.TASK_VIDEO_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
+	if _, err := redis.Set(ctx, consts.TASK_BATCH_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
 }
