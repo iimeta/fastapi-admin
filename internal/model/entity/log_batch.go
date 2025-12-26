@@ -5,7 +5,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/model/common"
 )
 
-type LogVideo struct {
+type LogBatch struct {
 	gmeta.Meta           `role:"*" bson:"-"`
 	Id                   string                 `bson:"_id,omitempty"`                     // ID
 	TraceId              string                 `bson:"trace_id,omitempty"`                // 日志ID
@@ -32,7 +32,7 @@ type LogVideo struct {
 	RealModelName        string                 `bson:"real_model_name,omitempty"`         // 真实模型名称
 	RealModel            string                 `bson:"real_model,omitempty"`              // 真实模型
 	Action               string                 `bson:"action,omitempty"`                  // 接口
-	VideoId              string                 `bson:"video_id,omitempty"`                // 视频ID
+	BatchId              string                 `bson:"batch_id,omitempty"`                // 批处理ID
 	RequestData          map[string]any         `bson:"request_data,omitempty"`            // 请求数据
 	ResponseData         map[string]any         `bson:"response_data,omitempty"`           // 响应数据
 	Spend                common.Spend           `bson:"spend,omitempty"`                   // 花费

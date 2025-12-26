@@ -17,6 +17,8 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/key"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_audio"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/log_batch"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/log_file"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_general"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_image"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/log_midjourney"
@@ -34,6 +36,8 @@ import (
 	_ "github.com/iimeta/fastapi-admin/internal/logic/statistics"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_admin"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/sys_config"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/task_batch"
+	_ "github.com/iimeta/fastapi-admin/internal/logic/task_file"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/task_video"
 	_ "github.com/iimeta/fastapi-admin/internal/logic/user"
 )

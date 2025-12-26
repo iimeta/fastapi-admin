@@ -29,6 +29,8 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/health"
 	"github.com/iimeta/fastapi-admin/internal/controller/key"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_audio"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_batch"
+	"github.com/iimeta/fastapi-admin/internal/controller/log_file"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_general"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_image"
 	"github.com/iimeta/fastapi-admin/internal/controller/log_midjourney"
@@ -44,6 +46,8 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/controller/statistics"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/internal/controller/sys_config"
+	"github.com/iimeta/fastapi-admin/internal/controller/task_batch"
+	"github.com/iimeta/fastapi-admin/internal/controller/task_file"
 	"github.com/iimeta/fastapi-admin/internal/controller/task_video"
 	"github.com/iimeta/fastapi-admin/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/internal/service"
@@ -105,10 +109,14 @@ var (
 			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/video", "./resource/fastapi-web/")
+			s.AddStaticPath("/task/file", "./resource/fastapi-web/")
+			s.AddStaticPath("/task/batch", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/text", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/image", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/audio", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/video", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/file", "./resource/fastapi-web/")
+			s.AddStaticPath("/log/batch", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/general", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/create", "./resource/fastapi-web/")
@@ -249,6 +257,18 @@ var (
 					)
 				})
 
+				v1.Group("/task/file", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						task_file.NewV1(),
+					)
+				})
+
+				v1.Group("/task/batch", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						task_batch.NewV1(),
+					)
+				})
+
 				v1.Group("/log/text", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						log_text.NewV1(),
@@ -270,6 +290,18 @@ var (
 				v1.Group("/log/video", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						log_video.NewV1(),
+					)
+				})
+
+				v1.Group("/log/file", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						log_file.NewV1(),
+					)
+				})
+
+				v1.Group("/log/batch", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						log_batch.NewV1(),
 					)
 				})
 

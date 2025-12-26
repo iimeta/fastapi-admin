@@ -245,7 +245,7 @@ func (s *sTaskVideo) Video(ctx context.Context, fileName string) (string, error)
 	return taskVideo.FilePath, nil
 }
 
-// 定时任务
+// 视频定时任务
 func (s *sTaskVideo) Task(ctx context.Context) {
 
 	logger.Info(ctx, "sTaskVideo Task start")

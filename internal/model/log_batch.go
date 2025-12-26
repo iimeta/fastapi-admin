@@ -2,13 +2,13 @@ package model
 
 import "github.com/iimeta/fastapi-admin/internal/model/common"
 
-// 视频日志详情接口响应参数
-type LogVideoDetailRes struct {
-	*LogVideo
+// 批处理日志详情接口响应参数
+type LogBatchDetailRes struct {
+	*LogBatch
 }
 
-// 视频日志分页列表接口请求参数
-type LogVideoPageReq struct {
+// 批处理日志分页列表接口请求参数
+type LogBatchPageReq struct {
 	Paging
 	TraceId     string   `json:"trace_id,omitempty"`     // 日志ID
 	UserId      int      `json:"user_id,omitempty"`      // 用户ID
@@ -21,24 +21,24 @@ type LogVideoPageReq struct {
 	ReqTime     []string `json:"req_time,omitempty"`     // 请求时间
 }
 
-// 视频日志分页列表接口响应参数
-type LogVideoPageRes struct {
-	Items  []*LogVideo `json:"items"`
+// 批处理日志分页列表接口响应参数
+type LogBatchPageRes struct {
+	Items  []*LogBatch `json:"items"`
 	Paging *Paging     `json:"paging"`
 }
 
-// 视频日志详情复制字段值接口请求参数
-type LogVideoCopyFieldReq struct {
+// 批处理日志详情复制字段值接口请求参数
+type LogBatchCopyFieldReq struct {
 	Id    string `json:"id"`
 	Field string `json:"field"`
 }
 
-// 视频日志详情复制字段值接口响应参数
-type LogVideoCopyFieldRes struct {
+// 批处理日志详情复制字段值接口响应参数
+type LogBatchCopyFieldRes struct {
 	Value string `json:"value"`
 }
 
-type LogVideo struct {
+type LogBatch struct {
 	Id                   string                 `json:"id,omitempty"`                      // ID
 	TraceId              string                 `json:"trace_id,omitempty"`                // 日志ID
 	UserId               int                    `json:"user_id,omitempty"`                 // 用户ID
@@ -64,7 +64,7 @@ type LogVideo struct {
 	RealModelName        string                 `json:"real_model_name,omitempty"`         // 真实模型名称
 	RealModel            string                 `json:"real_model,omitempty"`              // 真实模型
 	Action               string                 `json:"action,omitempty"`                  // 接口
-	VideoId              string                 `json:"video_id,omitempty"`                // 视频ID
+	BatchId              string                 `json:"batch_id,omitempty"`                // 批处理ID
 	RequestData          map[string]any         `json:"request_data,omitempty"`            // 请求数据
 	ResponseData         map[string]any         `json:"response_data,omitempty"`           // 响应数据
 	Spend                common.Spend           `json:"spend,omitempty"`                   // 花费

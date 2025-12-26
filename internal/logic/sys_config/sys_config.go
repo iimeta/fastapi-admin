@@ -139,6 +139,10 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{QuotaTask: params.QuotaTask}
 	case "video_task":
 		sysConfig = &do.SysConfig{VideoTask: params.VideoTask}
+	case "file_task":
+		sysConfig = &do.SysConfig{FileTask: params.FileTask}
+	case "batch_task":
+		sysConfig = &do.SysConfig{BatchTask: params.BatchTask}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "debug":
@@ -204,6 +208,8 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Quota:                 sysConfig.Quota,
 		QuotaTask:             sysConfig.QuotaTask,
 		VideoTask:             sysConfig.VideoTask,
+		FileTask:              sysConfig.FileTask,
+		BatchTask:             sysConfig.BatchTask,
 		ServiceUnavailable:    sysConfig.ServiceUnavailable,
 		Debug:                 sysConfig.Debug,
 		Creator:               sysConfig.Creator,
@@ -277,6 +283,10 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.QuotaTask = s.Default().QuotaTask
 	case "video_task":
 		sysConfigUpdateReq.VideoTask = s.Default().VideoTask
+	case "file_task":
+		sysConfigUpdateReq.FileTask = s.Default().FileTask
+	case "batch_task":
+		sysConfigUpdateReq.BatchTask = s.Default().BatchTask
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	}
@@ -390,6 +400,20 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.VideoTask == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "video_task"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.FileTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "file_task"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.BatchTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "batch_task"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -569,6 +593,17 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Cron:            "0/20 * * * * ?",
 			LockMinutes:     30,
 			IsEnableStorage: true,
+		},
+		FileTask: &common.FileTask{
+			Open:            true,
+			Cron:            "0/20 * * * * ?",
+			LockMinutes:     30,
+			IsEnableStorage: true,
+		},
+		BatchTask: &common.BatchTask{
+			Open:        true,
+			Cron:        "0/20 * * * * ?",
+			LockMinutes: 30,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{
 			Open: false,

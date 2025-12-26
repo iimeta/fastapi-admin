@@ -1,4 +1,4 @@
-package log_video
+package log_batch
 
 import (
 	"context"
@@ -18,20 +18,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type sLogVideo struct{}
+type sLogBatch struct{}
 
 func init() {
-	service.RegisterLogVideo(New())
+	service.RegisterLogBatch(New())
 }
 
-func New() service.ILogVideo {
-	return &sLogVideo{}
+func New() service.ILogBatch {
+	return &sLogBatch{}
 }
 
-// 视频日志详情
-func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, error) {
+// 批处理日志详情
+func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, error) {
 
-	result, err := dao.LogVideo.FindById(ctx, id)
+	result, err := dao.LogBatch.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -45,7 +45,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	video := &model.LogVideo{
+	batch := &model.LogBatch{
 		Id:           result.Id,
 		TraceId:      result.TraceId,
 		UserId:       result.UserId,
@@ -54,7 +54,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		Model:        result.Model,
 		ModelType:    result.ModelType,
 		Action:       result.Action,
-		VideoId:      result.VideoId,
+		BatchId:      result.BatchId,
 		RequestData:  result.RequestData,
 		ResponseData: result.ResponseData,
 		Spend:        common.ConvSpend(result.Spend),
@@ -67,16 +67,16 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	if video.Status == -1 {
+	if batch.Status == -1 {
 
-		video.ErrMsg = result.ErrMsg
+		batch.ErrMsg = result.ErrMsg
 
 		// 代理商屏蔽错误
 		if service.Session().IsResellerRole(ctx) {
 			if config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
 				for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
-					if gstr.Contains(video.ErrMsg, shieldError) {
-						video.ErrMsg = "详细错误信息请联系管理员..."
+					if gstr.Contains(batch.ErrMsg, shieldError) {
+						batch.ErrMsg = "详细错误信息请联系管理员..."
 						break
 					}
 				}
@@ -87,42 +87,42 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		if service.Session().IsUserRole(ctx) {
 			if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
 				for _, shieldError := range config.Cfg.UserShieldError.Errors {
-					if gstr.Contains(video.ErrMsg, shieldError) {
-						video.ErrMsg = "详细错误信息请联系管理员..."
+					if gstr.Contains(batch.ErrMsg, shieldError) {
+						batch.ErrMsg = "详细错误信息请联系管理员..."
 						break
 					}
 				}
 			}
 		}
 
-		video.ErrMsg = gstr.Split(video.ErrMsg, " TraceId")[0]
-		video.ErrMsg = gstr.Split(video.ErrMsg, " (request id:")[0]
+		batch.ErrMsg = gstr.Split(batch.ErrMsg, " TraceId")[0]
+		batch.ErrMsg = gstr.Split(batch.ErrMsg, " (request id:")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {
 
-		video.ProviderId = result.ProviderId
-		video.ModelId = result.ModelId
-		video.ModelName = result.ModelName
-		video.Key = util.Desensitize(result.Key)
-		video.IsEnablePresetConfig = result.IsEnablePresetConfig
-		video.IsEnableModelAgent = result.IsEnableModelAgent
-		video.ModelAgentId = result.ModelAgentId
-		video.IsEnableForward = result.IsEnableForward
-		video.ForwardConfig = result.ForwardConfig
-		video.IsSmartMatch = result.IsSmartMatch
-		video.IsEnableFallback = result.IsEnableFallback
-		video.FallbackConfig = result.FallbackConfig
-		video.RealModelId = result.RealModelId
-		video.RealModelName = result.RealModelName
-		video.RealModel = result.RealModel
-		video.RemoteIp = result.RemoteIp
-		video.LocalIp = result.LocalIp
-		video.InternalTime = result.InternalTime
-		video.ErrMsg = result.ErrMsg
-		video.IsRetry = result.IsRetry
-		video.CreatedAt = util.FormatDateTime(result.CreatedAt)
-		video.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
+		batch.ProviderId = result.ProviderId
+		batch.ModelId = result.ModelId
+		batch.ModelName = result.ModelName
+		batch.Key = util.Desensitize(result.Key)
+		batch.IsEnablePresetConfig = result.IsEnablePresetConfig
+		batch.IsEnableModelAgent = result.IsEnableModelAgent
+		batch.ModelAgentId = result.ModelAgentId
+		batch.IsEnableForward = result.IsEnableForward
+		batch.ForwardConfig = result.ForwardConfig
+		batch.IsSmartMatch = result.IsSmartMatch
+		batch.IsEnableFallback = result.IsEnableFallback
+		batch.FallbackConfig = result.FallbackConfig
+		batch.RealModelId = result.RealModelId
+		batch.RealModelName = result.RealModelName
+		batch.RealModel = result.RealModel
+		batch.RemoteIp = result.RemoteIp
+		batch.LocalIp = result.LocalIp
+		batch.InternalTime = result.InternalTime
+		batch.ErrMsg = result.ErrMsg
+		batch.IsRetry = result.IsRetry
+		batch.CreatedAt = util.FormatDateTime(result.CreatedAt)
+		batch.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 
 		if result.ModelAgent != nil {
 
@@ -131,7 +131,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 				providerName = provider.Name
 			}
 
-			video.ModelAgent = &model.ModelAgent{
+			batch.ModelAgent = &model.ModelAgent{
 				ProviderId:   result.ModelAgent.ProviderId,
 				ProviderName: providerName,
 				Name:         result.ModelAgent.Name,
@@ -143,11 +143,11 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		}
 	}
 
-	return video, nil
+	return batch, nil
 }
 
-// 视频日志分页列表
-func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*model.LogVideoPageRes, error) {
+// 批处理日志分页列表
+func (s *sLogBatch) Page(ctx context.Context, params model.LogBatchPageReq) (*model.LogBatchPageRes, error) {
 
 	paging := &db.Paging{
 		Page:     params.Page,
@@ -219,23 +219,23 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 		}
 	}
 
-	results, err := dao.LogVideo.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
+	results, err := dao.LogBatch.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	items := make([]*model.LogVideo, 0)
+	items := make([]*model.LogBatch, 0)
 	for _, result := range results {
 
-		video := &model.LogVideo{
+		batch := &model.LogBatch{
 			Id:        result.Id,
 			UserId:    result.UserId,
 			AppId:     result.AppId,
 			Model:     result.Model,
 			ModelType: result.ModelType,
 			Action:    result.Action,
-			VideoId:   result.VideoId,
+			BatchId:   result.BatchId,
 			Spend:     common.ConvSpend(result.Spend),
 			TotalTime: result.TotalTime,
 			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
@@ -243,14 +243,14 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 		}
 
 		if service.Session().IsAdminRole(ctx) {
-			video.InternalTime = result.InternalTime
-			video.IsSmartMatch = result.IsSmartMatch
+			batch.InternalTime = result.InternalTime
+			batch.IsSmartMatch = result.IsSmartMatch
 		}
 
-		items = append(items, video)
+		items = append(items, batch)
 	}
 
-	return &model.LogVideoPageRes{
+	return &model.LogBatchPageRes{
 		Items: items,
 		Paging: &model.Paging{
 			Page:     paging.Page,
@@ -260,10 +260,10 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 	}, nil
 }
 
-// 视频日志详情复制字段值
-func (s *sLogVideo) CopyField(ctx context.Context, params model.LogVideoCopyFieldReq) (string, error) {
+// 批处理日志详情复制字段值
+func (s *sLogBatch) CopyField(ctx context.Context, params model.LogBatchCopyFieldReq) (string, error) {
 
-	result, err := dao.LogVideo.FindById(ctx, params.Id)
+	result, err := dao.LogBatch.FindById(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
@@ -282,8 +282,8 @@ func (s *sLogVideo) CopyField(ctx context.Context, params model.LogVideoCopyFiel
 		return result.Key, nil
 	case "creator":
 		return result.Creator, nil
-	case "video_id":
-		return result.VideoId, nil
+	case "batch_id":
+		return result.BatchId, nil
 	}
 
 	return "", nil

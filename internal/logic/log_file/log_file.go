@@ -1,4 +1,4 @@
-package log_video
+package log_file
 
 import (
 	"context"
@@ -18,20 +18,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type sLogVideo struct{}
+type sLogFile struct{}
 
 func init() {
-	service.RegisterLogVideo(New())
+	service.RegisterLogFile(New())
 }
 
-func New() service.ILogVideo {
-	return &sLogVideo{}
+func New() service.ILogFile {
+	return &sLogFile{}
 }
 
-// 视频日志详情
-func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, error) {
+// 文件日志详情
+func (s *sLogFile) Detail(ctx context.Context, id string) (*model.LogFile, error) {
 
-	result, err := dao.LogVideo.FindById(ctx, id)
+	result, err := dao.LogFile.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -45,7 +45,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		return nil, errors.ERR_UNAUTHORIZED
 	}
 
-	video := &model.LogVideo{
+	file := &model.LogFile{
 		Id:           result.Id,
 		TraceId:      result.TraceId,
 		UserId:       result.UserId,
@@ -54,7 +54,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		Model:        result.Model,
 		ModelType:    result.ModelType,
 		Action:       result.Action,
-		VideoId:      result.VideoId,
+		FileId:       result.FileId,
 		RequestData:  result.RequestData,
 		ResponseData: result.ResponseData,
 		Spend:        common.ConvSpend(result.Spend),
@@ -67,16 +67,16 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	if video.Status == -1 {
+	if file.Status == -1 {
 
-		video.ErrMsg = result.ErrMsg
+		file.ErrMsg = result.ErrMsg
 
 		// 代理商屏蔽错误
 		if service.Session().IsResellerRole(ctx) {
 			if config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
 				for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
-					if gstr.Contains(video.ErrMsg, shieldError) {
-						video.ErrMsg = "详细错误信息请联系管理员..."
+					if gstr.Contains(file.ErrMsg, shieldError) {
+						file.ErrMsg = "详细错误信息请联系管理员..."
 						break
 					}
 				}
@@ -87,42 +87,42 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		if service.Session().IsUserRole(ctx) {
 			if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
 				for _, shieldError := range config.Cfg.UserShieldError.Errors {
-					if gstr.Contains(video.ErrMsg, shieldError) {
-						video.ErrMsg = "详细错误信息请联系管理员..."
+					if gstr.Contains(file.ErrMsg, shieldError) {
+						file.ErrMsg = "详细错误信息请联系管理员..."
 						break
 					}
 				}
 			}
 		}
 
-		video.ErrMsg = gstr.Split(video.ErrMsg, " TraceId")[0]
-		video.ErrMsg = gstr.Split(video.ErrMsg, " (request id:")[0]
+		file.ErrMsg = gstr.Split(file.ErrMsg, " TraceId")[0]
+		file.ErrMsg = gstr.Split(file.ErrMsg, " (request id:")[0]
 	}
 
 	if service.Session().IsAdminRole(ctx) {
 
-		video.ProviderId = result.ProviderId
-		video.ModelId = result.ModelId
-		video.ModelName = result.ModelName
-		video.Key = util.Desensitize(result.Key)
-		video.IsEnablePresetConfig = result.IsEnablePresetConfig
-		video.IsEnableModelAgent = result.IsEnableModelAgent
-		video.ModelAgentId = result.ModelAgentId
-		video.IsEnableForward = result.IsEnableForward
-		video.ForwardConfig = result.ForwardConfig
-		video.IsSmartMatch = result.IsSmartMatch
-		video.IsEnableFallback = result.IsEnableFallback
-		video.FallbackConfig = result.FallbackConfig
-		video.RealModelId = result.RealModelId
-		video.RealModelName = result.RealModelName
-		video.RealModel = result.RealModel
-		video.RemoteIp = result.RemoteIp
-		video.LocalIp = result.LocalIp
-		video.InternalTime = result.InternalTime
-		video.ErrMsg = result.ErrMsg
-		video.IsRetry = result.IsRetry
-		video.CreatedAt = util.FormatDateTime(result.CreatedAt)
-		video.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
+		file.ProviderId = result.ProviderId
+		file.ModelId = result.ModelId
+		file.ModelName = result.ModelName
+		file.Key = util.Desensitize(result.Key)
+		file.IsEnablePresetConfig = result.IsEnablePresetConfig
+		file.IsEnableModelAgent = result.IsEnableModelAgent
+		file.ModelAgentId = result.ModelAgentId
+		file.IsEnableForward = result.IsEnableForward
+		file.ForwardConfig = result.ForwardConfig
+		file.IsSmartMatch = result.IsSmartMatch
+		file.IsEnableFallback = result.IsEnableFallback
+		file.FallbackConfig = result.FallbackConfig
+		file.RealModelId = result.RealModelId
+		file.RealModelName = result.RealModelName
+		file.RealModel = result.RealModel
+		file.RemoteIp = result.RemoteIp
+		file.LocalIp = result.LocalIp
+		file.InternalTime = result.InternalTime
+		file.ErrMsg = result.ErrMsg
+		file.IsRetry = result.IsRetry
+		file.CreatedAt = util.FormatDateTime(result.CreatedAt)
+		file.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 
 		if result.ModelAgent != nil {
 
@@ -131,7 +131,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 				providerName = provider.Name
 			}
 
-			video.ModelAgent = &model.ModelAgent{
+			file.ModelAgent = &model.ModelAgent{
 				ProviderId:   result.ModelAgent.ProviderId,
 				ProviderName: providerName,
 				Name:         result.ModelAgent.Name,
@@ -143,11 +143,11 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		}
 	}
 
-	return video, nil
+	return file, nil
 }
 
-// 视频日志分页列表
-func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*model.LogVideoPageRes, error) {
+// 文件日志分页列表
+func (s *sLogFile) Page(ctx context.Context, params model.LogFilePageReq) (*model.LogFilePageRes, error) {
 
 	paging := &db.Paging{
 		Page:     params.Page,
@@ -219,23 +219,23 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 		}
 	}
 
-	results, err := dao.LogVideo.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
+	results, err := dao.LogFile.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	items := make([]*model.LogVideo, 0)
+	items := make([]*model.LogFile, 0)
 	for _, result := range results {
 
-		video := &model.LogVideo{
+		file := &model.LogFile{
 			Id:        result.Id,
 			UserId:    result.UserId,
 			AppId:     result.AppId,
 			Model:     result.Model,
 			ModelType: result.ModelType,
 			Action:    result.Action,
-			VideoId:   result.VideoId,
+			FileId:    result.FileId,
 			Spend:     common.ConvSpend(result.Spend),
 			TotalTime: result.TotalTime,
 			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
@@ -243,14 +243,14 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 		}
 
 		if service.Session().IsAdminRole(ctx) {
-			video.InternalTime = result.InternalTime
-			video.IsSmartMatch = result.IsSmartMatch
+			file.InternalTime = result.InternalTime
+			file.IsSmartMatch = result.IsSmartMatch
 		}
 
-		items = append(items, video)
+		items = append(items, file)
 	}
 
-	return &model.LogVideoPageRes{
+	return &model.LogFilePageRes{
 		Items: items,
 		Paging: &model.Paging{
 			Page:     paging.Page,
@@ -260,10 +260,10 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 	}, nil
 }
 
-// 视频日志详情复制字段值
-func (s *sLogVideo) CopyField(ctx context.Context, params model.LogVideoCopyFieldReq) (string, error) {
+// 文件日志详情复制字段值
+func (s *sLogFile) CopyField(ctx context.Context, params model.LogFileCopyFieldReq) (string, error) {
 
-	result, err := dao.LogVideo.FindById(ctx, params.Id)
+	result, err := dao.LogFile.FindById(ctx, params.Id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return "", err
@@ -282,8 +282,8 @@ func (s *sLogVideo) CopyField(ctx context.Context, params model.LogVideoCopyFiel
 		return result.Key, nil
 	case "creator":
 		return result.Creator, nil
-	case "video_id":
-		return result.VideoId, nil
+	case "file_id":
+		return result.FileId, nil
 	}
 
 	return "", nil
