@@ -53,18 +53,28 @@ func (s *sTaskBatch) Detail(ctx context.Context, id string) (*model.TaskBatch, e
 	}
 
 	detail := &model.TaskBatch{
-		Id:          taskBatch.Id,
-		TraceId:     taskBatch.TraceId,
-		UserId:      taskBatch.UserId,
-		AppId:       taskBatch.AppId,
-		Model:       taskBatch.Model,
-		BatchId:     taskBatch.BatchId,
-		Status:      taskBatch.Status,
-		CompletedAt: util.FormatDateTime(taskBatch.CompletedAt),
-		ExpiresAt:   util.FormatDateTime(taskBatch.ExpiresAt),
-		Creator:     util.Desensitize(taskBatch.Creator),
-		CreatedAt:   util.FormatDateTime(taskBatch.CreatedAt),
-		UpdatedAt:   util.FormatDateTime(taskBatch.UpdatedAt),
+		Id:           taskBatch.Id,
+		TraceId:      taskBatch.TraceId,
+		UserId:       taskBatch.UserId,
+		AppId:        taskBatch.AppId,
+		Model:        taskBatch.Model,
+		BatchId:      taskBatch.BatchId,
+		InputFileId:  taskBatch.InputFileId,
+		OutputFileId: taskBatch.OutputFileId,
+		ErrorFileId:  taskBatch.ErrorFileId,
+		Status:       taskBatch.Status,
+		InProgressAt: util.FormatDateTime(taskBatch.InProgressAt),
+		FinalizingAt: util.FormatDateTime(taskBatch.FinalizingAt),
+		CompletedAt:  util.FormatDateTime(taskBatch.CompletedAt),
+		ExpiresAt:    util.FormatDateTime(taskBatch.ExpiresAt),
+		CancellingAt: util.FormatDateTime(taskBatch.CancellingAt),
+		CancelledAt:  util.FormatDateTime(taskBatch.CancelledAt),
+		FailedAt:     util.FormatDateTime(taskBatch.FailedAt),
+		ResponseData: taskBatch.ResponseData,
+		Error:        taskBatch.Error,
+		Creator:      util.Desensitize(taskBatch.Creator),
+		CreatedAt:    util.FormatDateTime(taskBatch.CreatedAt),
+		UpdatedAt:    util.FormatDateTime(taskBatch.UpdatedAt),
 	}
 
 	return detail, nil
@@ -139,7 +149,7 @@ func (s *sTaskBatch) Page(ctx context.Context, params model.TaskBatchPageReq) (*
 	items := make([]*model.TaskBatch, 0)
 	for _, result := range results {
 
-		audio := &model.TaskBatch{
+		batch := &model.TaskBatch{
 			Id:        result.Id,
 			TraceId:   result.TraceId,
 			UserId:    result.UserId,
@@ -150,7 +160,7 @@ func (s *sTaskBatch) Page(ctx context.Context, params model.TaskBatchPageReq) (*
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
 		}
 
-		items = append(items, audio)
+		items = append(items, batch)
 	}
 
 	return &model.TaskBatchPageRes{

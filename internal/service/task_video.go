@@ -21,7 +21,7 @@ type (
 		CopyField(ctx context.Context, params model.TaskVideoCopyFieldReq) (string, error)
 		// 视频文件
 		Video(ctx context.Context, fileName string) (string, error)
-		// 定时任务
+		// 视频定时任务
 		Task(ctx context.Context)
 	}
 )

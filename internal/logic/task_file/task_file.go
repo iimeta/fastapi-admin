@@ -52,18 +52,22 @@ func (s *sTaskFile) Detail(ctx context.Context, id string) (*model.TaskFile, err
 	}
 
 	detail := &model.TaskFile{
-		Id:        taskFile.Id,
-		TraceId:   taskFile.TraceId,
-		UserId:    taskFile.UserId,
-		AppId:     taskFile.AppId,
-		Model:     taskFile.Model,
-		FileId:    taskFile.FileId,
-		Status:    taskFile.Status,
-		ExpiresAt: util.FormatDateTime(taskFile.ExpiresAt),
-		Error:     taskFile.Error,
-		Creator:   util.Desensitize(taskFile.Creator),
-		CreatedAt: util.FormatDateTime(taskFile.CreatedAt),
-		UpdatedAt: util.FormatDateTime(taskFile.UpdatedAt),
+		Id:           taskFile.Id,
+		TraceId:      taskFile.TraceId,
+		UserId:       taskFile.UserId,
+		AppId:        taskFile.AppId,
+		Model:        taskFile.Model,
+		Purpose:      taskFile.Purpose,
+		FileId:       taskFile.FileId,
+		FileName:     taskFile.FileName,
+		Bytes:        taskFile.Bytes,
+		Status:       taskFile.Status,
+		ExpiresAt:    util.FormatDateTime(taskFile.ExpiresAt),
+		Error:        taskFile.Error,
+		BatchTraceId: taskFile.BatchTraceId,
+		Creator:      util.Desensitize(taskFile.Creator),
+		CreatedAt:    util.FormatDateTime(taskFile.CreatedAt),
+		UpdatedAt:    util.FormatDateTime(taskFile.UpdatedAt),
 	}
 
 	if config.Cfg.FileTask.IsEnableStorage && taskFile.FileUrl != "" {
@@ -80,7 +84,6 @@ func (s *sTaskFile) Detail(ctx context.Context, id string) (*model.TaskFile, err
 	}
 
 	if service.Session().IsAdminRole(ctx) {
-		detail.FileName = taskFile.FileName
 		detail.FilePath = taskFile.FilePath
 	}
 
@@ -156,13 +159,16 @@ func (s *sTaskFile) Page(ctx context.Context, params model.TaskFilePageReq) (*mo
 	items := make([]*model.TaskFile, 0)
 	for _, result := range results {
 
-		audio := &model.TaskFile{
+		file := &model.TaskFile{
 			Id:        result.Id,
 			TraceId:   result.TraceId,
 			UserId:    result.UserId,
 			AppId:     result.AppId,
 			Model:     result.Model,
+			Purpose:   result.Purpose,
 			FileId:    result.FileId,
+			FileName:  result.FileName,
+			Bytes:     result.Bytes,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
 		}
@@ -177,10 +183,10 @@ func (s *sTaskFile) Page(ctx context.Context, params model.TaskFilePageReq) (*mo
 				}
 			}
 
-			audio.FileUrl = config.Cfg.FileTask.StorageBaseUrl + result.FileUrl
+			file.FileUrl = config.Cfg.FileTask.StorageBaseUrl + result.FileUrl
 		}
 
-		items = append(items, audio)
+		items = append(items, file)
 	}
 
 	return &model.TaskFilePageRes{

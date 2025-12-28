@@ -163,7 +163,7 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 	items := make([]*model.TaskVideo, 0)
 	for _, result := range results {
 
-		audio := &model.TaskVideo{
+		video := &model.TaskVideo{
 			Id:        result.Id,
 			TraceId:   result.TraceId,
 			UserId:    result.UserId,
@@ -188,10 +188,10 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 				}
 			}
 
-			audio.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + result.VideoUrl
+			video.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + result.VideoUrl
 		}
 
-		items = append(items, audio)
+		items = append(items, video)
 	}
 
 	return &model.TaskVideoPageRes{
