@@ -16,8 +16,8 @@ type TaskFilePageReq struct {
 	AppId     int      `json:"app_id,omitempty"`     // 应用ID
 	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
 	FileId    string   `json:"file_id,omitempty"`    // 文件ID
-	FileUrl   string   `json:"file_url,omitempty"`   // 文件地址
-	Status    string   `json:"status,omitempty"`     // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
+	FileName  string   `json:"file_name,omitempty"`  // 文件名
+	Status    string   `json:"status,omitempty"`     // 状态[uploaded:已上传, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
 	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
 }
 
@@ -48,9 +48,9 @@ type TaskFile struct {
 	FileId       string            `json:"file_id,omitempty"`        // 文件ID
 	FileName     string            `json:"file_name,omitempty"`      // 文件名
 	Bytes        int               `json:"bytes,omitempty"`          // 文件大小
+	FileUrl      string            `json:"file_url,omitempty"`       // 文件地址
 	Status       string            `json:"status,omitempty"`         // 状态[uploaded:已上传, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
 	ExpiresAt    string            `json:"expires_at,omitempty"`     // 过期时间
-	FileUrl      string            `json:"file_url,omitempty"`       // 文件地址
 	FilePath     string            `json:"file_path,omitempty"`      // 文件路径
 	Error        *serrors.ApiError `json:"error,omitempty"`          // 错误信息
 	BatchTraceId string            `json:"batch_trace_id,omitempty"` // 批处理日志ID

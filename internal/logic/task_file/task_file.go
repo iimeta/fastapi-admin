@@ -2,7 +2,6 @@ package task_file
 
 import (
 	"context"
-	"net/url"
 	"regexp"
 	"time"
 
@@ -101,7 +100,10 @@ func (s *sTaskFile) Page(ctx context.Context, params model.TaskFilePageReq) (*mo
 	filter := bson.M{}
 
 	if params.TraceId != "" {
-		filter["trace_id"] = gstr.Trim(params.TraceId)
+		filter["$or"] = bson.A{
+			bson.M{"trace_id": gstr.Trim(params.TraceId)},
+			bson.M{"batch_trace_id": gstr.Trim(params.TraceId)},
+		}
 	}
 
 	if service.Session().IsResellerRole(ctx) {
@@ -122,16 +124,9 @@ func (s *sTaskFile) Page(ctx context.Context, params model.TaskFilePageReq) (*mo
 		filter["file_id"] = params.FileId
 	}
 
-	if params.FileUrl != "" {
-
-		if gstr.HasPrefix(params.FileUrl, "http") {
-			if parse, err := url.Parse(params.FileUrl); err == nil {
-				params.FileUrl = parse.Path
-			}
-		}
-
-		filter["file_url"] = bson.M{
-			"$regex": regexp.QuoteMeta(params.FileUrl),
+	if params.FileName != "" {
+		filter["file_name"] = bson.M{
+			"$regex": regexp.QuoteMeta(params.FileName),
 		}
 	}
 

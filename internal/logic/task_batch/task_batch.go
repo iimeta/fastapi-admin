@@ -2,8 +2,6 @@ package task_batch
 
 import (
 	"context"
-	"net/url"
-	"regexp"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
@@ -112,16 +110,11 @@ func (s *sTaskBatch) Page(ctx context.Context, params model.TaskBatchPageReq) (*
 		filter["batch_id"] = params.BatchId
 	}
 
-	if params.BatchUrl != "" {
-
-		if gstr.HasPrefix(params.BatchUrl, "http") {
-			if parse, err := url.Parse(params.BatchUrl); err == nil {
-				params.BatchUrl = parse.Path
-			}
-		}
-
-		filter["batch_url"] = bson.M{
-			"$regex": regexp.QuoteMeta(params.BatchUrl),
+	if params.FileId != "" {
+		filter["$or"] = bson.A{
+			bson.M{"input_file_id": gstr.Trim(params.FileId)},
+			bson.M{"output_file_id": gstr.Trim(params.FileId)},
+			bson.M{"error_file_id": gstr.Trim(params.FileId)},
 		}
 	}
 
@@ -150,14 +143,16 @@ func (s *sTaskBatch) Page(ctx context.Context, params model.TaskBatchPageReq) (*
 	for _, result := range results {
 
 		batch := &model.TaskBatch{
-			Id:        result.Id,
-			TraceId:   result.TraceId,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			BatchId:   result.BatchId,
-			Status:    result.Status,
-			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+			Id:           result.Id,
+			TraceId:      result.TraceId,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			Model:        result.Model,
+			BatchId:      result.BatchId,
+			InputFileId:  result.InputFileId,
+			OutputFileId: result.OutputFileId,
+			Status:       result.Status,
+			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
 		}
 
 		items = append(items, batch)
