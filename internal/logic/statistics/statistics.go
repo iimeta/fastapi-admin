@@ -130,7 +130,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 
 	for _, result := range results {
 
-		if result.Id == lastId {
+		if result.Id == lastId && result.UpdatedAt == lastTime {
 			continue
 		}
 

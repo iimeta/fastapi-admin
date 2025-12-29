@@ -13,6 +13,7 @@ import (
 	"github.com/iimeta/fastapi-admin/internal/consts"
 	"github.com/iimeta/fastapi-admin/internal/dao"
 	"github.com/iimeta/fastapi-admin/internal/errors"
+	"github.com/iimeta/fastapi-admin/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/internal/model"
 	"github.com/iimeta/fastapi-admin/internal/model/do"
 	"github.com/iimeta/fastapi-admin/internal/model/entity"
@@ -276,6 +277,20 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 		}
 
 		if retrieve.Status == "completed" {
+
+			// 计算花费
+			common.Billing(ctx, retrieve.Usage, &logBatch.Spend)
+
+			// 记录花费
+			if err = common.RecordSpend(ctx, logBatch.UserId, logBatch.AppId, logBatch.Creator, logBatch.Rid, logBatch.Key, logBatch.Spend); err != nil {
+				logger.Error(ctx, err)
+				continue
+			}
+
+			if err = dao.LogBatch.UpdateById(ctx, logBatch.Id, bson.M{"spend": logBatch.Spend}); err != nil {
+				logger.Error(ctx, err)
+				continue
+			}
 
 			if retrieve.OutputFileId != "" {
 

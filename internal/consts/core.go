@@ -10,6 +10,7 @@ const (
 
 	APP_QUOTA_FIELD          = "app.%d.quota"
 	APP_IS_LIMIT_QUOTA_FIELD = "app.%d.is_limit_quota"
+	APP_KEY_QUOTA_FIELD      = "key.%d.%s.quota"
 
 	KEY_QUOTA_FIELD          = "key.%d.%s.quota"
 	KEY_IS_LIMIT_QUOTA_FIELD = "key.%d.%s.is_limit_quota"
