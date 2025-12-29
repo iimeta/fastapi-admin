@@ -62,7 +62,7 @@ type ResellerChangeStatusReq struct {
 // 删除代理商接口请求参数
 type ResellerDeleteReq struct {
 	Id   string `json:"id,omitempty"`   // ID
-	Data []int  `json:"data,omitempty"` // 删除数据[1:用户数据, 2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据]
+	Data []int  `json:"data,omitempty"` // 删除数据[1:用户数据, 2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据, 6:任务数据]
 }
 
 // 代理商详情接口响应参数

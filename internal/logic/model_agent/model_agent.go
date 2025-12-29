@@ -618,18 +618,14 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		return nil, err
 	}
 
-	modelMap := make(map[string][]string)
-	modelNameMap := make(map[string][]string)
+	modelNameMap := make(map[string]string)
 
 	fallbackModelMap := make(map[string][]string)
 	fallbackModelNameMap := make(map[string][]string)
 
 	for _, model := range modelList {
 
-		for _, id := range model.ModelAgents {
-			modelMap[id] = append(modelMap[id], model.Id)
-			modelNameMap[id] = append(modelNameMap[id], model.Name)
-		}
+		modelNameMap[model.Id] = model.Name
 
 		if model.IsEnableFallback && model.FallbackConfig.ModelAgent != "" {
 			fallbackModelMap[model.FallbackConfig.ModelAgent] = append(fallbackModelMap[model.FallbackConfig.ModelAgent], model.Id)
@@ -654,6 +650,11 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			}
 		}
 
+		modelNames := make([]string, 0)
+		for _, model := range result.Models {
+			modelNames = append(modelNames, modelNameMap[model])
+		}
+
 		items = append(items, &model.ModelAgent{
 			Id:                 result.Id,
 			ProviderId:         result.ProviderId,
@@ -665,8 +666,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			LbStrategy:         result.LbStrategy,
 			Groups:             groupIds,
 			GroupNames:         groupNames,
-			Models:             modelMap[result.Id],
-			ModelNames:         modelNameMap[result.Id],
+			Models:             result.Models,
+			ModelNames:         modelNames,
 			FallbackModels:     fallbackModelMap[result.Id],
 			FallbackModelNames: fallbackModelNameMap[result.Id],
 			Remark:             result.Remark,

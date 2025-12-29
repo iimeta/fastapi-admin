@@ -56,6 +56,8 @@ type Log struct {
 	ImageReserve   time.Duration `bson:"image_reserve"   json:"image_reserve"`   // 绘图日志保留天数
 	AudioReserve   time.Duration `bson:"audio_reserve"   json:"audio_reserve"`   // 音频日志保留天数
 	VideoReserve   time.Duration `bson:"video_reserve"   json:"video_reserve"`   // 视频日志保留天数
+	FileReserve    time.Duration `bson:"file_reserve"    json:"file_reserve"`    // 文件日志保留天数
+	BatchReserve   time.Duration `bson:"batch_reserve"   json:"batch_reserve"`   // 批处理日志保留天数
 	GeneralReserve time.Duration `bson:"general_reserve" json:"general_reserve"` // 通用日志保留天数
 	Status         []int         `bson:"status"          json:"status"`          // 删除日志状态
 	Cron           string        `bson:"cron"            json:"cron"`            // CRON表达式

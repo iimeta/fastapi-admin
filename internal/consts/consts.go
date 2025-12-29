@@ -64,6 +64,10 @@ const (
 	STATISTICS_LOG_AUDIO_LAST_TIME_KEY   = "statistics:log:audio:last_time"
 	STATISTICS_LOG_VIDEO_LAST_ID_KEY     = "statistics:log:video:last_id"
 	STATISTICS_LOG_VIDEO_LAST_TIME_KEY   = "statistics:log:video:last_time"
+	STATISTICS_LOG_FILE_LAST_ID_KEY      = "statistics:log:file:last_id"
+	STATISTICS_LOG_FILE_LAST_TIME_KEY    = "statistics:log:file:last_time"
+	STATISTICS_LOG_BATCH_LAST_ID_KEY     = "statistics:log:batch:last_id"
+	STATISTICS_LOG_BATCH_LAST_TIME_KEY   = "statistics:log:batch:last_time"
 	STATISTICS_LOG_GENERAL_LAST_ID_KEY   = "statistics:log:general:last_id"
 	STATISTICS_LOG_GENERAL_LAST_TIME_KEY = "statistics:log:general:last_time"
 )

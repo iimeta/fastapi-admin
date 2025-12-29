@@ -482,6 +482,43 @@ func (s *sAdminUser) Delete(ctx context.Context, params model.UserDeleteReq) err
 				logger.Error(ctx, err)
 			}
 
+			if _, err := dao.LogVideo.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.LogFile.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.LogBatch.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.LogGeneral.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	// 删除任务数据
+	if slices.Contains(params.Data, 6) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			if _, err := dao.TaskVideo.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.TaskFile.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if _, err := dao.TaskBatch.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+				logger.Error(ctx, err)
+			}
+
 		}, nil); err != nil {
 			logger.Error(ctx, err)
 		}

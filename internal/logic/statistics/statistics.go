@@ -66,6 +66,10 @@ func (s *sStatistics) StatisticsTask(ctx context.Context) {
 	s.StatisticsData(ctx, dao.LOG_AUDIO, "", consts.STATISTICS_LOG_AUDIO_LAST_TIME_KEY, consts.STATISTICS_LOG_AUDIO_LAST_ID_KEY)
 	// 统计视频数据
 	s.StatisticsData(ctx, dao.LOG_VIDEO, "", consts.STATISTICS_LOG_VIDEO_LAST_TIME_KEY, consts.STATISTICS_LOG_VIDEO_LAST_ID_KEY)
+	// 统计文件数据
+	s.StatisticsData(ctx, dao.LOG_FILE, "", consts.STATISTICS_LOG_FILE_LAST_TIME_KEY, consts.STATISTICS_LOG_FILE_LAST_ID_KEY)
+	// 统计批处理数据
+	s.StatisticsData(ctx, dao.LOG_BATCH, "", consts.STATISTICS_LOG_BATCH_LAST_TIME_KEY, consts.STATISTICS_LOG_BATCH_LAST_ID_KEY)
 	// 统计通用数据
 	s.StatisticsData(ctx, dao.LOG_GENERAL, "", consts.STATISTICS_LOG_GENERAL_LAST_TIME_KEY, consts.STATISTICS_LOG_GENERAL_LAST_ID_KEY)
 

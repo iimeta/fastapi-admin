@@ -392,6 +392,7 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 			"cancelled_at":   retrieve.CancelledAt,
 			"failed_at":      retrieve.FailedAt,
 			"response_data":  gconv.Map(retrieve.ResponseBytes),
+			"error":          retrieve.Errors,
 		}); err != nil {
 			logger.Error(ctx, err)
 		}

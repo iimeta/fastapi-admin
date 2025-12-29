@@ -474,6 +474,8 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			ImageReserve:   90,
 			AudioReserve:   90,
 			VideoReserve:   90,
+			FileReserve:    90,
+			BatchReserve:   90,
 			GeneralReserve: 90,
 			Status:         []int{1, 2, 3, -1},
 			Cron:           "0 0 2 * * ?",

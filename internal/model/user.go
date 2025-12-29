@@ -74,7 +74,7 @@ type UserChangeStatusReq struct {
 // 删除用户接口请求参数
 type UserDeleteReq struct {
 	Id   string `json:"id,omitempty"`   // ID
-	Data []int  `json:"data,omitempty"` // 删除数据[2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据]
+	Data []int  `json:"data,omitempty"` // 删除数据[2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据, 6:任务数据]
 }
 
 // 用户详情接口响应参数
