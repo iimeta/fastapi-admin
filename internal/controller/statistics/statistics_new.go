@@ -5,7 +5,7 @@
 package statistics
 
 import (
-	"github.com/iimeta/fastapi-admin/api/statistics"
+	"github.com/iimeta/fastapi-admin/v2/api/statistics"
 )
 
 type ControllerV1 struct{}

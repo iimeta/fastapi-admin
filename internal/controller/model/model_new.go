@@ -5,7 +5,7 @@
 package model
 
 import (
-	"github.com/iimeta/fastapi-admin/api/model"
+	"github.com/iimeta/fastapi-admin/v2/api/model"
 )
 
 type ControllerV1 struct{}

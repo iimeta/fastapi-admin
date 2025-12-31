@@ -5,7 +5,7 @@
 package notice
 
 import (
-	"github.com/iimeta/fastapi-admin/api/notice"
+	"github.com/iimeta/fastapi-admin/v2/api/notice"
 )
 
 type ControllerV1 struct{}

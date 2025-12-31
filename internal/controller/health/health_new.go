@@ -5,7 +5,7 @@
 package health
 
 import (
-	"github.com/iimeta/fastapi-admin/api/health"
+	"github.com/iimeta/fastapi-admin/v2/api/health"
 )
 
 type ControllerV1 struct{}

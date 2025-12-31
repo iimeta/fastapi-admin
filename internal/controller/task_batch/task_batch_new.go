@@ -5,7 +5,7 @@
 package task_batch
 
 import (
-	"github.com/iimeta/fastapi-admin/api/task_batch"
+	"github.com/iimeta/fastapi-admin/v2/api/task_batch"
 )
 
 type ControllerV1 struct{}

@@ -8,9 +8,9 @@ package service
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/internal/model"
-	mcommon "github.com/iimeta/fastapi-admin/internal/model/common"
-	"github.com/iimeta/fastapi-admin/internal/model/entity"
+	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	mcommon "github.com/iimeta/fastapi-admin/v2/internal/model/common"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
 )
 
 type (

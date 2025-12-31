@@ -5,7 +5,7 @@
 package model_agent
 
 import (
-	"github.com/iimeta/fastapi-admin/api/model_agent"
+	"github.com/iimeta/fastapi-admin/v2/api/model_agent"
 )
 
 type ControllerV1 struct{}

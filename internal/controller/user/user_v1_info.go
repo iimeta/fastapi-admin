@@ -3,12 +3,12 @@ package user
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/user/v1"
-	"github.com/iimeta/fastapi-admin/internal/consts"
-	"github.com/iimeta/fastapi-admin/internal/errors"
-	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/internal/service"
-	"github.com/iimeta/fastapi-admin/utility/util"
+	"github.com/iimeta/fastapi-admin/v2/api/user/v1"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
+	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/service"
+	"github.com/iimeta/fastapi-admin/v2/utility/util"
 )
 
 func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoRes, err error) {

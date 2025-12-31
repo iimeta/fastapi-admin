@@ -6,7 +6,8 @@ package user
 
 import (
 	"context"
-	"github.com/iimeta/fastapi-admin/api/user/v1"
+
+	"github.com/iimeta/fastapi-admin/v2/api/user/v1"
 )
 
 type IUserV1 interface {

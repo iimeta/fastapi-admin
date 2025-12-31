@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/os/gcron"
-	"github.com/iimeta/fastapi-admin/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
 )
 
 var (

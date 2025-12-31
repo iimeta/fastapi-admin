@@ -12,8 +12,8 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtimer"
 	"github.com/gorilla/websocket"
-	"github.com/iimeta/fastapi-admin/internal/config"
-	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 )
 
 func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result any, proxyURL ...string) error {

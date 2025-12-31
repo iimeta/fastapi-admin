@@ -7,7 +7,7 @@ package task_video
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/task_video/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/task_video/v1"
 )
 
 type ITaskVideoV1 interface {

@@ -3,9 +3,9 @@ package common
 import (
 	"math"
 
-	"github.com/iimeta/fastapi-admin/internal/consts"
-	"github.com/iimeta/fastapi-admin/internal/model/common"
-	"github.com/iimeta/fastapi-admin/utility/util"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
+	"github.com/iimeta/fastapi-admin/v2/utility/util"
 )
 
 // 价格转倍率

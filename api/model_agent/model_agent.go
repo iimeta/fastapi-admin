@@ -7,7 +7,7 @@ package model_agent
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/model_agent/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/model_agent/v1"
 )
 
 type IModelAgentV1 interface {

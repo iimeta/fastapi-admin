@@ -7,7 +7,7 @@ package group
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/group/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/group/v1"
 )
 
 type IGroupV1 interface {

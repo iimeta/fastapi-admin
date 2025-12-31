@@ -7,7 +7,7 @@ package common
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/common/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/common/v1"
 )
 
 type ICommonV1 interface {

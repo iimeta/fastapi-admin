@@ -7,7 +7,7 @@ package log_general
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/log_general/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/log_general/v1"
 )
 
 type ILogGeneralV1 interface {

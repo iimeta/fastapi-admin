@@ -1,7 +1,7 @@
 package model
 
 import (
-	serrors "github.com/iimeta/fastapi-sdk/errors"
+	serrors "github.com/iimeta/fastapi-sdk/v2/errors"
 )
 
 // 文件任务详情接口响应参数

@@ -5,7 +5,7 @@
 package log_video
 
 import (
-	"github.com/iimeta/fastapi-admin/api/log_video"
+	"github.com/iimeta/fastapi-admin/v2/api/log_video"
 )
 
 type ControllerV1 struct{}

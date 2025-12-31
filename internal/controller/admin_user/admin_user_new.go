@@ -5,7 +5,7 @@
 package admin_user
 
 import (
-	"github.com/iimeta/fastapi-admin/api/admin_user"
+	"github.com/iimeta/fastapi-admin/v2/api/admin_user"
 )
 
 type ControllerV1 struct{}

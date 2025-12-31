@@ -6,14 +6,14 @@ import (
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/iimeta/fastapi-admin/internal/config"
-	"github.com/iimeta/fastapi-admin/internal/dao"
-	"github.com/iimeta/fastapi-admin/internal/errors"
-	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/internal/service"
-	"github.com/iimeta/fastapi-admin/utility/db"
-	"github.com/iimeta/fastapi-admin/utility/logger"
-	"github.com/iimeta/fastapi-admin/utility/util"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/internal/dao"
+	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/service"
+	"github.com/iimeta/fastapi-admin/v2/utility/db"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

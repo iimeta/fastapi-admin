@@ -7,7 +7,7 @@ package statistics
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/statistics/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/statistics/v1"
 )
 
 type IStatisticsV1 interface {

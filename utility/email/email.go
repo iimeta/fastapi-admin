@@ -8,9 +8,9 @@ import (
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gregex"
-	"github.com/iimeta/fastapi-admin/internal/config"
-	"github.com/iimeta/fastapi-admin/internal/errors"
-	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"gopkg.in/gomail.v2"
 )
 

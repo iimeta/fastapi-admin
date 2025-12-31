@@ -5,7 +5,7 @@
 package log_file
 
 import (
-	"github.com/iimeta/fastapi-admin/api/log_file"
+	"github.com/iimeta/fastapi-admin/v2/api/log_file"
 )
 
 type ControllerV1 struct{}

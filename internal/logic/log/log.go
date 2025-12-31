@@ -7,12 +7,12 @@ import (
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/iimeta/fastapi-admin/internal/config"
-	"github.com/iimeta/fastapi-admin/internal/consts"
-	"github.com/iimeta/fastapi-admin/internal/dao"
-	"github.com/iimeta/fastapi-admin/internal/service"
-	"github.com/iimeta/fastapi-admin/utility/logger"
-	"github.com/iimeta/fastapi-admin/utility/redis"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
+	"github.com/iimeta/fastapi-admin/v2/internal/dao"
+	"github.com/iimeta/fastapi-admin/v2/internal/service"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

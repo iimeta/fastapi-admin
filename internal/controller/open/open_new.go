@@ -5,7 +5,7 @@
 package open
 
 import (
-	"github.com/iimeta/fastapi-admin/api/open"
+	"github.com/iimeta/fastapi-admin/v2/api/open"
 )
 
 type ControllerV1 struct{}

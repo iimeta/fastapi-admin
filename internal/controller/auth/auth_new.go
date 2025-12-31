@@ -5,7 +5,7 @@
 package auth
 
 import (
-	"github.com/iimeta/fastapi-admin/api/auth"
+	"github.com/iimeta/fastapi-admin/v2/api/auth"
 )
 
 type ControllerV1 struct{}

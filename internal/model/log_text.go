@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/iimeta/fastapi-admin/internal/model/common"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 )
 
 // 文本日志详情接口响应参数

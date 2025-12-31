@@ -5,7 +5,7 @@
 package task_file
 
 import (
-	"github.com/iimeta/fastapi-admin/api/task_file"
+	"github.com/iimeta/fastapi-admin/v2/api/task_file"
 )
 
 type ControllerV1 struct{}

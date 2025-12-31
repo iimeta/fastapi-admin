@@ -7,7 +7,7 @@ package notice
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/notice/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/notice/v1"
 )
 
 type INoticeV1 interface {

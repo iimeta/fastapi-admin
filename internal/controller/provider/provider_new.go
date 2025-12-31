@@ -5,7 +5,7 @@
 package provider
 
 import (
-	"github.com/iimeta/fastapi-admin/api/provider"
+	"github.com/iimeta/fastapi-admin/v2/api/provider"
 )
 
 type ControllerV1 struct{}

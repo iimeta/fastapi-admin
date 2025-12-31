@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/util/grand"
-	"github.com/iimeta/fastapi-admin/internal/model/do"
-	"github.com/iimeta/fastapi-admin/internal/model/entity"
-	"github.com/iimeta/fastapi-admin/utility/crypto"
-	"github.com/iimeta/fastapi-admin/utility/db"
-	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/do"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
+	"github.com/iimeta/fastapi-admin/v2/utility/crypto"
+	"github.com/iimeta/fastapi-admin/v2/utility/db"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

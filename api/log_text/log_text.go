@@ -7,7 +7,7 @@ package log_text
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/log_text/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/log_text/v1"
 )
 
 type ILogTextV1 interface {

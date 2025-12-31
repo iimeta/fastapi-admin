@@ -1,6 +1,6 @@
 package model
 
-import smodel "github.com/iimeta/fastapi-sdk/model"
+import smodel "github.com/iimeta/fastapi-sdk/v2/model"
 
 // 视频任务详情接口响应参数
 type TaskVideoDetailRes struct {

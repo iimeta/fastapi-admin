@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/iimeta/fastapi-admin/internal/cmd"
-	_ "github.com/iimeta/fastapi-admin/internal/logic"
-	_ "github.com/iimeta/fastapi-admin/internal/task"
+	"github.com/iimeta/fastapi-admin/v2/internal/cmd"
+	_ "github.com/iimeta/fastapi-admin/v2/internal/logic"
+	_ "github.com/iimeta/fastapi-admin/v2/internal/task"
 )
 
 func main() {

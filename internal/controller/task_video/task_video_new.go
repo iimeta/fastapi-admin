@@ -5,7 +5,7 @@
 package task_video
 
 import (
-	"github.com/iimeta/fastapi-admin/api/task_video"
+	"github.com/iimeta/fastapi-admin/v2/api/task_video"
 )
 
 type ControllerV1 struct{}

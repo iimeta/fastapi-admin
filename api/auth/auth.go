@@ -7,7 +7,7 @@ package auth
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/auth/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/auth/v1"
 )
 
 type IAuthV1 interface {

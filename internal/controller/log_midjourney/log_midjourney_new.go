@@ -5,7 +5,7 @@
 package log_midjourney
 
 import (
-	"github.com/iimeta/fastapi-admin/api/log_midjourney"
+	"github.com/iimeta/fastapi-admin/v2/api/log_midjourney"
 )
 
 type ControllerV1 struct{}

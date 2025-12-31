@@ -5,7 +5,7 @@ import (
 
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/iimeta/fastapi-admin/api/statistics/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/statistics/v1"
 )
 
 func (c *ControllerV1) DataUser(ctx context.Context, req *v1.DataUserReq) (res *v1.DataUserRes, err error) {

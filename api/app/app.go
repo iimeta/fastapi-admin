@@ -7,7 +7,7 @@ package app
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/app/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/app/v1"
 )
 
 type IAppV1 interface {

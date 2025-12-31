@@ -7,7 +7,7 @@ package log_image
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/log_image/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/log_image/v1"
 )
 
 type ILogImageV1 interface {

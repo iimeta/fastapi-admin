@@ -5,7 +5,7 @@
 package log_image
 
 import (
-	"github.com/iimeta/fastapi-admin/api/log_image"
+	"github.com/iimeta/fastapi-admin/v2/api/log_image"
 )
 
 type ControllerV1 struct{}

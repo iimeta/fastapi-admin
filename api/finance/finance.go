@@ -7,7 +7,7 @@ package finance
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/finance/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/finance/v1"
 )
 
 type IFinanceV1 interface {

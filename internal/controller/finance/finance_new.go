@@ -5,7 +5,7 @@
 package finance
 
 import (
-	"github.com/iimeta/fastapi-admin/api/finance"
+	"github.com/iimeta/fastapi-admin/v2/api/finance"
 )
 
 type ControllerV1 struct{}

@@ -2,7 +2,7 @@ package v1
 
 import (
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/model"
 )
 
 // 新建站点配置接口请求参数

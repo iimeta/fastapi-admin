@@ -5,7 +5,7 @@
 package app_key
 
 import (
-	"github.com/iimeta/fastapi-admin/api/app_key"
+	"github.com/iimeta/fastapi-admin/v2/api/app_key"
 )
 
 type ControllerV1 struct{}

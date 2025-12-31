@@ -7,7 +7,7 @@ package app_key
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/app_key/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/app_key/v1"
 )
 
 type IAppKeyV1 interface {

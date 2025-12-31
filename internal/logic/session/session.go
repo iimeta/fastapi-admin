@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/iimeta/fastapi-admin/internal/consts"
-	"github.com/iimeta/fastapi-admin/internal/errors"
-	"github.com/iimeta/fastapi-admin/internal/model"
-	"github.com/iimeta/fastapi-admin/internal/service"
-	"github.com/iimeta/fastapi-admin/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
+	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/service"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 )
 
 type sSession struct{}

@@ -5,7 +5,7 @@
 package group
 
 import (
-	"github.com/iimeta/fastapi-admin/api/group"
+	"github.com/iimeta/fastapi-admin/v2/api/group"
 )
 
 type ControllerV1 struct{}

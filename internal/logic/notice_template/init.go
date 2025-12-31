@@ -3,12 +3,12 @@ package notice_template
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/internal/consts"
-	"github.com/iimeta/fastapi-admin/internal/dao"
-	"github.com/iimeta/fastapi-admin/internal/model/do"
-	"github.com/iimeta/fastapi-admin/internal/model/entity"
-	"github.com/iimeta/fastapi-admin/utility/logger"
-	"github.com/iimeta/fastapi-admin/utility/util"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
+	"github.com/iimeta/fastapi-admin/v2/internal/dao"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/do"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

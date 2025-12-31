@@ -1,6 +1,6 @@
 package model
 
-import "github.com/iimeta/fastapi-admin/internal/model/common"
+import "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 
 // 更新配置接口请求参数
 type SysConfigUpdateReq struct {

@@ -5,7 +5,7 @@
 package site_config
 
 import (
-	"github.com/iimeta/fastapi-admin/api/site_config"
+	"github.com/iimeta/fastapi-admin/v2/api/site_config"
 )
 
 type ControllerV1 struct{}

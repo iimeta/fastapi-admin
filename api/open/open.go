@@ -7,7 +7,7 @@ package open
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/open/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/open/v1"
 )
 
 type IOpenV1 interface {

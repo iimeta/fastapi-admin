@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/iimeta/fastapi-admin/internal/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/model"
 )
 
 // 用户信息接口请求参数

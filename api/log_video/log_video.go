@@ -7,7 +7,7 @@ package log_video
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/log_video/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/log_video/v1"
 )
 
 type ILogVideoV1 interface {

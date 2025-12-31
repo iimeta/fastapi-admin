@@ -4,8 +4,8 @@ import (
 	"context"
 	"math"
 
-	"github.com/iimeta/fastapi-admin/internal/model/common"
-	smodel "github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
+	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 // 计算花费

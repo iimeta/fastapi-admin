@@ -5,7 +5,7 @@
 package log_batch
 
 import (
-	"github.com/iimeta/fastapi-admin/api/log_batch"
+	"github.com/iimeta/fastapi-admin/v2/api/log_batch"
 )
 
 type ControllerV1 struct{}

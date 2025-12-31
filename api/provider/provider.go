@@ -7,7 +7,7 @@ package provider
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/provider/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/provider/v1"
 )
 
 type IProviderV1 interface {

@@ -5,7 +5,7 @@
 package admin_reseller
 
 import (
-	"github.com/iimeta/fastapi-admin/api/admin_reseller"
+	"github.com/iimeta/fastapi-admin/v2/api/admin_reseller"
 )
 
 type ControllerV1 struct{}

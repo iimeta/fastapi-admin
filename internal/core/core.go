@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/iimeta/fastapi-admin/internal/config"
-	"github.com/iimeta/fastapi-admin/internal/dao"
-	"github.com/iimeta/fastapi-admin/utility/logger"
-	"github.com/iimeta/fastapi-admin/utility/redis"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/internal/dao"
+	"github.com/iimeta/fastapi-admin/v2/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

@@ -5,7 +5,7 @@
 package log_audio
 
 import (
-	"github.com/iimeta/fastapi-admin/api/log_audio"
+	"github.com/iimeta/fastapi-admin/v2/api/log_audio"
 )
 
 type ControllerV1 struct{}

@@ -1,6 +1,6 @@
 package model
 
-import "github.com/iimeta/fastapi-admin/internal/model/common"
+import "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 
 // Midjourney日志详情接口响应参数
 type LogMidjourneyDetailRes struct {

@@ -6,7 +6,8 @@ package site_config
 
 import (
 	"context"
-	"github.com/iimeta/fastapi-admin/api/site_config/v1"
+
+	"github.com/iimeta/fastapi-admin/v2/api/site_config/v1"
 )
 
 type ISiteConfigV1 interface {

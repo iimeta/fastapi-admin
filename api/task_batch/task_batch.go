@@ -7,7 +7,7 @@ package task_batch
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/task_batch/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/task_batch/v1"
 )
 
 type ITaskBatchV1 interface {

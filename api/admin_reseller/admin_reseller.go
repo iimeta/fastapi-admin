@@ -7,7 +7,7 @@ package admin_reseller
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/admin_reseller/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/admin_reseller/v1"
 )
 
 type IAdminResellerV1 interface {

@@ -5,7 +5,7 @@
 package sys_admin
 
 import (
-	"github.com/iimeta/fastapi-admin/api/sys_admin"
+	"github.com/iimeta/fastapi-admin/v2/api/sys_admin"
 )
 
 type ControllerV1 struct{}

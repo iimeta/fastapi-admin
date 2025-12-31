@@ -7,7 +7,7 @@ package log_file
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-admin/api/log_file/v1"
+	"github.com/iimeta/fastapi-admin/v2/api/log_file/v1"
 )
 
 type ILogFileV1 interface {

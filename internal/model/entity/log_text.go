@@ -2,7 +2,7 @@ package entity
 
 import (
 	"github.com/gogf/gf/v2/util/gmeta"
-	"github.com/iimeta/fastapi-admin/internal/model/common"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 )
 
 type LogText struct {

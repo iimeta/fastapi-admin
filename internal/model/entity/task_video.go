@@ -2,7 +2,7 @@ package entity
 
 import (
 	"github.com/gogf/gf/v2/util/gmeta"
-	smodel "github.com/iimeta/fastapi-sdk/model"
+	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 type TaskVideo struct {

@@ -1,8 +1,8 @@
-module github.com/iimeta/fastapi-admin
+module github.com/iimeta/fastapi-admin/v2
 
 go 1.25
 
-replace github.com/iimeta/fastapi-sdk => ../fastapi-sdk
+replace github.com/iimeta/fastapi-sdk/v2 => ../fastapi-sdk
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
@@ -10,7 +10,7 @@ require (
 	github.com/gogf/gf/contrib/nosql/redis/v2 v2.9.6
 	github.com/gogf/gf/v2 v2.9.6
 	github.com/gorilla/websocket v1.5.3
-	github.com/iimeta/fastapi-sdk v1.7.0
+	github.com/iimeta/fastapi-sdk/v2 v2.0.0
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/tjfoc/gmsm v1.4.1
 	github.com/xuri/excelize/v2 v2.10.0

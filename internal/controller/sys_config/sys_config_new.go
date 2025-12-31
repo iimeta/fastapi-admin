@@ -5,7 +5,7 @@
 package sys_config
 
 import (
-	"github.com/iimeta/fastapi-admin/api/sys_config"
+	"github.com/iimeta/fastapi-admin/v2/api/sys_config"
 )
 
 type ControllerV1 struct{}
