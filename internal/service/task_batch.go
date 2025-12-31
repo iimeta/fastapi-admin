@@ -19,7 +19,7 @@ type (
 		Page(ctx context.Context, params model.TaskBatchPageReq) (*model.TaskBatchPageRes, error)
 		// 批处理任务详情复制字段值
 		CopyField(ctx context.Context, params model.TaskBatchCopyFieldReq) (string, error)
-		// 批处理定时任务
+		// 批处理任务
 		Task(ctx context.Context)
 	}
 )

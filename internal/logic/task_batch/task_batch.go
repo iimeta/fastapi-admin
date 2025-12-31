@@ -194,7 +194,7 @@ func (s *sTaskBatch) CopyField(ctx context.Context, params model.TaskBatchCopyFi
 	return "", nil
 }
 
-// 批处理定时任务
+// 批处理任务
 func (s *sTaskBatch) Task(ctx context.Context) {
 
 	logger.Info(ctx, "sTaskBatch Task start")

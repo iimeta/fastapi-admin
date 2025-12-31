@@ -38,3 +38,14 @@ type VideoReq struct {
 type VideoRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 文件接口请求参数
+type FileReq struct {
+	g.Meta   `path:"/file/{file_name}" method:"get" tags:"open" summary:"文件接口"`
+	FileName string `json:"file_name"`
+}
+
+// 文件接口响应参数
+type FileRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

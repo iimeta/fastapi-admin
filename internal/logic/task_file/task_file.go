@@ -219,23 +219,23 @@ func (s *sTaskFile) CopyField(ctx context.Context, params model.TaskFileCopyFiel
 	return "", nil
 }
 
-// 文件文件
+// 文件
 func (s *sTaskFile) File(ctx context.Context, fileName string) (string, error) {
 
-	taskFile, err := dao.TaskFile.FindOne(ctx, bson.M{"file_name": fileName})
+	taskFile, err := dao.TaskFile.FindOne(ctx, bson.M{"file_id": gfile.Name(fileName)})
 	if err != nil {
 		logger.Error(ctx, err)
-		return "", errors.New("文件文件未找到")
+		return "", errors.New("文件未找到")
 	}
 
 	if taskFile == nil || taskFile.FilePath == "" {
-		return "", errors.New("文件文件未找到")
+		return "", errors.New("文件未找到")
 	}
 
 	return taskFile.FilePath, nil
 }
 
-// 文件定时任务
+// 文件任务
 func (s *sTaskFile) Task(ctx context.Context) {
 
 	logger.Info(ctx, "sTaskFile Task start")
@@ -259,7 +259,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sTaskFile Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	taskFiles, err := dao.TaskFile.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress", "completed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
+	taskFiles, err := dao.TaskFile.Find(ctx, bson.M{"status": bson.M{"$in": []string{"uploaded", "processed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return
@@ -268,84 +268,91 @@ func (s *sTaskFile) Task(ctx context.Context) {
 	providerMap := make(map[string]*entity.Provider)
 	for _, taskFile := range taskFiles {
 
-		if taskFile.Status == "completed" {
-			if taskFile.ExpiresAt <= now/1000 {
+		if taskFile.ExpiresAt <= now/1000 {
 
-				update := bson.M{"status": "expired"}
+			update := bson.M{"status": "expired"}
 
-				if config.Cfg.FileTask.StorageExpiredDelete && taskFile.FilePath != "" {
-					update["file_url"] = ""
-					update["file_name"] = ""
-					update["file_path"] = ""
-					if err := gfile.RemoveFile(taskFile.FilePath); err != nil {
-						logger.Error(ctx, err)
-					}
-				}
-
-				if err = dao.TaskFile.UpdateById(ctx, taskFile.Id, update); err != nil {
+			if config.Cfg.FileTask.StorageExpiredDelete && taskFile.FilePath != "" {
+				update["file_url"] = ""
+				update["file_name"] = ""
+				update["file_path"] = ""
+				if err := gfile.RemoveFile(taskFile.FilePath); err != nil {
 					logger.Error(ctx, err)
 				}
 			}
-			continue
-		}
 
-		logFile, err := dao.LogFile.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
-		if err != nil {
-			logger.Error(ctx, err)
-			continue
-		}
-
-		provider := providerMap[logFile.ModelAgent.ProviderId]
-		if provider == nil {
-			provider, err = dao.Provider.FindById(ctx, logFile.ModelAgent.ProviderId)
-			if err != nil {
-				logger.Error(ctx, err)
-				continue
-			}
-			providerMap[logFile.ModelAgent.ProviderId] = provider
-		}
-
-		adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-			Provider: provider.Code,
-			Model:    logFile.Model,
-			Key:      logFile.Key,
-			BaseUrl:  logFile.ModelAgent.BaseUrl,
-			Path:     logFile.ModelAgent.Path,
-			Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
-			ProxyUrl: config.Cfg.Http.ProxyUrl,
-		})
-
-		retrieve, err := adapter.FileRetrieve(ctx, smodel.FileRetrieveRequest{FileId: taskFile.FileId})
-		if err != nil {
-			logger.Error(ctx, err)
-
-			if err = dao.TaskFile.UpdateById(ctx, taskFile.Id, bson.M{
-				"status": "failed",
-				"error":  err,
-			}); err != nil {
+			if err = dao.TaskFile.UpdateById(ctx, taskFile.Id, update); err != nil {
 				logger.Error(ctx, err)
 			}
 
 			continue
 		}
 
-		var (
-			fileUrl  string
-			fileName string
-			filePath string
-		)
+		if config.Cfg.FileTask.IsEnableStorage && taskFile.FilePath == "" {
 
-		if retrieve.Status == "completed" && config.Cfg.FileTask.IsEnableStorage {
+			var (
+				fileUrl  string
+				fileName string
+				filePath string
+				adapter  sdk.AdapterGroup
+			)
 
-			adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-				Provider: provider.Code,
-				Model:    logFile.Model,
-				Key:      logFile.Key,
-				BaseUrl:  logFile.ModelAgent.BaseUrl,
-				Path:     logFile.ModelAgent.Path,
-				Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
-				ProxyUrl: config.Cfg.Http.ProxyUrl,
-			})
+			if taskFile.Purpose != "batch_output" {
+
+				logFile, err := dao.LogFile.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				provider := providerMap[logFile.ModelAgent.ProviderId]
+				if provider == nil {
+					provider, err = dao.Provider.FindById(ctx, logFile.ModelAgent.ProviderId)
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+					providerMap[logFile.ModelAgent.ProviderId] = provider
+				}
+
+				adapter = sdk.NewAdapter(ctx, &options.AdapterOptions{
+					Provider: provider.Code,
+					Model:    logFile.Model,
+					Key:      logFile.Key,
+					BaseUrl:  logFile.ModelAgent.BaseUrl,
+					Path:     logFile.ModelAgent.Path,
+					Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+					ProxyUrl: config.Cfg.Http.ProxyUrl,
+				})
+
+			} else {
+
+				logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				provider := providerMap[logBatch.ModelAgent.ProviderId]
+				if provider == nil {
+					provider, err = dao.Provider.FindById(ctx, logBatch.ModelAgent.ProviderId)
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+					providerMap[logBatch.ModelAgent.ProviderId] = provider
+				}
+
+				adapter = sdk.NewAdapter(ctx, &options.AdapterOptions{
+					Provider: provider.Code,
+					Model:    logBatch.Model,
+					Key:      logBatch.Key,
+					BaseUrl:  logBatch.ModelAgent.BaseUrl,
+					Path:     logBatch.ModelAgent.Path,
+					Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+					ProxyUrl: config.Cfg.Http.ProxyUrl,
+				})
+			}
 
 			if content, err := adapter.FileContent(ctx, smodel.FileContentRequest{FileId: taskFile.FileId}); err != nil {
 				logger.Error(ctx, err)
@@ -359,7 +366,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 					filePath = filePath + "/"
 				}
 
-				fileName = retrieve.Filename
+				fileName = taskFile.FileId + gfile.Ext(taskFile.FileName)
 
 				if err = gfile.PutBytes(filePath+fileName, content.Data); err != nil {
 					logger.Error(ctx, err)
@@ -374,20 +381,18 @@ func (s *sTaskFile) Task(ctx context.Context) {
 					}
 
 					if config.Cfg.FileTask.StorageExpiresAt > 0 {
-						retrieve.ExpiresAt = gtime.NewFromTimeStamp(now / 1000).Add(config.Cfg.FileTask.StorageExpiresAt * time.Minute).Unix()
+						taskFile.ExpiresAt = gtime.NewFromTimeStamp(now / 1000).Add(config.Cfg.FileTask.StorageExpiresAt * time.Minute).Unix()
 					}
 				}
 			}
-		}
 
-		if err = dao.TaskFile.UpdateById(ctx, taskFile.Id, bson.M{
-			"status":     retrieve.Status,
-			"expires_at": retrieve.ExpiresAt,
-			"file_url":   fileUrl,
-			"file_name":  fileName,
-			"file_path":  filePath + fileName,
-		}); err != nil {
-			logger.Error(ctx, err)
+			if err = dao.TaskFile.UpdateById(ctx, taskFile.Id, bson.M{
+				"expires_at": taskFile.ExpiresAt,
+				"file_url":   fileUrl,
+				"file_path":  filePath + fileName,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
 		}
 	}
 
