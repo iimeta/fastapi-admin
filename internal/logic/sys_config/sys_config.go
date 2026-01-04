@@ -145,6 +145,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{BatchTask: params.BatchTask}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
+	case "general_api":
+		sysConfig = &do.SysConfig{GeneralApi: params.GeneralApi}
 	case "debug":
 		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
@@ -211,6 +213,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		FileTask:              sysConfig.FileTask,
 		BatchTask:             sysConfig.BatchTask,
 		ServiceUnavailable:    sysConfig.ServiceUnavailable,
+		GeneralApi:            sysConfig.GeneralApi,
 		Debug:                 sysConfig.Debug,
 		Creator:               sysConfig.Creator,
 		Updater:               sysConfig.Updater,
@@ -289,6 +292,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.BatchTask = s.Default().BatchTask
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
+	case "general_api":
+		sysConfigUpdateReq.GeneralApi = s.Default().GeneralApi
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -414,6 +419,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.BatchTask == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "batch_task"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.GeneralApi == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "general_api"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -614,6 +626,10 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				"::1",
 				"172.17.0.1",
 			},
+		},
+		GeneralApi: &common.GeneralApi{
+			Open:        false,
+			IpWhitelist: []string{},
 		},
 		Debug: &common.Debug{
 			Open: false,

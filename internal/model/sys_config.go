@@ -28,6 +28,7 @@ type SysConfigUpdateReq struct {
 	FileTask              *common.FileTask              `json:"file_task,omitempty"`               // 文件任务
 	BatchTask             *common.BatchTask             `json:"batch_task,omitempty"`              // 批处理任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
+	GeneralApi            *common.GeneralApi            `json:"general_api,omitempty"`             // 通用API
 	Debug                 *common.Debug                 `json:"debug,omitempty"`                   // 调试
 }
 
@@ -77,6 +78,7 @@ type SysConfig struct {
 	FileTask              *common.FileTask              `json:"file_task,omitempty"`               // 文件任务
 	BatchTask             *common.BatchTask             `json:"batch_task,omitempty"`              // 批处理任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
+	GeneralApi            *common.GeneralApi            `json:"general_api,omitempty"`             // 通用API
 	Debug                 *common.Debug                 `json:"debug,omitempty"`                   // 调试
 	Creator               string                        `json:"creator,omitempty"`                 // 创建人
 	Updater               string                        `json:"updater,omitempty"`                 // 更新人
