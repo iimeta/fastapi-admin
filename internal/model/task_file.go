@@ -17,7 +17,7 @@ type TaskFilePageReq struct {
 	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
 	FileId    string   `json:"file_id,omitempty"`    // 文件ID
 	FileName  string   `json:"file_name,omitempty"`  // 文件名
-	Status    string   `json:"status,omitempty"`     // 状态[uploaded:已上传, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
+	Status    string   `json:"status,omitempty"`     // 状态[uploaded:已上传, processing:处理中, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
 	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
 }
 
@@ -49,7 +49,7 @@ type TaskFile struct {
 	FileName     string            `json:"file_name,omitempty"`      // 文件名
 	Bytes        int               `json:"bytes,omitempty"`          // 文件大小
 	FileUrl      string            `json:"file_url,omitempty"`       // 文件地址
-	Status       string            `json:"status,omitempty"`         // 状态[uploaded:已上传, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
+	Status       string            `json:"status,omitempty"`         // 状态[uploaded:已上传, processing:处理中, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
 	ExpiresAt    string            `json:"expires_at,omitempty"`     // 过期时间
 	FilePath     string            `json:"file_path,omitempty"`      // 文件路径
 	Error        *serrors.ApiError `json:"error,omitempty"`          // 错误信息
