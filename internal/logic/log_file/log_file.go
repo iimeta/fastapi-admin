@@ -178,7 +178,10 @@ func (s *sLogFile) Page(ctx context.Context, params model.LogFilePageReq) (*mode
 
 	if params.Key != "" {
 		if service.Session().IsAdminRole(ctx) {
-			filter["key"] = params.Key
+			filter["$or"] = bson.A{
+				bson.M{"key": params.Key},
+				bson.M{"creator": params.Key},
+			}
 		} else {
 			filter["creator"] = params.Key
 		}

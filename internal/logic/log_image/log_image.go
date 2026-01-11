@@ -186,7 +186,10 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 
 	if params.Key != "" {
 		if service.Session().IsAdminRole(ctx) {
-			filter["key"] = params.Key
+			filter["$or"] = bson.A{
+				bson.M{"key": params.Key},
+				bson.M{"creator": params.Key},
+			}
 		} else {
 			filter["creator"] = params.Key
 		}

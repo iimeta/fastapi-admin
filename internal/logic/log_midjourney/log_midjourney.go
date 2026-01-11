@@ -174,12 +174,25 @@ func (s *sLogMidjourney) Page(ctx context.Context, params model.LogMidjourneyPag
 	}
 
 	if params.Key != "" {
-		filter["creator"] = params.Key
+		if service.Session().IsAdminRole(ctx) {
+			filter["$or"] = bson.A{
+				bson.M{"key": params.Key},
+				bson.M{"creator": params.Key},
+			}
+		} else {
+			filter["creator"] = params.Key
+		}
 	}
 
 	if len(params.Models) > 0 {
 		filter["model_id"] = bson.M{
 			"$in": params.Models,
+		}
+	}
+
+	if len(params.ModelAgents) > 0 && service.Session().IsAdminRole(ctx) {
+		filter["model_agent_id"] = bson.M{
+			"$in": params.ModelAgents,
 		}
 	}
 
