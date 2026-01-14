@@ -75,6 +75,8 @@ type LogMidjourney struct {
 	Retry                *common.Retry          `json:"retry,omitempty"`                   // 重试
 	Status               int                    `json:"status,omitempty"`                  // 状态[1:成功, -1:失败, 2:中止, 3:重试]
 	Host                 string                 `json:"host,omitempty"`                    // Host
+	Method               string                 `json:"method,omitempty"`                  // Method
+	Path                 string                 `json:"path,omitempty"`                    // Path
 	Creator              string                 `json:"creator,omitempty"`                 // 创建人
 	Updater              string                 `json:"updater,omitempty"`                 // 更新人
 	CreatedAt            string                 `json:"created_at,omitempty"`              // 创建时间

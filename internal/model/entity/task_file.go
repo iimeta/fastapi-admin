@@ -20,6 +20,7 @@ type TaskFile struct {
 	Status       string            `bson:"status,omitempty"`         // 状态[uploaded:已上传, processing:处理中, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
 	ExpiresAt    int64             `bson:"expires_at,omitempty"`     // 过期时间
 	FilePath     string            `bson:"file_path,omitempty"`      // 文件路径
+	ResponseData map[string]any    `bson:"response_data,omitempty"`  // 响应数据
 	Error        *serrors.ApiError `bson:"error,omitempty"`          // 错误信息
 	BatchTraceId string            `bson:"batch_trace_id,omitempty"` // 批处理日志ID
 	Rid          int               `bson:"rid,omitempty"`            // 代理商ID

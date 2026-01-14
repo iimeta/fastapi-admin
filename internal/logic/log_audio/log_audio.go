@@ -62,6 +62,8 @@ func (s *sLogAudio) Detail(ctx context.Context, id string) (*model.LogAudio, err
 		Retry:        result.Retry,
 		Status:       result.Status,
 		Host:         result.Host,
+		Method:       result.Method,
+		Path:         result.Path,
 		Creator:      util.Desensitize(result.Creator),
 	}
 

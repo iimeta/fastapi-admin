@@ -62,6 +62,8 @@ func (s *sLogMidjourney) Detail(ctx context.Context, id string) (*model.LogMidjo
 		Retry:        result.Retry,
 		Status:       result.Status,
 		Host:         result.Host,
+		Method:       result.Method,
+		Path:         result.Path,
 		Creator:      util.Desensitize(result.Creator),
 	}
 

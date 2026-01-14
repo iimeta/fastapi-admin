@@ -62,6 +62,7 @@ func (s *sTaskFile) Detail(ctx context.Context, id string) (*model.TaskFile, err
 		Bytes:        taskFile.Bytes,
 		Status:       taskFile.Status,
 		ExpiresAt:    util.FormatDateTime(taskFile.ExpiresAt),
+		ResponseData: taskFile.ResponseData,
 		Error:        taskFile.Error,
 		BatchTraceId: taskFile.BatchTraceId,
 		Creator:      util.Desensitize(taskFile.Creator),
@@ -259,7 +260,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sTaskFile Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	taskFiles, err := dao.TaskFile.Find(ctx, bson.M{"status": bson.M{"$in": []string{"uploaded", "processed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
+	taskFiles, err := dao.TaskFile.Find(ctx, bson.M{"status": bson.M{"$in": []string{"uploaded", "processing", "processed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return
@@ -288,7 +289,80 @@ func (s *sTaskFile) Task(ctx context.Context) {
 			continue
 		}
 
-		if config.Cfg.FileTask.IsEnableStorage && taskFile.FilePath == "" {
+		if taskFile.Status == "processing" {
+
+			var adapter sdk.AdapterGroup
+
+			if taskFile.Purpose != "batch_output" {
+
+				logFile, err := dao.LogFile.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				provider := providerMap[logFile.ModelAgent.ProviderId]
+				if provider == nil {
+					provider, err = dao.Provider.FindById(ctx, logFile.ModelAgent.ProviderId)
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+					providerMap[logFile.ModelAgent.ProviderId] = provider
+				}
+
+				adapter = sdk.NewAdapter(ctx, &options.AdapterOptions{
+					Provider: provider.Code,
+					Model:    logFile.Model,
+					Key:      logFile.Key,
+					BaseUrl:  logFile.ModelAgent.BaseUrl,
+					Path:     logFile.ModelAgent.Path,
+					Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+					ProxyUrl: config.Cfg.Http.ProxyUrl,
+				})
+
+			} else {
+
+				logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				if err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+
+				provider := providerMap[logBatch.ModelAgent.ProviderId]
+				if provider == nil {
+					provider, err = dao.Provider.FindById(ctx, logBatch.ModelAgent.ProviderId)
+					if err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+					providerMap[logBatch.ModelAgent.ProviderId] = provider
+				}
+
+				adapter = sdk.NewAdapter(ctx, &options.AdapterOptions{
+					Provider: provider.Code,
+					Model:    logBatch.Model,
+					Key:      logBatch.Key,
+					BaseUrl:  logBatch.ModelAgent.BaseUrl,
+					Path:     logBatch.ModelAgent.Path,
+					Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+					ProxyUrl: config.Cfg.Http.ProxyUrl,
+				})
+			}
+
+			if retrieve, err := adapter.FileRetrieve(ctx, smodel.FileRetrieveRequest{FileId: taskFile.FileId}); err != nil {
+				logger.Error(ctx, err)
+			} else {
+				if err = dao.TaskFile.UpdateById(ctx, taskFile.Id, bson.M{
+					"status":        retrieve.Status,
+					"expires_at":    retrieve.ExpiresAt,
+					"response_data": util.ConvToMap(retrieve.ResponseBytes),
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+		} else if config.Cfg.FileTask.IsEnableStorage && taskFile.FileUrl == "" && taskFile.FilePath == "" {
 
 			var (
 				fileUrl  string

@@ -71,6 +71,8 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		Retry:        result.Retry,
 		Status:       result.Status,
 		Host:         result.Host,
+		Method:       result.Method,
+		Path:         result.Path,
 		Creator:      util.Desensitize(result.Creator),
 	}
 

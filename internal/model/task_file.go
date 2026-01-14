@@ -52,6 +52,7 @@ type TaskFile struct {
 	Status       string            `json:"status,omitempty"`         // 状态[uploaded:已上传, processing:处理中, processed:已处理, error:已失败, expired:已过期, deleted:已删除]
 	ExpiresAt    string            `json:"expires_at,omitempty"`     // 过期时间
 	FilePath     string            `json:"file_path,omitempty"`      // 文件路径
+	ResponseData map[string]any    `json:"response_data,omitempty"`  // 响应数据
 	Error        *serrors.ApiError `json:"error,omitempty"`          // 错误信息
 	BatchTraceId string            `json:"batch_trace_id,omitempty"` // 批处理日志ID
 	Creator      string            `json:"creator,omitempty"`        // 创建人

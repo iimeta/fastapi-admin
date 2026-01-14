@@ -64,6 +64,8 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		Retry:        result.Retry,
 		Status:       result.Status,
 		Host:         result.Host,
+		Method:       result.Method,
+		Path:         result.Path,
 		Creator:      util.Desensitize(result.Creator),
 	}
 

@@ -8,7 +8,6 @@ import (
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -406,7 +405,7 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 			"cancelling_at":  retrieve.CancellingAt,
 			"cancelled_at":   retrieve.CancelledAt,
 			"failed_at":      retrieve.FailedAt,
-			"response_data":  gconv.Map(retrieve.ResponseBytes),
+			"response_data":  util.ConvToMap(retrieve.ResponseBytes),
 			"error":          retrieve.Errors,
 		}); err != nil {
 			logger.Error(ctx, err)
