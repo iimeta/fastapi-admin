@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcron"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -121,6 +122,10 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{ResellerShieldError: params.ResellerShieldError}
 	case "admin_login":
 		sysConfig = &do.SysConfig{AdminLogin: params.AdminLogin}
+		if config.Cfg.AdminLogin.Path != params.AdminLogin.Path {
+			// 自定义管理端登录路径
+			ghttp.GetServer().AddStaticPath("/"+params.AdminLogin.Path, "./resource/fastapi-web/")
+		}
 	case "auto_disabled_error":
 		sysConfig = &do.SysConfig{AutoDisabledError: params.AutoDisabledError}
 	case "auto_enable_error":

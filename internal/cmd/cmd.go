@@ -74,8 +74,8 @@ var (
 			s.SetServerRoot("./resource/fastapi-web/")
 
 			s.AddStaticPath("/", "./resource/index/")
-			s.AddStaticPath("/reseller", "./resource/fastapi-web/")
 			s.AddStaticPath("/login", "./resource/fastapi-web/")
+			s.AddStaticPath("/reseller", "./resource/fastapi-web/")
 			s.AddStaticPath("/dashboard/workplace", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/model", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/group", "./resource/fastapi-web/")
