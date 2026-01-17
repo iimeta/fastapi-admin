@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtimer"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -316,12 +317,18 @@ func (s *sSysConfig) Refresh(ctx context.Context, params model.SysConfigRefreshR
 }
 
 // 系统配置
-func (s *sSysConfig) Config(ctx context.Context) (*model.SysConfig, error) {
+func (s *sSysConfig) Config(ctx context.Context, params model.SysConfigReq) (*model.SysConfig, error) {
 
 	sysConfig, err := dao.SysConfig.FindOne(ctx, bson.M{})
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
+	}
+
+	if sysConfig.AdminLogin.Path == "" || sysConfig.AdminLogin.Path == "admin" {
+		sysConfig.AdminLogin.Path = "admin"
+	} else if sysConfig.AdminLogin.Path != gstr.TrimLeft(params.Path, "/") {
+		sysConfig.AdminLogin.Path = ""
 	}
 
 	return &model.SysConfig{
@@ -536,6 +543,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			EmailLogin:    true,
 			EmailRetrieve: true,
 			SessionExpire: 3600 * 6,
+			Path:          "admin",
 		},
 		AutoDisabledError: &common.AutoDisabledError{
 			Open: true,

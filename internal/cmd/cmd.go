@@ -76,7 +76,6 @@ var (
 			s.AddStaticPath("/", "./resource/index/")
 			s.AddStaticPath("/reseller", "./resource/fastapi-web/")
 			s.AddStaticPath("/login", "./resource/fastapi-web/")
-			s.AddStaticPath("/admin", "./resource/fastapi-web/")
 			s.AddStaticPath("/dashboard/workplace", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/model", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/group", "./resource/fastapi-web/")
@@ -130,6 +129,13 @@ var (
 			s.AddStaticPath("/sys/config", "./resource/fastapi-web/")
 
 			s.AddStaticPath("/public", "./resource/public")
+
+			// 自定义管理端登录路径
+			if config.Cfg.AdminLogin != nil && config.Cfg.AdminLogin.Path != "" {
+				s.AddStaticPath("/"+config.Cfg.AdminLogin.Path, "./resource/fastapi-web/")
+			} else {
+				s.AddStaticPath("/admin", "./resource/fastapi-web/")
+			}
 
 			s.Use(authMiddleware)
 			s.Use(middlewareHandlerResponse)

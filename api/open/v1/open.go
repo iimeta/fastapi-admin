@@ -7,7 +7,8 @@ import (
 
 // 系统配置接口请求参数
 type SysConfigReq struct {
-	g.Meta `path:"/sys/config" method:"get" tags:"open" summary:"系统配置接口"`
+	g.Meta `path:"/sys/config" method:"post" tags:"open" summary:"系统配置接口"`
+	model.SysConfigReq
 }
 
 // 系统配置接口响应参数
