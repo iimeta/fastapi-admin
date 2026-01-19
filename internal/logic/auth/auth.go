@@ -640,6 +640,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 	} else if params.Channel == consts.ADMIN_CHANNEL {
 
+		if config.Cfg.AdminLogin.Path != "" && gstr.TrimLeft(params.Path, "/") != config.Cfg.AdminLogin.Path {
+			return nil, errors.New("账号或密码不正确")
+		}
+
 		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{
 			"$or": bson.A{
 				bson.M{"account": params.Account},

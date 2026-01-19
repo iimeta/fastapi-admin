@@ -9,6 +9,7 @@ type LoginReq struct {
 	Channel  string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
 	Method   string `json:"method,omitempty" v:"required|in:account,code"`             // 登录方式
 	Domain   string `json:"domain,omitempty"`                                          // 域名
+	Path     string `json:"path,omitempty"`                                            // 路径
 }
 
 // 登录接口响应参数
@@ -26,6 +27,7 @@ type RegisterReq struct {
 	Channel  string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
 	Code     string `json:"code,omitempty" v:"required"`                               // 验证码
 	Domain   string `json:"domain,omitempty"`                                          // 域名
+	Path     string `json:"path,omitempty"`                                            // 路径
 }
 
 // Token 刷新接口响应参数
@@ -43,4 +45,5 @@ type ForgetReq struct {
 	Channel  string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
 	Code     string `json:"code,omitempty" v:"required"`                               // 验证码
 	Domain   string `json:"domain,omitempty"`                                          // 域名
+	Path     string `json:"path,omitempty"`                                            // 路径
 }
