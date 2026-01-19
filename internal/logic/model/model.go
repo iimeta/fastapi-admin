@@ -1668,9 +1668,6 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 	for _, data := range result.Data {
 
 		provider := providerNameMap[data.FastAPI.Provider]
-		if provider == "" {
-			provider = providerCodeMap[data.FastAPI.Code]
-		}
 
 		if provider == "" {
 			if provider, err = service.Provider().Create(ctx, model.ProviderCreateReq{
