@@ -92,6 +92,17 @@ type ModelAgentBatchOperateReq struct {
 	Value  any      `json:"value"`  // 值
 }
 
+// 快速填入模型接口请求参数
+type ModelAgentQuickFillModelReq struct {
+	BaseUrl string `json:"base_url,omitempty"` // 模型代理地址
+	Key     string `json:"key,omitempty"`      // 密钥
+}
+
+// 快速填入模型接口响应参数
+type ModelAgentQuickFillModelRes struct {
+	Models []string `json:"models,omitempty"` // 模型
+}
+
 type ModelAgent struct {
 	Id                   string   `json:"id,omitempty"`                      // ID
 	ProviderId           string   `json:"provider_id,omitempty"`             // 提供商ID

@@ -19,4 +19,5 @@ type IModelAgentV1 interface {
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
+	QuickFillModel(ctx context.Context, req *v1.QuickFillModelReq) (res *v1.QuickFillModelRes, err error)
 }

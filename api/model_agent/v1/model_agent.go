@@ -95,3 +95,15 @@ type BatchOperateReq struct {
 type BatchOperateRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 快速填入模型接口请求参数
+type QuickFillModelReq struct {
+	g.Meta `path:"/quick/fill/model" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"快速填入模型接口"`
+	model.ModelAgentQuickFillModelReq
+}
+
+// 快速填入模型接口响应参数
+type QuickFillModelRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ModelAgentQuickFillModelRes
+}

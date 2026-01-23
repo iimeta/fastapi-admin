@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -777,4 +778,46 @@ func (s *sModelAgent) IsNameExist(ctx context.Context, name string, id ...string
 	}
 
 	return false
+}
+
+// 快速填入模型
+func (s *sModelAgent) QuickFillModel(ctx context.Context, params model.ModelAgentQuickFillModelReq) ([]string, error) {
+
+	if params.BaseUrl == "" {
+		return nil, errors.New("请输入代理地址后重试")
+	}
+
+	keys := gstr.Split(gstr.Trim(params.Key), "\n")
+	if len(keys) == 0 || keys[0] == "" {
+		return nil, errors.New("请输入密钥后重试")
+	}
+
+	result := &model.ModelsRes{}
+	if err := util.HttpGet(ctx, params.BaseUrl+"/models", g.MapStrStr{"Authorization": "Bearer " + keys[0]}, nil, &result); err != nil {
+		logger.Error(ctx, err)
+		return nil, errors.New("获取数据异常, 请手动选择模型")
+	}
+
+	if len(result.Data) == 0 {
+		return nil, errors.New("获取数据为空, 请手动选择模型")
+	}
+
+	list, err := service.Model().List(ctx, model.ModelListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	models := make([]string, 0)
+
+	for _, data := range result.Data {
+		for _, model := range list {
+			if data.Id == model.Model {
+				models = append(models, model.Id)
+			}
+		}
+	}
+
+	return models, nil
+
 }

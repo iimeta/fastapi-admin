@@ -31,6 +31,8 @@ type (
 		BatchOperate(ctx context.Context, params model.ModelAgentBatchOperateReq) error
 		// 模型代理名称是否存在
 		IsNameExist(ctx context.Context, name string, id ...string) bool
+		// 快速填入模型
+		QuickFillModel(ctx context.Context, params model.ModelAgentQuickFillModelReq) ([]string, error)
 	}
 )
 
