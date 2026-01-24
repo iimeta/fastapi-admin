@@ -23,6 +23,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
+	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -153,6 +154,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "general_api":
 		sysConfig = &do.SysConfig{GeneralApi: params.GeneralApi}
+	case "test":
+		sysConfig = &do.SysConfig{Test: params.Test}
 	case "debug":
 		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
@@ -220,6 +223,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		BatchTask:             sysConfig.BatchTask,
 		ServiceUnavailable:    sysConfig.ServiceUnavailable,
 		GeneralApi:            sysConfig.GeneralApi,
+		Test:                  sysConfig.Test,
 		Debug:                 sysConfig.Debug,
 		Creator:               sysConfig.Creator,
 		Updater:               sysConfig.Updater,
@@ -300,6 +304,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	case "general_api":
 		sysConfigUpdateReq.GeneralApi = s.Default().GeneralApi
+	case "test":
+		sysConfigUpdateReq.Test = s.Default().Test
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -438,6 +444,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.GeneralApi == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "general_api"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.Test == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "test"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -602,7 +615,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		},
 		Quota: &common.Quota{
 			Warning:           true,
-			Threshold:         100 * consts.QUOTA_DEFAULT_UNIT,
+			Threshold:         100,
 			ExpiredWarning:    true,
 			ExpiredThreshold:  3,
 			ExhaustedNotice:   true,
@@ -643,6 +656,28 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		GeneralApi: &common.GeneralApi{
 			Open:        false,
 			IpWhitelist: []string{},
+		},
+		Test: &common.Test{
+			Tests: []common.TestItem{
+				{
+					Provider:    sconsts.PROVIDER_OPENAI,
+					Model:       "gpt-4o-mini",
+					ModelType:   1,
+					RequestData: `{"model":"gpt-4o-mini","stream":false,"messages":[{"role":"user","content":"hi"}]}`,
+				},
+				{
+					Provider:    sconsts.PROVIDER_ANTHROPIC,
+					Model:       "claude-3-5-sonnet-20241022",
+					ModelType:   1,
+					RequestData: `{"model":"claude-3-5-sonnet-20241022","stream":false,"max_tokens":4096,"messages":[{"role":"user","content":"Hello"}]}`,
+				},
+				{
+					Provider:    sconsts.PROVIDER_GOOGLE,
+					Model:       "gemini-2.0-flash-exp",
+					ModelType:   1,
+					RequestData: `{"contents":[{"role":"user","parts":[{"text":"Hello"}]}]}`,
+				},
+			},
 		},
 		Debug: &common.Debug{
 			Open: false,

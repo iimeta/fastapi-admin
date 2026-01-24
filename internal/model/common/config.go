@@ -184,6 +184,17 @@ type GeneralApi struct {
 	IpWhitelist []string `bson:"ip_whitelist" json:"ip_whitelist"` // IP白名单
 }
 
+type Test struct {
+	Tests []TestItem `bson:"tests" json:"tests"` // 测试
+}
+
+type TestItem struct {
+	Provider    string `bson:"provider"     json:"provider"`     // 提供商
+	Model       string `bson:"model"        json:"model"`        // 模型
+	ModelType   int    `bson:"model_type"   json:"model_type"`   // 模型类型
+	RequestData string `bson:"request_data" json:"request_data"` // 请求数据
+}
+
 type Debug struct {
 	Open bool `bson:"open" json:"open"` // 开关
 }
