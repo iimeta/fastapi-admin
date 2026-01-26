@@ -661,19 +661,19 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Tests: []common.TestItem{
 				{
 					Provider:    sconsts.PROVIDER_OPENAI,
-					Model:       "gpt-4o-mini",
+					Model:       "all",
 					ModelType:   1,
-					RequestData: `{"model":"gpt-4o-mini","stream":false,"messages":[{"role":"user","content":"hi"}]}`,
+					RequestData: `{"model":"{{.model}}","stream":false,"messages":[{"role":"user","content":"hi"}]}`,
 				},
 				{
 					Provider:    sconsts.PROVIDER_ANTHROPIC,
-					Model:       "claude-3-5-sonnet-20241022",
+					Model:       "all",
 					ModelType:   1,
-					RequestData: `{"model":"claude-3-5-sonnet-20241022","stream":false,"max_tokens":4096,"messages":[{"role":"user","content":"Hello"}]}`,
+					RequestData: `{"model":"{{.model}}","stream":false,"max_tokens":4096,"messages":[{"role":"user","content":"Hello"}]}`,
 				},
 				{
 					Provider:    sconsts.PROVIDER_GOOGLE,
-					Model:       "gemini-2.0-flash-exp",
+					Model:       "all",
 					ModelType:   1,
 					RequestData: `{"contents":[{"role":"user","parts":[{"text":"Hello"}]}]}`,
 				},
