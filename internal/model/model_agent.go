@@ -7,6 +7,7 @@ type ModelAgentCreateReq struct {
 	BaseUrl              string   `json:"base_url,omitempty"`                // 模型代理地址
 	Path                 string   `json:"path,omitempty"`                    // 模型代理地址路径
 	Weight               int      `json:"weight,omitempty"`                  // 权重
+	BillingMethods       []int    `json:"billing_methods,omitempty"`         // 计费方式[1:按Tokens, 2:按次]
 	Groups               []string `json:"groups,omitempty"`                  // 绑定分组
 	Models               []string `json:"models,omitempty" d:"[]"`           // 绑定模型
 	IsEnableModelReplace bool     `json:"is_enable_model_replace,omitempty"` // 是否启用模型替换
@@ -29,6 +30,7 @@ type ModelAgentUpdateReq struct {
 	BaseUrl              string   `json:"base_url,omitempty"`                // 模型代理地址
 	Path                 string   `json:"path,omitempty"`                    // 模型代理地址路径
 	Weight               int      `json:"weight,omitempty"`                  // 权重
+	BillingMethods       []int    `json:"billing_methods,omitempty"`         // 计费方式[1:按Tokens, 2:按次]
 	Groups               []string `json:"groups,omitempty"`                  // 绑定分组
 	Models               []string `json:"models,omitempty" d:"[]"`           // 绑定模型
 	IsEnableModelReplace bool     `json:"is_enable_model_replace,omitempty"` // 是否启用模型替换
@@ -111,6 +113,7 @@ type ModelAgent struct {
 	BaseUrl              string   `json:"base_url,omitempty"`                // 模型代理地址
 	Path                 string   `json:"path,omitempty"`                    // 模型代理地址路径
 	Weight               int      `json:"weight,omitempty"`                  // 权重
+	BillingMethods       []int    `json:"billing_methods,omitempty"`         // 计费方式[1:按Tokens, 2:按次]
 	Groups               []string `json:"groups,omitempty"`                  // 绑定分组
 	GroupNames           []string `json:"group_names,omitempty"`             // 分组名称
 	Models               []string `json:"models,omitempty"`                  // 绑定模型

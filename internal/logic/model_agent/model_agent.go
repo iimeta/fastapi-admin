@@ -49,6 +49,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		BaseUrl:              gstr.Trim(params.BaseUrl),
 		Path:                 gstr.Trim(params.Path),
 		Weight:               params.Weight,
+		BillingMethods:       params.BillingMethods,
 		Models:               params.Models,
 		IsEnableModelReplace: params.IsEnableModelReplace,
 		ReplaceModels:        params.ReplaceModels,
@@ -152,6 +153,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		BaseUrl:              gstr.Trim(params.BaseUrl),
 		Path:                 gstr.Trim(params.Path),
 		Weight:               params.Weight,
+		BillingMethods:       params.BillingMethods,
 		Models:               params.Models,
 		IsEnableModelReplace: params.IsEnableModelReplace,
 		ReplaceModels:        params.ReplaceModels,
@@ -510,6 +512,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		BaseUrl:              modelAgent.BaseUrl,
 		Path:                 modelAgent.Path,
 		Weight:               modelAgent.Weight,
+		BillingMethods:       modelAgent.BillingMethods,
 		Groups:               groupIds,
 		GroupNames:           groupNames,
 		Models:               modelAgent.Models,
@@ -664,6 +667,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			BaseUrl:            result.BaseUrl,
 			Path:               result.Path,
 			Weight:             result.Weight,
+			BillingMethods:     result.BillingMethods,
 			LbStrategy:         result.LbStrategy,
 			Groups:             groupIds,
 			GroupNames:         groupNames,
@@ -819,5 +823,4 @@ func (s *sModelAgent) QuickFillModel(ctx context.Context, params model.ModelAgen
 	}
 
 	return models, nil
-
 }
