@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
@@ -23,6 +24,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
+	sutil "github.com/iimeta/fastapi-sdk/v2/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -1484,7 +1486,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 			return nil, err
 		}
 
-		if app.Models == nil {
+		if len(app.Models) == 0 {
 			return nil, nil
 		}
 
@@ -1498,7 +1500,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 			return nil, err
 		}
 
-		if appKey.Models == nil {
+		if len(appKey.Models) == 0 {
 			return nil, nil
 		}
 
@@ -1512,7 +1514,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 			return nil, err
 		}
 
-		if key.Models == nil {
+		if len(key.Models) == 0 {
 			return nil, nil
 		}
 
@@ -1526,7 +1528,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 			return nil, err
 		}
 
-		if modelAgent.Models == nil {
+		if len(modelAgent.Models) == 0 {
 			return nil, nil
 		}
 
@@ -1540,7 +1542,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 			return nil, err
 		}
 
-		if modelAgent.FallbackModels == nil {
+		if len(modelAgent.FallbackModels) == 0 {
 			return nil, nil
 		}
 
@@ -1554,7 +1556,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 			return nil, err
 		}
 
-		if group.Models == nil {
+		if len(group.Models) == 0 {
 			return nil, nil
 		}
 
@@ -1571,7 +1573,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) error {
 
 	result := &model.ModelsRes{}
-	if err := util.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, g.MapStrAny{"is_fastapi": true}, &result); err != nil {
+	if _, err := sutil.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, g.MapStrAny{"is_fastapi": true}, &result, config.Cfg.Http.Timeout, config.Cfg.Http.ProxyUrl, nil); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

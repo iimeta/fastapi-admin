@@ -107,3 +107,15 @@ type QuickFillModelRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.ModelAgentQuickFillModelRes
 }
+
+// 模型代理测试模型接口请求参数
+type TestModelReq struct {
+	g.Meta `path:"/test/model" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理测试模型接口"`
+	model.ModelAgentTestModelReq
+}
+
+// 模型代理测试模型接口响应参数
+type TestModelRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ModelAgentTestModelRes
+}

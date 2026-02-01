@@ -7,10 +7,13 @@ import (
 
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
@@ -22,6 +25,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
+	sutil "github.com/iimeta/fastapi-sdk/v2/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -797,7 +801,7 @@ func (s *sModelAgent) QuickFillModel(ctx context.Context, params model.ModelAgen
 	}
 
 	result := &model.ModelsRes{}
-	if err := util.HttpGet(ctx, params.BaseUrl+"/models", g.MapStrStr{"Authorization": "Bearer " + keys[0]}, nil, &result); err != nil {
+	if _, err := sutil.HttpGet(ctx, params.BaseUrl+"/models", g.MapStrStr{"Authorization": "Bearer " + keys[0]}, nil, &result, config.Cfg.Http.Timeout, config.Cfg.Http.ProxyUrl, nil); err != nil {
 		logger.Error(ctx, err)
 		return nil, errors.New("获取数据异常, 请手动选择模型")
 	}
@@ -823,4 +827,13 @@ func (s *sModelAgent) QuickFillModel(ctx context.Context, params model.ModelAgen
 	}
 
 	return models, nil
+}
+
+// 测试模型
+func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTestModelReq) (*model.ModelAgentTestModelRes, error) {
+	return &model.ModelAgentTestModelRes{
+		TraceId:   gtrace.GetTraceID(ctx),
+		Result:    int(grand.D(-1, 1)),
+		TotalTime: int64(grand.D(1000, 100000)),
+	}, nil
 }

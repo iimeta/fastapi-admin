@@ -33,6 +33,8 @@ type (
 		IsNameExist(ctx context.Context, name string, id ...string) bool
 		// 快速填入模型
 		QuickFillModel(ctx context.Context, params model.ModelAgentQuickFillModelReq) ([]string, error)
+		// 测试模型
+		TestModel(ctx context.Context, params model.ModelAgentTestModelReq) (*model.ModelAgentTestModelRes, error)
 	}
 )
 
