@@ -925,11 +925,9 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 	response, err := adapter.ChatCompletions(ctx, titleBuffer.Bytes())
 	if err != nil {
 		logger.Error(ctx, err)
-		modelAgentTestModelRes.Result = -1
-	} else {
-		modelAgentTestModelRes.Result = 1
 	}
 
+	modelAgentTestModelRes.Result = err == nil
 	modelAgentTestModelRes.TotalTime = response.TotalTime
 
 	return modelAgentTestModelRes, nil

@@ -109,15 +109,16 @@ type ModelAgentQuickFillModelRes struct {
 type ModelAgentTestModelReq struct {
 	ModelAgentId string `json:"model_agent_id,omitempty"` // 模型代理ID
 	ModelId      string `json:"model_id,omitempty"`       // 模型ID
+	TestMethod   int    `json:"test_method,omitempty"`    // 测试方式[1:FastAPI, 2:代理直连, 3:自定义]
 	BaseUrl      string `json:"base_url,omitempty"`       // API接口地址
 	Key          string `json:"key,omitempty"`            // API接口密钥
 }
 
 // 模型代理测试模型接口响应参数
 type ModelAgentTestModelRes struct {
-	TraceId   string `json:"trace_id,omitempty"`   // 日志ID
-	Result    int    `json:"result,omitempty"`     // 结果[1:成功, -1:失败]
-	TotalTime int64  `json:"total_time,omitempty"` // 总时间
+	TraceId   string `json:"trace_id"`   // 日志ID
+	Result    bool   `json:"result"`     // 结果
+	TotalTime int64  `json:"total_time"` // 总时间
 }
 
 type ModelAgent struct {
