@@ -109,6 +109,8 @@ type ModelAgentQuickFillModelRes struct {
 type ModelAgentTestModelReq struct {
 	ModelAgentId string `json:"model_agent_id,omitempty"` // 模型代理ID
 	ModelId      string `json:"model_id,omitempty"`       // 模型ID
+	BaseUrl      string `json:"base_url,omitempty"`       // API接口地址
+	Key          string `json:"key,omitempty"`            // API接口密钥
 }
 
 // 模型代理测试模型接口响应参数

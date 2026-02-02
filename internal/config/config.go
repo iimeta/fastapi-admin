@@ -43,7 +43,12 @@ func init() {
 // 配置信息
 type Config struct {
 	AdminServerAddress string `json:"admin_server_address"`
+	Local              Local  `json:"local"`
 	*entity.SysConfig
+}
+
+type Local struct {
+	PublicIp []string `json:"public_ip"`
 }
 
 func Reload(ctx context.Context, sysConfig *entity.SysConfig) {

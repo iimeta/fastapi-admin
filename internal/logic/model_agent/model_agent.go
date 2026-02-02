@@ -1,9 +1,13 @@
 package model_agent
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"regexp"
 	"slices"
+	"text/template"
+	"time"
 
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
@@ -12,7 +16,6 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -25,6 +28,10 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
+	sdk "github.com/iimeta/fastapi-sdk/v2"
+	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/general"
+	"github.com/iimeta/fastapi-sdk/v2/options"
 	sutil "github.com/iimeta/fastapi-sdk/v2/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -831,9 +838,99 @@ func (s *sModelAgent) QuickFillModel(ctx context.Context, params model.ModelAgen
 
 // 测试模型
 func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTestModelReq) (*model.ModelAgentTestModelRes, error) {
-	return &model.ModelAgentTestModelRes{
-		TraceId:   gtrace.GetTraceID(ctx),
-		Result:    int(grand.D(-1, 1)),
-		TotalTime: int64(grand.D(1000, 100000)),
-	}, nil
+
+	modelAgent, err := dao.ModelAgent.FindById(ctx, params.ModelAgentId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	m, err := dao.Model.FindById(ctx, params.ModelId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	//keys, err := dao.Key.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.ModelAgentId}}})
+	//if err != nil {
+	//	logger.Error(ctx, err)
+	//	return nil, err
+	//}
+
+	provider, err := dao.Provider.FindById(ctx, modelAgent.ProviderId)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	options := &options.AdapterOptions{
+		Provider: provider.Code,
+		Model:    m.Model,
+		Key:      params.Key,
+		BaseUrl:  params.BaseUrl,
+		Path:     modelAgent.Path,
+		Header:   g.MapStrStr{consts.MODEL_AGENT_HEADER: params.ModelAgentId},
+		Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+		ProxyUrl: config.Cfg.Http.ProxyUrl,
+	}
+
+	if options.BaseUrl == "" {
+
+		address, err := redis.HGetStr(ctx, consts.SERVERS_KEY, fmt.Sprintf("api:%s", util.GetLocalIp()))
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		options.BaseUrl = fmt.Sprintf("http://%s%s/v1", util.GetLocalIp(), address)
+	}
+
+	adapter := sdk.NewAdapter(ctx, options)
+
+	if general, isGeneral := adapter.(*general.General); isGeneral {
+		if general.Path == "" {
+			general.Path = "/chat/completions"
+		}
+	}
+
+	var requestData string
+
+	for _, test := range config.Cfg.Test.Tests {
+
+		if test.Provider == provider.Code {
+			requestData = test.RequestData
+			break
+		}
+
+		if test.Provider == sconsts.PROVIDER_OPENAI {
+			requestData = test.RequestData
+		}
+	}
+
+	requestDataTmpl, err := template.New("data").Parse(requestData)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	var titleBuffer bytes.Buffer
+	if err = requestDataTmpl.Execute(&titleBuffer, g.MapStrStr{"model": m.Model}); err != nil {
+		return nil, err
+	}
+
+	modelAgentTestModelRes := &model.ModelAgentTestModelRes{
+		TraceId: gtrace.GetTraceID(ctx),
+	}
+
+	response, err := adapter.ChatCompletions(ctx, titleBuffer.Bytes())
+	if err != nil {
+		logger.Error(ctx, err)
+		modelAgentTestModelRes.Result = -1
+	} else {
+		modelAgentTestModelRes.Result = 1
+	}
+
+	modelAgentTestModelRes.TotalTime = response.TotalTime
+
+	return modelAgentTestModelRes, nil
 }
