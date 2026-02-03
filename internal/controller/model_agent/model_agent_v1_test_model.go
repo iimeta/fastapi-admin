@@ -10,9 +10,6 @@ import (
 func (c *ControllerV1) TestModel(ctx context.Context, req *v1.TestModelReq) (res *v1.TestModelRes, err error) {
 
 	result, err := service.ModelAgent().TestModel(ctx, req.ModelAgentTestModelReq)
-	if err != nil {
-		return nil, err
-	}
 
 	res = &v1.TestModelRes{
 		ModelAgentTestModelRes: result,

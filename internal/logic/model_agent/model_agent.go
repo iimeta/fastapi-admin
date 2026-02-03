@@ -851,12 +851,6 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		return nil, err
 	}
 
-	//keys, err := dao.Key.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.ModelAgentId}}})
-	//if err != nil {
-	//	logger.Error(ctx, err)
-	//	return nil, err
-	//}
-
 	provider, err := dao.Provider.FindById(ctx, modelAgent.ProviderId)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -874,7 +868,29 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		ProxyUrl: config.Cfg.Http.ProxyUrl,
 	}
 
-	if options.BaseUrl == "" {
+	if params.TestMethod == 2 {
+
+		keys, err := dao.Key.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{params.ModelAgentId}}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		isAvailable := false
+		for _, key := range keys {
+			if key.Status == 1 {
+				options.Key = key.Key
+				isAvailable = true
+			}
+		}
+
+		if !isAvailable {
+			return nil, errors.New("代理无可用密钥")
+		}
+
+		options.BaseUrl = modelAgent.BaseUrl
+
+	} else if options.BaseUrl == "" {
 
 		address, err := redis.HGetStr(ctx, consts.SERVERS_KEY, fmt.Sprintf("api:%s", util.GetLocalIp()))
 		if err != nil {
@@ -897,12 +913,14 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 
 	for _, test := range config.Cfg.Test.Tests {
 
-		if test.Provider == provider.Code {
+		if test.Provider == provider.Code && test.ModelType == m.Type && test.Model == m.Model {
 			requestData = test.RequestData
 			break
+		} else if test.Provider == provider.Code && test.ModelType == m.Type {
+			requestData = test.RequestData
 		}
 
-		if test.Provider == sconsts.PROVIDER_OPENAI {
+		if requestData == "" && test.Provider == sconsts.PROVIDER_OPENAI {
 			requestData = test.RequestData
 		}
 	}
@@ -925,9 +943,11 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 	response, err := adapter.ChatCompletions(ctx, titleBuffer.Bytes())
 	if err != nil {
 		logger.Error(ctx, err)
+		modelAgentTestModelRes.TotalTime = response.TotalTime
+		return modelAgentTestModelRes, err
 	}
 
-	modelAgentTestModelRes.Result = err == nil
+	modelAgentTestModelRes.Result = true
 	modelAgentTestModelRes.TotalTime = response.TotalTime
 
 	return modelAgentTestModelRes, nil
