@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"time"
 
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
@@ -1573,7 +1574,7 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) error {
 
 	result := &model.ModelsRes{}
-	if _, err := sutil.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, g.MapStrAny{"is_fastapi": true}, &result, config.Cfg.Http.Timeout, config.Cfg.Http.ProxyUrl, nil); err != nil {
+	if _, err := sutil.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, g.MapStrAny{"is_fastapi": true}, &result, config.Cfg.Http.Timeout*time.Second, config.Cfg.Http.ProxyUrl, nil); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

@@ -3,6 +3,7 @@ package model_agent
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"slices"
@@ -31,6 +32,7 @@ import (
 	sdk "github.com/iimeta/fastapi-sdk/v2"
 	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/general"
+	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	sutil "github.com/iimeta/fastapi-sdk/v2/util"
 	"go.mongodb.org/mongo-driver/bson"
@@ -808,7 +810,7 @@ func (s *sModelAgent) QuickFillModel(ctx context.Context, params model.ModelAgen
 	}
 
 	result := &model.ModelsRes{}
-	if _, err := sutil.HttpGet(ctx, params.BaseUrl+"/models", g.MapStrStr{"Authorization": "Bearer " + keys[0]}, nil, &result, config.Cfg.Http.Timeout, config.Cfg.Http.ProxyUrl, nil); err != nil {
+	if _, err := sutil.HttpGet(ctx, params.BaseUrl+"/models", g.MapStrStr{"Authorization": "Bearer " + keys[0]}, nil, &result, config.Cfg.Http.Timeout*time.Second, config.Cfg.Http.ProxyUrl, nil); err != nil {
 		logger.Error(ctx, err)
 		return nil, errors.New("获取数据异常, 请手动选择模型")
 	}
@@ -885,7 +887,7 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		}
 
 		if !isAvailable {
-			return nil, errors.New("代理无可用密钥")
+			return nil, errors.New("此模型代理无可用密钥")
 		}
 
 		options.BaseUrl = modelAgent.BaseUrl
@@ -898,14 +900,31 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 			return nil, err
 		}
 
-		options.BaseUrl = fmt.Sprintf("http://%s%s/v1", util.GetLocalIp(), address)
+		if provider.Code == sconsts.PROVIDER_GOOGLE {
+			options.BaseUrl = fmt.Sprintf("http://%s%s/v1beta", util.GetLocalIp(), address)
+		} else {
+			options.BaseUrl = fmt.Sprintf("http://%s%s/v1", util.GetLocalIp(), address)
+		}
 	}
 
 	adapter := sdk.NewAdapter(ctx, options)
 
 	if general, isGeneral := adapter.(*general.General); isGeneral {
 		if general.Path == "" {
-			general.Path = "/chat/completions"
+			switch m.Type {
+			case 1, 100:
+				general.Path = "/chat/completions"
+			case 2:
+				general.Path = "/images/generations"
+			case 5:
+				general.Path = "/audio/speech"
+			case 7:
+				general.Path = "/embeddings"
+			case 8:
+				general.Path = "/videos"
+			default:
+				general.Path = "/chat/completions"
+			}
 		}
 	}
 
@@ -916,13 +935,19 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		if test.Provider == provider.Code && test.ModelType == m.Type && test.Model == m.Model {
 			requestData = test.RequestData
 			break
-		} else if test.Provider == provider.Code && test.ModelType == m.Type {
+		}
+
+		if test.Provider == provider.Code && test.ModelType == m.Type {
 			requestData = test.RequestData
 		}
 
-		if requestData == "" && test.Provider == sconsts.PROVIDER_OPENAI {
+		if requestData == "" && test.Provider == sconsts.PROVIDER_OPENAI && test.ModelType == m.Type {
 			requestData = test.RequestData
 		}
+	}
+
+	if requestData == "" {
+		return nil, errors.New("未找到此模型类型对应的请求数据, 请先配置相应的模型类型请求数据")
 	}
 
 	requestDataTmpl, err := template.New("data").Parse(requestData)
@@ -931,8 +956,8 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		return nil, err
 	}
 
-	var titleBuffer bytes.Buffer
-	if err = requestDataTmpl.Execute(&titleBuffer, g.MapStrStr{"model": m.Model}); err != nil {
+	var data bytes.Buffer
+	if err = requestDataTmpl.Execute(&data, g.MapStrStr{"model": m.Model}); err != nil {
 		return nil, err
 	}
 
@@ -940,18 +965,89 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		TraceId: gtrace.GetTraceID(ctx),
 	}
 
-	response, err := adapter.ChatCompletions(ctx, titleBuffer.Bytes())
-	if err != nil {
-		logger.Error(ctx, err)
-		modelAgentTestModelRes.Error = err.Error()
-	}
+	switch m.Type {
+	case 1, 100:
 
-	modelAgentTestModelRes.Result = err == nil
-	modelAgentTestModelRes.TotalTime = response.TotalTime
+		response, err := adapter.ChatCompletions(ctx, data.Bytes())
+		if err != nil {
+			logger.Error(ctx, err)
+			modelAgentTestModelRes.Error = err.Error()
+		}
 
-	if response.Error != nil && modelAgentTestModelRes.Error == "" {
-		modelAgentTestModelRes.Result = false
-		modelAgentTestModelRes.Error = response.Error.Error()
+		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.TotalTime = response.TotalTime
+
+		if response.Error != nil && modelAgentTestModelRes.Error == "" {
+			modelAgentTestModelRes.Result = false
+			modelAgentTestModelRes.Error = response.Error.Error()
+		}
+
+	case 2:
+
+		response, err := adapter.ImageGenerations(ctx, data.Bytes())
+		if err != nil {
+			logger.Error(ctx, err)
+			modelAgentTestModelRes.Error = err.Error()
+		}
+
+		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.TotalTime = response.TotalTime
+
+	case 5:
+
+		response, err := adapter.AudioSpeech(ctx, data.Bytes())
+		if err != nil {
+			logger.Error(ctx, err)
+			modelAgentTestModelRes.Error = err.Error()
+		}
+
+		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.TotalTime = response.TotalTime
+
+	case 7:
+
+		response, err := adapter.TextEmbeddings(ctx, data.Bytes())
+		if err != nil {
+			logger.Error(ctx, err)
+			modelAgentTestModelRes.Error = err.Error()
+		}
+
+		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.TotalTime = response.TotalTime
+
+	case 8:
+
+		request := smodel.VideoCreateRequest{}
+
+		if err := json.Unmarshal(data.Bytes(), &request); err == nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		response, err := adapter.VideoCreate(ctx, request)
+		if err != nil {
+			logger.Error(ctx, err)
+			modelAgentTestModelRes.Error = err.Error()
+		}
+
+		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.TotalTime = response.TotalTime
+
+	default:
+
+		response, err := adapter.ChatCompletions(ctx, data.Bytes())
+		if err != nil {
+			logger.Error(ctx, err)
+			modelAgentTestModelRes.Error = err.Error()
+		}
+
+		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.TotalTime = response.TotalTime
+
+		if response.Error != nil && modelAgentTestModelRes.Error == "" {
+			modelAgentTestModelRes.Result = false
+			modelAgentTestModelRes.Error = response.Error.Error()
+		}
 	}
 
 	return modelAgentTestModelRes, nil
