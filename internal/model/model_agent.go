@@ -119,6 +119,7 @@ type ModelAgentTestModelRes struct {
 	TraceId   string `json:"trace_id"`   // 日志ID
 	Result    bool   `json:"result"`     // 结果
 	TotalTime int64  `json:"total_time"` // 总时间
+	Error     string `json:"error"`      // 错误信息
 }
 
 type ModelAgent struct {
