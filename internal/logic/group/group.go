@@ -816,8 +816,9 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 			if err != nil {
 				logger.Error(ctx, err)
 				return nil, err
+			} else if len(modelNames) > 0 {
+				detail.ForwardConfig.TargetModelName = modelNames[0]
 			}
-			detail.ForwardConfig.TargetModelName = modelNames[0]
 		}
 
 		if detail.ForwardConfig.DecisionModel != "" {
@@ -825,8 +826,9 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 			if err != nil {
 				logger.Error(ctx, err)
 				return nil, err
+			} else if len(modelNames) > 0 {
+				detail.ForwardConfig.DecisionModelName = modelNames[0]
 			}
-			detail.ForwardConfig.DecisionModelName = modelNames[0]
 		}
 
 		if detail.ForwardConfig.TargetModels != nil && len(detail.ForwardConfig.TargetModels) > 0 {

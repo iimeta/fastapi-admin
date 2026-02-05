@@ -107,7 +107,9 @@ type ModelBatchOperateReq struct {
 	Value          any                    `json:"value"`                       // 值
 	LbStrategy     int                    `json:"lb_strategy,omitempty" d:"1"` // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents    []string               `json:"model_agents,omitempty"`      // 模型代理
+	ForwardMode    int                    `json:"forward_mode,omitempty"`      // 转发模式[1:固定, 2:轮询]
 	TargetModel    string                 `json:"target_model,omitempty"`      // 目标模型
+	TargetModels   []string               `json:"target_models,omitempty"`     // 目标模型
 	FallbackConfig *common.FallbackConfig `json:"fallback_config,omitempty"`   // 后备配置
 }
 

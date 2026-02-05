@@ -1225,12 +1225,14 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 
 				m.IsEnableForward = true
 				m.ForwardConfig.ForwardRule = 1
+				m.ForwardConfig.ForwardMode = params.ForwardMode
 				m.ForwardConfig.TargetModel = params.TargetModel
+				m.ForwardConfig.TargetModels = params.TargetModels
 
 			} else {
 				m.IsEnableForward = gconv.Bool(params.Value)
 				if m.IsEnableForward && (m.ForwardConfig == nil ||
-					(m.ForwardConfig.ForwardRule == 1 && m.ForwardConfig.TargetModel == "") ||
+					(m.ForwardConfig.ForwardRule == 1 && ((m.ForwardConfig.ForwardMode == 1 && m.ForwardConfig.TargetModel == "") || (m.ForwardConfig.ForwardMode == 2 && len(m.ForwardConfig.TargetModels) == 0))) ||
 					(m.ForwardConfig.ForwardRule == 2 && len(m.ForwardConfig.TargetModels) == 0)) {
 					continue
 				}
