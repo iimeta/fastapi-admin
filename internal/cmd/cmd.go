@@ -509,7 +509,7 @@ func middlewareHandlerResponse(r *ghttp.Request) {
 
 		msg = err.Error()
 
-		if r.RequestURI != "/api/v1/model/agent/test/model" && (gstr.Contains(msg, "timeout") || gstr.Contains(msg, "tcp") || gstr.Contains(msg, "http") ||
+		if r.URL.Path != "/api/v1/model/agent/test/model" && (gstr.Contains(msg, "timeout") || gstr.Contains(msg, "tcp") || gstr.Contains(msg, "http") ||
 			gstr.Contains(msg, "connection") || gstr.Contains(msg, "failed") || gstr.Contains(msg, "frequently")) {
 			msg = "服务器繁忙, 请稍后再试"
 		}
