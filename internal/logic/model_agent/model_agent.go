@@ -860,14 +860,15 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 	}
 
 	options := &options.AdapterOptions{
-		Provider: provider.Code,
-		Model:    m.Model,
-		Key:      params.Key,
-		BaseUrl:  params.BaseUrl,
-		Path:     modelAgent.Path,
-		Header:   g.MapStrStr{consts.MODEL_AGENT_HEADER: params.ModelAgentId},
-		Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
-		ProxyUrl: config.Cfg.Http.ProxyUrl,
+		Provider:                provider.Code,
+		Model:                   m.Model,
+		Key:                     params.Key,
+		BaseUrl:                 params.BaseUrl,
+		Path:                    modelAgent.Path,
+		Header:                  g.MapStrStr{consts.MODEL_AGENT_HEADER: params.ModelAgentId},
+		Timeout:                 config.Cfg.Base.ShortTimeout * time.Second,
+		ProxyUrl:                config.Cfg.Http.ProxyUrl,
+		IsOfficialFormatRequest: provider.Code != sconsts.PROVIDER_OPENAI,
 	}
 
 	if params.TestMethod == 2 {

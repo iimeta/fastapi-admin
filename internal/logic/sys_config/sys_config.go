@@ -702,9 +702,27 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					RequestData: `{"model":"{{.model}}","stream":false,"max_tokens":4096,"messages":[{"role":"user","content":"hi"}]}`,
 				},
 				{
+					Provider:    sconsts.PROVIDER_ANTHROPIC,
+					Model:       "all",
+					ModelType:   100,
+					RequestData: `{"model":"{{.model}}","stream":false,"max_tokens":4096,"messages":[{"role":"user","content":"hi"}]}`,
+				},
+				{
 					Provider:    sconsts.PROVIDER_GOOGLE,
 					Model:       "all",
 					ModelType:   1,
+					RequestData: `{"contents":[{"role":"user","parts":[{"text":"hi"}]}]}`,
+				},
+				{
+					Provider:    sconsts.PROVIDER_GOOGLE,
+					Model:       "all",
+					ModelType:   2,
+					RequestData: `{"contents":[{"parts":[{"text":"Create a picture of a nano banana dish in a fancy restaurant with a Gemini theme"}]}],"generationConfig":{"responseModalities":["TEXT","IMAGE"],"imageConfig":{"aspectRatio":"16:9"}}}`,
+				},
+				{
+					Provider:    sconsts.PROVIDER_GOOGLE,
+					Model:       "all",
+					ModelType:   100,
 					RequestData: `{"contents":[{"role":"user","parts":[{"text":"hi"}]}]}`,
 				},
 			},
