@@ -71,11 +71,9 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 	}
 
 	for _, imageData := range result.ImageData {
-		//if imageData.URL != "" {
-		image.Images = append(image.Images, imageData.URL)
-		//} else { // 太大了, 不查
-		//	image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
-		//}
+		if imageData.URL != "" {
+			image.Images = append(image.Images, imageData.URL)
+		}
 	}
 
 	if image.Status == -1 {
@@ -255,11 +253,9 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 		}
 
 		for _, imageData := range result.ImageData {
-			//if imageData.URL != "" {
-			image.Images = append(image.Images, imageData.URL)
-			//} else { // 太大了, 不查
-			//	image.Images = append(image.Images, "data:image/png;base64,"+imageData.B64JSON)
-			//}
+			if imageData.URL != "" {
+				image.Images = append(image.Images, imageData.URL)
+			}
 		}
 
 		if service.Session().IsAdminRole(ctx) {
