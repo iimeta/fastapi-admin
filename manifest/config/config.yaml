@@ -58,3 +58,9 @@ logger:
   rotateCheckInterval: "1h"              # 滚动切分的时间检测间隔，一般不需要设置。默认为1小时
   stdoutColorDisabled: false             # 关闭终端的颜色打印。默认开启
   writerColorEnable: false               # 日志文件是否带上颜色。默认false，表示不带颜色
+
+# 本地配置
+local:
+  public_ip: # 获取公网IP的API接口地址, 如若配置, 调用日志中记录的本机IP将使用以下接口获取到的公网IP
+#    - https://api.ip.sb/ip
+#    - https://api64.ipify.org
