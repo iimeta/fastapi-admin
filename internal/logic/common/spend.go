@@ -12,7 +12,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // 记录花费

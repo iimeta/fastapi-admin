@@ -6,10 +6,10 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 var (
@@ -27,7 +27,7 @@ func init() {
 		logger.Error(ctx, err)
 	}
 
-	if client, err = mongo.Connect(ctx, options.Client().ApplyURI(uri.String())); err != nil {
+	if client, err = mongo.Connect(options.Client().ApplyURI(uri.String())); err != nil {
 		panic(err)
 	}
 
@@ -44,50 +44,37 @@ func init() {
 
 	DefaultDatabase = database.String()
 
-	unique := new(bool)
-	*unique = true
-
 	if _, err = client.Database(DefaultDatabase).Collection("reseller").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{"user_id": 1},
-		Options: &options.IndexOptions{
-			Unique: unique,
-		},
+		Keys:    bson.M{"user_id": 1},
+		Options: options.Index().SetUnique(true),
 	}); err != nil {
 		panic(err)
 	}
 
 	if _, err = client.Database(DefaultDatabase).Collection("reseller_account").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{"account": 1},
-		Options: &options.IndexOptions{
-			Unique: unique,
-		},
+		Keys:    bson.M{"account": 1},
+		Options: options.Index().SetUnique(true),
 	}); err != nil {
 		panic(err)
 	}
 
 	if _, err = client.Database(DefaultDatabase).Collection("user").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{"user_id": 1},
-		Options: &options.IndexOptions{
-			Unique: unique,
-		},
+		Keys:    bson.M{"user_id": 1},
+		Options: options.Index().SetUnique(true),
 	}); err != nil {
 		panic(err)
 	}
 
 	if _, err = client.Database(DefaultDatabase).Collection("account").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{"account": 1},
-		Options: &options.IndexOptions{
-			Unique: unique,
-		},
+		Keys:    bson.M{"account": 1},
+		Options: options.Index().SetUnique(true),
 	}); err != nil {
 		panic(err)
 	}
 
 	if _, err = client.Database(DefaultDatabase).Collection("app").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{"app_id": 1},
-		Options: &options.IndexOptions{
-			Unique: unique,
-		},
+		Keys:    bson.M{"app_id": 1},
+		Options: options.Index().SetUnique(true),
 	}); err != nil {
 		panic(err)
 	}

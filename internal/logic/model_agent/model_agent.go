@@ -35,8 +35,8 @@ import (
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	sutil "github.com/iimeta/fastapi-sdk/v2/util"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type sModelAgent struct{}

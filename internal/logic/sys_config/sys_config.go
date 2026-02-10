@@ -24,8 +24,8 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type sSysConfig struct{}

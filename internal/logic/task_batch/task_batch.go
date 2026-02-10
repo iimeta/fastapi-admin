@@ -24,7 +24,7 @@ import (
 	sdk "github.com/iimeta/fastapi-sdk/v2"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type sTaskBatch struct {
