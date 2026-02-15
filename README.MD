@@ -134,7 +134,7 @@
 
 <center>
   <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
-  <img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20260208" width="320" alt="交流群"/>
+  <img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20260215" width="320" alt="交流群"/>
 </center>
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-admin&type=Date)
