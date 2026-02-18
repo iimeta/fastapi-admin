@@ -10,7 +10,7 @@ require (
 	github.com/gogf/gf/contrib/nosql/redis/v2 v2.10.0
 	github.com/gogf/gf/v2 v2.10.0
 	github.com/iimeta/fastapi-sdk/v2 v2.1.0
-	github.com/redis/go-redis/v9 v9.17.3
+	github.com/redis/go-redis/v9 v9.18.0
 	github.com/tjfoc/gmsm v1.4.1
 	github.com/xuri/excelize/v2 v2.10.0
 	go.mongodb.org/mongo-driver/v2 v2.5.0
@@ -21,7 +21,6 @@ require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.41.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.4 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.7 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.17 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.49.0 // indirect
@@ -63,6 +62,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.38.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.38.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
