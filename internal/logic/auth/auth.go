@@ -261,7 +261,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 					data["name"] = user.Name
 					data["account"] = params.Account
 					data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(user.Quota))
-					data["quota_expires_at"] = "无期限"
+					data["quota_expires_at"] = "永久有效"
 					if user.QuotaExpiresAt > 0 {
 						data["quota_expires_at"] = util.FormatDateTime(user.QuotaExpiresAt)
 					}
@@ -371,7 +371,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 					data["name"] = reseller.Name
 					data["account"] = params.Account
 					data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(reseller.Quota))
-					data["quota_expires_at"] = "无期限"
+					data["quota_expires_at"] = "永久有效"
 					if reseller.QuotaExpiresAt > 0 {
 						data["quota_expires_at"] = util.FormatDateTime(reseller.QuotaExpiresAt)
 					}

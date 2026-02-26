@@ -19,8 +19,6 @@ type (
 		Page(ctx context.Context, params model.TaskFilePageReq) (*model.TaskFilePageRes, error)
 		// 文件任务详情复制字段值
 		CopyField(ctx context.Context, params model.TaskFileCopyFieldReq) (string, error)
-		// 文件
-		File(ctx context.Context, fileName string) (string, error)
 		// 文件任务
 		Task(ctx context.Context)
 	}

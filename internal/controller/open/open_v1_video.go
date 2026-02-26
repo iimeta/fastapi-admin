@@ -10,7 +10,7 @@ import (
 
 func (c *ControllerV1) Video(ctx context.Context, req *v1.VideoReq) (res *v1.VideoRes, err error) {
 
-	filePath, err := service.TaskVideo().Video(ctx, req.FileName)
+	filePath, err := service.Open().Video(ctx, req.FileName)
 	if err != nil {
 		return nil, err
 	}

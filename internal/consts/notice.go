@@ -5,6 +5,8 @@ const (
 	SCENE_REGISTER             = "register"             // 注册
 	SCENE_LOGIN                = "login"                // 登录
 	SCENE_FORGET_PASSWORD      = "forget_password"      // 找回密码
+	SCENE_USER_AGREEMENT       = "user_agreement"       // 用户协议
+	SCENE_PRIVACY_POLICY       = "privacy_policy"       // 隐私政策
 	SCENE_CHANGE_PASSWORD      = "change_password"      // 修改密码
 	SCENE_CHANGE_EMAIL         = "change_email"         // 修改邮箱
 	SCENE_CHANGE_PHONE         = "change_phone"         // 修改手机号
@@ -35,6 +37,8 @@ var SCENE = map[string]string{
 	SCENE_REGISTER:             "注册",
 	SCENE_LOGIN:                "登录",
 	SCENE_FORGET_PASSWORD:      "找回密码",
+	SCENE_USER_AGREEMENT:       "用户协议",
+	SCENE_PRIVACY_POLICY:       "隐私政策",
 	SCENE_CHANGE_PASSWORD:      "修改密码",
 	SCENE_CHANGE_EMAIL:         "修改邮箱",
 	SCENE_CHANGE_PHONE:         "修改手机号",

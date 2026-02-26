@@ -28,8 +28,6 @@ type (
 		Page(ctx context.Context, params model.SiteConfigPageReq) (*model.SiteConfigPageRes, error)
 		// 站点配置批量操作
 		BatchOperate(ctx context.Context, params model.SiteConfigBatchOperateReq) error
-		// 站点配置
-		Site(ctx context.Context, params model.SiteConfigDetailReq) *model.SiteConfig
 		// 根据域名获取站点配置
 		GetSiteConfigByDomain(ctx context.Context, domain string) *entity.SiteConfig
 		// 站点域名是否存在

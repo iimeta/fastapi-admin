@@ -15,7 +15,7 @@ func (c *ControllerV1) SiteConfig(ctx context.Context, req *v1.SiteConfigReq) (r
 		req.Domain = g.RequestFromCtx(ctx).GetHost()
 	}
 
-	siteConfig := service.SiteConfig().Site(ctx, req.SiteConfigDetailReq)
+	siteConfig := service.Open().Site(ctx, req.SiteConfigDetailReq)
 
 	res = &v1.SiteConfigRes{
 		SiteConfigDetailRes: &model.SiteConfigDetailRes{

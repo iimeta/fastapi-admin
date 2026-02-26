@@ -357,53 +357,6 @@ func (s *sSiteConfig) BatchOperate(ctx context.Context, params model.SiteConfigB
 	return nil
 }
 
-// 站点配置
-func (s *sSiteConfig) Site(ctx context.Context, params model.SiteConfigDetailReq) *model.SiteConfig {
-
-	var siteConfig *entity.SiteConfig
-
-	if params.Domain != "" {
-		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"domain": params.Domain, "status": 1})
-	}
-
-	if siteConfig == nil {
-		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
-	}
-
-	if siteConfig == nil {
-		return nil
-	}
-
-	return &model.SiteConfig{
-		Domain:              siteConfig.Domain,
-		Title:               siteConfig.Title,
-		Logo:                siteConfig.Logo,
-		Favicon:             siteConfig.Favicon,
-		Avatar:              siteConfig.Avatar,
-		BgImg:               siteConfig.BgImg,
-		Copyright:           siteConfig.Copyright,
-		JumpUrl:             siteConfig.JumpUrl,
-		Keywords:            siteConfig.Keywords,
-		Description:         siteConfig.Description,
-		IcpBeian:            siteConfig.IcpBeian,
-		GaBeian:             siteConfig.GaBeian,
-		RegisterTips:        siteConfig.RegisterTips,
-		DefaultLanguage:     siteConfig.DefaultLanguage,
-		CurrencySymbol:      siteConfig.CurrencySymbol,
-		Carousel1Title:      siteConfig.Carousel1Title,
-		Carousels1:          siteConfig.Carousels1,
-		Carousel2Title:      siteConfig.Carousel2Title,
-		Carousels2:          siteConfig.Carousels2,
-		AnnouncementTitle:   siteConfig.AnnouncementTitle,
-		AnnouncementMoreUrl: siteConfig.AnnouncementMoreUrl,
-		Announcements:       siteConfig.Announcements,
-		DocumentTitle:       siteConfig.DocumentTitle,
-		DocumentMoreUrl:     siteConfig.DocumentMoreUrl,
-		Documents:           siteConfig.Documents,
-		RechargeTips:        siteConfig.RechargeTips,
-	}
-}
-
 // 根据域名获取站点配置
 func (s *sSiteConfig) GetSiteConfigByDomain(ctx context.Context, domain string) *entity.SiteConfig {
 

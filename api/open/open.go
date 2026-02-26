@@ -15,4 +15,6 @@ type IOpenV1 interface {
 	SiteConfig(ctx context.Context, req *v1.SiteConfigReq) (res *v1.SiteConfigRes, err error)
 	Video(ctx context.Context, req *v1.VideoReq) (res *v1.VideoRes, err error)
 	File(ctx context.Context, req *v1.FileReq) (res *v1.FileRes, err error)
+	UserAgreement(ctx context.Context, req *v1.UserAgreementReq) (res *v1.UserAgreementRes, err error)
+	PrivacyPolicy(ctx context.Context, req *v1.PrivacyPolicyReq) (res *v1.PrivacyPolicyRes, err error)
 }

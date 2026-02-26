@@ -50,3 +50,27 @@ type FileReq struct {
 type FileRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 用户协议接口请求参数
+type UserAgreementReq struct {
+	g.Meta `path:"/user/agreement" method:"post" tags:"open" summary:"用户协议接口"`
+	model.SysConfigReq
+}
+
+// 用户协议接口响应参数
+type UserAgreementRes struct {
+	g.Meta  `mime:"application/json" example:"json"`
+	Content string `json:"content"`
+}
+
+// 隐私政策接口请求参数
+type PrivacyPolicyReq struct {
+	g.Meta `path:"/privacy/policy" method:"post" tags:"open" summary:"隐私政策接口"`
+	model.SysConfigReq
+}
+
+// 隐私政策接口响应参数
+type PrivacyPolicyRes struct {
+	g.Meta  `mime:"application/json" example:"json"`
+	Content string `json:"content"`
+}

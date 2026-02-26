@@ -367,7 +367,7 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
 				quotaExpiresAt := util.FormatDateTime(user.QuotaExpiresAt)
 				if quotaExpiresAt == "" {
-					quotaExpiresAt = "无期限"
+					quotaExpiresAt = "永久有效"
 				}
 				userAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
@@ -408,7 +408,7 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 			case consts.ATTRIBUTE_QUOTA_EXPIRES_AT:
 				quotaExpiresAt := util.FormatDateTime(reseller.QuotaExpiresAt)
 				if quotaExpiresAt == "" {
-					quotaExpiresAt = "无期限"
+					quotaExpiresAt = "永久有效"
 				}
 				resellerAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:

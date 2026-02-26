@@ -79,6 +79,8 @@ var (
 			s.AddStaticPath("/", "./resource/index/")
 			s.AddStaticPath("/login", "./resource/fastapi-web/")
 			s.AddStaticPath("/reseller", "./resource/fastapi-web/")
+			s.AddStaticPath("/user-agreement", "./resource/fastapi-web/")
+			s.AddStaticPath("/privacy-policy", "./resource/fastapi-web/")
 			s.AddStaticPath("/dashboard/workplace", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/model", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/group", "./resource/fastapi-web/")

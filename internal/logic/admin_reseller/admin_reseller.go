@@ -164,7 +164,7 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 			data["name"] = newData.Name
 			data["account"] = params.Account
 			data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(newData.Quota))
-			data["quota_expires_at"] = "无期限"
+			data["quota_expires_at"] = "永久有效"
 			if newData.QuotaExpiresAt > 0 {
 				data["quota_expires_at"] = util.FormatDateTime(newData.QuotaExpiresAt)
 			}
@@ -858,7 +858,7 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 					data["quota"] = fmt.Sprintf("%s%f", currencySymbol, common.ConvQuotaUnitReverse(newData.Quota))
 				}
 
-				data["quota_expires_at"] = "无期限"
+				data["quota_expires_at"] = "永久有效"
 				if newData.QuotaExpiresAt > 0 {
 					data["quota_expires_at"] = util.FormatDateTime(newData.QuotaExpiresAt)
 				}

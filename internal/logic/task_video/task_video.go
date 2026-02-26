@@ -229,22 +229,6 @@ func (s *sTaskVideo) CopyField(ctx context.Context, params model.TaskVideoCopyFi
 	return "", nil
 }
 
-// 视频文件
-func (s *sTaskVideo) Video(ctx context.Context, fileName string) (string, error) {
-
-	taskVideo, err := dao.TaskVideo.FindOne(ctx, bson.M{"file_name": fileName})
-	if err != nil {
-		logger.Error(ctx, err)
-		return "", errors.New("视频文件未找到")
-	}
-
-	if taskVideo == nil || taskVideo.FilePath == "" {
-		return "", errors.New("视频文件未找到")
-	}
-
-	return taskVideo.FilePath, nil
-}
-
 // 视频任务
 func (s *sTaskVideo) Task(ctx context.Context) {
 

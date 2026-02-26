@@ -25,8 +25,6 @@ type (
 		Reset(ctx context.Context, params model.SysConfigResetReq) (*entity.SysConfig, error)
 		// 刷新配置
 		Refresh(ctx context.Context, params model.SysConfigRefreshReq) error
-		// 系统配置
-		Config(ctx context.Context, params model.SysConfigReq) (*model.SysConfig, error)
 		// 初始化配置
 		Init(ctx context.Context) (sysConfig *entity.SysConfig, err error)
 		// 默认配置

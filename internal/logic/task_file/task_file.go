@@ -220,22 +220,6 @@ func (s *sTaskFile) CopyField(ctx context.Context, params model.TaskFileCopyFiel
 	return "", nil
 }
 
-// 文件
-func (s *sTaskFile) File(ctx context.Context, fileName string) (string, error) {
-
-	taskFile, err := dao.TaskFile.FindOne(ctx, bson.M{"file_id": gfile.Name(fileName)})
-	if err != nil {
-		logger.Error(ctx, err)
-		return "", errors.New("文件未找到")
-	}
-
-	if taskFile == nil || taskFile.FilePath == "" {
-		return "", errors.New("文件未找到")
-	}
-
-	return taskFile.FilePath, nil
-}
-
 // 文件任务
 func (s *sTaskFile) Task(ctx context.Context) {
 

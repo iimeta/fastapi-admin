@@ -15,7 +15,7 @@ func (c *ControllerV1) SysConfig(ctx context.Context, req *v1.SysConfigReq) (res
 		req.Domain = g.RequestFromCtx(ctx).GetHost()
 	}
 
-	sysConfig, err := service.SysConfig().Config(ctx, req.SysConfigReq)
+	sysConfig, err := service.Open().Config(ctx, req.SysConfigReq)
 	if err != nil {
 		return nil, err
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtimer"
-	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -325,28 +324,6 @@ func (s *sSysConfig) Refresh(ctx context.Context, params model.SysConfigRefreshR
 	}
 
 	return nil
-}
-
-// 系统配置
-func (s *sSysConfig) Config(ctx context.Context, params model.SysConfigReq) (*model.SysConfig, error) {
-
-	sysConfig, err := dao.SysConfig.FindOne(ctx, bson.M{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	if sysConfig.AdminLogin.Path == "" || sysConfig.AdminLogin.Path == "admin" {
-		sysConfig.AdminLogin.Path = "admin"
-	} else if sysConfig.AdminLogin.Path != gstr.TrimLeft(params.Path, "/") {
-		sysConfig.AdminLogin.Path = ""
-	}
-
-	return &model.SysConfig{
-		UserLoginRegister:     sysConfig.UserLoginRegister,
-		ResellerLoginRegister: sysConfig.ResellerLoginRegister,
-		AdminLogin:            sysConfig.AdminLogin,
-	}, nil
 }
 
 // 初始化配置

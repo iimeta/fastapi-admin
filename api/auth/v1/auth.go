@@ -38,17 +38,6 @@ type RegisterRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
-// Token 刷新接口请求参数
-type RefreshReq struct {
-	g.Meta `path:"/refresh" method:"post" tags:"auth" summary:"刷新Token接口"`
-}
-
-// Token 刷新接口响应参数
-type RefreshRes struct {
-	g.Meta `mime:"application/json" example:"json"`
-	*model.RefreshRes
-}
-
 // 找回密码接口请求参数
 type ForgetReq struct {
 	g.Meta `path:"/forget" method:"post" tags:"auth" summary:"找回密码接口"`

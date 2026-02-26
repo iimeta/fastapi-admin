@@ -115,6 +115,28 @@ func (s *sNoticeTemplate) Default() []*do.NoticeTemplate {
 			UserId:   1,
 			Remark:   "系统默认模板",
 		},
+		{
+			Name:     consts.SCENE[consts.SCENE_USER_AGREEMENT],
+			Scenes:   []string{consts.SCENE_USER_AGREEMENT},
+			Title:    consts.SCENE[consts.SCENE_USER_AGREEMENT],
+			Content:  `<h1>用户协议</h1>`,
+			Channels: []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL},
+			IsPublic: true,
+			Status:   1,
+			UserId:   1,
+			Remark:   "系统默认模板",
+		},
+		{
+			Name:     consts.SCENE[consts.SCENE_PRIVACY_POLICY],
+			Scenes:   []string{consts.SCENE_PRIVACY_POLICY},
+			Title:    consts.SCENE[consts.SCENE_PRIVACY_POLICY],
+			Content:  `<h1>隐私政策</h1>`,
+			Channels: []string{consts.NOTICE_CHANNEL_WEB, consts.NOTICE_CHANNEL_EMAIL},
+			IsPublic: true,
+			Status:   1,
+			UserId:   1,
+			Remark:   "系统默认模板",
+		},
 	}
 
 	for _, noticeTemplate := range noticeTemplates {
