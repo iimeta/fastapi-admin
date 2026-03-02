@@ -7,7 +7,8 @@ type AppKey struct {
 	Id                  string   `bson:"_id,omitempty"`                // ID
 	UserId              int      `bson:"user_id,omitempty"`            // 用户ID
 	AppId               int      `bson:"app_id,omitempty"`             // 应用ID
-	Key                 string   `bson:"key,omitempty"`                // 密钥
+	Name                string   `bson:"name,omitempty"`               // 密钥名称
+	Key                 string   `bson:"key,omitempty"`                // 应用密钥
 	BillingMethods      []int    `bson:"billing_methods,omitempty"`    // 计费方式[1:按Tokens, 2:按次]
 	Models              []string `bson:"models,omitempty"`             // 模型权限
 	IsLimitQuota        bool     `bson:"is_limit_quota,omitempty"`     // 是否限制额度

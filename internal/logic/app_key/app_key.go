@@ -88,6 +88,7 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 		key     = &do.AppKey{
 			UserId:              service.Session().GetUserId(ctx),
 			AppId:               params.AppId,
+			Name:                params.Name,
 			Key:                 params.Key,
 			BillingMethods:      params.BillingMethods,
 			Models:              params.Models,
@@ -165,6 +166,7 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 			Id:                  id,
 			UserId:              key.UserId,
 			AppId:               key.AppId,
+			Name:                key.Name,
 			Key:                 key.Key,
 			BillingMethods:      key.BillingMethods,
 			Models:              key.Models,
@@ -343,6 +345,7 @@ func (s *sAppKey) Detail(ctx context.Context, id string) (*model.AppKey, error) 
 		Id:                  key.Id,
 		UserId:              key.UserId,
 		AppId:               key.AppId,
+		Name:                key.Name,
 		Key:                 key.Key,
 		BillingMethods:      key.BillingMethods,
 		Models:              key.Models,
@@ -392,8 +395,13 @@ func (s *sAppKey) Page(ctx context.Context, params model.AppKeyPageReq) (*model.
 	}
 
 	if params.Key != "" {
-		filter["key"] = bson.M{
-			"$regex": regexp.QuoteMeta(params.Key),
+		filter["$or"] = bson.A{
+			bson.M{"key": bson.M{
+				"$regex": regexp.QuoteMeta(params.Key),
+			}},
+			bson.M{"name": bson.M{
+				"$regex": regexp.QuoteMeta(params.Key),
+			}},
 		}
 	}
 
@@ -441,6 +449,7 @@ func (s *sAppKey) Page(ctx context.Context, params model.AppKeyPageReq) (*model.
 			Id:                  result.Id,
 			UserId:              result.UserId,
 			AppId:               result.AppId,
+			Name:                result.Name,
 			Key:                 util.Desensitize(result.Key),
 			BillingMethods:      result.BillingMethods,
 			Models:              result.Models,
@@ -590,6 +599,7 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 			key := &do.AppKey{
 				UserId:              userId,
 				AppId:               params.AppId,
+				Name:                params.Name,
 				Key:                 createKey,
 				BillingMethods:      params.BillingMethods,
 				Models:              params.Models,
@@ -620,6 +630,7 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 					Id:                  id,
 					UserId:              key.UserId,
 					AppId:               key.AppId,
+					Name:                key.Name,
 					Key:                 key.Key,
 					BillingMethods:      key.BillingMethods,
 					Models:              key.Models,
@@ -881,6 +892,7 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 	colFieldMap := make(map[string]string)
 	colFieldMap["应用ID"] = "AppId"
 	colFieldMap["应用名称"] = "AppName"
+	colFieldMap["密钥名称"] = "Name"
 	colFieldMap["应用密钥"] = "Key"
 	colFieldMap["额度"] = "Quota"
 	colFieldMap["额度过期时间"] = "QuotaExpiresAt"
@@ -888,9 +900,9 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 
 	var titleCols []string
 	if service.Session().IsUserRole(ctx) {
-		titleCols = append(titleCols, "应用ID", "应用名称", "应用密钥", "额度", "额度过期时间", "备注")
+		titleCols = append(titleCols, "应用ID", "应用名称", "密钥名称", "应用密钥", "额度", "额度过期时间", "备注")
 	} else {
-		titleCols = append(titleCols, "用户ID", "应用ID", "应用名称", "应用密钥", "额度", "额度过期时间", "备注")
+		titleCols = append(titleCols, "用户ID", "应用ID", "应用名称", "密钥名称", "应用密钥", "额度", "额度过期时间", "备注")
 		colFieldMap["用户ID"] = "UserId"
 	}
 
@@ -902,10 +914,15 @@ func (s *sAppKey) Export(ctx context.Context, params model.AppKeyExportReq) (str
 		appKeyExport := &model.AppKeyExport{
 			UserId:         result.UserId,
 			AppId:          result.AppId,
+			Name:           result.Name,
 			Key:            result.Key,
 			Quota:          "不限",
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
 			Remark:         result.Remark,
+		}
+
+		if appKeyExport.Name == "" {
+			appKeyExport.Name = result.Key[len(result.Key)-5:]
 		}
 
 		if result.Quota > 0 {
