@@ -62,6 +62,9 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id st
 		IsDefault:          params.IsDefault,
 		IsLimitQuota:       params.IsLimitQuota,
 		Quota:              common.ConvQuotaUnit(params.Quota),
+		IsCycleResetQuota:  params.IsCycleResetQuota,
+		ResetQuota:         common.ConvQuotaUnit(params.ResetQuota),
+		CyclePeriod:        params.CyclePeriod,
 		IsEnableForward:    params.IsEnableForward,
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
@@ -219,6 +222,9 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		IsDefault:          params.IsDefault,
 		IsLimitQuota:       params.IsLimitQuota,
 		Quota:              common.ConvQuotaUnit(params.Quota),
+		IsCycleResetQuota:  params.IsCycleResetQuota,
+		ResetQuota:         common.ConvQuotaUnit(params.ResetQuota),
+		CyclePeriod:        params.CyclePeriod,
 		IsEnableForward:    params.IsEnableForward,
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
@@ -796,6 +802,9 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		IsLimitQuota:       group.IsLimitQuota,
 		Quota:              common.ConvQuotaUnitReverse(group.Quota),
 		UsedQuota:          common.ConvQuotaUnitReverse(group.UsedQuota),
+		IsCycleResetQuota:  group.IsCycleResetQuota,
+		ResetQuota:         common.ConvQuotaUnitReverse(group.ResetQuota),
+		CyclePeriod:        group.CyclePeriod,
 		IsEnableForward:    group.IsEnableForward,
 		ForwardConfig:      group.ForwardConfig,
 		IsPublic:           group.IsPublic,
@@ -807,6 +816,7 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		Updater:            group.Updater,
 		CreatedAt:          util.FormatDateTime(group.CreatedAt),
 		UpdatedAt:          util.FormatDateTime(group.UpdatedAt),
+		ResetAt:            util.FormatDateTime(group.ResetAt),
 	}
 
 	if detail.ForwardConfig != nil {

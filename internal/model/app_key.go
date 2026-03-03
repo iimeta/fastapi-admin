@@ -26,6 +26,9 @@ type AppKeyConfigReq struct {
 	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty" d:"1"` // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
+	IsCycleResetQuota   bool     `json:"is_cycle_reset_quota,omitempty"`     // 是否循环重置额度
+	ResetQuota          float64  `json:"reset_quota,omitempty"`              // 重置额度
+	CyclePeriod         int      `json:"cycle_period,omitempty"`             // 循环周期, 单位: 天
 	IsBindGroup         bool     `json:"is_bind_group,omitempty"`            // 是否绑定分组
 	Group               string   `json:"group,omitempty"`                    // 绑定分组
 	IpWhitelist         string   `json:"ip_whitelist,omitempty"`             // IP白名单
@@ -84,6 +87,9 @@ type AppKeyBatchOperateReq struct {
 	QuotaExpiresRule    int           `json:"quota_expires_rule,omitempty" d:"1"` // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string        `json:"quota_expires_at,omitempty"`         // 额度过期时间
 	QuotaExpiresMinutes int64         `json:"quota_expires_minutes,omitempty"`    // 额度过期分钟数
+	IsCycleResetQuota   bool          `json:"is_cycle_reset_quota,omitempty"`     // 是否循环重置额度
+	ResetQuota          float64       `json:"reset_quota,omitempty"`              // 重置额度
+	CyclePeriod         int           `json:"cycle_period,omitempty"`             // 循环周期, 单位: 天
 	IsBindGroup         bool          `json:"is_bind_group,omitempty"`            // 是否绑定分组
 	Group               string        `json:"group,omitempty"`                    // 绑定分组
 	IpWhitelist         string        `json:"ip_whitelist,omitempty"`             // IP白名单
@@ -140,6 +146,9 @@ type AppKey struct {
 	QuotaExpiresRule    int      `json:"quota_expires_rule,omitempty"`    // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      string   `json:"quota_expires_at,omitempty"`      // 额度过期时间
 	QuotaExpiresMinutes int64    `json:"quota_expires_minutes,omitempty"` // 额度过期分钟数
+	IsCycleResetQuota   bool     `json:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
+	ResetQuota          float64  `json:"reset_quota,omitempty"`           // 重置额度
+	CyclePeriod         int      `json:"cycle_period,omitempty"`          // 循环周期, 单位: 天
 	IsBindGroup         bool     `json:"is_bind_group,omitempty"`         // 是否绑定分组
 	Group               string   `json:"group,omitempty"`                 // 绑定分组
 	GroupName           string   `json:"group_name,omitempty"`            // 绑定分组名称
@@ -151,4 +160,5 @@ type AppKey struct {
 	Updater             string   `json:"updater,omitempty"`               // 更新人
 	CreatedAt           string   `json:"created_at,omitempty"`            // 创建时间
 	UpdatedAt           string   `json:"updated_at,omitempty"`            // 更新时间
+	ResetAt             string   `json:"reset_at,omitempty"`              // 重置时间
 }

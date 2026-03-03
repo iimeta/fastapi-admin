@@ -16,6 +16,9 @@ type AppKey struct {
 	QuotaExpiresRule    int      `bson:"quota_expires_rule,omitempty"` // 额度过期规则[1:固定, 2:时长]
 	QuotaExpiresAt      int64    `bson:"quota_expires_at"`             // 额度过期时间
 	QuotaExpiresMinutes int64    `bson:"quota_expires_minutes"`        // 额度过期分钟数
+	IsCycleResetQuota   bool     `bson:"is_cycle_reset_quota"`         // 是否循环重置额度
+	ResetQuota          int      `bson:"reset_quota,omitempty"`        // 重置额度
+	CyclePeriod         int      `bson:"cycle_period,omitempty"`       // 循环周期, 单位: 天
 	IsBindGroup         bool     `bson:"is_bind_group"`                // 是否绑定分组
 	Group               string   `bson:"group"`                        // 绑定分组
 	IpWhitelist         []string `bson:"ip_whitelist"`                 // IP白名单
@@ -27,4 +30,5 @@ type AppKey struct {
 	Updater             string   `bson:"updater,omitempty"`            // 更新人
 	CreatedAt           int64    `bson:"created_at,omitempty"`         // 创建时间
 	UpdatedAt           int64    `bson:"updated_at,omitempty"`         // 更新时间
+	ResetAt             int64    `bson:"reset_at,omitempty"`           // 重置时间
 }
