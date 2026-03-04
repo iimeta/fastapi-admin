@@ -29,9 +29,7 @@ func batchTask(ctx context.Context) {
 		}
 
 		batchEntry, _ = gcron.AddSingleton(ctx, config.Cfg.BatchTask.Cron, func(ctx context.Context) {
-
 			service.TaskBatch().Task(gctx.New())
-
 		})
 
 	} else {

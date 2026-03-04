@@ -30,6 +30,7 @@ type SysConfig struct {
 	VideoTask             *common.VideoTask             `bson:"video_task,omitempty"`              // 视频任务
 	FileTask              *common.FileTask              `bson:"file_task,omitempty"`               // 文件任务
 	BatchTask             *common.BatchTask             `bson:"batch_task,omitempty"`              // 批处理任务
+	ResetTask             *common.ResetTask             `bson:"reset_task,omitempty"`              // 重置任务
 	ServiceUnavailable    *common.ServiceUnavailable    `bson:"service_unavailable,omitempty"`     // 暂停服务
 	GeneralApi            *common.GeneralApi            `bson:"general_api,omitempty"`             // 通用API
 	Test                  *common.Test                  `bson:"test,omitempty"`                    // 测试

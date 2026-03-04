@@ -32,6 +32,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/provider"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/quota"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/reseller"
+	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/reset"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/session"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/site_config"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/statistics"

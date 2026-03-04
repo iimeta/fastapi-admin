@@ -149,6 +149,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{FileTask: params.FileTask}
 	case "batch_task":
 		sysConfig = &do.SysConfig{BatchTask: params.BatchTask}
+	case "reset_task":
+		sysConfig = &do.SysConfig{ResetTask: params.ResetTask}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "general_api":
@@ -220,6 +222,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		VideoTask:             sysConfig.VideoTask,
 		FileTask:              sysConfig.FileTask,
 		BatchTask:             sysConfig.BatchTask,
+		ResetTask:             sysConfig.ResetTask,
 		ServiceUnavailable:    sysConfig.ServiceUnavailable,
 		GeneralApi:            sysConfig.GeneralApi,
 		Test:                  sysConfig.Test,
@@ -299,6 +302,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.FileTask = s.Default().FileTask
 	case "batch_task":
 		sysConfigUpdateReq.BatchTask = s.Default().BatchTask
+	case "reset_task":
+		sysConfigUpdateReq.ResetTask = s.Default().ResetTask
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	case "general_api":
@@ -428,6 +433,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.Test == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "test"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.ResetTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "reset_task"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -588,7 +600,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		Notice: &common.Notice{
 			Open:        false,
 			Cron:        "0 * * * * ?",
-			LockMinutes: 10,
+			LockMinutes: 30,
 		},
 		Quota: &common.Quota{
 			Warning:           true,
@@ -603,7 +615,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		QuotaTask: &common.QuotaTask{
 			Open:        true,
 			Cron:        "0 * * * * ?",
-			LockMinutes: 10,
+			LockMinutes: 30,
 		},
 		VideoTask: &common.VideoTask{
 			Open:            true,
@@ -620,6 +632,11 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		BatchTask: &common.BatchTask{
 			Open:        true,
 			Cron:        "0/20 * * * * ?",
+			LockMinutes: 30,
+		},
+		ResetTask: &common.ResetTask{
+			Open:        true,
+			Cron:        "0 0 0 * * ?",
 			LockMinutes: 30,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{

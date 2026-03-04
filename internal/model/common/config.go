@@ -169,9 +169,15 @@ type FileTask struct {
 }
 
 type BatchTask struct {
-	Open        bool          `bson:"open"                   json:"open"`         // 开关
-	Cron        string        `bson:"cron"                   json:"cron"`         // CRON表达式
-	LockMinutes time.Duration `bson:"lock_minutes"           json:"lock_minutes"` // 锁定时长, 单位: 分钟
+	Open        bool          `bson:"open"         json:"open"`         // 开关
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
+}
+
+type ResetTask struct {
+	Open        bool          `bson:"open"         json:"open"`         // 开关
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
 }
 
 type ServiceUnavailable struct {

@@ -27,6 +27,7 @@ type SysConfigUpdateReq struct {
 	VideoTask             *common.VideoTask             `json:"video_task,omitempty"`              // 视频任务
 	FileTask              *common.FileTask              `json:"file_task,omitempty"`               // 文件任务
 	BatchTask             *common.BatchTask             `json:"batch_task,omitempty"`              // 批处理任务
+	ResetTask             *common.ResetTask             `json:"reset_task,omitempty"`              // 重置任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
 	GeneralApi            *common.GeneralApi            `json:"general_api,omitempty"`             // 通用API
 	Test                  *common.Test                  `json:"test,omitempty"`                    // 测试
@@ -78,6 +79,7 @@ type SysConfig struct {
 	VideoTask             *common.VideoTask             `json:"video_task,omitempty"`              // 视频任务
 	FileTask              *common.FileTask              `json:"file_task,omitempty"`               // 文件任务
 	BatchTask             *common.BatchTask             `json:"batch_task,omitempty"`              // 批处理任务
+	ResetTask             *common.ResetTask             `json:"reset_task,omitempty"`              // 重置任务
 	ServiceUnavailable    *common.ServiceUnavailable    `json:"service_unavailable,omitempty"`     // 暂停服务
 	GeneralApi            *common.GeneralApi            `json:"general_api,omitempty"`             // 通用API
 	Test                  *common.Test                  `json:"test,omitempty"`                    // 测试

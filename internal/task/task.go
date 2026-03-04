@@ -20,6 +20,9 @@ func Init(ctx context.Context) {
 	// 批处理任务
 	batchTask(ctx)
 
+	// 重置任务
+	resetTask(ctx)
+
 	// 错误检查任务
 	errorCheckTask(ctx)
 

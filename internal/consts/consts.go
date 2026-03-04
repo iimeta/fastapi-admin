@@ -51,6 +51,8 @@ const (
 	TASK_FILE_END_TIME_KEY         = "task:file:end_time"
 	TASK_BATCH_LOCK_KEY            = "task:batch:lock"
 	TASK_BATCH_END_TIME_KEY        = "task:batch:end_time"
+	TASK_RESET_LOCK_KEY            = "task:reset:lock"
+	TASK_RESET_END_TIME_KEY        = "task:reset:end_time"
 	TASK_CHECK_LOCK_KEY            = "task:check:lock:%s"
 	TASK_CHECK_END_TIME_KEY        = "task:check:end_time:%s"
 	TASK_LOG_LOCK_KEY              = "task:log:lock"

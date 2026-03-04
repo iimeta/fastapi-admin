@@ -29,9 +29,7 @@ func fileTask(ctx context.Context) {
 		}
 
 		fileEntry, _ = gcron.AddSingleton(ctx, config.Cfg.FileTask.Cron, func(ctx context.Context) {
-
 			service.TaskFile().Task(gctx.New())
-
 		})
 
 	} else {

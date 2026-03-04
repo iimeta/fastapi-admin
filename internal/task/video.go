@@ -29,9 +29,7 @@ func videoTask(ctx context.Context) {
 		}
 
 		videoEntry, _ = gcron.AddSingleton(ctx, config.Cfg.VideoTask.Cron, func(ctx context.Context) {
-
 			service.TaskVideo().Task(gctx.New())
-
 		})
 
 	} else {
