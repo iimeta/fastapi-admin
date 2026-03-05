@@ -20,7 +20,8 @@ type Group struct {
 	UsedQuota          int                   `bson:"used_quota,omitempty"`            // 已用额度
 	IsCycleResetQuota  bool                  `bson:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
 	ResetQuota         int                   `bson:"reset_quota,omitempty"`           // 重置额度
-	CyclePeriod        int                   `bson:"cycle_period,omitempty"`          // 循环周期, 单位: 天
+	CyclePeriod        int                   `bson:"cycle_period,omitempty"`          // 循环周期
+	PeriodUnit         string                `bson:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
 	IsEnableForward    bool                  `bson:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `bson:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `bson:"is_public,omitempty"`             // 是否公开

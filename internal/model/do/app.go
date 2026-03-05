@@ -14,7 +14,8 @@ type App struct {
 	QuotaExpiresAt    int64    `bson:"quota_expires_at"`       // 额度过期时间
 	IsCycleResetQuota bool     `bson:"is_cycle_reset_quota"`   // 是否循环重置额度
 	ResetQuota        int      `bson:"reset_quota,omitempty"`  // 重置额度
-	CyclePeriod       int      `bson:"cycle_period,omitempty"` // 循环周期, 单位: 天
+	CyclePeriod       int      `bson:"cycle_period,omitempty"` // 循环周期
+	PeriodUnit        string   `bson:"period_unit,omitempty"`  // 周期单位[hour:小时, day:天]
 	IsBindGroup       bool     `bson:"is_bind_group"`          // 是否绑定分组
 	Group             string   `bson:"group"`                  // 绑定分组
 	IpWhitelist       []string `bson:"ip_whitelist"`           // IP白名单

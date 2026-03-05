@@ -15,7 +15,8 @@ type GroupCreateReq struct {
 	Quota              float64               `json:"quota,omitempty"`                 // 额度
 	IsCycleResetQuota  bool                  `json:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
 	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
-	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期, 单位: 天
+	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
+	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
@@ -39,7 +40,8 @@ type GroupUpdateReq struct {
 	Quota              float64               `json:"quota,omitempty"`                 // 额度
 	IsCycleResetQuota  bool                  `json:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
 	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
-	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期, 单位: 天
+	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
+	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
@@ -122,7 +124,8 @@ type Group struct {
 	UsedQuota          float64               `json:"used_quota,omitempty"`            // 已用额度
 	IsCycleResetQuota  bool                  `json:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
 	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
-	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期, 单位: 天
+	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
+	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开

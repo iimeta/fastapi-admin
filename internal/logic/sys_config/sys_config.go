@@ -636,7 +636,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		},
 		ResetTask: &common.ResetTask{
 			Open:        true,
-			Cron:        "0 0 0 * * ?",
+			Cron:        "0 0/5 * * * ?",
 			LockMinutes: 30,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{

@@ -10,7 +10,8 @@ type AppCreateReq struct {
 	QuotaExpiresAt    string   `json:"quota_expires_at,omitempty"`     // 额度过期时间
 	IsCycleResetQuota bool     `json:"is_cycle_reset_quota,omitempty"` // 是否循环重置额度
 	ResetQuota        float64  `json:"reset_quota,omitempty"`          // 重置额度
-	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期, 单位: 天
+	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期
+	PeriodUnit        string   `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
 	IpWhitelist       string   `json:"ip_whitelist,omitempty"`         // IP白名单
 	IpBlacklist       string   `json:"ip_blacklist,omitempty"`         // IP黑名单
 	IsBindGroup       bool     `json:"is_bind_group,omitempty"`        // 是否绑定分组
@@ -30,7 +31,8 @@ type AppUpdateReq struct {
 	QuotaExpiresAt    string   `json:"quota_expires_at,omitempty"`     // 额度过期时间
 	IsCycleResetQuota bool     `json:"is_cycle_reset_quota,omitempty"` // 是否循环重置额度
 	ResetQuota        float64  `json:"reset_quota,omitempty"`          // 重置额度
-	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期, 单位: 天
+	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期
+	PeriodUnit        string   `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
 	IsBindGroup       bool     `json:"is_bind_group,omitempty"`        // 是否绑定分组
 	Group             string   `json:"group,omitempty"`                // 绑定分组
 	IpWhitelist       string   `json:"ip_whitelist,omitempty"`         // IP白名单
@@ -118,7 +120,8 @@ type App struct {
 	QuotaExpiresAt    string   `json:"quota_expires_at,omitempty"`     // 额度过期时间
 	IsCycleResetQuota bool     `json:"is_cycle_reset_quota,omitempty"` // 是否循环重置额度
 	ResetQuota        float64  `json:"reset_quota,omitempty"`          // 重置额度
-	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期, 单位: 天
+	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期
+	PeriodUnit        string   `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
 	IsBindGroup       bool     `json:"is_bind_group,omitempty"`        // 是否绑定分组
 	Group             string   `json:"group,omitempty"`                // 绑定分组
 	GroupName         string   `json:"group_name,omitempty"`           // 绑定分组名称
