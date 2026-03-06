@@ -66,6 +66,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id st
 		ResetQuota:         common.ConvQuotaUnit(params.ResetQuota),
 		CyclePeriod:        params.CyclePeriod,
 		PeriodUnit:         params.PeriodUnit,
+		NextResetAt:        util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 		IsEnableForward:    params.IsEnableForward,
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
@@ -234,6 +235,11 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		ExpiresAt:          util.ConvTimestampMilli(params.ExpiresAt),
 		Remark:             params.Remark,
 		Status:             params.Status,
+	}
+	if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, group.IsCycleResetQuota, group.ResetQuota, group.CyclePeriod, group.PeriodUnit) {
+		group.NextResetAt = util.GetNextNaturalResetAt(group.IsCycleResetQuota, group.CyclePeriod, group.PeriodUnit)
+	} else {
+		group.NextResetAt = oldData.NextResetAt
 	}
 
 	newData, err := dao.Group.FindOneAndUpdateById(ctx, params.Id, group)
@@ -820,6 +826,7 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		CreatedAt:          util.FormatDateTime(group.CreatedAt),
 		UpdatedAt:          util.FormatDateTime(group.UpdatedAt),
 		ResetAt:            util.FormatDateTime(group.ResetAt),
+		NextResetAt:        util.FormatDateTime(group.NextResetAt),
 	}
 
 	if detail.ForwardConfig != nil {
@@ -979,18 +986,20 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 		}
 
 		group := &model.Group{
-			Id:         result.Id,
-			Name:       result.Name,
-			Discount:   result.Discount,
-			Models:     result.Models,
-			ModelNames: modelNames,
-			IsDefault:  result.IsDefault,
-			Weight:     result.Weight,
-			ExpiresAt:  util.FormatDateTime(result.ExpiresAt),
-			Remark:     result.Remark,
-			Status:     result.Status,
-			CreatedAt:  util.FormatDateTime(result.CreatedAt),
-			UpdatedAt:  util.FormatDateTime(result.UpdatedAt),
+			Id:          result.Id,
+			Name:        result.Name,
+			Discount:    result.Discount,
+			Models:      result.Models,
+			ModelNames:  modelNames,
+			IsDefault:   result.IsDefault,
+			Weight:      result.Weight,
+			ExpiresAt:   util.FormatDateTime(result.ExpiresAt),
+			Remark:      result.Remark,
+			Status:      result.Status,
+			CreatedAt:   util.FormatDateTime(result.CreatedAt),
+			UpdatedAt:   util.FormatDateTime(result.UpdatedAt),
+			ResetAt:     util.FormatDateTime(result.ResetAt),
+			NextResetAt: util.FormatDateTime(result.NextResetAt),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

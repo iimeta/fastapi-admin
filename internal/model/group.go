@@ -138,4 +138,5 @@ type Group struct {
 	CreatedAt          string                `json:"created_at,omitempty"`            // 创建时间
 	UpdatedAt          string                `json:"updated_at,omitempty"`            // 更新时间
 	ResetAt            string                `json:"reset_at,omitempty"`              // 重置时间
+	NextResetAt        string                `json:"next_reset_at,omitempty"`         // 下次重置时间
 }

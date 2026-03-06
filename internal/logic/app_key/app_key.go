@@ -101,6 +101,7 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 			ResetQuota:          common.ConvQuotaUnit(params.ResetQuota),
 			CyclePeriod:         params.CyclePeriod,
 			PeriodUnit:          params.PeriodUnit,
+			NextResetAt:         util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 			IsBindGroup:         params.IsBindGroup,
 			Group:               params.Group,
 			IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -143,6 +144,11 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 
 		key.AppId = 0
 		key.Key = ""
+		if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, key.IsCycleResetQuota, key.ResetQuota, key.CyclePeriod, key.PeriodUnit) {
+			key.NextResetAt = util.GetNextNaturalResetAt(key.IsCycleResetQuota, key.CyclePeriod, key.PeriodUnit)
+		} else {
+			key.NextResetAt = oldData.NextResetAt
+		}
 		if keyInfo, err = dao.AppKey.FindOneAndUpdateById(ctx, params.Id, key); err != nil {
 			logger.Error(ctx, err)
 			return k, err
@@ -184,6 +190,7 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 			ResetQuota:          key.ResetQuota,
 			CyclePeriod:         key.CyclePeriod,
 			PeriodUnit:          key.PeriodUnit,
+			NextResetAt:         key.NextResetAt,
 			IsBindGroup:         key.IsBindGroup,
 			Group:               key.Group,
 			IpWhitelist:         key.IpWhitelist,
@@ -380,6 +387,7 @@ func (s *sAppKey) Detail(ctx context.Context, id string) (*model.AppKey, error) 
 		CreatedAt:           util.FormatDateTime(key.CreatedAt),
 		UpdatedAt:           util.FormatDateTime(key.UpdatedAt),
 		ResetAt:             util.FormatDateTime(key.ResetAt),
+		NextResetAt:         util.FormatDateTime(key.NextResetAt),
 	}, nil
 }
 
@@ -476,6 +484,8 @@ func (s *sAppKey) Page(ctx context.Context, params model.AppKeyPageReq) (*model.
 			ResetQuota:          common.ConvQuotaUnitReverse(result.ResetQuota),
 			CyclePeriod:         result.CyclePeriod,
 			PeriodUnit:          result.PeriodUnit,
+			ResetAt:             util.FormatDateTime(result.ResetAt),
+			NextResetAt:         util.FormatDateTime(result.NextResetAt),
 			IsBindGroup:         result.IsBindGroup,
 			Group:               result.Group,
 			IpWhitelist:         result.IpWhitelist,
@@ -629,6 +639,7 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 				ResetQuota:          common.ConvQuotaUnit(params.ResetQuota),
 				CyclePeriod:         params.CyclePeriod,
 				PeriodUnit:          params.PeriodUnit,
+				NextResetAt:         util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 				IsBindGroup:         params.IsBindGroup,
 				Group:               params.Group,
 				IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -665,6 +676,7 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 					ResetQuota:          key.ResetQuota,
 					CyclePeriod:         key.CyclePeriod,
 					PeriodUnit:          key.PeriodUnit,
+					NextResetAt:         key.NextResetAt,
 					IsBindGroup:         key.IsBindGroup,
 					Group:               key.Group,
 					IpWhitelist:         key.IpWhitelist,

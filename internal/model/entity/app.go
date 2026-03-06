@@ -29,4 +29,5 @@ type App struct {
 	CreatedAt         int64    `bson:"created_at,omitempty"`           // 创建时间
 	UpdatedAt         int64    `bson:"updated_at,omitempty"`           // 更新时间
 	ResetAt           int64    `bson:"reset_at,omitempty"`             // 重置时间
+	NextResetAt       int64    `bson:"next_reset_at,omitempty"`        // 下次重置时间
 }

@@ -58,6 +58,7 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 	}
 
 	appId := core.IncrAppId(ctx)
+	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
 
 	if _, err := dao.App.Insert(ctx, &do.App{
 		AppId:             appId,
@@ -67,9 +68,10 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 		Quota:             common.ConvQuotaUnit(params.Quota),
 		QuotaExpiresAt:    util.ConvTimestampMilli(params.QuotaExpiresAt),
 		IsCycleResetQuota: params.IsCycleResetQuota,
-		ResetQuota:        common.ConvQuotaUnit(params.ResetQuota),
+		ResetQuota:        resetQuota,
 		CyclePeriod:       params.CyclePeriod,
 		PeriodUnit:        params.PeriodUnit,
+		NextResetAt:       util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 		IsBindGroup:       params.IsBindGroup,
 		Group:             params.Group,
 		IpWhitelist:       gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -119,6 +121,12 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		return errors.New("Unauthorized")
 	}
 
+	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
+	nextResetAt := oldData.NextResetAt
+	if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
+		nextResetAt = util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
+	}
+
 	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, &do.App{
 		Name:              params.Name,
 		Models:            params.Models,
@@ -126,9 +134,10 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		Quota:             common.ConvQuotaUnit(params.Quota),
 		QuotaExpiresAt:    util.ConvTimestampMilli(params.QuotaExpiresAt),
 		IsCycleResetQuota: params.IsCycleResetQuota,
-		ResetQuota:        common.ConvQuotaUnit(params.ResetQuota),
+		ResetQuota:        resetQuota,
 		CyclePeriod:       params.CyclePeriod,
 		PeriodUnit:        params.PeriodUnit,
+		NextResetAt:       nextResetAt,
 		IsBindGroup:       params.IsBindGroup,
 		Group:             params.Group,
 		IpWhitelist:       gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -337,6 +346,7 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		CreatedAt:         util.FormatDateTime(app.CreatedAt),
 		UpdatedAt:         util.FormatDateTime(app.UpdatedAt),
 		ResetAt:           util.FormatDateTime(app.ResetAt),
+		NextResetAt:       util.FormatDateTime(app.NextResetAt),
 	}, nil
 }
 
@@ -428,21 +438,27 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 		}
 
 		items = append(items, &model.App{
-			Id:             result.Id,
-			AppId:          result.AppId,
-			Name:           result.Name,
-			Models:         result.Models,
-			ModelNames:     modelNames,
-			IsLimitQuota:   result.IsLimitQuota,
-			Quota:          common.ConvQuotaUnitReverse(result.Quota),
-			UsedQuota:      common.ConvQuotaUnitReverse(result.UsedQuota),
-			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
-			IsBindGroup:    result.IsBindGroup,
-			Group:          result.Group,
-			Status:         result.Status,
-			UserId:         result.UserId,
-			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:                result.Id,
+			AppId:             result.AppId,
+			Name:              result.Name,
+			Models:            result.Models,
+			ModelNames:        modelNames,
+			IsLimitQuota:      result.IsLimitQuota,
+			Quota:             common.ConvQuotaUnitReverse(result.Quota),
+			UsedQuota:         common.ConvQuotaUnitReverse(result.UsedQuota),
+			QuotaExpiresAt:    util.FormatDateTime(result.QuotaExpiresAt),
+			IsCycleResetQuota: result.IsCycleResetQuota,
+			ResetQuota:        common.ConvQuotaUnitReverse(result.ResetQuota),
+			CyclePeriod:       result.CyclePeriod,
+			PeriodUnit:        result.PeriodUnit,
+			ResetAt:           util.FormatDateTime(result.ResetAt),
+			NextResetAt:       util.FormatDateTime(result.NextResetAt),
+			IsBindGroup:       result.IsBindGroup,
+			Group:             result.Group,
+			Status:            result.Status,
+			UserId:            result.UserId,
+			CreatedAt:         util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:         util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 
@@ -493,6 +509,8 @@ func (s *sApp) List(ctx context.Context, params model.AppListReq) ([]*model.App,
 			Quota:        common.ConvQuotaUnitReverse(result.Quota),
 			UsedQuota:    common.ConvQuotaUnitReverse(result.UsedQuota),
 			Status:       result.Status,
+			ResetAt:      util.FormatDateTime(result.ResetAt),
+			NextResetAt:  util.FormatDateTime(result.NextResetAt),
 		})
 	}
 
