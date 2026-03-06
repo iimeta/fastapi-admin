@@ -71,7 +71,7 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 		ResetQuota:        resetQuota,
 		CyclePeriod:       params.CyclePeriod,
 		PeriodUnit:        params.PeriodUnit,
-		NextResetAt:       util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+		NextResetAt:       common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 		IsBindGroup:       params.IsBindGroup,
 		Group:             params.Group,
 		IpWhitelist:       gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -124,8 +124,8 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
 	nextResetAt := oldData.NextResetAt
 
-	if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
-		nextResetAt = util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
+	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
+		nextResetAt = common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
 	}
 
 	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, &do.App{

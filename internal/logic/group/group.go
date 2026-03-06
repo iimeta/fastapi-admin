@@ -66,7 +66,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id st
 		ResetQuota:         common.ConvQuotaUnit(params.ResetQuota),
 		CyclePeriod:        params.CyclePeriod,
 		PeriodUnit:         params.PeriodUnit,
-		NextResetAt:        util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+		NextResetAt:        common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 		IsEnableForward:    params.IsEnableForward,
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
@@ -237,8 +237,8 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		Status:             params.Status,
 	}
 
-	if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, group.IsCycleResetQuota, group.ResetQuota, group.CyclePeriod, group.PeriodUnit) {
-		group.NextResetAt = util.GetNextNaturalResetAt(group.IsCycleResetQuota, group.CyclePeriod, group.PeriodUnit)
+	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, group.IsCycleResetQuota, group.ResetQuota, group.CyclePeriod, group.PeriodUnit) {
+		group.NextResetAt = common.GetNextNaturalResetAt(group.IsCycleResetQuota, group.CyclePeriod, group.PeriodUnit)
 	} else {
 		group.NextResetAt = oldData.NextResetAt
 	}
