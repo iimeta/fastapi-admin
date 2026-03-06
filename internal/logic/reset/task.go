@@ -11,6 +11,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
+	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
@@ -42,16 +43,17 @@ func (s *sReset) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sReset Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	s.resetApps(ctx, now)
-	s.resetAppKeys(ctx, now)
-	s.resetGroups(ctx, now)
+	s.resetApp(ctx, now)
+	s.resetAppKey(ctx, now)
+	s.resetGroup(ctx, now)
 
 	if _, err := redis.Set(ctx, consts.TASK_RESET_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
 }
 
-func (s *sReset) resetApps(ctx context.Context, now int64) {
+func (s *sReset) resetApp(ctx context.Context, now int64) {
+
 	apps, err := dao.App.Find(ctx, bson.M{"is_cycle_reset_quota": true, "status": 1, "next_reset_at": bson.M{"$gt": 0, "$lte": now}})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -59,8 +61,10 @@ func (s *sReset) resetApps(ctx context.Context, now int64) {
 	}
 
 	for _, app := range apps {
+
 		oldData := *app
-		nextResetAt := util.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), app.CyclePeriod, app.PeriodUnit)
+		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), app.CyclePeriod, app.PeriodUnit)
+
 		newData, err := dao.App.FindOneAndUpdateById(ctx, app.Id, bson.M{
 			"quota":         app.ResetQuota,
 			"used_quota":    0,
@@ -89,7 +93,8 @@ func (s *sReset) resetApps(ctx context.Context, now int64) {
 	}
 }
 
-func (s *sReset) resetAppKeys(ctx context.Context, now int64) {
+func (s *sReset) resetAppKey(ctx context.Context, now int64) {
+
 	keys, err := dao.AppKey.Find(ctx, bson.M{"is_cycle_reset_quota": true, "status": 1, "next_reset_at": bson.M{"$gt": 0, "$lte": now}})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -97,8 +102,10 @@ func (s *sReset) resetAppKeys(ctx context.Context, now int64) {
 	}
 
 	for _, key := range keys {
+
 		oldData := *key
-		nextResetAt := util.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), key.CyclePeriod, key.PeriodUnit)
+		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), key.CyclePeriod, key.PeriodUnit)
+
 		newData, err := dao.AppKey.FindOneAndUpdateById(ctx, key.Id, bson.M{
 			"quota":         key.ResetQuota,
 			"used_quota":    0,
@@ -126,7 +133,8 @@ func (s *sReset) resetAppKeys(ctx context.Context, now int64) {
 	}
 }
 
-func (s *sReset) resetGroups(ctx context.Context, now int64) {
+func (s *sReset) resetGroup(ctx context.Context, now int64) {
+
 	groups, err := dao.Group.Find(ctx, bson.M{"is_cycle_reset_quota": true, "status": 1, "next_reset_at": bson.M{"$gt": 0, "$lte": now}})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -134,8 +142,10 @@ func (s *sReset) resetGroups(ctx context.Context, now int64) {
 	}
 
 	for _, group := range groups {
+
 		oldData := *group
-		nextResetAt := util.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), group.CyclePeriod, group.PeriodUnit)
+		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), group.CyclePeriod, group.PeriodUnit)
+
 		newData, err := dao.Group.FindOneAndUpdateById(ctx, group.Id, bson.M{
 			"quota":         group.ResetQuota,
 			"used_quota":    0,

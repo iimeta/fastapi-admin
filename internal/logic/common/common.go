@@ -458,3 +458,43 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 
 	return data
 }
+
+func CalcNextNaturalResetAt(now time.Time, cyclePeriod int, periodUnit string) int64 {
+
+	if cyclePeriod <= 0 {
+		return 0
+	}
+
+	now = now.In(util.Location)
+
+	switch periodUnit {
+	case "hour":
+		currentHour := now.Hour()
+		nextHour := ((currentHour / cyclePeriod) + 1) * cyclePeriod
+		nextDay := now
+		if nextHour >= 24 {
+			nextDay = nextDay.AddDate(0, 0, nextHour/24)
+			nextHour = nextHour % 24
+		}
+		next := time.Date(nextDay.Year(), nextDay.Month(), nextDay.Day(), nextHour, 0, 0, 0, util.Location)
+		return next.UnixMilli()
+	case "day":
+		next := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, util.Location).AddDate(0, 0, cyclePeriod)
+		return next.UnixMilli()
+	default:
+		return 0
+	}
+}
+
+func GetNextNaturalResetAt(isCycleResetQuota bool, cyclePeriod int, periodUnit string) int64 {
+
+	if !isCycleResetQuota {
+		return 0
+	}
+
+	return CalcNextNaturalResetAt(time.Now().In(util.Location), cyclePeriod, periodUnit)
+}
+
+func IsResetRuleChanged(oldIsCycleResetQuota bool, oldResetQuota int, oldCyclePeriod int, oldPeriodUnit string, newIsCycleResetQuota bool, newResetQuota int, newCyclePeriod int, newPeriodUnit string) bool {
+	return oldIsCycleResetQuota != newIsCycleResetQuota || oldResetQuota != newResetQuota || oldCyclePeriod != newCyclePeriod || oldPeriodUnit != newPeriodUnit
+}

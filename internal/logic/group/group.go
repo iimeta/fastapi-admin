@@ -236,6 +236,7 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		Remark:             params.Remark,
 		Status:             params.Status,
 	}
+
 	if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, group.IsCycleResetQuota, group.ResetQuota, group.CyclePeriod, group.PeriodUnit) {
 		group.NextResetAt = util.GetNextNaturalResetAt(group.IsCycleResetQuota, group.CyclePeriod, group.PeriodUnit)
 	} else {

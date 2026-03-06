@@ -123,6 +123,7 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 
 	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
 	nextResetAt := oldData.NextResetAt
+
 	if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
 		nextResetAt = util.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
 	}

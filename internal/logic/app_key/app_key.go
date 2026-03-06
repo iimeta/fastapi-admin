@@ -144,11 +144,13 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 
 		key.AppId = 0
 		key.Key = ""
+
 		if util.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, key.IsCycleResetQuota, key.ResetQuota, key.CyclePeriod, key.PeriodUnit) {
 			key.NextResetAt = util.GetNextNaturalResetAt(key.IsCycleResetQuota, key.CyclePeriod, key.PeriodUnit)
 		} else {
 			key.NextResetAt = oldData.NextResetAt
 		}
+
 		if keyInfo, err = dao.AppKey.FindOneAndUpdateById(ctx, params.Id, key); err != nil {
 			logger.Error(ctx, err)
 			return k, err
