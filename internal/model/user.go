@@ -35,28 +35,36 @@ type UserUpdateInfoReq struct {
 
 // 新建用户接口请求参数
 type UserCreateReq struct {
-	Name           string   `json:"name,omitempty" v:"required"`                  // 姓名
-	Email          string   `json:"email,omitempty" v:"required"`                 // 邮箱
-	Account        string   `json:"account,omitempty" v:"required"`               // 账号
-	Password       string   `json:"password,omitempty" v:"required|min-length:6"` // 密码
-	Quota          float64  `json:"quota,omitempty"`                              // 额度
-	QuotaType      int      `json:"quota_type,omitempty"`                         // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
-	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
-	Groups         []string `json:"groups,omitempty" d:"[]"`                      // 分组权限
-	Remark         string   `json:"remark,omitempty"`                             // 备注
+	Name              string   `json:"name,omitempty" v:"required"`                  // 姓名
+	Email             string   `json:"email,omitempty" v:"required"`                 // 邮箱
+	Account           string   `json:"account,omitempty" v:"required"`               // 账号
+	Password          string   `json:"password,omitempty" v:"required|min-length:6"` // 密码
+	Quota             float64  `json:"quota,omitempty"`                              // 额度
+	QuotaType         int      `json:"quota_type,omitempty"`                         // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
+	QuotaExpiresAt    string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
+	IsCycleResetQuota bool     `json:"is_cycle_reset_quota,omitempty"`               // 是否循环重置额度
+	ResetQuota        float64  `json:"reset_quota,omitempty"`                        // 重置额度
+	CyclePeriod       int      `json:"cycle_period,omitempty"`                       // 循环周期
+	PeriodUnit        string   `json:"period_unit,omitempty"`                        // 周期单位[hour:小时, day:天]
+	Groups            []string `json:"groups,omitempty" d:"[]"`                      // 分组权限
+	Remark            string   `json:"remark,omitempty"`                             // 备注
 }
 
 // 更新用户接口请求参数
 type UserUpdateReq struct {
-	Id             string   `json:"id,omitempty"`                        // ID
-	Name           string   `json:"name,omitempty" v:"required"`         // 姓名
-	Email          string   `json:"email,omitempty" v:"required"`        // 邮箱
-	Account        string   `json:"account,omitempty" v:"required"`      // 账号
-	Password       string   `json:"password,omitempty" v:"min-length:6"` // 密码
-	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"`          // 额度过期时间
-	Groups         []string `json:"groups,omitempty"`                    // 分组权限
-	Remark         string   `json:"remark,omitempty"`                    // 备注
-	Status         int      `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
+	Id                string   `json:"id,omitempty"`                        // ID
+	Name              string   `json:"name,omitempty" v:"required"`         // 姓名
+	Email             string   `json:"email,omitempty" v:"required"`        // 邮箱
+	Account           string   `json:"account,omitempty" v:"required"`      // 账号
+	Password          string   `json:"password,omitempty" v:"min-length:6"` // 密码
+	QuotaExpiresAt    string   `json:"quota_expires_at,omitempty"`          // 额度过期时间
+	IsCycleResetQuota bool     `json:"is_cycle_reset_quota,omitempty"`      // 是否循环重置额度
+	ResetQuota        float64  `json:"reset_quota,omitempty"`               // 重置额度
+	CyclePeriod       int      `json:"cycle_period,omitempty"`              // 循环周期
+	PeriodUnit        string   `json:"period_unit,omitempty"`               // 周期单位[hour:小时, day:天]
+	Groups            []string `json:"groups,omitempty"`                    // 分组权限
+	Remark            string   `json:"remark,omitempty"`                    // 备注
+	Status            int      `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改用户额度过期时间接口请求参数
@@ -146,6 +154,12 @@ type User struct {
 	Quota                  float64       `json:"quota,omitempty"`                    // 剩余额度
 	UsedQuota              float64       `json:"used_quota,omitempty"`               // 已用额度
 	QuotaExpiresAt         string        `json:"quota_expires_at,omitempty"`         // 额度过期时间
+	IsCycleResetQuota      bool          `json:"is_cycle_reset_quota,omitempty"`     // 是否循环重置额度
+	ResetQuota             float64       `json:"reset_quota,omitempty"`              // 重置额度
+	CyclePeriod            int           `json:"cycle_period,omitempty"`             // 循环周期
+	PeriodUnit             string        `json:"period_unit,omitempty"`              // 周期单位[hour:小时, day:天]
+	ResetAt                string        `json:"reset_at,omitempty"`                 // 重置时间
+	NextResetAt            string        `json:"next_reset_at,omitempty"`            // 下次重置时间
 	Groups                 []string      `json:"groups,omitempty"`                   // 分组权限
 	GroupNames             []string      `json:"group_names,omitempty"`              // 分组名称
 	Account                string        `json:"account,omitempty"`                  // 账号

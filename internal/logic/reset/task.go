@@ -43,12 +43,94 @@ func (s *sReset) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sReset Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
+	s.resetUser(ctx, now)
+	s.resetReseller(ctx, now)
 	s.resetApp(ctx, now)
 	s.resetAppKey(ctx, now)
 	s.resetGroup(ctx, now)
 
 	if _, err := redis.Set(ctx, consts.TASK_RESET_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
+	}
+}
+
+func (s *sReset) resetUser(ctx context.Context, now int64) {
+
+	users, err := dao.User.Find(ctx, bson.M{"is_cycle_reset_quota": true, "status": 1, "next_reset_at": bson.M{"$gt": 0, "$lte": now}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	for _, user := range users {
+
+		oldData := *user
+		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), user.CyclePeriod, user.PeriodUnit)
+
+		newData, err := dao.User.FindOneAndUpdateById(ctx, user.Id, bson.M{
+			"quota":         user.ResetQuota,
+			"used_quota":    0,
+			"reset_at":      now,
+			"next_reset_at": nextResetAt,
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			continue
+		}
+
+		if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, user.UserId), g.Map{
+			consts.USER_QUOTA_FIELD: user.ResetQuota,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			OldData: &oldData,
+			NewData: newData,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+}
+
+func (s *sReset) resetReseller(ctx context.Context, now int64) {
+
+	resellers, err := dao.Reseller.Find(ctx, bson.M{"is_cycle_reset_quota": true, "status": 1, "next_reset_at": bson.M{"$gt": 0, "$lte": now}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	for _, reseller := range resellers {
+
+		oldData := *reseller
+		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), reseller.CyclePeriod, reseller.PeriodUnit)
+
+		newData, err := dao.Reseller.FindOneAndUpdateById(ctx, reseller.Id, bson.M{
+			"quota":         reseller.ResetQuota,
+			"used_quota":    0,
+			"reset_at":      now,
+			"next_reset_at": nextResetAt,
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			continue
+		}
+
+		if _, err = redis.HSet(ctx, fmt.Sprintf(consts.API_RESELLER_USAGE_KEY, reseller.UserId), g.Map{
+			consts.RESELLER_QUOTA_FIELD: reseller.ResetQuota,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			OldData: &oldData,
+			NewData: newData,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 }
 

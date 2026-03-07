@@ -66,16 +66,21 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 		salt     = grand.Letters(8)
 		id       = util.GenerateId()
 		reseller = &do.Reseller{
-			Id:             id,
-			UserId:         core.IncrResellerId(ctx),
-			Name:           params.Name,
-			Email:          params.Email,
-			Quota:          common.ConvQuotaUnit(params.Quota),
-			QuotaExpiresAt: util.ConvTimestampMilli(params.QuotaExpiresAt),
-			Groups:         params.Groups,
-			Remark:         params.Remark,
-			Status:         1,
-			Creator:        id,
+			Id:                id,
+			UserId:            core.IncrResellerId(ctx),
+			Name:              params.Name,
+			Email:             params.Email,
+			Quota:             common.ConvQuotaUnit(params.Quota),
+			QuotaExpiresAt:    util.ConvTimestampMilli(params.QuotaExpiresAt),
+			IsCycleResetQuota: params.IsCycleResetQuota,
+			ResetQuota:        common.ConvQuotaUnit(params.ResetQuota),
+			CyclePeriod:       params.CyclePeriod,
+			PeriodUnit:        params.PeriodUnit,
+			NextResetAt:       common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+			Groups:            params.Groups,
+			Remark:            params.Remark,
+			Status:            1,
+			Creator:           id,
 		}
 	)
 
@@ -193,10 +198,22 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 		return err
 	}
 
+	nextResetAt := oldData.NextResetAt
+	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
+
+	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
+		nextResetAt = common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
+	}
+
 	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"name":                  params.Name,
 		"email":                 params.Email,
 		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"is_cycle_reset_quota":  params.IsCycleResetQuota,
+		"reset_quota":           resetQuota,
+		"cycle_period":          params.CyclePeriod,
+		"period_unit":           params.PeriodUnit,
+		"next_reset_at":         nextResetAt,
 		"groups":                params.Groups,
 		"remark":                params.Remark,
 		"status":                params.Status,
@@ -557,6 +574,12 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 		AllocatedQuota:         common.ConvQuotaUnitReverse(allocatedQuota),
 		ToBeAllocatedQuota:     common.ConvQuotaUnitReverse(toBeAllocatedQuota),
 		QuotaExpiresAt:         util.FormatDateTime(reseller.QuotaExpiresAt),
+		IsCycleResetQuota:      reseller.IsCycleResetQuota,
+		ResetQuota:             common.ConvQuotaUnitReverse(reseller.ResetQuota),
+		CyclePeriod:            reseller.CyclePeriod,
+		PeriodUnit:             reseller.PeriodUnit,
+		ResetAt:                util.FormatDateTime(reseller.ResetAt),
+		NextResetAt:            util.FormatDateTime(reseller.NextResetAt),
 		Groups:                 reseller.Groups,
 		GroupNames:             groupNames,
 		QuotaWarning:           reseller.QuotaWarning,

@@ -987,20 +987,18 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 		}
 
 		group := &model.Group{
-			Id:          result.Id,
-			Name:        result.Name,
-			Discount:    result.Discount,
-			Models:      result.Models,
-			ModelNames:  modelNames,
-			IsDefault:   result.IsDefault,
-			Weight:      result.Weight,
-			ExpiresAt:   util.FormatDateTime(result.ExpiresAt),
-			Remark:      result.Remark,
-			Status:      result.Status,
-			CreatedAt:   util.FormatDateTime(result.CreatedAt),
-			UpdatedAt:   util.FormatDateTime(result.UpdatedAt),
-			ResetAt:     util.FormatDateTime(result.ResetAt),
-			NextResetAt: util.FormatDateTime(result.NextResetAt),
+			Id:         result.Id,
+			Name:       result.Name,
+			Discount:   result.Discount,
+			Models:     result.Models,
+			ModelNames: modelNames,
+			IsDefault:  result.IsDefault,
+			Weight:     result.Weight,
+			ExpiresAt:  util.FormatDateTime(result.ExpiresAt),
+			Remark:     result.Remark,
+			Status:     result.Status,
+			CreatedAt:  util.FormatDateTime(result.CreatedAt),
+			UpdatedAt:  util.FormatDateTime(result.UpdatedAt),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

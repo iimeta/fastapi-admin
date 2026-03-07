@@ -17,6 +17,12 @@ type Reseller struct {
 	Quota                  int           `bson:"quota,omitempty"`                    // 剩余额度
 	UsedQuota              int           `bson:"used_quota,omitempty"`               // 已用额度
 	QuotaExpiresAt         int64         `bson:"quota_expires_at,omitempty"`         // 额度过期时间
+	IsCycleResetQuota      bool          `bson:"is_cycle_reset_quota,omitempty"`     // 是否循环重置额度
+	ResetQuota             int           `bson:"reset_quota,omitempty"`              // 重置额度
+	CyclePeriod            int           `bson:"cycle_period,omitempty"`             // 循环周期
+	PeriodUnit             string        `bson:"period_unit,omitempty"`              // 周期单位[hour:小时, day:天]
+	ResetAt                int64         `bson:"reset_at,omitempty"`                 // 重置时间
+	NextResetAt            int64         `bson:"next_reset_at,omitempty"`            // 下次重置时间
 	Groups                 []string      `bson:"groups,omitempty"`                   // 分组权限
 	QuotaWarning           bool          `bson:"quota_warning,omitempty"`            // 额度预警开关
 	WarningThreshold       int           `bson:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
