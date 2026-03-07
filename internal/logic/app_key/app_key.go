@@ -97,11 +97,11 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 			QuotaExpiresRule:    params.QuotaExpiresRule,
 			QuotaExpiresAt:      util.ConvTimestampMilli(params.QuotaExpiresAt),
 			QuotaExpiresMinutes: params.QuotaExpiresMinutes,
-			IsCycleResetQuota:   params.IsCycleResetQuota,
+			IsCycleResetQuota:   params.IsLimitQuota && params.IsCycleResetQuota,
 			ResetQuota:          common.ConvQuotaUnit(params.ResetQuota),
 			CyclePeriod:         params.CyclePeriod,
 			PeriodUnit:          params.PeriodUnit,
-			NextResetAt:         common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+			NextResetAt:         common.GetNextNaturalResetAt(params.IsLimitQuota && params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 			IsBindGroup:         params.IsBindGroup,
 			Group:               params.Group,
 			IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -146,7 +146,7 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 		key.Key = ""
 
 		if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, key.IsCycleResetQuota, key.ResetQuota, key.CyclePeriod, key.PeriodUnit) {
-			key.NextResetAt = common.GetNextNaturalResetAt(key.IsCycleResetQuota, key.CyclePeriod, key.PeriodUnit)
+			key.NextResetAt = common.GetNextNaturalResetAt(key.IsLimitQuota && key.IsCycleResetQuota, key.CyclePeriod, key.PeriodUnit)
 		} else {
 			key.NextResetAt = oldData.NextResetAt
 		}
@@ -377,6 +377,8 @@ func (s *sAppKey) Detail(ctx context.Context, id string) (*model.AppKey, error) 
 		ResetQuota:          common.ConvQuotaUnitReverse(key.ResetQuota),
 		CyclePeriod:         key.CyclePeriod,
 		PeriodUnit:          key.PeriodUnit,
+		ResetAt:             util.FormatDateTime(key.ResetAt),
+		NextResetAt:         util.FormatDateTime(key.NextResetAt),
 		IsBindGroup:         key.IsBindGroup,
 		Group:               key.Group,
 		GroupName:           groupName,
@@ -388,8 +390,6 @@ func (s *sAppKey) Detail(ctx context.Context, id string) (*model.AppKey, error) 
 		Updater:             key.Updater,
 		CreatedAt:           util.FormatDateTime(key.CreatedAt),
 		UpdatedAt:           util.FormatDateTime(key.UpdatedAt),
-		ResetAt:             util.FormatDateTime(key.ResetAt),
-		NextResetAt:         util.FormatDateTime(key.NextResetAt),
 	}, nil
 }
 
@@ -637,11 +637,11 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 				QuotaExpiresRule:    params.QuotaExpiresRule,
 				QuotaExpiresAt:      util.ConvTimestampMilli(params.QuotaExpiresAt),
 				QuotaExpiresMinutes: params.QuotaExpiresMinutes,
-				IsCycleResetQuota:   params.IsCycleResetQuota,
+				IsCycleResetQuota:   params.IsLimitQuota && params.IsCycleResetQuota,
 				ResetQuota:          common.ConvQuotaUnit(params.ResetQuota),
 				CyclePeriod:         params.CyclePeriod,
 				PeriodUnit:          params.PeriodUnit,
-				NextResetAt:         common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+				NextResetAt:         common.GetNextNaturalResetAt(params.IsLimitQuota && params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 				IsBindGroup:         params.IsBindGroup,
 				Group:               params.Group,
 				IpWhitelist:         gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),

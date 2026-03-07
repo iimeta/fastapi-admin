@@ -152,6 +152,8 @@ type AppKey struct {
 	ResetQuota          float64  `json:"reset_quota,omitempty"`           // 重置额度
 	CyclePeriod         int      `json:"cycle_period,omitempty"`          // 循环周期
 	PeriodUnit          string   `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
+	ResetAt             string   `json:"reset_at,omitempty"`              // 重置时间
+	NextResetAt         string   `json:"next_reset_at,omitempty"`         // 下次重置时间
 	IsBindGroup         bool     `json:"is_bind_group,omitempty"`         // 是否绑定分组
 	Group               string   `json:"group,omitempty"`                 // 绑定分组
 	GroupName           string   `json:"group_name,omitempty"`            // 绑定分组名称
@@ -163,6 +165,4 @@ type AppKey struct {
 	Updater             string   `json:"updater,omitempty"`               // 更新人
 	CreatedAt           string   `json:"created_at,omitempty"`            // 创建时间
 	UpdatedAt           string   `json:"updated_at,omitempty"`            // 更新时间
-	ResetAt             string   `json:"reset_at,omitempty"`              // 重置时间
-	NextResetAt         string   `json:"next_reset_at,omitempty"`         // 下次重置时间
 }

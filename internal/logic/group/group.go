@@ -62,11 +62,11 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id st
 		IsDefault:          params.IsDefault,
 		IsLimitQuota:       params.IsLimitQuota,
 		Quota:              common.ConvQuotaUnit(params.Quota),
-		IsCycleResetQuota:  params.IsCycleResetQuota,
+		IsCycleResetQuota:  params.IsLimitQuota && params.IsCycleResetQuota,
 		ResetQuota:         common.ConvQuotaUnit(params.ResetQuota),
 		CyclePeriod:        params.CyclePeriod,
 		PeriodUnit:         params.PeriodUnit,
-		NextResetAt:        common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+		NextResetAt:        common.GetNextNaturalResetAt(params.IsLimitQuota && params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 		IsEnableForward:    params.IsEnableForward,
 		ForwardConfig:      params.ForwardConfig,
 		IsPublic:           params.IsPublic,
@@ -224,7 +224,7 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		IsDefault:          params.IsDefault,
 		IsLimitQuota:       params.IsLimitQuota,
 		Quota:              common.ConvQuotaUnit(params.Quota),
-		IsCycleResetQuota:  params.IsCycleResetQuota,
+		IsCycleResetQuota:  params.IsLimitQuota && params.IsCycleResetQuota,
 		ResetQuota:         common.ConvQuotaUnit(params.ResetQuota),
 		CyclePeriod:        params.CyclePeriod,
 		PeriodUnit:         params.PeriodUnit,
@@ -238,7 +238,7 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 	}
 
 	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, group.IsCycleResetQuota, group.ResetQuota, group.CyclePeriod, group.PeriodUnit) {
-		group.NextResetAt = common.GetNextNaturalResetAt(group.IsCycleResetQuota, group.CyclePeriod, group.PeriodUnit)
+		group.NextResetAt = common.GetNextNaturalResetAt(group.IsLimitQuota && group.IsCycleResetQuota, group.CyclePeriod, group.PeriodUnit)
 	} else {
 		group.NextResetAt = oldData.NextResetAt
 	}
@@ -815,6 +815,8 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		ResetQuota:         common.ConvQuotaUnitReverse(group.ResetQuota),
 		CyclePeriod:        group.CyclePeriod,
 		PeriodUnit:         group.PeriodUnit,
+		ResetAt:            util.FormatDateTime(group.ResetAt),
+		NextResetAt:        util.FormatDateTime(group.NextResetAt),
 		IsEnableForward:    group.IsEnableForward,
 		ForwardConfig:      group.ForwardConfig,
 		IsPublic:           group.IsPublic,
@@ -826,8 +828,6 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		Updater:            group.Updater,
 		CreatedAt:          util.FormatDateTime(group.CreatedAt),
 		UpdatedAt:          util.FormatDateTime(group.UpdatedAt),
-		ResetAt:            util.FormatDateTime(group.ResetAt),
-		NextResetAt:        util.FormatDateTime(group.NextResetAt),
 	}
 
 	if detail.ForwardConfig != nil {

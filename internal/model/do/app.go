@@ -4,29 +4,29 @@ import "github.com/gogf/gf/v2/util/gmeta"
 
 type App struct {
 	gmeta.Meta        `collection:"app" bson:"-"`
-	UserId            int      `bson:"user_id,omitempty"`       // 用户ID
-	AppId             int      `bson:"app_id,omitempty"`        // 应用ID
-	Name              string   `bson:"name,omitempty"`          // 应用名称
-	Models            []string `bson:"models"`                  // 模型权限
-	IsLimitQuota      bool     `bson:"is_limit_quota"`          // 是否限制额度
-	Quota             int      `bson:"quota"`                   // 剩余额度
-	UsedQuota         int      `bson:"used_quota,omitempty"`    // 已用额度
-	QuotaExpiresAt    int64    `bson:"quota_expires_at"`        // 额度过期时间
-	IsCycleResetQuota bool     `bson:"is_cycle_reset_quota"`    // 是否循环重置额度
-	ResetQuota        int      `bson:"reset_quota,omitempty"`   // 重置额度
-	CyclePeriod       int      `bson:"cycle_period,omitempty"`  // 循环周期
-	PeriodUnit        string   `bson:"period_unit,omitempty"`   // 周期单位[hour:小时, day:天]
-	IsBindGroup       bool     `bson:"is_bind_group"`           // 是否绑定分组
-	Group             string   `bson:"group"`                   // 绑定分组
-	IpWhitelist       []string `bson:"ip_whitelist"`            // IP白名单
-	IpBlacklist       []string `bson:"ip_blacklist"`            // IP黑名单
-	Remark            string   `bson:"remark"`                  // 备注
-	Status            int      `bson:"status,omitempty"`        // 状态[1:正常, 2:禁用, -1:删除]
-	Rid               int      `bson:"rid,omitempty"`           // 代理商ID
-	Creator           string   `bson:"creator,omitempty"`       // 创建人
-	Updater           string   `bson:"updater,omitempty"`       // 更新人
-	CreatedAt         int64    `bson:"created_at,omitempty"`    // 创建时间
-	UpdatedAt         int64    `bson:"updated_at,omitempty"`    // 更新时间
-	ResetAt           int64    `bson:"reset_at,omitempty"`      // 重置时间
-	NextResetAt       int64    `bson:"next_reset_at,omitempty"` // 下次重置时间
+	UserId            int      `bson:"user_id,omitempty"`      // 用户ID
+	AppId             int      `bson:"app_id,omitempty"`       // 应用ID
+	Name              string   `bson:"name,omitempty"`         // 应用名称
+	Models            []string `bson:"models"`                 // 模型权限
+	IsLimitQuota      bool     `bson:"is_limit_quota"`         // 是否限制额度
+	Quota             int      `bson:"quota"`                  // 剩余额度
+	UsedQuota         int      `bson:"used_quota,omitempty"`   // 已用额度
+	QuotaExpiresAt    int64    `bson:"quota_expires_at"`       // 额度过期时间
+	IsCycleResetQuota bool     `bson:"is_cycle_reset_quota"`   // 是否循环重置额度
+	ResetQuota        int      `bson:"reset_quota,omitempty"`  // 重置额度
+	CyclePeriod       int      `bson:"cycle_period,omitempty"` // 循环周期
+	PeriodUnit        string   `bson:"period_unit,omitempty"`  // 周期单位[hour:小时, day:天]
+	ResetAt           int64    `bson:"reset_at"`               // 重置时间
+	NextResetAt       int64    `bson:"next_reset_at"`          // 下次重置时间
+	IsBindGroup       bool     `bson:"is_bind_group"`          // 是否绑定分组
+	Group             string   `bson:"group"`                  // 绑定分组
+	IpWhitelist       []string `bson:"ip_whitelist"`           // IP白名单
+	IpBlacklist       []string `bson:"ip_blacklist"`           // IP黑名单
+	Remark            string   `bson:"remark"`                 // 备注
+	Status            int      `bson:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
+	Rid               int      `bson:"rid,omitempty"`          // 代理商ID
+	Creator           string   `bson:"creator,omitempty"`      // 创建人
+	Updater           string   `bson:"updater,omitempty"`      // 更新人
+	CreatedAt         int64    `bson:"created_at,omitempty"`   // 创建时间
+	UpdatedAt         int64    `bson:"updated_at,omitempty"`   // 更新时间
 }

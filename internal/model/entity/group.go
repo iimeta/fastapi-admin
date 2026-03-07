@@ -22,6 +22,8 @@ type Group struct {
 	ResetQuota         int                   `bson:"reset_quota,omitempty"`           // 重置额度
 	CyclePeriod        int                   `bson:"cycle_period,omitempty"`          // 循环周期
 	PeriodUnit         string                `bson:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
+	ResetAt            int64                 `bson:"reset_at,omitempty"`              // 重置时间
+	NextResetAt        int64                 `bson:"next_reset_at,omitempty"`         // 下次重置时间
 	IsEnableForward    bool                  `bson:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `bson:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `bson:"is_public,omitempty"`             // 是否公开
@@ -33,6 +35,4 @@ type Group struct {
 	Updater            string                `bson:"updater,omitempty"`               // 更新人
 	CreatedAt          int64                 `bson:"created_at,omitempty"`            // 创建时间
 	UpdatedAt          int64                 `bson:"updated_at,omitempty"`            // 更新时间
-	ResetAt            int64                 `bson:"reset_at,omitempty"`              // 重置时间
-	NextResetAt        int64                 `bson:"next_reset_at,omitempty"`         // 下次重置时间
 }

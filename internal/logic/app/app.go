@@ -67,11 +67,11 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 		IsLimitQuota:      params.IsLimitQuota,
 		Quota:             common.ConvQuotaUnit(params.Quota),
 		QuotaExpiresAt:    util.ConvTimestampMilli(params.QuotaExpiresAt),
-		IsCycleResetQuota: params.IsCycleResetQuota,
+		IsCycleResetQuota: params.IsLimitQuota && params.IsCycleResetQuota,
 		ResetQuota:        resetQuota,
 		CyclePeriod:       params.CyclePeriod,
 		PeriodUnit:        params.PeriodUnit,
-		NextResetAt:       common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+		NextResetAt:       common.GetNextNaturalResetAt(params.IsLimitQuota && params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
 		IsBindGroup:       params.IsBindGroup,
 		Group:             params.Group,
 		IpWhitelist:       gstr.Split(gstr.Trim(params.IpWhitelist), "\n"),
@@ -125,7 +125,7 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 	nextResetAt := oldData.NextResetAt
 
 	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
-		nextResetAt = common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
+		nextResetAt = common.GetNextNaturalResetAt(params.IsLimitQuota && params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
 	}
 
 	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, &do.App{
@@ -134,7 +134,7 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 		IsLimitQuota:      params.IsLimitQuota,
 		Quota:             common.ConvQuotaUnit(params.Quota),
 		QuotaExpiresAt:    util.ConvTimestampMilli(params.QuotaExpiresAt),
-		IsCycleResetQuota: params.IsCycleResetQuota,
+		IsCycleResetQuota: params.IsLimitQuota && params.IsCycleResetQuota,
 		ResetQuota:        resetQuota,
 		CyclePeriod:       params.CyclePeriod,
 		PeriodUnit:        params.PeriodUnit,
@@ -336,6 +336,8 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		ResetQuota:        common.ConvQuotaUnitReverse(app.ResetQuota),
 		CyclePeriod:       app.CyclePeriod,
 		PeriodUnit:        app.PeriodUnit,
+		ResetAt:           util.FormatDateTime(app.ResetAt),
+		NextResetAt:       util.FormatDateTime(app.NextResetAt),
 		IsBindGroup:       app.IsBindGroup,
 		Group:             app.Group,
 		GroupName:         groupName,
@@ -346,8 +348,6 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		UserId:            app.UserId,
 		CreatedAt:         util.FormatDateTime(app.CreatedAt),
 		UpdatedAt:         util.FormatDateTime(app.UpdatedAt),
-		ResetAt:           util.FormatDateTime(app.ResetAt),
-		NextResetAt:       util.FormatDateTime(app.NextResetAt),
 	}, nil
 }
 

@@ -21,6 +21,8 @@ type AppKey struct {
 	ResetQuota          int      `bson:"reset_quota,omitempty"`          // 重置额度
 	CyclePeriod         int      `bson:"cycle_period,omitempty"`         // 循环周期
 	PeriodUnit          string   `bson:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
+	ResetAt             int64    `bson:"reset_at,omitempty"`             // 重置时间
+	NextResetAt         int64    `bson:"next_reset_at,omitempty"`        // 下次重置时间
 	IsBindGroup         bool     `bson:"is_bind_group,omitempty"`        // 是否绑定分组
 	Group               string   `bson:"group,omitempty"`                // 绑定分组
 	IpWhitelist         []string `bson:"ip_whitelist,omitempty"`         // IP白名单
@@ -32,6 +34,4 @@ type AppKey struct {
 	Updater             string   `bson:"updater,omitempty"`              // 更新人
 	CreatedAt           int64    `bson:"created_at,omitempty"`           // 创建时间
 	UpdatedAt           int64    `bson:"updated_at,omitempty"`           // 更新时间
-	ResetAt             int64    `bson:"reset_at,omitempty"`             // 重置时间
-	NextResetAt         int64    `bson:"next_reset_at,omitempty"`        // 下次重置时间
 }
