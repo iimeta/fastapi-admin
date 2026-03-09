@@ -17,6 +17,7 @@ type GroupCreateReq struct {
 	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
 	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
 	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
+	ResetMode          string                `json:"reset_mode,omitempty"`            // 重置模式[natural:自然周期, relative:相对周期]
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
@@ -42,6 +43,7 @@ type GroupUpdateReq struct {
 	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
 	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
 	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
+	ResetMode          string                `json:"reset_mode,omitempty"`            // 重置模式[natural:自然周期, relative:相对周期]
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
 	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
 	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
@@ -126,6 +128,7 @@ type Group struct {
 	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
 	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
 	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
+	ResetMode          string                `json:"reset_mode,omitempty"`            // 重置模式[natural:自然周期, relative:相对周期]
 	ResetAt            string                `json:"reset_at,omitempty"`              // 重置时间
 	NextResetAt        string                `json:"next_reset_at,omitempty"`         // 下次重置时间
 	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发

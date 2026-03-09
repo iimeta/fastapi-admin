@@ -78,7 +78,8 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 			ResetQuota:        common.ConvQuotaUnit(params.ResetQuota),
 			CyclePeriod:       params.CyclePeriod,
 			PeriodUnit:        params.PeriodUnit,
-			NextResetAt:       common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+			ResetMode:         params.ResetMode,
+			NextResetAt:       common.GetNextResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit, params.ResetMode),
 			Groups:            params.Groups,
 			Remark:            params.Remark,
 			Status:            1,
@@ -273,8 +274,8 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	nextResetAt := oldData.NextResetAt
 	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
 
-	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
-		nextResetAt = common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
+	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, oldData.ResetMode, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit, params.ResetMode) {
+		nextResetAt = common.GetNextResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit, params.ResetMode)
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
@@ -285,6 +286,7 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		"reset_quota":           resetQuota,
 		"cycle_period":          params.CyclePeriod,
 		"period_unit":           params.PeriodUnit,
+		"reset_mode":            params.ResetMode,
 		"next_reset_at":         nextResetAt,
 		"groups":                params.Groups,
 		"remark":                params.Remark,
@@ -589,6 +591,7 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		ResetQuota:             common.ConvQuotaUnitReverse(user.ResetQuota),
 		CyclePeriod:            user.CyclePeriod,
 		PeriodUnit:             user.PeriodUnit,
+		ResetMode:              user.ResetMode,
 		ResetAt:                util.FormatDateTime(user.ResetAt),
 		NextResetAt:            util.FormatDateTime(user.NextResetAt),
 		Groups:                 user.Groups,

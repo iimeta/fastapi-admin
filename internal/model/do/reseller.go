@@ -21,6 +21,7 @@ type Reseller struct {
 	ResetQuota             int           `bson:"reset_quota,omitempty"`              // 重置额度
 	CyclePeriod            int           `bson:"cycle_period,omitempty"`             // 循环周期
 	PeriodUnit             string        `bson:"period_unit,omitempty"`              // 周期单位[hour:小时, day:天]
+	ResetMode              string        `bson:"reset_mode,omitempty"`               // 重置模式[natural:自然周期, relative:相对周期]
 	ResetAt                int64         `bson:"reset_at"`                           // 重置时间
 	NextResetAt            int64         `bson:"next_reset_at"`                      // 下次重置时间
 	Groups                 []string      `bson:"groups"`                             // 分组权限

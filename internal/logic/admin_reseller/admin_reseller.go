@@ -76,7 +76,8 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 			ResetQuota:        common.ConvQuotaUnit(params.ResetQuota),
 			CyclePeriod:       params.CyclePeriod,
 			PeriodUnit:        params.PeriodUnit,
-			NextResetAt:       common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit),
+			ResetMode:         params.ResetMode,
+			NextResetAt:       common.GetNextResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit, params.ResetMode),
 			Groups:            params.Groups,
 			Remark:            params.Remark,
 			Status:            1,
@@ -201,8 +202,8 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 	nextResetAt := oldData.NextResetAt
 	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
 
-	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit) {
-		nextResetAt = common.GetNextNaturalResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit)
+	if common.IsResetRuleChanged(oldData.IsCycleResetQuota, oldData.ResetQuota, oldData.CyclePeriod, oldData.PeriodUnit, oldData.ResetMode, params.IsCycleResetQuota, resetQuota, params.CyclePeriod, params.PeriodUnit, params.ResetMode) {
+		nextResetAt = common.GetNextResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit, params.ResetMode)
 	}
 
 	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
@@ -213,6 +214,7 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 		"reset_quota":           resetQuota,
 		"cycle_period":          params.CyclePeriod,
 		"period_unit":           params.PeriodUnit,
+		"reset_mode":            params.ResetMode,
 		"next_reset_at":         nextResetAt,
 		"groups":                params.Groups,
 		"remark":                params.Remark,
@@ -578,6 +580,7 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 		ResetQuota:             common.ConvQuotaUnitReverse(reseller.ResetQuota),
 		CyclePeriod:            reseller.CyclePeriod,
 		PeriodUnit:             reseller.PeriodUnit,
+		ResetMode:              reseller.ResetMode,
 		ResetAt:                util.FormatDateTime(reseller.ResetAt),
 		NextResetAt:            util.FormatDateTime(reseller.NextResetAt),
 		Groups:                 reseller.Groups,

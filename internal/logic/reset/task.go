@@ -65,7 +65,7 @@ func (s *sReset) resetUser(ctx context.Context, now int64) {
 	for _, user := range users {
 
 		oldData := *user
-		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), user.CyclePeriod, user.PeriodUnit)
+		nextResetAt := common.CalcNextResetAt(time.UnixMilli(now).In(util.Location), user.CyclePeriod, user.PeriodUnit, user.ResetMode)
 
 		newData, err := dao.User.FindOneAndUpdateById(ctx, user.Id, bson.M{
 			"quota":         user.ResetQuota,
@@ -105,7 +105,7 @@ func (s *sReset) resetReseller(ctx context.Context, now int64) {
 	for _, reseller := range resellers {
 
 		oldData := *reseller
-		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), reseller.CyclePeriod, reseller.PeriodUnit)
+		nextResetAt := common.CalcNextResetAt(time.UnixMilli(now).In(util.Location), reseller.CyclePeriod, reseller.PeriodUnit, reseller.ResetMode)
 
 		newData, err := dao.Reseller.FindOneAndUpdateById(ctx, reseller.Id, bson.M{
 			"quota":         reseller.ResetQuota,
@@ -145,7 +145,7 @@ func (s *sReset) resetApp(ctx context.Context, now int64) {
 	for _, app := range apps {
 
 		oldData := *app
-		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), app.CyclePeriod, app.PeriodUnit)
+		nextResetAt := common.CalcNextResetAt(time.UnixMilli(now).In(util.Location), app.CyclePeriod, app.PeriodUnit, app.ResetMode)
 
 		newData, err := dao.App.FindOneAndUpdateById(ctx, app.Id, bson.M{
 			"quota":         app.ResetQuota,
@@ -186,7 +186,7 @@ func (s *sReset) resetAppKey(ctx context.Context, now int64) {
 	for _, key := range keys {
 
 		oldData := *key
-		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), key.CyclePeriod, key.PeriodUnit)
+		nextResetAt := common.CalcNextResetAt(time.UnixMilli(now).In(util.Location), key.CyclePeriod, key.PeriodUnit, key.ResetMode)
 
 		newData, err := dao.AppKey.FindOneAndUpdateById(ctx, key.Id, bson.M{
 			"quota":         key.ResetQuota,
@@ -226,7 +226,7 @@ func (s *sReset) resetGroup(ctx context.Context, now int64) {
 	for _, group := range groups {
 
 		oldData := *group
-		nextResetAt := common.CalcNextNaturalResetAt(time.UnixMilli(now).In(util.Location), group.CyclePeriod, group.PeriodUnit)
+		nextResetAt := common.CalcNextResetAt(time.UnixMilli(now).In(util.Location), group.CyclePeriod, group.PeriodUnit, group.ResetMode)
 
 		newData, err := dao.Group.FindOneAndUpdateById(ctx, group.Id, bson.M{
 			"quota":         group.ResetQuota,

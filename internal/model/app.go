@@ -12,6 +12,7 @@ type AppCreateReq struct {
 	ResetQuota        float64  `json:"reset_quota,omitempty"`          // 重置额度
 	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期
 	PeriodUnit        string   `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
+	ResetMode         string   `json:"reset_mode,omitempty"`           // 重置模式[natural:自然周期, relative:相对周期]
 	IpWhitelist       string   `json:"ip_whitelist,omitempty"`         // IP白名单
 	IpBlacklist       string   `json:"ip_blacklist,omitempty"`         // IP黑名单
 	IsBindGroup       bool     `json:"is_bind_group,omitempty"`        // 是否绑定分组
@@ -33,6 +34,7 @@ type AppUpdateReq struct {
 	ResetQuota        float64  `json:"reset_quota,omitempty"`          // 重置额度
 	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期
 	PeriodUnit        string   `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
+	ResetMode         string   `json:"reset_mode,omitempty"`           // 重置模式[natural:自然周期, relative:相对周期]
 	IsBindGroup       bool     `json:"is_bind_group,omitempty"`        // 是否绑定分组
 	Group             string   `json:"group,omitempty"`                // 绑定分组
 	IpWhitelist       string   `json:"ip_whitelist,omitempty"`         // IP白名单
@@ -122,6 +124,7 @@ type App struct {
 	ResetQuota        float64  `json:"reset_quota,omitempty"`          // 重置额度
 	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期
 	PeriodUnit        string   `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
+	ResetMode         string   `json:"reset_mode,omitempty"`           // 重置模式[natural:自然周期, relative:相对周期]
 	ResetAt           string   `json:"reset_at,omitempty"`             // 重置时间
 	NextResetAt       string   `json:"next_reset_at,omitempty"`        // 下次重置时间
 	IsBindGroup       bool     `json:"is_bind_group,omitempty"`        // 是否绑定分组

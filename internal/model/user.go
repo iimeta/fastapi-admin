@@ -46,6 +46,7 @@ type UserCreateReq struct {
 	ResetQuota        float64  `json:"reset_quota,omitempty"`                        // 重置额度
 	CyclePeriod       int      `json:"cycle_period,omitempty"`                       // 循环周期
 	PeriodUnit        string   `json:"period_unit,omitempty"`                        // 周期单位[hour:小时, day:天]
+	ResetMode         string   `json:"reset_mode,omitempty"`                         // 重置模式[natural:自然周期, relative:相对周期]
 	Groups            []string `json:"groups,omitempty" d:"[]"`                      // 分组权限
 	Remark            string   `json:"remark,omitempty"`                             // 备注
 }
@@ -62,6 +63,7 @@ type UserUpdateReq struct {
 	ResetQuota        float64  `json:"reset_quota,omitempty"`               // 重置额度
 	CyclePeriod       int      `json:"cycle_period,omitempty"`              // 循环周期
 	PeriodUnit        string   `json:"period_unit,omitempty"`               // 周期单位[hour:小时, day:天]
+	ResetMode         string   `json:"reset_mode,omitempty"`                // 重置模式[natural:自然周期, relative:相对周期]
 	Groups            []string `json:"groups,omitempty"`                    // 分组权限
 	Remark            string   `json:"remark,omitempty"`                    // 备注
 	Status            int      `json:"status,omitempty" d:"1"`              // 状态[1:正常, 2:禁用, -1:删除]
@@ -158,6 +160,7 @@ type User struct {
 	ResetQuota             float64       `json:"reset_quota,omitempty"`              // 重置额度
 	CyclePeriod            int           `json:"cycle_period,omitempty"`             // 循环周期
 	PeriodUnit             string        `json:"period_unit,omitempty"`              // 周期单位[hour:小时, day:天]
+	ResetMode              string        `json:"reset_mode,omitempty"`               // 重置模式[natural:自然周期, relative:相对周期]
 	ResetAt                string        `json:"reset_at,omitempty"`                 // 重置时间
 	NextResetAt            string        `json:"next_reset_at,omitempty"`            // 下次重置时间
 	Groups                 []string      `json:"groups,omitempty"`                   // 分组权限

@@ -459,6 +459,29 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 	return data
 }
 
+func GetNextResetAt(isCycleResetQuota bool, cyclePeriod int, periodUnit string, resetMode string) int64 {
+
+	if !isCycleResetQuota {
+		return 0
+	}
+
+	return CalcNextResetAt(time.Now().In(util.Location), cyclePeriod, periodUnit, resetMode)
+}
+
+func CalcNextResetAt(baseTime time.Time, cyclePeriod int, periodUnit string, resetMode string) int64 {
+
+	switch resetMode {
+	case "relative":
+		return CalcNextRelativeResetAt(baseTime, cyclePeriod, periodUnit)
+	default:
+		return CalcNextNaturalResetAt(baseTime, cyclePeriod, periodUnit)
+	}
+}
+
+func IsResetRuleChanged(oldIsCycleResetQuota bool, oldResetQuota int, oldCyclePeriod int, oldPeriodUnit string, oldResetMode string, newIsCycleResetQuota bool, newResetQuota int, newCyclePeriod int, newPeriodUnit string, newResetMode string) bool {
+	return oldIsCycleResetQuota != newIsCycleResetQuota || oldResetQuota != newResetQuota || oldCyclePeriod != newCyclePeriod || oldPeriodUnit != newPeriodUnit || oldResetMode != newResetMode
+}
+
 func CalcNextNaturalResetAt(now time.Time, cyclePeriod int, periodUnit string) int64 {
 
 	if cyclePeriod <= 0 {
@@ -486,15 +509,18 @@ func CalcNextNaturalResetAt(now time.Time, cyclePeriod int, periodUnit string) i
 	}
 }
 
-func GetNextNaturalResetAt(isCycleResetQuota bool, cyclePeriod int, periodUnit string) int64 {
+func CalcNextRelativeResetAt(baseTime time.Time, cyclePeriod int, periodUnit string) int64 {
 
-	if !isCycleResetQuota {
+	if cyclePeriod <= 0 {
 		return 0
 	}
 
-	return CalcNextNaturalResetAt(time.Now().In(util.Location), cyclePeriod, periodUnit)
-}
-
-func IsResetRuleChanged(oldIsCycleResetQuota bool, oldResetQuota int, oldCyclePeriod int, oldPeriodUnit string, newIsCycleResetQuota bool, newResetQuota int, newCyclePeriod int, newPeriodUnit string) bool {
-	return oldIsCycleResetQuota != newIsCycleResetQuota || oldResetQuota != newResetQuota || oldCyclePeriod != newCyclePeriod || oldPeriodUnit != newPeriodUnit
+	switch periodUnit {
+	case "hour":
+		return baseTime.Add(time.Duration(cyclePeriod) * time.Hour).UnixMilli()
+	case "day":
+		return baseTime.AddDate(0, 0, cyclePeriod).UnixMilli()
+	default:
+		return 0
+	}
 }
