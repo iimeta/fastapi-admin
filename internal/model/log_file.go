@@ -78,7 +78,7 @@ type LogFile struct {
 	ErrMsg               string                 `json:"err_msg,omitempty"`                 // 错误信息
 	IsRetry              bool                   `json:"is_retry,omitempty"`                // 是否重试
 	Retry                *common.Retry          `json:"retry,omitempty"`                   // 重试
-	Status               int                    `json:"status,omitempty"`                  // 状态[1:成功, -1:失败, 2:中止, 3:重试]
+	Status               int                    `json:"status,omitempty"`                  // 状态[1:成功, 2:中止, 3:重试, -1:失败]
 	Host                 string                 `json:"host,omitempty"`                    // Host
 	Method               string                 `json:"method,omitempty"`                  // Method
 	Path                 string                 `json:"path,omitempty"`                    // Path

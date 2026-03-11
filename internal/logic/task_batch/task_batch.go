@@ -235,7 +235,7 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 			continue
 		}
 
-		logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskBatch.TraceId, "status": 1})
+		logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskBatch.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 		if err != nil {
 			logger.Error(ctx, err)
 			continue

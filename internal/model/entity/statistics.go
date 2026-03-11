@@ -71,7 +71,7 @@ type StatisticsData struct {
 	Model      string       `bson:"model,omitempty"`      // 模型
 	Spend      common.Spend `bson:"spend,omitempty"`      // 花费
 	ReqDate    string       `bson:"req_date,omitempty"`   // 请求日期
-	Status     int          `bson:"status,omitempty"`     // 状态[1:成功, -1:失败, 2:中止, 3:重试]
+	Status     int          `bson:"status,omitempty"`     // 状态[1:成功, 2:中止, 3:重试, -1:失败]
 	Rid        int          `bson:"rid,omitempty"`        // 代理商ID
 	Creator    string       `bson:"creator,omitempty"`    // 创建人
 	UpdatedAt  int64        `bson:"updated_at,omitempty"` // 更新时间

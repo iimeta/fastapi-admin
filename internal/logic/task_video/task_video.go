@@ -283,7 +283,7 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 			continue
 		}
 
-		logVideo, err := dao.LogVideo.FindOne(ctx, bson.M{"trace_id": taskVideo.TraceId, "status": 1})
+		logVideo, err := dao.LogVideo.FindOne(ctx, bson.M{"trace_id": taskVideo.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 		if err != nil {
 			logger.Error(ctx, err)
 			continue

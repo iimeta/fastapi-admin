@@ -279,7 +279,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 
 			if taskFile.Purpose != "batch_output" {
 
-				logFile, err := dao.LogFile.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				logFile, err := dao.LogFile.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 				if err != nil {
 					logger.Error(ctx, err)
 					continue
@@ -307,7 +307,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 
 			} else {
 
-				logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 				if err != nil {
 					logger.Error(ctx, err)
 					continue
@@ -357,7 +357,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 
 			if taskFile.Purpose != "batch_output" {
 
-				logFile, err := dao.LogFile.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				logFile, err := dao.LogFile.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 				if err != nil {
 					logger.Error(ctx, err)
 					continue
@@ -385,7 +385,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 
 			} else {
 
-				logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": 1})
+				logBatch, err := dao.LogBatch.FindOne(ctx, bson.M{"trace_id": taskFile.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 				if err != nil {
 					logger.Error(ctx, err)
 					continue
