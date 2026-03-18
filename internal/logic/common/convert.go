@@ -9,6 +9,43 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 )
 
+// 转换时段规则成倍率
+func ConvTimeRulesToRatio(rules []*common.TimeRule) []*common.TimeRule {
+
+	if rules == nil {
+		return nil
+	}
+
+	for i := range rules {
+		rules[i].Discount = util.Round(rules[i].Discount/100, 2)
+		sort.Slice(rules[i].Days, func(j, k int) bool {
+			if rules[i].Days[j] == 0 && rules[i].Days[k] != 0 {
+				return false
+			}
+			if rules[i].Days[k] == 0 && rules[i].Days[j] != 0 {
+				return true
+			}
+			return rules[i].Days[j] < rules[i].Days[k]
+		})
+	}
+
+	return rules
+}
+
+// 转换时段规则成百分比
+func ConvTimeRulesToPercent(rules []*common.TimeRule) []*common.TimeRule {
+
+	if rules == nil {
+		return nil
+	}
+
+	for i := range rules {
+		rules[i].Discount = util.Round(rules[i].Discount*100, 2)
+	}
+
+	return rules
+}
+
 // 价格转倍率
 func ConvRatio(price float64) float64 {
 
@@ -59,22 +96,6 @@ func ConvQuotaUnitReverse(quota int, n ...int) float64 {
 
 // 转换模型定价成倍率
 func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
-
-	// 时段规则
-	if pricing.TimeRules != nil {
-		for i := range pricing.TimeRules {
-			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount/100, 2)
-			sort.Slice(pricing.TimeRules[i].Days, func(j, k int) bool {
-				if pricing.TimeRules[i].Days[j] == 0 && pricing.TimeRules[i].Days[k] != 0 {
-					return false
-				}
-				if pricing.TimeRules[i].Days[k] == 0 && pricing.TimeRules[i].Days[j] != 0 {
-					return true
-				}
-				return pricing.TimeRules[i].Days[j] < pricing.TimeRules[i].Days[k]
-			})
-		}
-	}
 
 	// 文本
 	if pricing.Text != nil {
@@ -155,13 +176,6 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 
 // 转换模型定价成价格
 func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
-
-	// 时段规则
-	if pricing.TimeRules != nil {
-		for i := range pricing.TimeRules {
-			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount*100, 2)
-		}
-	}
 
 	// 文本
 	if pricing.Text != nil {

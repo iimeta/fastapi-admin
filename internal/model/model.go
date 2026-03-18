@@ -12,6 +12,7 @@ type ModelCreateReq struct {
 	Path                 string                 `json:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                   `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
 	PresetConfig         common.PresetConfig    `json:"preset_config,omitempty"`           // 预设配置
+	TimeRules            []*common.TimeRule     `json:"time_rules,omitempty"`              // 时段规则
 	Pricing              common.Pricing         `json:"pricing,omitempty"`                 // 定价
 	RequestDataFormat    int                    `json:"request_data_format,omitempty"`     // 请求数据格式[1:统一格式, 2:官方格式]
 	ResponseDataFormat   int                    `json:"response_data_format,omitempty"`    // 响应数据格式[1:统一格式, 2:官方格式]
@@ -39,6 +40,7 @@ type ModelUpdateReq struct {
 	Path                 string                 `json:"path,omitempty"`                    // 模型路径
 	IsEnablePresetConfig bool                   `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
 	PresetConfig         common.PresetConfig    `json:"preset_config,omitempty"`           // 预设配置
+	TimeRules            []*common.TimeRule     `json:"time_rules,omitempty"`              // 时段规则
 	Pricing              common.Pricing         `json:"pricing,omitempty"`                 // 定价
 	RequestDataFormat    int                    `json:"request_data_format,omitempty"`     // 请求数据格式[1:统一格式, 2:官方格式]
 	ResponseDataFormat   int                    `json:"response_data_format,omitempty"`    // 响应数据格式[1:统一格式, 2:官方格式]
@@ -190,6 +192,7 @@ type Model struct {
 	GroupNames           []string               `json:"group_names,omitempty"`             // 分组名称
 	IsEnablePresetConfig bool                   `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
 	PresetConfig         common.PresetConfig    `json:"preset_config,omitempty"`           // 预设配置
+	TimeRules            []*common.TimeRule     `json:"time_rules,omitempty"`              // 时段规则
 	Pricing              common.Pricing         `json:"pricing,omitempty"`                 // 定价
 	RequestDataFormat    int                    `json:"request_data_format,omitempty"`     // 请求数据格式[1:统一格式, 2:官方格式]
 	ResponseDataFormat   int                    `json:"response_data_format,omitempty"`    // 响应数据格式[1:统一格式, 2:官方格式]
