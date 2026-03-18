@@ -30,9 +30,14 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 		spend.TotalSpendTokens += spend.TextCache.SpendTokens
 	}
 
-	// 分组折扣
-	if spend.GroupId != "" {
-		spend.TotalSpendTokens = math.Ceil(spend.TotalSpendTokens * spend.GroupDiscount)
+	// 模型时段折扣
+	if spend.ModelTimeRule != nil {
+		spend.TotalSpendTokens = math.Ceil(spend.TotalSpendTokens * spend.ModelTimeRule.Discount)
+	}
+
+	// 分组时段折扣
+	if spend.GroupId != "" && spend.GroupTimeRule != nil {
+		spend.TotalSpendTokens = math.Ceil(spend.TotalSpendTokens * spend.GroupTimeRule.Discount)
 	}
 }
 

@@ -133,6 +133,13 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 		pricing.VideoCache.WriteRatio = ConvRatio(pricing.VideoCache.WriteRatio)
 	}
 
+	// 时段规则
+	if pricing.TimeRules != nil {
+		for i := range pricing.TimeRules {
+			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount/100, 2)
+		}
+	}
+
 	return pricing
 }
 
@@ -211,6 +218,13 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 	if pricing.VideoCache != nil {
 		pricing.VideoCache.ReadRatio = ConvPrice(pricing.VideoCache.ReadRatio)
 		pricing.VideoCache.WriteRatio = ConvPrice(pricing.VideoCache.WriteRatio)
+	}
+
+	// 时段规则
+	if pricing.TimeRules != nil {
+		for i := range pricing.TimeRules {
+			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount*100, 2)
+		}
 	}
 
 	return pricing

@@ -53,8 +53,8 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id st
 	}
 
 	id, err = dao.Group.Insert(ctx, &do.Group{
+		TimeRules:          params.TimeRules,
 		Name:               params.Name,
-		Discount:           params.Discount,
 		Models:             params.Models,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		LbStrategy:         params.LbStrategy,
@@ -216,8 +216,8 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 	}
 
 	group := &do.Group{
+		TimeRules:          params.TimeRules,
 		Name:               params.Name,
-		Discount:           params.Discount,
 		Models:             params.Models,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		LbStrategy:         params.LbStrategy,
@@ -801,8 +801,8 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 
 	detail := &model.Group{
 		Id:                 group.Id,
+		TimeRules:          group.TimeRules,
 		Name:               group.Name,
-		Discount:           group.Discount,
 		Models:             group.Models,
 		ModelNames:         modelNames,
 		IsEnableModelAgent: group.IsEnableModelAgent,
@@ -831,6 +831,10 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		Updater:            group.Updater,
 		CreatedAt:          util.FormatDateTime(group.CreatedAt),
 		UpdatedAt:          util.FormatDateTime(group.UpdatedAt),
+	}
+
+	for _, rule := range detail.TimeRules {
+		rule.Discount = util.Round(rule.Discount*100, 2)
 	}
 
 	if detail.ForwardConfig != nil {
@@ -991,8 +995,8 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 
 		group := &model.Group{
 			Id:         result.Id,
+			TimeRules:  result.TimeRules,
 			Name:       result.Name,
-			Discount:   result.Discount,
 			Models:     result.Models,
 			ModelNames: modelNames,
 			IsDefault:  result.IsDefault,
@@ -1002,6 +1006,10 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 			Status:     result.Status,
 			CreatedAt:  util.FormatDateTime(result.CreatedAt),
 			UpdatedAt:  util.FormatDateTime(result.UpdatedAt),
+		}
+
+		for _, rule := range group.TimeRules {
+			rule.Discount = util.Round(rule.Discount*100, 2)
 		}
 
 		if service.Session().IsAdminRole(ctx) {
