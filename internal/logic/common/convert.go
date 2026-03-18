@@ -2,6 +2,7 @@ package common
 
 import (
 	"math"
+	"sort"
 
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
@@ -58,6 +59,22 @@ func ConvQuotaUnitReverse(quota int, n ...int) float64 {
 
 // 转换模型定价成倍率
 func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
+
+	// 时段规则
+	if pricing.TimeRules != nil {
+		for i := range pricing.TimeRules {
+			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount/100, 2)
+			sort.Slice(pricing.TimeRules[i].Days, func(j, k int) bool {
+				if pricing.TimeRules[i].Days[j] == 0 && pricing.TimeRules[i].Days[k] != 0 {
+					return false
+				}
+				if pricing.TimeRules[i].Days[k] == 0 && pricing.TimeRules[i].Days[j] != 0 {
+					return true
+				}
+				return pricing.TimeRules[i].Days[j] < pricing.TimeRules[i].Days[k]
+			})
+		}
+	}
 
 	// 文本
 	if pricing.Text != nil {
@@ -133,18 +150,18 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 		pricing.VideoCache.WriteRatio = ConvRatio(pricing.VideoCache.WriteRatio)
 	}
 
-	// 时段规则
-	if pricing.TimeRules != nil {
-		for i := range pricing.TimeRules {
-			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount/100, 2)
-		}
-	}
-
 	return pricing
 }
 
 // 转换模型定价成价格
 func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
+
+	// 时段规则
+	if pricing.TimeRules != nil {
+		for i := range pricing.TimeRules {
+			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount*100, 2)
+		}
+	}
 
 	// 文本
 	if pricing.Text != nil {
@@ -218,13 +235,6 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 	if pricing.VideoCache != nil {
 		pricing.VideoCache.ReadRatio = ConvPrice(pricing.VideoCache.ReadRatio)
 		pricing.VideoCache.WriteRatio = ConvPrice(pricing.VideoCache.WriteRatio)
-	}
-
-	// 时段规则
-	if pricing.TimeRules != nil {
-		for i := range pricing.TimeRules {
-			pricing.TimeRules[i].Discount = util.Round(pricing.TimeRules[i].Discount*100, 2)
-		}
 	}
 
 	return pricing
