@@ -29,6 +29,10 @@ func ConvTimeRulesToRatio(rules []*common.TimeRule) []*common.TimeRule {
 		})
 	}
 
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i].Priority > rules[j].Priority
+	})
+
 	return rules
 }
 
