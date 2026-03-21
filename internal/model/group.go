@@ -5,6 +5,7 @@ import "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 // 新建分组接口请求参数
 type GroupCreateReq struct {
 	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
+	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Name               string                `json:"name,omitempty"`                  // 分组名称
 	Models             []string              `json:"models,omitempty" d:"[]"`         // 模型权限
 	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
@@ -31,6 +32,7 @@ type GroupCreateReq struct {
 type GroupUpdateReq struct {
 	Id                 string                `json:"id,omitempty"`                    // ID
 	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
+	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Name               string                `json:"name,omitempty"`                  // 分组名称
 	Models             []string              `json:"models,omitempty" d:"[]"`         // 模型权限
 	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
@@ -113,6 +115,7 @@ type GroupBatchOperateReq struct {
 type Group struct {
 	Id                 string                `json:"id,omitempty"`                    // ID
 	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
+	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Name               string                `json:"name,omitempty"`                  // 分组名称
 	Models             []string              `json:"models,omitempty"`                // 模型权限
 	ModelNames         []string              `json:"model_names,omitempty"`           // 模型名称

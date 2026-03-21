@@ -54,6 +54,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id st
 
 	id, err = dao.Group.Insert(ctx, &do.Group{
 		TimeRules:          common.ConvTimeRulesToRatio(params.TimeRules),
+		BillingMethods:     params.BillingMethods,
 		Name:               params.Name,
 		Models:             params.Models,
 		IsEnableModelAgent: params.IsEnableModelAgent,
@@ -217,6 +218,7 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 
 	group := &do.Group{
 		TimeRules:          common.ConvTimeRulesToRatio(params.TimeRules),
+		BillingMethods:     params.BillingMethods,
 		Name:               params.Name,
 		Models:             params.Models,
 		IsEnableModelAgent: params.IsEnableModelAgent,
@@ -802,6 +804,7 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 	detail := &model.Group{
 		Id:                 group.Id,
 		TimeRules:          common.ConvTimeRulesToPercent(group.TimeRules),
+		BillingMethods:     group.BillingMethods,
 		Name:               group.Name,
 		Models:             group.Models,
 		ModelNames:         modelNames,
@@ -990,18 +993,19 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 		}
 
 		group := &model.Group{
-			Id:         result.Id,
-			TimeRules:  common.ConvTimeRulesToPercent(result.TimeRules),
-			Name:       result.Name,
-			Models:     result.Models,
-			ModelNames: modelNames,
-			IsDefault:  result.IsDefault,
-			Weight:     result.Weight,
-			ExpiresAt:  util.FormatDateTime(result.ExpiresAt),
-			Remark:     result.Remark,
-			Status:     result.Status,
-			CreatedAt:  util.FormatDateTime(result.CreatedAt),
-			UpdatedAt:  util.FormatDateTime(result.UpdatedAt),
+			Id:             result.Id,
+			TimeRules:      common.ConvTimeRulesToPercent(result.TimeRules),
+			BillingMethods: result.BillingMethods,
+			Name:           result.Name,
+			Models:         result.Models,
+			ModelNames:     modelNames,
+			IsDefault:      result.IsDefault,
+			Weight:         result.Weight,
+			ExpiresAt:      util.FormatDateTime(result.ExpiresAt),
+			Remark:         result.Remark,
+			Status:         result.Status,
+			CreatedAt:      util.FormatDateTime(result.CreatedAt),
+			UpdatedAt:      util.FormatDateTime(result.UpdatedAt),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

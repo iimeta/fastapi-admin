@@ -93,7 +93,6 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 
 		if len(params.Groups) == 0 {
 			if id, err := service.Group().Create(ctx, model.GroupCreateReq{
-				Name: "系统自动创建分组",
 				TimeRules: []*mcommon.TimeRule{{
 					TimeType:  "all",
 					Name:      "全天",
@@ -102,10 +101,12 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 					Discount:  1,
 					Priority:  20,
 				}},
-				Models:   []string{},
-				IsPublic: true,
-				Remark:   "此分组为系统自动创建, 可对其修改和删除",
-				Status:   1,
+				BillingMethods: []int{1, 2},
+				Name:           "系统自动创建分组",
+				Models:         []string{},
+				IsPublic:       true,
+				Remark:         "此分组为系统自动创建, 可修改和删除",
+				Status:         1,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -1672,7 +1673,6 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 
 	if len(groups) == 0 {
 		if _, err = service.Group().Create(ctx, model.GroupCreateReq{
-			Name: "系统自动创建分组",
 			TimeRules: []*mcommon.TimeRule{{
 				TimeType:  "all",
 				Name:      "全天",
@@ -1681,10 +1681,12 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				Discount:  1,
 				Priority:  20,
 			}},
-			Models:   []string{},
-			IsPublic: true,
-			Remark:   "此分组为系统自动创建, 可对其修改和删除",
-			Status:   1,
+			BillingMethods: []int{1, 2},
+			Name:           "系统自动创建分组",
+			Models:         []string{},
+			IsPublic:       true,
+			Remark:         "此分组为系统自动创建, 可修改和删除",
+			Status:         1,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err

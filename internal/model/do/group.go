@@ -7,32 +7,33 @@ import (
 
 type Group struct {
 	gmeta.Meta         `collection:"group" bson:"-"`
-	TimeRules          []*common.TimeRule    `bson:"time_rules,omitempty"`   // 时段规则
-	Name               string                `bson:"name,omitempty"`         // 分组名称
-	Models             []string              `bson:"models"`                 // 模型权限
-	IsEnableModelAgent bool                  `bson:"is_enable_model_agent"`  // 是否启用模型代理
-	LbStrategy         int                   `bson:"lb_strategy,omitempty"`  // 代理负载均衡策略[1:轮询, 2:权重]
-	ModelAgents        []string              `bson:"model_agents"`           // 模型代理
-	IsDefault          bool                  `bson:"is_default"`             // 是否默认分组
-	IsLimitQuota       bool                  `bson:"is_limit_quota"`         // 是否限制额度
-	Quota              int                   `bson:"quota"`                  // 剩余额度
-	UsedQuota          int                   `bson:"used_quota,omitempty"`   // 已用额度
-	IsCycleResetQuota  bool                  `bson:"is_cycle_reset_quota"`   // 是否循环重置额度
-	ResetQuota         int                   `bson:"reset_quota,omitempty"`  // 重置额度
-	CyclePeriod        int                   `bson:"cycle_period,omitempty"` // 循环周期
-	PeriodUnit         string                `bson:"period_unit,omitempty"`  // 周期单位[hour:小时, day:天]
-	ResetMode          string                `bson:"reset_mode,omitempty"`   // 重置模式[natural:自然周期, relative:相对周期]
-	ResetAt            int64                 `bson:"reset_at"`               // 重置时间
-	NextResetAt        int64                 `bson:"next_reset_at"`          // 下次重置时间
-	IsEnableForward    bool                  `bson:"is_enable_forward"`      // 是否启用模型转发
-	ForwardConfig      *common.ForwardConfig `bson:"forward_config"`         // 模型转发配置
-	IsPublic           bool                  `bson:"is_public"`              // 是否公开
-	Weight             int                   `bson:"weight"`                 // 权重
-	ExpiresAt          int64                 `bson:"expires_at"`             // 过期时间
-	Remark             string                `bson:"remark"`                 // 备注
-	Status             int                   `bson:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
-	Creator            string                `bson:"creator,omitempty"`      // 创建人
-	Updater            string                `bson:"updater,omitempty"`      // 更新人
-	CreatedAt          int64                 `bson:"created_at,omitempty"`   // 创建时间
-	UpdatedAt          int64                 `bson:"updated_at,omitempty"`   // 更新时间
+	TimeRules          []*common.TimeRule    `bson:"time_rules,omitempty"`      // 时段规则
+	BillingMethods     []int                 `bson:"billing_methods,omitempty"` // 计费方式[1:按Tokens, 2:按次]
+	Name               string                `bson:"name,omitempty"`            // 分组名称
+	Models             []string              `bson:"models"`                    // 模型权限
+	IsEnableModelAgent bool                  `bson:"is_enable_model_agent"`     // 是否启用模型代理
+	LbStrategy         int                   `bson:"lb_strategy,omitempty"`     // 代理负载均衡策略[1:轮询, 2:权重]
+	ModelAgents        []string              `bson:"model_agents"`              // 模型代理
+	IsDefault          bool                  `bson:"is_default"`                // 是否默认分组
+	IsLimitQuota       bool                  `bson:"is_limit_quota"`            // 是否限制额度
+	Quota              int                   `bson:"quota"`                     // 剩余额度
+	UsedQuota          int                   `bson:"used_quota,omitempty"`      // 已用额度
+	IsCycleResetQuota  bool                  `bson:"is_cycle_reset_quota"`      // 是否循环重置额度
+	ResetQuota         int                   `bson:"reset_quota,omitempty"`     // 重置额度
+	CyclePeriod        int                   `bson:"cycle_period,omitempty"`    // 循环周期
+	PeriodUnit         string                `bson:"period_unit,omitempty"`     // 周期单位[hour:小时, day:天]
+	ResetMode          string                `bson:"reset_mode,omitempty"`      // 重置模式[natural:自然周期, relative:相对周期]
+	ResetAt            int64                 `bson:"reset_at"`                  // 重置时间
+	NextResetAt        int64                 `bson:"next_reset_at"`             // 下次重置时间
+	IsEnableForward    bool                  `bson:"is_enable_forward"`         // 是否启用模型转发
+	ForwardConfig      *common.ForwardConfig `bson:"forward_config"`            // 模型转发配置
+	IsPublic           bool                  `bson:"is_public"`                 // 是否公开
+	Weight             int                   `bson:"weight"`                    // 权重
+	ExpiresAt          int64                 `bson:"expires_at"`                // 过期时间
+	Remark             string                `bson:"remark"`                    // 备注
+	Status             int                   `bson:"status,omitempty"`          // 状态[1:正常, 2:禁用, -1:删除]
+	Creator            string                `bson:"creator,omitempty"`         // 创建人
+	Updater            string                `bson:"updater,omitempty"`         // 更新人
+	CreatedAt          int64                 `bson:"created_at,omitempty"`      // 创建时间
+	UpdatedAt          int64                 `bson:"updated_at,omitempty"`      // 更新时间
 }
