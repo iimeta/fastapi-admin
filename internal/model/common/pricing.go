@@ -1,5 +1,18 @@
 package common
 
+type TimeRule struct {
+	TimeType   string   `bson:"time_type,omitempty"  json:"time_type,omitempty"`   // 时段类型[all:全天, weekday:工作日, weekend:周末, custom:自定义]
+	Name       string   `bson:"name,omitempty"       json:"name,omitempty"`        // 时段名称
+	StartTime  int64    `bson:"start_time,omitempty" json:"start_time"`            // 开始时间
+	EndTime    int64    `bson:"end_time,omitempty"   json:"end_time"`              // 结束时间
+	Discount   float64  `bson:"discount,omitempty"   json:"discount,omitempty"`    // 折扣
+	Days       []int    `bson:"days,omitempty"       json:"days,omitempty"`        // 适用日
+	DayMode    string   `bson:"day_mode,omitempty"   json:"day_mode,omitempty"`    // 日期模式[week:按周, month:按月]
+	Priority   int      `bson:"priority,omitempty"   json:"priority,omitempty"`    // 优先级, 数字越大越优先
+	Models     []string `bson:"models,omitempty"     json:"models,omitempty"`      // 模型
+	ModelNames []string `bson:"-"                    json:"model_names,omitempty"` // 模型名称
+}
+
 type Pricing struct {
 	BillingRule     int                       `bson:"billing_rule,omitempty"      json:"billing_rule,omitempty"`      // 计费规则[1:按官方, 2:按系统]
 	BillingMethods  []int                     `bson:"billing_methods,omitempty"   json:"billing_methods,omitempty"`   // 计费方式[1:按Tokens, 2:按次]
@@ -20,18 +33,6 @@ type Pricing struct {
 	Search          []*SearchPricing          `bson:"search,omitempty"            json:"search,omitempty"`            // 搜索
 	Midjourney      []*MidjourneyPricing      `bson:"midjourney,omitempty"        json:"midjourney,omitempty"`        // Midjourney
 	Once            *OncePricing              `bson:"once,omitempty"              json:"once,omitempty"`              // 一次
-}
-
-type TimeRule struct {
-	TimeType  string   `bson:"time_type,omitempty"  json:"time_type,omitempty"` // 时段类型[all:全天, weekday:工作日, weekend:周末, custom:自定义]
-	Name      string   `bson:"name,omitempty"       json:"name,omitempty"`      // 时段名称
-	StartTime int64    `bson:"start_time,omitempty" json:"start_time"`          // 开始时间
-	EndTime   int64    `bson:"end_time,omitempty"   json:"end_time"`            // 结束时间
-	Discount  float64  `bson:"discount,omitempty"   json:"discount,omitempty"`  // 折扣
-	Days      []int    `bson:"days,omitempty"       json:"days,omitempty"`      // 适用日
-	DayMode   string   `bson:"day_mode,omitempty"   json:"day_mode,omitempty"`  // 日期模式[week:按周, month:按月]
-	Priority  int      `bson:"priority,omitempty"   json:"priority,omitempty"`  // 优先级, 数字越大越优先
-	Models    []string `bson:"models,omitempty"     json:"models,omitempty"`    // 模型
 }
 
 type TextPricing struct {

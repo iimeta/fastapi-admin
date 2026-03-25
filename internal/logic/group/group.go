@@ -836,6 +836,17 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		UpdatedAt:          util.FormatDateTime(group.UpdatedAt),
 	}
 
+	if len(detail.TimeRules) > 0 {
+		for _, rule := range detail.TimeRules {
+			if len(rule.Models) > 0 {
+				if rule.ModelNames, err = service.Model().ModelNames(ctx, rule.Models); err != nil {
+					logger.Error(ctx, err)
+					return nil, err
+				}
+			}
+		}
+	}
+
 	if detail.ForwardConfig != nil {
 
 		if detail.ForwardConfig.TargetModel != "" {
@@ -859,12 +870,10 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		}
 
 		if detail.ForwardConfig.TargetModels != nil && len(detail.ForwardConfig.TargetModels) > 0 {
-			modelNames, err := service.Model().ModelNames(ctx, detail.ForwardConfig.TargetModels)
-			if err != nil {
+			if detail.ForwardConfig.TargetModelNames, err = service.Model().ModelNames(ctx, detail.ForwardConfig.TargetModels); err != nil {
 				logger.Error(ctx, err)
 				return nil, err
 			}
-			detail.ForwardConfig.TargetModelNames = modelNames
 		}
 	}
 
@@ -1006,6 +1015,17 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 			Status:         result.Status,
 			CreatedAt:      util.FormatDateTime(result.CreatedAt),
 			UpdatedAt:      util.FormatDateTime(result.UpdatedAt),
+		}
+
+		if len(group.TimeRules) > 0 {
+			for _, rule := range group.TimeRules {
+				if len(rule.Models) > 0 {
+					if rule.ModelNames, err = service.Model().ModelNames(ctx, rule.Models); err != nil {
+						logger.Error(ctx, err)
+						return nil, err
+					}
+				}
+			}
 		}
 
 		if service.Session().IsAdminRole(ctx) {
