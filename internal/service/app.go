@@ -17,6 +17,8 @@ type (
 		Create(ctx context.Context, params model.AppCreateReq) (string, error)
 		// 更新应用
 		Update(ctx context.Context, params model.AppUpdateReq) error
+		// 更改应用额度过期时间
+		ChangeQuotaExpire(ctx context.Context, params model.AppChangeQuotaExpireReq) error
 		// 更改应用状态
 		ChangeStatus(ctx context.Context, params model.AppChangeStatusReq) error
 		// 删除应用

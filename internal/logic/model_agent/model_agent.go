@@ -629,27 +629,6 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		return nil, err
 	}
 
-	modelList, err := service.Model().List(ctx, model.ModelListReq{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	modelNameMap := make(map[string]string)
-
-	fallbackModelMap := make(map[string][]string)
-	fallbackModelNameMap := make(map[string][]string)
-
-	for _, model := range modelList {
-
-		modelNameMap[model.Id] = model.Name
-
-		if model.IsEnableFallback && model.FallbackConfig.ModelAgent != "" {
-			fallbackModelMap[model.FallbackConfig.ModelAgent] = append(fallbackModelMap[model.FallbackConfig.ModelAgent], model.Id)
-			fallbackModelNameMap[model.FallbackConfig.ModelAgent] = append(fallbackModelNameMap[model.FallbackConfig.ModelAgent], model.Name)
-		}
-	}
-
 	items := make([]*model.ModelAgent, 0)
 	for _, result := range results {
 
@@ -667,31 +646,21 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			}
 		}
 
-		modelNames := make([]string, 0)
-		for _, model := range result.Models {
-			modelNames = append(modelNames, modelNameMap[model])
-		}
-
 		items = append(items, &model.ModelAgent{
-			Id:                 result.Id,
-			ProviderId:         result.ProviderId,
-			ProviderName:       providerName,
-			Name:               result.Name,
-			BaseUrl:            result.BaseUrl,
-			Path:               result.Path,
-			Weight:             result.Weight,
-			BillingMethods:     result.BillingMethods,
-			LbStrategy:         result.LbStrategy,
-			Groups:             groupIds,
-			GroupNames:         groupNames,
-			Models:             result.Models,
-			ModelNames:         modelNames,
-			FallbackModels:     fallbackModelMap[result.Id],
-			FallbackModelNames: fallbackModelNameMap[result.Id],
-			Remark:             result.Remark,
-			Status:             result.Status,
-			CreatedAt:          util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:          util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:             result.Id,
+			ProviderId:     result.ProviderId,
+			ProviderName:   providerName,
+			Name:           result.Name,
+			Weight:         result.Weight,
+			BillingMethods: result.BillingMethods,
+			LbStrategy:     result.LbStrategy,
+			Groups:         groupIds,
+			GroupNames:     groupNames,
+			Models:         result.Models,
+			Remark:         result.Remark,
+			Status:         result.Status,
+			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
 		})
 	}
 
@@ -716,32 +685,12 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 		return nil, err
 	}
 
-	modelList, err := service.Model().List(ctx, model.ModelListReq{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	modelMap := make(map[string][]string)
-	modelNameMap := make(map[string][]string)
-
-	for _, model := range modelList {
-		for _, id := range model.ModelAgents {
-			modelMap[id] = append(modelMap[id], model.Id)
-			modelNameMap[id] = append(modelNameMap[id], model.Name)
-		}
-	}
-
 	items := make([]*model.ModelAgent, 0)
 	for _, result := range results {
 		items = append(items, &model.ModelAgent{
 			Id:         result.Id,
 			ProviderId: result.ProviderId,
 			Name:       result.Name,
-			BaseUrl:    result.BaseUrl,
-			Path:       result.Path,
-			Models:     modelMap[result.Id],
-			ModelNames: modelNameMap[result.Id],
 			Status:     result.Status,
 		})
 	}

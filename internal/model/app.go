@@ -43,6 +43,12 @@ type AppUpdateReq struct {
 	Status            int      `json:"status,omitempty" d:"1"`         // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 更改应用额度过期时间接口请求参数
+type AppChangeQuotaExpireReq struct {
+	Id             string `json:"id,omitempty"`               // ID
+	QuotaExpiresAt string `json:"quota_expires_at,omitempty"` // 额度过期时间
+}
+
 // 更改应用状态接口请求参数
 type AppChangeStatusReq struct {
 	Id     string `json:"id,omitempty"`           // ID

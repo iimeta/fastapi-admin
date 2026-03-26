@@ -1082,11 +1082,6 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 			Status:       result.Status,
 		}
 
-		if service.Session().IsAdminRole(ctx) {
-			model.IsEnableFallback = result.IsEnableFallback
-			model.FallbackConfig = result.FallbackConfig
-		}
-
 		items = append(items, model)
 	}
 

@@ -176,6 +176,54 @@ func (s *sApp) Update(ctx context.Context, params model.AppUpdateReq) error {
 	return nil
 }
 
+// 更改应用额度过期时间
+func (s *sApp) ChangeQuotaExpire(ctx context.Context, params model.AppChangeQuotaExpireReq) error {
+
+	if service.Session().IsResellerRole(ctx) {
+
+		app, err := dao.App.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if app.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
+	if service.Session().IsUserRole(ctx) {
+
+		app, err := dao.App.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if app.UserId != service.Session().GetUserId(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
+	app, err := dao.App.FindOneAndUpdateById(ctx, params.Id, bson.M{
+		"quota_expires_at": util.ConvTimestampMilli(params.QuotaExpiresAt),
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_APP, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		NewData: app,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 更改应用状态
 func (s *sApp) ChangeStatus(ctx context.Context, params model.AppChangeStatusReq) error {
 
@@ -421,32 +469,14 @@ func (s *sApp) Page(ctx context.Context, params model.AppPageReq) (*model.AppPag
 		return nil, err
 	}
 
-	models, err := service.Model().List(ctx, model.ModelListReq{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	modelMap := util.ToMap(models, func(t *model.Model) string {
-		return t.Id
-	})
-
 	items := make([]*model.App, 0)
 	for _, result := range results {
-
-		modelNames := make([]string, 0)
-		for _, id := range result.Models {
-			if modelMap[id] != nil {
-				modelNames = append(modelNames, modelMap[id].Name)
-			}
-		}
 
 		items = append(items, &model.App{
 			Id:             result.Id,
 			AppId:          result.AppId,
 			Name:           result.Name,
 			Models:         result.Models,
-			ModelNames:     modelNames,
 			IsLimitQuota:   result.IsLimitQuota,
 			Quota:          common.ConvQuotaUnitReverse(result.Quota),
 			UsedQuota:      common.ConvQuotaUnitReverse(result.UsedQuota),

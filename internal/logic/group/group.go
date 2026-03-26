@@ -967,16 +967,6 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 		return nil, err
 	}
 
-	models, err := service.Model().List(ctx, model.ModelListReq{})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	modelMap := util.ToMap(models, func(t *model.Model) string {
-		return t.Id
-	})
-
 	modelAgentMap := make(map[string]*entity.ModelAgent)
 	if service.Session().IsAdminRole(ctx) {
 
@@ -994,20 +984,12 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 	items := make([]*model.Group, 0)
 	for _, result := range results {
 
-		modelNames := make([]string, 0)
-		for _, id := range result.Models {
-			if modelMap[id] != nil {
-				modelNames = append(modelNames, modelMap[id].Name)
-			}
-		}
-
 		group := &model.Group{
 			Id:             result.Id,
 			TimeRules:      common.ConvTimeRulesToPercent(result.TimeRules),
 			BillingMethods: result.BillingMethods,
 			Name:           result.Name,
 			Models:         result.Models,
-			ModelNames:     modelNames,
 			IsDefault:      result.IsDefault,
 			Weight:         result.Weight,
 			ExpiresAt:      util.FormatDateTime(result.ExpiresAt),
@@ -1044,7 +1026,6 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 
 				group.IsEnableModelAgent = result.IsEnableModelAgent
 				group.LbStrategy = result.LbStrategy
-				group.ModelAgents = result.ModelAgents
 				group.ModelAgentNames = modelAgentNames
 			}
 		}
