@@ -58,20 +58,22 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}
 
 	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
-		ProviderId:           params.ProviderId,
-		Name:                 gstr.Trim(params.Name),
-		BaseUrl:              gstr.Trim(params.BaseUrl),
-		Path:                 gstr.Trim(params.Path),
-		Weight:               params.Weight,
-		BillingMethods:       params.BillingMethods,
-		Models:               params.Models,
-		IsEnableModelReplace: params.IsEnableModelReplace,
-		ReplaceModels:        params.ReplaceModels,
-		TargetModels:         params.TargetModels,
-		IsNeverDisable:       params.IsNeverDisable,
-		LbStrategy:           params.LbStrategy,
-		Remark:               params.Remark,
-		Status:               params.Status,
+		ProviderId:               params.ProviderId,
+		Name:                     gstr.Trim(params.Name),
+		BaseUrl:                  gstr.Trim(params.BaseUrl),
+		Path:                     gstr.Trim(params.Path),
+		Weight:                   params.Weight,
+		BillingMethods:           params.BillingMethods,
+		Models:                   params.Models,
+		IsEnableModelReplace:     params.IsEnableModelReplace,
+		ReplaceModels:            params.ReplaceModels,
+		TargetModels:             params.TargetModels,
+		IsEnableAutomatedTesting: params.IsEnableAutomatedTesting,
+		IsNeverDisable:           params.IsNeverDisable,
+		IsRemoveAbnormalModel:    params.IsNeverDisable && params.IsRemoveAbnormalModel,
+		LbStrategy:               params.LbStrategy,
+		Remark:                   params.Remark,
+		Status:                   params.Status,
 	})
 
 	if err != nil {
@@ -162,22 +164,25 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 	}
 
 	if err = dao.ModelAgent.UpdateById(ctx, params.Id, &do.ModelAgent{
-		ProviderId:           params.ProviderId,
-		Name:                 gstr.Trim(params.Name),
-		BaseUrl:              gstr.Trim(params.BaseUrl),
-		Path:                 gstr.Trim(params.Path),
-		Weight:               params.Weight,
-		BillingMethods:       params.BillingMethods,
-		Models:               params.Models,
-		IsEnableModelReplace: params.IsEnableModelReplace,
-		ReplaceModels:        params.ReplaceModels,
-		TargetModels:         params.TargetModels,
-		IsNeverDisable:       params.IsNeverDisable,
-		LbStrategy:           params.LbStrategy,
-		Remark:               params.Remark,
-		Status:               params.Status,
-		IsAutoDisabled:       oldData.IsAutoDisabled,
-		AutoDisabledReason:   oldData.AutoDisabledReason,
+		ProviderId:               params.ProviderId,
+		Name:                     gstr.Trim(params.Name),
+		BaseUrl:                  gstr.Trim(params.BaseUrl),
+		Path:                     gstr.Trim(params.Path),
+		Weight:                   params.Weight,
+		BillingMethods:           params.BillingMethods,
+		Models:                   params.Models,
+		IsEnableModelReplace:     params.IsEnableModelReplace,
+		ReplaceModels:            params.ReplaceModels,
+		TargetModels:             params.TargetModels,
+		IsEnableAutomatedTesting: params.IsEnableAutomatedTesting,
+		IsNeverDisable:           params.IsNeverDisable,
+		IsRemoveAbnormalModel:    params.IsNeverDisable && params.IsRemoveAbnormalModel,
+		AbnormalModels:           []string{},
+		LbStrategy:               params.LbStrategy,
+		Remark:                   params.Remark,
+		Status:                   params.Status,
+		IsAutoDisabled:           oldData.IsAutoDisabled,
+		AutoDisabledReason:       oldData.AutoDisabledReason,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -469,15 +474,19 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		providerName = provider.Name
 	}
 
-	modelList, err := dao.Model.Find(ctx, bson.M{"_id": bson.M{"$in": modelAgent.Models}}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
 	modelNames := make([]string, 0)
-	for _, model := range modelList {
-		modelNames = append(modelNames, model.Name)
+
+	if len(modelAgent.Models) > 0 {
+
+		modelList, err := dao.Model.Find(ctx, bson.M{"_id": bson.M{"$in": modelAgent.Models}}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, model := range modelList {
+			modelNames = append(modelNames, model.Name)
+		}
 	}
 
 	fallbackModelList, err := dao.Model.Find(ctx, bson.M{"fallback_config.model_agent": id}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
@@ -518,35 +527,54 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		groupNames = append(groupNames, group.Name)
 	}
 
+	abnormalModelNames := make([]string, 0)
+
+	if len(modelAgent.AbnormalModels) > 0 {
+
+		modelList, err := dao.Model.Find(ctx, bson.M{"_id": bson.M{"$in": modelAgent.AbnormalModels}}, &dao.FindOptions{SortFields: []string{"-updated_at", "name"}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, model := range modelList {
+			abnormalModelNames = append(abnormalModelNames, model.Name)
+		}
+	}
+
 	return &model.ModelAgent{
-		Id:                   modelAgent.Id,
-		ProviderId:           modelAgent.ProviderId,
-		ProviderName:         providerName,
-		Name:                 modelAgent.Name,
-		BaseUrl:              modelAgent.BaseUrl,
-		Path:                 modelAgent.Path,
-		Weight:               modelAgent.Weight,
-		BillingMethods:       modelAgent.BillingMethods,
-		Groups:               groupIds,
-		GroupNames:           groupNames,
-		Models:               modelAgent.Models,
-		ModelNames:           modelNames,
-		FallbackModels:       fallbackModels,
-		FallbackModelNames:   fallbackModelNames,
-		IsEnableModelReplace: modelAgent.IsEnableModelReplace,
-		ReplaceModels:        modelAgent.ReplaceModels,
-		TargetModels:         modelAgent.TargetModels,
-		IsNeverDisable:       modelAgent.IsNeverDisable,
-		LbStrategy:           modelAgent.LbStrategy,
-		Key:                  gstr.Join(keys, "\n"),
-		Remark:               modelAgent.Remark,
-		Status:               modelAgent.Status,
-		IsAutoDisabled:       modelAgent.IsAutoDisabled,
-		AutoDisabledReason:   modelAgent.AutoDisabledReason,
-		Creator:              modelAgent.Creator,
-		Updater:              modelAgent.Updater,
-		CreatedAt:            util.FormatDateTime(modelAgent.CreatedAt),
-		UpdatedAt:            util.FormatDateTime(modelAgent.UpdatedAt),
+		Id:                       modelAgent.Id,
+		ProviderId:               modelAgent.ProviderId,
+		ProviderName:             providerName,
+		Name:                     modelAgent.Name,
+		BaseUrl:                  modelAgent.BaseUrl,
+		Path:                     modelAgent.Path,
+		Weight:                   modelAgent.Weight,
+		BillingMethods:           modelAgent.BillingMethods,
+		Groups:                   groupIds,
+		GroupNames:               groupNames,
+		Models:                   modelAgent.Models,
+		ModelNames:               modelNames,
+		FallbackModels:           fallbackModels,
+		FallbackModelNames:       fallbackModelNames,
+		IsEnableModelReplace:     modelAgent.IsEnableModelReplace,
+		ReplaceModels:            modelAgent.ReplaceModels,
+		TargetModels:             modelAgent.TargetModels,
+		IsEnableAutomatedTesting: modelAgent.IsEnableAutomatedTesting,
+		IsNeverDisable:           modelAgent.IsNeverDisable,
+		IsRemoveAbnormalModel:    modelAgent.IsRemoveAbnormalModel,
+		AbnormalModels:           modelAgent.AbnormalModels,
+		AbnormalModelNames:       abnormalModelNames,
+		LbStrategy:               modelAgent.LbStrategy,
+		Key:                      gstr.Join(keys, "\n"),
+		Remark:                   modelAgent.Remark,
+		Status:                   modelAgent.Status,
+		IsAutoDisabled:           modelAgent.IsAutoDisabled,
+		AutoDisabledReason:       modelAgent.AutoDisabledReason,
+		Creator:                  modelAgent.Creator,
+		Updater:                  modelAgent.Updater,
+		CreatedAt:                util.FormatDateTime(modelAgent.CreatedAt),
+		UpdatedAt:                util.FormatDateTime(modelAgent.UpdatedAt),
 	}, nil
 }
 
