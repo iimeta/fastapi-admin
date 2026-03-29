@@ -151,6 +151,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{BatchTask: params.BatchTask}
 	case "reset_task":
 		sysConfig = &do.SysConfig{ResetTask: params.ResetTask}
+	case "model_agent_test_task":
+		sysConfig = &do.SysConfig{ModelAgentTestTask: params.ModelAgentTestTask}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "general_api":
@@ -223,6 +225,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		FileTask:              sysConfig.FileTask,
 		BatchTask:             sysConfig.BatchTask,
 		ResetTask:             sysConfig.ResetTask,
+		ModelAgentTestTask:    sysConfig.ModelAgentTestTask,
 		ServiceUnavailable:    sysConfig.ServiceUnavailable,
 		GeneralApi:            sysConfig.GeneralApi,
 		Test:                  sysConfig.Test,
@@ -304,6 +307,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.BatchTask = s.Default().BatchTask
 	case "reset_task":
 		sysConfigUpdateReq.ResetTask = s.Default().ResetTask
+	case "model_agent_test_task":
+		sysConfigUpdateReq.ModelAgentTestTask = s.Default().ModelAgentTestTask
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	case "general_api":
@@ -440,6 +445,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.ResetTask == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "reset_task"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.ModelAgentTestTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "model_agent_test_task"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -639,6 +651,14 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Open:        true,
 			Cron:        "0 0/5 * * * ?",
 			LockMinutes: 30,
+		},
+		ModelAgentTestTask: &common.ModelAgentTestTask{
+			Open:        false,
+			Cron:        "0 0/5 * * * ?",
+			LockMinutes: 30,
+			ModelAgents: []string{},
+			Models:      []string{},
+			ErrDisable:  12,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{
 			Open: false,

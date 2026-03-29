@@ -181,6 +181,15 @@ type ResetTask struct {
 	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
 }
 
+type ModelAgentTestTask struct {
+	Open        bool          `bson:"open"         json:"open"`         // 开关
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
+	ModelAgents []string      `bson:"model_agents" json:"model_agents"` // 模型代理
+	Models      []string      `bson:"models"       json:"models"`       // 测试模型
+	ErrDisable  int64         `bson:"err_disable"  json:"err_disable"`  // 错误禁用次数
+}
+
 type ServiceUnavailable struct {
 	Open        bool     `bson:"open"         json:"open"`         // 开关
 	IpWhitelist []string `bson:"ip_whitelist" json:"ip_whitelist"` // IP白名单
