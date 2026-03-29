@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"regexp"
 	"slices"
 	"text/template"
@@ -758,8 +759,14 @@ func (s *sModelAgent) QuickFillModel(ctx context.Context, params model.ModelAgen
 		return nil, errors.New("请输入密钥后重试")
 	}
 
+	baseUrl, err := url.Parse(params.BaseUrl)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
 	result := &model.ModelsRes{}
-	if _, err := sutil.HttpGet(ctx, params.BaseUrl+"/models", g.MapStrStr{"Authorization": "Bearer " + keys[0]}, nil, &result, config.Cfg.Http.Timeout*time.Second, config.Cfg.Http.ProxyUrl, nil); err != nil {
+	if _, err := sutil.HttpGet(ctx, fmt.Sprintf("%s://%s/v1/models", baseUrl.Scheme, baseUrl.Host), g.MapStrStr{"Authorization": "Bearer " + keys[0]}, nil, &result, config.Cfg.Http.Timeout*time.Second, config.Cfg.Http.ProxyUrl, nil); err != nil {
 		logger.Error(ctx, err)
 		return nil, errors.New("获取数据异常, 请手动选择模型")
 	}
