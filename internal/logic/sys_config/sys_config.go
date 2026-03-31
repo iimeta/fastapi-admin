@@ -2,6 +2,7 @@ package sys_config
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -86,7 +87,7 @@ func New() service.ISysConfig {
 }
 
 // 更新配置
-func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq) (*entity.SysConfig, error) {
+func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq) (newData *entity.SysConfig, err error) {
 
 	defer func() {
 		if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_CONFIG, model.PubMessage{
@@ -97,6 +98,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 	}()
 
 	sysConfig := &do.SysConfig{}
+	oldData := &entity.SysConfig{}
+
 	switch params.Action {
 	case "core":
 		sysConfig = &do.SysConfig{Core: params.Core}
@@ -151,8 +154,12 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{BatchTask: params.BatchTask}
 	case "reset_task":
 		sysConfig = &do.SysConfig{ResetTask: params.ResetTask}
-	case "model_agent_test_task":
-		sysConfig = &do.SysConfig{ModelAgentTestTask: params.ModelAgentTestTask}
+	case "model_agent_health_check_task":
+		sysConfig = &do.SysConfig{ModelAgentHealthCheckTask: params.ModelAgentHealthCheckTask}
+		if oldData, err = dao.SysConfig.FindOne(ctx, bson.M{}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "general_api":
@@ -163,7 +170,29 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Debug: params.Debug}
 	}
 
-	return dao.SysConfig.FindOneAndUpdate(ctx, bson.M{}, sysConfig)
+	newData, err = dao.SysConfig.FindOneAndUpdate(ctx, bson.M{}, sysConfig)
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	if params.Action == "model_agent_health_check_task" && oldData.ModelAgentHealthCheckTask != nil && !slices.Equal(oldData.ModelAgentHealthCheckTask.ModelAgents, newData.ModelAgentHealthCheckTask.ModelAgents) {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			if err := dao.ModelAgent.UpdateMany(ctx, bson.M{"is_enable_health_check": true}, bson.M{"$set": bson.M{"is_enable_health_check": false}}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if err := dao.ModelAgent.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": newData.ModelAgentHealthCheckTask.ModelAgents}}, bson.M{"$set": bson.M{"is_enable_health_check": true}}); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		}, nil); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	return newData, nil
 }
 
 // 更改配置状态
@@ -208,32 +237,32 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Statistics: sysConfig.Statistics,
 		Base:       sysConfig.Base,
 		//Midjourney:            sysConfig.Midjourney,
-		Log:                   sysConfig.Log,
-		UserLoginRegister:     sysConfig.UserLoginRegister,
-		UserShieldError:       sysConfig.UserShieldError,
-		ResellerLoginRegister: sysConfig.ResellerLoginRegister,
-		ResellerShieldError:   sysConfig.ResellerShieldError,
-		AdminLogin:            sysConfig.AdminLogin,
-		AutoDisabledError:     sysConfig.AutoDisabledError,
-		AutoEnableError:       sysConfig.AutoEnableError,
-		NotRetryError:         sysConfig.NotRetryError,
-		NotShieldError:        sysConfig.NotShieldError,
-		Notice:                sysConfig.Notice,
-		Quota:                 sysConfig.Quota,
-		QuotaTask:             sysConfig.QuotaTask,
-		VideoTask:             sysConfig.VideoTask,
-		FileTask:              sysConfig.FileTask,
-		BatchTask:             sysConfig.BatchTask,
-		ResetTask:             sysConfig.ResetTask,
-		ModelAgentTestTask:    sysConfig.ModelAgentTestTask,
-		ServiceUnavailable:    sysConfig.ServiceUnavailable,
-		GeneralApi:            sysConfig.GeneralApi,
-		Test:                  sysConfig.Test,
-		Debug:                 sysConfig.Debug,
-		Creator:               sysConfig.Creator,
-		Updater:               sysConfig.Updater,
-		CreatedAt:             util.FormatDateTime(sysConfig.CreatedAt),
-		UpdatedAt:             util.FormatDateTime(sysConfig.UpdatedAt),
+		Log:                       sysConfig.Log,
+		UserLoginRegister:         sysConfig.UserLoginRegister,
+		UserShieldError:           sysConfig.UserShieldError,
+		ResellerLoginRegister:     sysConfig.ResellerLoginRegister,
+		ResellerShieldError:       sysConfig.ResellerShieldError,
+		AdminLogin:                sysConfig.AdminLogin,
+		AutoDisabledError:         sysConfig.AutoDisabledError,
+		AutoEnableError:           sysConfig.AutoEnableError,
+		NotRetryError:             sysConfig.NotRetryError,
+		NotShieldError:            sysConfig.NotShieldError,
+		Notice:                    sysConfig.Notice,
+		Quota:                     sysConfig.Quota,
+		QuotaTask:                 sysConfig.QuotaTask,
+		VideoTask:                 sysConfig.VideoTask,
+		FileTask:                  sysConfig.FileTask,
+		BatchTask:                 sysConfig.BatchTask,
+		ResetTask:                 sysConfig.ResetTask,
+		ModelAgentHealthCheckTask: sysConfig.ModelAgentHealthCheckTask,
+		ServiceUnavailable:        sysConfig.ServiceUnavailable,
+		GeneralApi:                sysConfig.GeneralApi,
+		Test:                      sysConfig.Test,
+		Debug:                     sysConfig.Debug,
+		Creator:                   sysConfig.Creator,
+		Updater:                   sysConfig.Updater,
+		CreatedAt:                 util.FormatDateTime(sysConfig.CreatedAt),
+		UpdatedAt:                 util.FormatDateTime(sysConfig.UpdatedAt),
 	}, nil
 }
 
@@ -307,8 +336,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.BatchTask = s.Default().BatchTask
 	case "reset_task":
 		sysConfigUpdateReq.ResetTask = s.Default().ResetTask
-	case "model_agent_test_task":
-		sysConfigUpdateReq.ModelAgentTestTask = s.Default().ModelAgentTestTask
+	case "model_agent_health_check_task":
+		sysConfigUpdateReq.ModelAgentHealthCheckTask = s.Default().ModelAgentHealthCheckTask
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	case "general_api":
@@ -450,8 +479,8 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}
 
-	if sysConfig.ModelAgentTestTask == nil {
-		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "model_agent_test_task"}); err != nil {
+	if sysConfig.ModelAgentHealthCheckTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "model_agent_health_check_task"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -652,17 +681,19 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Cron:        "0 0/5 * * * ?",
 			LockMinutes: 30,
 		},
-		ModelAgentTestTask: &common.ModelAgentTestTask{
-			Open:         false,
-			Cron:         "0 0/3 * * * ?",
-			LockMinutes:  30,
-			ModelAgents:  []string{},
-			Models:       []string{},
-			DisableCount: 3,
-			AutoRecover:  false,
-			RecoverCount: 3,
-			StatDuration: 15,
-			TestMethod:   1,
+		ModelAgentHealthCheckTask: &common.ModelAgentHealthCheckTask{
+			Open:              false,
+			Cron:              "0 0/3 * * * ?",
+			LockMinutes:       30,
+			ModelAgents:       []string{},
+			Models:            []string{},
+			DisableCount:      15,
+			RemoveModelCount:  3,
+			AutoRecover:       true,
+			RecoverCount:      15,
+			RecoverModelCount: 3,
+			StatPeriod:        15,
+			TestMethod:        1,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{
 			Open: false,

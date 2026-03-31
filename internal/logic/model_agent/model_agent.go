@@ -11,6 +11,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gtrace"
@@ -40,14 +42,18 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type sModelAgent struct{}
+type sModelAgent struct {
+	healthCheckRedsync *redsync.Redsync
+}
 
 func init() {
 	service.RegisterModelAgent(New())
 }
 
 func New() service.IModelAgent {
-	return &sModelAgent{}
+	return &sModelAgent{
+		healthCheckRedsync: redsync.New(goredis.NewPool(redis.UniversalClient)),
+	}
 }
 
 // 新建模型代理
@@ -58,22 +64,22 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}
 
 	id, err := dao.ModelAgent.Insert(ctx, &do.ModelAgent{
-		ProviderId:               params.ProviderId,
-		Name:                     gstr.Trim(params.Name),
-		BaseUrl:                  gstr.Trim(params.BaseUrl),
-		Path:                     gstr.Trim(params.Path),
-		Weight:                   params.Weight,
-		BillingMethods:           params.BillingMethods,
-		Models:                   params.Models,
-		IsEnableModelReplace:     params.IsEnableModelReplace,
-		ReplaceModels:            params.ReplaceModels,
-		TargetModels:             params.TargetModels,
-		IsEnableAutomatedTesting: params.IsEnableAutomatedTesting,
-		IsNeverDisable:           params.IsNeverDisable,
-		IsRemoveAbnormalModel:    params.IsNeverDisable && params.IsRemoveAbnormalModel,
-		LbStrategy:               params.LbStrategy,
-		Remark:                   params.Remark,
-		Status:                   params.Status,
+		ProviderId:            params.ProviderId,
+		Name:                  gstr.Trim(params.Name),
+		BaseUrl:               gstr.Trim(params.BaseUrl),
+		Path:                  gstr.Trim(params.Path),
+		Weight:                params.Weight,
+		BillingMethods:        params.BillingMethods,
+		Models:                params.Models,
+		IsEnableModelReplace:  params.IsEnableModelReplace,
+		ReplaceModels:         params.ReplaceModels,
+		TargetModels:          params.TargetModels,
+		IsEnableHealthCheck:   params.IsEnableHealthCheck,
+		IsRemoveAbnormalModel: params.IsRemoveAbnormalModel,
+		IsNeverDisable:        params.IsNeverDisable,
+		LbStrategy:            params.LbStrategy,
+		Remark:                params.Remark,
+		Status:                params.Status,
 	})
 
 	if err != nil {
@@ -147,6 +153,16 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		}
 	}
 
+	if modelAgent.IsEnableHealthCheck {
+		if err = dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
+			"$push": bson.M{
+				"model_agent_health_check_task.model_agents": id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
 	return id, nil
 }
 
@@ -163,27 +179,32 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		return err
 	}
 
-	if err = dao.ModelAgent.UpdateById(ctx, params.Id, &do.ModelAgent{
-		ProviderId:               params.ProviderId,
-		Name:                     gstr.Trim(params.Name),
-		BaseUrl:                  gstr.Trim(params.BaseUrl),
-		Path:                     gstr.Trim(params.Path),
-		Weight:                   params.Weight,
-		BillingMethods:           params.BillingMethods,
-		Models:                   params.Models,
-		IsEnableModelReplace:     params.IsEnableModelReplace,
-		ReplaceModels:            params.ReplaceModels,
-		TargetModels:             params.TargetModels,
-		IsEnableAutomatedTesting: params.IsEnableAutomatedTesting,
-		IsNeverDisable:           params.IsNeverDisable,
-		IsRemoveAbnormalModel:    params.IsNeverDisable && params.IsRemoveAbnormalModel,
-		AbnormalModels:           []string{},
-		LbStrategy:               params.LbStrategy,
-		Remark:                   params.Remark,
-		Status:                   params.Status,
-		IsAutoDisabled:           oldData.IsAutoDisabled,
-		AutoDisabledReason:       oldData.AutoDisabledReason,
-	}); err != nil {
+	update := &do.ModelAgent{
+		ProviderId:            params.ProviderId,
+		Name:                  gstr.Trim(params.Name),
+		BaseUrl:               gstr.Trim(params.BaseUrl),
+		Path:                  gstr.Trim(params.Path),
+		Weight:                params.Weight,
+		BillingMethods:        params.BillingMethods,
+		Models:                params.Models,
+		IsEnableModelReplace:  params.IsEnableModelReplace,
+		ReplaceModels:         params.ReplaceModels,
+		TargetModels:          params.TargetModels,
+		IsEnableHealthCheck:   params.IsEnableHealthCheck,
+		IsRemoveAbnormalModel: params.IsRemoveAbnormalModel,
+		IsNeverDisable:        params.IsNeverDisable,
+		LbStrategy:            params.LbStrategy,
+		Remark:                params.Remark,
+		Status:                params.Status,
+		IsAutoDisabled:        oldData.IsAutoDisabled,
+		AutoDisabledReason:    oldData.AutoDisabledReason,
+	}
+
+	if !slices.Equal(oldData.Models, update.Models) {
+		update.AbnormalModels = []string{}
+	}
+
+	if err = dao.ModelAgent.UpdateById(ctx, params.Id, update); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -353,6 +374,27 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		}
 	}
 
+	if oldData.IsEnableHealthCheck && !update.IsEnableHealthCheck {
+
+		if err = dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
+			"$pull": bson.M{
+				"model_agent_health_check_task.model_agents": params.Id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+
+	} else if !oldData.IsEnableHealthCheck && update.IsEnableHealthCheck {
+
+		if err = dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
+			"$push": bson.M{
+				"model_agent_health_check_task.model_agents": params.Id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
 	return nil
 }
 
@@ -457,6 +499,16 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 		}
 	}
 
+	if modelAgent.IsEnableHealthCheck {
+		if err = dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
+			"$pull": bson.M{
+				"model_agent_health_check_task.model_agents": id,
+			},
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
 	return nil
 }
 
@@ -543,38 +595,38 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 	}
 
 	return &model.ModelAgent{
-		Id:                       modelAgent.Id,
-		ProviderId:               modelAgent.ProviderId,
-		ProviderName:             providerName,
-		Name:                     modelAgent.Name,
-		BaseUrl:                  modelAgent.BaseUrl,
-		Path:                     modelAgent.Path,
-		Weight:                   modelAgent.Weight,
-		BillingMethods:           modelAgent.BillingMethods,
-		Groups:                   groupIds,
-		GroupNames:               groupNames,
-		Models:                   modelAgent.Models,
-		ModelNames:               modelNames,
-		FallbackModels:           fallbackModels,
-		FallbackModelNames:       fallbackModelNames,
-		IsEnableModelReplace:     modelAgent.IsEnableModelReplace,
-		ReplaceModels:            modelAgent.ReplaceModels,
-		TargetModels:             modelAgent.TargetModels,
-		IsEnableAutomatedTesting: modelAgent.IsEnableAutomatedTesting,
-		IsNeverDisable:           modelAgent.IsNeverDisable,
-		IsRemoveAbnormalModel:    modelAgent.IsRemoveAbnormalModel,
-		AbnormalModels:           modelAgent.AbnormalModels,
-		AbnormalModelNames:       abnormalModelNames,
-		LbStrategy:               modelAgent.LbStrategy,
-		Key:                      gstr.Join(keys, "\n"),
-		Remark:                   modelAgent.Remark,
-		Status:                   modelAgent.Status,
-		IsAutoDisabled:           modelAgent.IsAutoDisabled,
-		AutoDisabledReason:       modelAgent.AutoDisabledReason,
-		Creator:                  modelAgent.Creator,
-		Updater:                  modelAgent.Updater,
-		CreatedAt:                util.FormatDateTime(modelAgent.CreatedAt),
-		UpdatedAt:                util.FormatDateTime(modelAgent.UpdatedAt),
+		Id:                    modelAgent.Id,
+		ProviderId:            modelAgent.ProviderId,
+		ProviderName:          providerName,
+		Name:                  modelAgent.Name,
+		BaseUrl:               modelAgent.BaseUrl,
+		Path:                  modelAgent.Path,
+		Weight:                modelAgent.Weight,
+		BillingMethods:        modelAgent.BillingMethods,
+		Groups:                groupIds,
+		GroupNames:            groupNames,
+		Models:                modelAgent.Models,
+		ModelNames:            modelNames,
+		FallbackModels:        fallbackModels,
+		FallbackModelNames:    fallbackModelNames,
+		IsEnableModelReplace:  modelAgent.IsEnableModelReplace,
+		ReplaceModels:         modelAgent.ReplaceModels,
+		TargetModels:          modelAgent.TargetModels,
+		IsEnableHealthCheck:   modelAgent.IsEnableHealthCheck,
+		IsRemoveAbnormalModel: modelAgent.IsRemoveAbnormalModel,
+		AbnormalModels:        modelAgent.AbnormalModels,
+		AbnormalModelNames:    abnormalModelNames,
+		IsNeverDisable:        modelAgent.IsNeverDisable,
+		LbStrategy:            modelAgent.LbStrategy,
+		Key:                   gstr.Join(keys, "\n"),
+		Remark:                modelAgent.Remark,
+		Status:                modelAgent.Status,
+		IsAutoDisabled:        modelAgent.IsAutoDisabled,
+		AutoDisabledReason:    modelAgent.AutoDisabledReason,
+		Creator:               modelAgent.Creator,
+		Updater:               modelAgent.Updater,
+		CreatedAt:             util.FormatDateTime(modelAgent.CreatedAt),
+		UpdatedAt:             util.FormatDateTime(modelAgent.UpdatedAt),
 	}, nil
 }
 

@@ -23,6 +23,9 @@ func Init(ctx context.Context) {
 	// 重置任务
 	resetTask(ctx)
 
+	// 模型代理健康检查任务
+	modelAgentHealthCheckTask(ctx)
+
 	// 错误检查任务
 	errorCheckTask(ctx)
 

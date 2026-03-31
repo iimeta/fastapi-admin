@@ -181,19 +181,21 @@ type ResetTask struct {
 	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
 }
 
-type ModelAgentTestTask struct {
-	Open         bool          `bson:"open"          json:"open"`          // 开关
-	Cron         string        `bson:"cron"          json:"cron"`          // CRON表达式
-	LockMinutes  time.Duration `bson:"lock_minutes"  json:"lock_minutes"`  // 锁定时长, 单位: 分钟
-	ModelAgents  []string      `bson:"model_agents"  json:"model_agents"`  // 模型代理
-	Models       []string      `bson:"models"        json:"models"`        // 测试模型
-	DisableCount int64         `bson:"disable_count" json:"disable_count"` // 失败禁用次数
-	AutoRecover  bool          `bson:"auto_recover"  json:"auto_recover"`  // 自动恢复
-	RecoverCount int64         `bson:"recover_count" json:"recover_count"` // 成功恢复次数
-	StatDuration time.Duration `bson:"stat_duration" json:"stat_duration"` // 统计时长, 单位: 分钟
-	TestMethod   int           `bson:"test_method"   json:"test_method"`   // 测试方式[1:FastAPI, 2:代理直连, 3:自定义]
-	BaseUrl      string        `bson:"base_url"      json:"base_url"`      // API接口地址
-	Key          string        `bson:"key"           json:"key"`           // API接口密钥
+type ModelAgentHealthCheckTask struct {
+	Open              bool          `bson:"open"                json:"open"`                // 开关
+	Cron              string        `bson:"cron"                json:"cron"`                // CRON表达式
+	LockMinutes       time.Duration `bson:"lock_minutes"        json:"lock_minutes"`        // 锁定时长, 单位: 分钟
+	ModelAgents       []string      `bson:"model_agents"        json:"model_agents"`        // 模型代理
+	Models            []string      `bson:"models"              json:"models"`              // 测试模型
+	DisableCount      int64         `bson:"disable_count"       json:"disable_count"`       // 失败禁用次数
+	RemoveModelCount  int64         `bson:"remove_model_count"  json:"remove_model_count"`  // 模型移除次数
+	AutoRecover       bool          `bson:"auto_recover"        json:"auto_recover"`        // 自动恢复
+	RecoverCount      int64         `bson:"recover_count"       json:"recover_count"`       // 成功恢复次数
+	RecoverModelCount int64         `bson:"recover_model_count" json:"recover_model_count"` // 模型恢复次数
+	StatPeriod        time.Duration `bson:"stat_period"         json:"stat_period"`         // 统计周期, 单位: 分钟
+	TestMethod        int           `bson:"test_method"         json:"test_method"`         // 测试方式[1:FastAPI, 2:代理直连, 3:自定义]
+	BaseUrl           string        `bson:"base_url"            json:"base_url"`            // API接口地址
+	Key               string        `bson:"key"                 json:"key"`                 // API接口密钥
 }
 
 type ServiceUnavailable struct {

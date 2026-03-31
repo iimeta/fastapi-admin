@@ -35,6 +35,8 @@ type (
 		QuickFillModel(ctx context.Context, params model.ModelAgentQuickFillModelReq) ([]string, error)
 		// 测试模型
 		TestModel(ctx context.Context, params model.ModelAgentTestModelReq) (*model.ModelAgentTestModelRes, error)
+		// 健康检查任务
+		HealthCheckTask(ctx context.Context)
 	}
 )
 
