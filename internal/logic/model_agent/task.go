@@ -55,7 +55,7 @@ func (s *sModelAgent) HealthCheckTask(ctx context.Context) {
 			continue
 		}
 
-		if !modelAgent.IsEnableHealthCheck {
+		if !modelAgent.IsEnableHealthCheck || (modelAgent.Status == 2 && !modelAgent.IsAutoDisabled) {
 			continue
 		}
 
@@ -98,48 +98,64 @@ func (s *sModelAgent) HealthCheckTask(ctx context.Context) {
 
 			reason := fmt.Sprintf("健康检查失败, 统计周期%d分钟内失败%d次", config.Cfg.ModelAgentHealthCheckTask.StatPeriod, failCount)
 
-			newData, err := dao.ModelAgent.FindOneAndUpdateById(ctx, modelAgentId, bson.M{
+			if err = dao.ModelAgent.UpdateById(ctx, modelAgentId, bson.M{
 				"status":               2,
 				"is_auto_disabled":     true,
 				"auto_disabled_reason": reason,
-			})
-			if err != nil {
+			}); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}
 
 			logger.Infof(ctx, "sModelAgent HealthCheckTask 模型代理[%s %s]已自动禁用, 原因: %s", modelAgent.Name, modelAgentId, reason)
 
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
-				Action:  consts.ACTION_STATUS,
-				OldData: modelAgent,
-				NewData: newData,
-			}); err != nil {
+			// 清除代理级别检查记录, 避免恢复后被历史记录再次禁用
+			if _, err = redis.Del(ctx, resultKey); err != nil {
 				logger.Error(ctx, err)
+			}
+
+			if newData, err := s.Detail(ctx, modelAgentId); err != nil {
+				logger.Error(ctx, err)
+			} else {
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+					Action:  consts.ACTION_STATUS,
+					OldData: modelAgent,
+					NewData: newData,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
 			}
 		}
 
 		// 恢复逻辑: 当前已自动禁用 + 开启自动恢复 + 成功次数达标
 		if modelAgent.Status == 2 && modelAgent.IsAutoDisabled && config.Cfg.ModelAgentHealthCheckTask.AutoRecover && config.Cfg.ModelAgentHealthCheckTask.RecoverCount > 0 && successCount >= config.Cfg.ModelAgentHealthCheckTask.RecoverCount {
 
-			newData, err := dao.ModelAgent.FindOneAndUpdateById(ctx, modelAgentId, bson.M{
+			if err = dao.ModelAgent.UpdateById(ctx, modelAgentId, bson.M{
 				"status":               1,
 				"is_auto_disabled":     false,
 				"auto_disabled_reason": "",
-			})
-			if err != nil {
+			}); err != nil {
 				logger.Error(ctx, err)
 				continue
 			}
 
 			logger.Infof(ctx, "sModelAgent HealthCheckTask 模型代理[%s %s]已自动恢复, 统计周期%d分钟内成功%d次", modelAgent.Name, modelAgentId, config.Cfg.ModelAgentHealthCheckTask.StatPeriod, successCount)
 
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
-				Action:  consts.ACTION_STATUS,
-				OldData: modelAgent,
-				NewData: newData,
-			}); err != nil {
+			// 清除代理级别检查记录, 避免被历史记录再次影响
+			if _, err = redis.Del(ctx, resultKey); err != nil {
 				logger.Error(ctx, err)
+			}
+
+			if newData, err := s.Detail(ctx, modelAgentId); err != nil {
+				logger.Error(ctx, err)
+			} else {
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+					Action:  consts.ACTION_STATUS,
+					OldData: modelAgent,
+					NewData: newData,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
 			}
 		}
 	}
@@ -295,40 +311,65 @@ func (s *sModelAgent) healthCheck(ctx context.Context, modelAgent *entity.ModelA
 	// 移除异常模型: 从Models移到AbnormalModels
 	if modelAgent.IsRemoveAbnormalModel && len(failedFromModels) > 0 {
 
-		newData, err := dao.ModelAgent.FindOneAndUpdateById(ctx, modelAgent.Id, bson.M{
+		var err error
+		modelAgent, err = dao.ModelAgent.FindOneAndUpdateById(ctx, modelAgent.Id, bson.M{
 			"$pull": bson.M{"models": bson.M{"$in": failedFromModels}},
 			"$push": bson.M{"abnormal_models": bson.M{"$each": failedFromModels}},
 		})
 		if err != nil {
 			logger.Error(ctx, err)
 		} else {
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: modelAgent,
-				NewData: newData,
-			}); err != nil {
-				logger.Error(ctx, err)
+
+			// 清除已移除模型的检查记录, 避免恢复后被历史记录再次移除
+			for _, modelId := range failedFromModels {
+				modelResultKey := fmt.Sprintf(consts.TASK_MODEL_AGENT_HEALTH_CHECK_MODEL_RESULT_KEY, modelAgent.Id, modelId)
+				if _, err := redis.Del(ctx, modelResultKey); err != nil {
+					logger.Error(ctx, err)
+				}
 			}
-			modelAgent = newData
+
+			if newData, err := s.Detail(ctx, modelAgent.Id); err != nil {
+				logger.Error(ctx, err)
+			} else {
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+					Action:  consts.ACTION_UPDATE,
+					OldData: modelAgent,
+					NewData: newData,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
 		}
 	}
 
 	// 恢复模型: 从AbnormalModels移回Models
 	if len(recoveredFromAbnormal) > 0 {
 
-		newData, err := dao.ModelAgent.FindOneAndUpdateById(ctx, modelAgent.Id, bson.M{
+		if err := dao.ModelAgent.UpdateById(ctx, modelAgent.Id, bson.M{
 			"$push": bson.M{"models": bson.M{"$each": recoveredFromAbnormal}},
 			"$pull": bson.M{"abnormal_models": bson.M{"$in": recoveredFromAbnormal}},
-		})
-		if err != nil {
+		}); err != nil {
 			logger.Error(ctx, err)
 		} else {
-			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
-				Action:  consts.ACTION_UPDATE,
-				OldData: modelAgent,
-				NewData: newData,
-			}); err != nil {
+
+			// 清除已恢复模型的检查记录, 避免被历史记录再次移除
+			for _, modelId := range recoveredFromAbnormal {
+				modelResultKey := fmt.Sprintf(consts.TASK_MODEL_AGENT_HEALTH_CHECK_MODEL_RESULT_KEY, modelAgent.Id, modelId)
+				if _, err := redis.Del(ctx, modelResultKey); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+			if newData, err := s.Detail(ctx, modelAgent.Id); err != nil {
 				logger.Error(ctx, err)
+			} else {
+				if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+					Action:  consts.ACTION_UPDATE,
+					OldData: modelAgent,
+					NewData: newData,
+				}); err != nil {
+					logger.Error(ctx, err)
+				}
 			}
 		}
 	}
