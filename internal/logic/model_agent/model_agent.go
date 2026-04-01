@@ -76,6 +76,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		TargetModels:          params.TargetModels,
 		IsEnableHealthCheck:   params.IsEnableHealthCheck,
 		IsRemoveAbnormalModel: params.IsRemoveAbnormalModel,
+		AbnormalModels:        []string{},
 		IsNeverDisable:        params.IsNeverDisable,
 		LbStrategy:            params.LbStrategy,
 		Remark:                params.Remark,
@@ -192,6 +193,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		TargetModels:          params.TargetModels,
 		IsEnableHealthCheck:   params.IsEnableHealthCheck,
 		IsRemoveAbnormalModel: params.IsRemoveAbnormalModel,
+		AbnormalModels:        oldData.AbnormalModels,
 		IsNeverDisable:        params.IsNeverDisable,
 		LbStrategy:            params.LbStrategy,
 		Remark:                params.Remark,
@@ -200,7 +202,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		AutoDisabledReason:    oldData.AutoDisabledReason,
 	}
 
-	if !slices.Equal(oldData.Models, update.Models) {
+	if !slices.Equal(oldData.Models, update.Models) || update.AbnormalModels == nil {
 		update.AbnormalModels = []string{}
 	}
 

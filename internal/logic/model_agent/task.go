@@ -3,6 +3,7 @@ package model_agent
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
@@ -75,7 +76,7 @@ func (s *sModelAgent) HealthCheckTask(ctx context.Context) {
 		var failCount, successCount int64
 		for _, r := range results {
 
-			parts := gconv.Strings(r)
+			parts := strings.Split(gconv.String(r), ",")
 			if len(parts) < 2 {
 				continue
 			}
@@ -259,7 +260,7 @@ func (s *sModelAgent) healthCheck(ctx context.Context, modelAgent *entity.ModelA
 		var failCount, successCount int64
 		for _, r := range results {
 
-			parts := gconv.Strings(r)
+			parts := strings.Split(gconv.String(r), ",")
 			if len(parts) < 2 {
 				continue
 			}
@@ -301,7 +302,7 @@ func (s *sModelAgent) healthCheck(ctx context.Context, modelAgent *entity.ModelA
 		if err != nil {
 			logger.Error(ctx, err)
 		} else {
-			if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
 				Action:  consts.ACTION_UPDATE,
 				OldData: modelAgent,
 				NewData: newData,
@@ -322,7 +323,7 @@ func (s *sModelAgent) healthCheck(ctx context.Context, modelAgent *entity.ModelA
 		if err != nil {
 			logger.Error(ctx, err)
 		} else {
-			if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
 				Action:  consts.ACTION_UPDATE,
 				OldData: modelAgent,
 				NewData: newData,
