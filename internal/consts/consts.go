@@ -8,6 +8,7 @@ const (
 	METHOD_ACCOUNT       = "account"
 	METHOD_CODE          = "code"
 	SERVERS_KEY          = "CORE:SERVERS"
+	HEALTH_CHECK_HEADER  = "X-Health-Check"
 	MODEL_AGENT_HEADER   = "X-Model-Agent"
 )
 

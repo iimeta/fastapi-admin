@@ -225,8 +225,7 @@ func (s *sModelAgent) healthCheck(ctx context.Context, modelAgent *entity.ModelA
 			ttl = 600
 		}
 
-		// 只有交集模型的结果计入代理级别统计
-		if !abnormalModelSet[modelId] {
+		if !abnormalModelSet[modelId] || result == "1" {
 
 			if _, err = redis.LPush(ctx, agentResultKey, record); err != nil {
 				logger.Error(ctx, err)

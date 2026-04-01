@@ -155,12 +155,19 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 	}
 
 	if modelAgent.IsEnableHealthCheck {
+
 		if err = dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
 			"$push": bson.M{
 				"model_agent_health_check_task.model_agents": id,
 			},
 		}); err != nil {
 			logger.Error(ctx, err)
+		} else {
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CONFIG, model.PubMessage{
+				Action: consts.ACTION_UPDATE,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
 		}
 	}
 
@@ -384,6 +391,12 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 			},
 		}); err != nil {
 			logger.Error(ctx, err)
+		} else {
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CONFIG, model.PubMessage{
+				Action: consts.ACTION_UPDATE,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
 		}
 
 	} else if !oldData.IsEnableHealthCheck && update.IsEnableHealthCheck {
@@ -394,6 +407,12 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 			},
 		}); err != nil {
 			logger.Error(ctx, err)
+		} else {
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CONFIG, model.PubMessage{
+				Action: consts.ACTION_UPDATE,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
 		}
 	}
 
@@ -502,12 +521,19 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 	}
 
 	if modelAgent.IsEnableHealthCheck {
+
 		if err = dao.SysConfig.UpdateOne(ctx, bson.M{}, bson.M{
 			"$pull": bson.M{
 				"model_agent_health_check_task.model_agents": id,
 			},
 		}); err != nil {
 			logger.Error(ctx, err)
+		} else {
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_CONFIG, model.PubMessage{
+				Action: consts.ACTION_UPDATE,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
 		}
 	}
 
@@ -903,7 +929,7 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		Key:                     params.Key,
 		BaseUrl:                 params.BaseUrl,
 		Path:                    modelAgent.Path,
-		Header:                  g.MapStrStr{consts.MODEL_AGENT_HEADER: params.ModelAgentId},
+		Header:                  g.MapStrStr{consts.HEALTH_CHECK_HEADER: params.ModelAgentId},
 		Timeout:                 config.Cfg.Base.ShortTimeout * time.Second,
 		ProxyUrl:                config.Cfg.Http.ProxyUrl,
 		IsOfficialFormatRequest: provider.Code != sconsts.PROVIDER_OPENAI,
