@@ -101,6 +101,7 @@ func (s *sLogMidjourney) Detail(ctx context.Context, id string) (*model.LogMidjo
 	if service.Session().IsAdminRole(ctx) {
 
 		midjourney.ProviderId = result.ProviderId
+		midjourney.ProviderCode = result.ProviderCode
 		midjourney.ModelId = result.ModelId
 		midjourney.ModelName = result.ModelName
 		midjourney.Key = result.Key
@@ -231,19 +232,21 @@ func (s *sLogMidjourney) Page(ctx context.Context, params model.LogMidjourneyPag
 	for _, result := range results {
 
 		midjourney := &model.LogMidjourney{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			Spend:     result.Spend,
-			ConnTime:  result.ConnTime,
-			Duration:  result.Duration,
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			Spend:        result.Spend,
+			ConnTime:     result.ConnTime,
+			Duration:     result.Duration,
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			midjourney.ProviderCode = result.ProviderCode
 			midjourney.InternalTime = result.InternalTime
 			midjourney.IsSmartMatch = result.IsSmartMatch
 		}

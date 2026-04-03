@@ -104,6 +104,7 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 	if service.Session().IsAdminRole(ctx) {
 
 		batch.ProviderId = result.ProviderId
+		batch.ProviderCode = result.ProviderCode
 		batch.ModelId = result.ModelId
 		batch.ModelName = result.ModelName
 		batch.Key = util.Desensitize(result.Key)
@@ -231,20 +232,22 @@ func (s *sLogBatch) Page(ctx context.Context, params model.LogBatchPageReq) (*mo
 	for _, result := range results {
 
 		batch := &model.LogBatch{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			ModelType: result.ModelType,
-			Action:    result.Action,
-			BatchId:   result.BatchId,
-			Spend:     common.ConvSpend(result.Spend),
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			ModelType:    result.ModelType,
+			Action:       result.Action,
+			BatchId:      result.BatchId,
+			Spend:        common.ConvSpend(result.Spend),
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			batch.ProviderCode = result.ProviderCode
 			batch.InternalTime = result.InternalTime
 			batch.IsSmartMatch = result.IsSmartMatch
 		}

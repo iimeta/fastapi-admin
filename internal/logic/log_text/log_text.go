@@ -110,6 +110,7 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 
 	if service.Session().IsAdminRole(ctx) {
 		text.ProviderId = result.ProviderId
+		text.ProviderCode = result.ProviderCode
 		text.ModelId = result.ModelId
 		text.ModelName = result.ModelName
 		text.Key = util.Desensitize(result.Key)
@@ -251,21 +252,23 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 	for _, result := range results {
 
 		text := &model.LogText{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			ModelType: result.ModelType,
-			Stream:    result.Stream,
-			Spend:     common.ConvSpend(result.Spend),
-			ConnTime:  result.ConnTime,
-			Duration:  result.Duration,
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			ModelType:    result.ModelType,
+			Stream:       result.Stream,
+			Spend:        common.ConvSpend(result.Spend),
+			ConnTime:     result.ConnTime,
+			Duration:     result.Duration,
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			text.ProviderCode = result.ProviderCode
 			text.InternalTime = result.InternalTime
 			text.IsSmartMatch = result.IsSmartMatch
 		}

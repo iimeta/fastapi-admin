@@ -106,6 +106,7 @@ func (s *sLogGeneral) Detail(ctx context.Context, id string) (*model.LogGeneral,
 	if service.Session().IsAdminRole(ctx) {
 
 		general.ProviderId = result.ProviderId
+		general.ProviderCode = result.ProviderCode
 		general.ModelId = result.ModelId
 		general.ModelName = result.ModelName
 		general.Key = util.Desensitize(result.Key)
@@ -236,21 +237,23 @@ func (s *sLogGeneral) Page(ctx context.Context, params model.LogGeneralPageReq) 
 	for _, result := range results {
 
 		general := &model.LogGeneral{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			ModelType: result.ModelType,
-			Stream:    result.Stream,
-			Spend:     common.ConvSpend(result.Spend),
-			ConnTime:  result.ConnTime,
-			Duration:  result.Duration,
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			ModelType:    result.ModelType,
+			Stream:       result.Stream,
+			Spend:        common.ConvSpend(result.Spend),
+			ConnTime:     result.ConnTime,
+			Duration:     result.Duration,
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			general.ProviderCode = result.ProviderCode
 			general.InternalTime = result.InternalTime
 			general.IsSmartMatch = result.IsSmartMatch
 		}

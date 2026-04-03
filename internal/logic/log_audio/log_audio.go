@@ -102,6 +102,7 @@ func (s *sLogAudio) Detail(ctx context.Context, id string) (*model.LogAudio, err
 	if service.Session().IsAdminRole(ctx) {
 
 		audio.ProviderId = result.ProviderId
+		audio.ProviderCode = result.ProviderCode
 		audio.ModelId = result.ModelId
 		audio.ModelName = result.ModelName
 		audio.Key = util.Desensitize(result.Key)
@@ -229,18 +230,20 @@ func (s *sLogAudio) Page(ctx context.Context, params model.LogAudioPageReq) (*mo
 	for _, result := range results {
 
 		audio := &model.LogAudio{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			ModelType: result.ModelType,
-			Spend:     common.ConvSpend(result.Spend),
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			ModelType:    result.ModelType,
+			Spend:        common.ConvSpend(result.Spend),
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			audio.ProviderCode = result.ProviderCode
 			audio.InternalTime = result.InternalTime
 			audio.IsSmartMatch = result.IsSmartMatch
 		}

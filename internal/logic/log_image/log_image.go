@@ -110,6 +110,7 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 
 	if service.Session().IsAdminRole(ctx) {
 		image.ProviderId = result.ProviderId
+		image.ProviderCode = result.ProviderCode
 		image.ModelId = result.ModelId
 		image.ModelName = result.ModelName
 		image.Key = util.Desensitize(result.Key)
@@ -240,16 +241,17 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 	for _, result := range results {
 
 		image := &model.LogImage{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			ModelType: result.ModelType,
-			Prompt:    result.Prompt,
-			Spend:     common.ConvSpend(result.Spend),
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			ModelType:    result.ModelType,
+			Prompt:       result.Prompt,
+			Spend:        common.ConvSpend(result.Spend),
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		for _, imageData := range result.ImageData {
@@ -259,6 +261,7 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			image.ProviderCode = result.ProviderCode
 			image.InternalTime = result.InternalTime
 			image.IsSmartMatch = result.IsSmartMatch
 		}

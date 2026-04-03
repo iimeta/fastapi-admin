@@ -44,6 +44,7 @@ type LogGeneral struct {
 	UserId               int                    `json:"user_id,omitempty"`                 // 用户ID
 	AppId                int                    `json:"app_id,omitempty"`                  // 应用ID
 	ProviderId           string                 `json:"provider_id,omitempty"`             // 提供商ID
+	ProviderCode         string                 `json:"provider_code,omitempty"`           // 提供商代码
 	ProviderName         string                 `json:"provider_name,omitempty"`           // 提供商名称
 	ModelId              string                 `json:"model_id,omitempty"`                // 模型ID
 	ModelName            string                 `json:"model_name,omitempty"`              // 模型名称

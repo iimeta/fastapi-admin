@@ -104,6 +104,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 	if service.Session().IsAdminRole(ctx) {
 
 		video.ProviderId = result.ProviderId
+		video.ProviderCode = result.ProviderCode
 		video.ModelId = result.ModelId
 		video.ModelName = result.ModelName
 		video.Key = util.Desensitize(result.Key)
@@ -234,20 +235,22 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 	for _, result := range results {
 
 		video := &model.LogVideo{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			ModelType: result.ModelType,
-			Action:    result.Action,
-			VideoId:   result.VideoId,
-			Spend:     common.ConvSpend(result.Spend),
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			ModelType:    result.ModelType,
+			Action:       result.Action,
+			VideoId:      result.VideoId,
+			Spend:        common.ConvSpend(result.Spend),
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			video.ProviderCode = result.ProviderCode
 			video.InternalTime = result.InternalTime
 			video.IsSmartMatch = result.IsSmartMatch
 		}

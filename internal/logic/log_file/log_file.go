@@ -104,6 +104,7 @@ func (s *sLogFile) Detail(ctx context.Context, id string) (*model.LogFile, error
 	if service.Session().IsAdminRole(ctx) {
 
 		file.ProviderId = result.ProviderId
+		file.ProviderCode = result.ProviderCode
 		file.ModelId = result.ModelId
 		file.ModelName = result.ModelName
 		file.Key = util.Desensitize(result.Key)
@@ -234,20 +235,22 @@ func (s *sLogFile) Page(ctx context.Context, params model.LogFilePageReq) (*mode
 	for _, result := range results {
 
 		file := &model.LogFile{
-			Id:        result.Id,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			ModelType: result.ModelType,
-			Action:    result.Action,
-			FileId:    result.FileId,
-			Spend:     common.ConvSpend(result.Spend),
-			TotalTime: result.TotalTime,
-			ReqTime:   util.FormatDateTimeMonth(result.ReqTime),
-			Status:    result.Status,
+			Id:           result.Id,
+			UserId:       result.UserId,
+			AppId:        result.AppId,
+			ProviderName: result.ProviderName,
+			Model:        result.Model,
+			ModelType:    result.ModelType,
+			Action:       result.Action,
+			FileId:       result.FileId,
+			Spend:        common.ConvSpend(result.Spend),
+			TotalTime:    result.TotalTime,
+			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
+			Status:       result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
+			file.ProviderCode = result.ProviderCode
 			file.InternalTime = result.InternalTime
 			file.IsSmartMatch = result.IsSmartMatch
 		}

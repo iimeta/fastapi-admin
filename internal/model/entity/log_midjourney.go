@@ -12,6 +12,7 @@ type LogMidjourney struct {
 	UserId               int                    `bson:"user_id,omitempty"`                 // 用户ID
 	AppId                int                    `bson:"app_id,omitempty"`                  // 应用ID
 	ProviderId           string                 `bson:"provider_id,omitempty"`             // 提供商ID
+	ProviderCode         string                 `bson:"provider_code,omitempty"`           // 提供商代码
 	ProviderName         string                 `bson:"provider_name,omitempty"`           // 提供商名称
 	ModelId              string                 `bson:"model_id,omitempty"`                // 模型ID
 	ModelName            string                 `bson:"model_name,omitempty"`              // 模型名称
