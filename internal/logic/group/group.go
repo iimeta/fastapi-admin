@@ -1092,11 +1092,12 @@ func (s *sGroup) List(ctx context.Context, params model.GroupListReq) ([]*model.
 	for _, result := range results {
 
 		group := &model.Group{
-			Id:     result.Id,
-			Name:   result.Name,
-			Models: result.Models,
-			Remark: result.Remark,
-			Status: result.Status,
+			Id:        result.Id,
+			TimeRules: common.ConvTimeRulesToPercent(result.TimeRules),
+			Name:      result.Name,
+			Models:    result.Models,
+			Remark:    result.Remark,
+			Status:    result.Status,
 		}
 
 		if service.Session().IsAdminRole(ctx) {
