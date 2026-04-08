@@ -330,70 +330,68 @@ func (s *sAppKey) Delete(ctx context.Context, id string) error {
 // 应用密钥详情
 func (s *sAppKey) Detail(ctx context.Context, id string) (*model.AppKey, error) {
 
-	key, err := dao.AppKey.FindById(ctx, id)
+	appKey, err := dao.AppKey.FindById(ctx, id)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	if service.Session().IsResellerRole(ctx) && key.Rid != service.Session().GetRid(ctx) {
+	if service.Session().IsResellerRole(ctx) && appKey.Rid != service.Session().GetRid(ctx) {
 		return nil, errors.New("Unauthorized")
 	}
 
-	if service.Session().IsUserRole(ctx) && key.UserId != service.Session().GetUserId(ctx) {
+	if service.Session().IsUserRole(ctx) && appKey.UserId != service.Session().GetUserId(ctx) {
 		return nil, errors.New("Unauthorized")
 	}
 
-	modelNames, err := service.Model().ModelNames(ctx, key.Models)
-	if err != nil {
+	detail := &model.AppKey{
+		Id:                  appKey.Id,
+		UserId:              appKey.UserId,
+		AppId:               appKey.AppId,
+		Name:                appKey.Name,
+		Key:                 appKey.Key,
+		BillingMethods:      appKey.BillingMethods,
+		Models:              appKey.Models,
+		IsLimitQuota:        appKey.IsLimitQuota,
+		Quota:               common.ConvQuotaUnitReverse(appKey.Quota),
+		UsedQuota:           common.ConvQuotaUnitReverse(appKey.UsedQuota),
+		QuotaExpiresRule:    appKey.QuotaExpiresRule,
+		QuotaExpiresAt:      util.FormatDateTime(appKey.QuotaExpiresAt),
+		QuotaExpiresMinutes: appKey.QuotaExpiresMinutes,
+		IsCycleResetQuota:   appKey.IsCycleResetQuota,
+		ResetQuota:          common.ConvQuotaUnitReverse(appKey.ResetQuota),
+		CyclePeriod:         appKey.CyclePeriod,
+		PeriodUnit:          appKey.PeriodUnit,
+		ResetMode:           appKey.ResetMode,
+		ResetAt:             util.FormatDateTime(appKey.ResetAt),
+		NextResetAt:         util.FormatDateTime(appKey.NextResetAt),
+		IsBindGroup:         appKey.IsBindGroup,
+		Group:               appKey.Group,
+		IpWhitelist:         appKey.IpWhitelist,
+		IpBlacklist:         appKey.IpBlacklist,
+		Remark:              appKey.Remark,
+		Status:              appKey.Status,
+		Creator:             appKey.Creator,
+		Updater:             appKey.Updater,
+		CreatedAt:           util.FormatDateTime(appKey.CreatedAt),
+		UpdatedAt:           util.FormatDateTime(appKey.UpdatedAt),
+	}
+
+	if detail.ModelNames, err = service.Model().ModelNames(ctx, appKey.Models); err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
-	groupName := ""
-	if key.IsBindGroup && key.Group != "" {
-		group, err := dao.Group.FindById(ctx, key.Group)
-		if err != nil {
+	if appKey.IsBindGroup && appKey.Group != "" {
+		if group, err := dao.Group.FindById(ctx, appKey.Group); err != nil {
 			logger.Error(ctx, err)
 		} else {
-			groupName = group.Name
+			detail.GroupName = group.Name
+			detail.GroupTimeRules = common.ConvTimeRulesToPercent(group.TimeRules)
 		}
 	}
 
-	return &model.AppKey{
-		Id:                  key.Id,
-		UserId:              key.UserId,
-		AppId:               key.AppId,
-		Name:                key.Name,
-		Key:                 key.Key,
-		BillingMethods:      key.BillingMethods,
-		Models:              key.Models,
-		ModelNames:          modelNames,
-		IsLimitQuota:        key.IsLimitQuota,
-		Quota:               common.ConvQuotaUnitReverse(key.Quota),
-		UsedQuota:           common.ConvQuotaUnitReverse(key.UsedQuota),
-		QuotaExpiresRule:    key.QuotaExpiresRule,
-		QuotaExpiresAt:      util.FormatDateTime(key.QuotaExpiresAt),
-		QuotaExpiresMinutes: key.QuotaExpiresMinutes,
-		IsCycleResetQuota:   key.IsCycleResetQuota,
-		ResetQuota:          common.ConvQuotaUnitReverse(key.ResetQuota),
-		CyclePeriod:         key.CyclePeriod,
-		PeriodUnit:          key.PeriodUnit,
-		ResetMode:           key.ResetMode,
-		ResetAt:             util.FormatDateTime(key.ResetAt),
-		NextResetAt:         util.FormatDateTime(key.NextResetAt),
-		IsBindGroup:         key.IsBindGroup,
-		Group:               key.Group,
-		GroupName:           groupName,
-		IpWhitelist:         key.IpWhitelist,
-		IpBlacklist:         key.IpBlacklist,
-		Remark:              key.Remark,
-		Status:              key.Status,
-		Creator:             key.Creator,
-		Updater:             key.Updater,
-		CreatedAt:           util.FormatDateTime(key.CreatedAt),
-		UpdatedAt:           util.FormatDateTime(key.UpdatedAt),
-	}, nil
+	return detail, nil
 }
 
 // 应用密钥分页列表
@@ -469,9 +467,20 @@ func (s *sAppKey) Page(ctx context.Context, params model.AppKeyPageReq) (*model.
 		return nil, err
 	}
 
+	groups, err := service.Group().List(ctx, model.GroupListReq{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	groupMap := util.ToMap(groups, func(t *model.Group) string {
+		return t.Id
+	})
+
 	items := make([]*model.AppKey, 0)
 	for _, result := range results {
-		items = append(items, &model.AppKey{
+
+		appKey := &model.AppKey{
 			Id:                  result.Id,
 			UserId:              result.UserId,
 			AppId:               result.AppId,
@@ -500,7 +509,16 @@ func (s *sAppKey) Page(ctx context.Context, params model.AppKeyPageReq) (*model.
 			Status:              result.Status,
 			CreatedAt:           util.FormatDateTimeMonth(result.CreatedAt),
 			UpdatedAt:           util.FormatDateTimeMonth(result.UpdatedAt),
-		})
+		}
+
+		if result.IsBindGroup && result.Group != "" {
+			if group, ok := groupMap[result.Group]; ok {
+				appKey.GroupName = group.Name
+				appKey.GroupTimeRules = group.TimeRules
+			}
+		}
+
+		items = append(items, appKey)
 	}
 
 	return &model.AppKeyPageRes{

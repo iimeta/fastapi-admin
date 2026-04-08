@@ -1,5 +1,7 @@
 package model
 
+import "github.com/iimeta/fastapi-admin/v2/internal/model/common"
+
 // 新建应用接口请求参数
 type AppCreateReq struct {
 	UserId            int      `json:"user_id,omitempty"`              // 用户ID
@@ -117,32 +119,33 @@ type AppGroupReq struct {
 }
 
 type App struct {
-	Id                string   `json:"id,omitempty"`                   // ID
-	AppId             int      `json:"app_id,omitempty"`               // 应用ID
-	Name              string   `json:"name,omitempty"`                 // 应用名称
-	Models            []string `json:"models,omitempty"`               // 模型权限
-	ModelNames        []string `json:"model_names,omitempty"`          // 模型名称
-	IsLimitQuota      bool     `json:"is_limit_quota,omitempty"`       // 是否限制额度
-	Quota             float64  `json:"quota,omitempty"`                // 剩余额度
-	UsedQuota         float64  `json:"used_quota,omitempty"`           // 已用额度
-	QuotaExpiresAt    string   `json:"quota_expires_at,omitempty"`     // 额度过期时间
-	IsCycleResetQuota bool     `json:"is_cycle_reset_quota,omitempty"` // 是否循环重置额度
-	ResetQuota        float64  `json:"reset_quota,omitempty"`          // 重置额度
-	CyclePeriod       int      `json:"cycle_period,omitempty"`         // 循环周期
-	PeriodUnit        string   `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
-	ResetMode         string   `json:"reset_mode,omitempty"`           // 重置模式[natural:自然周期, relative:相对周期]
-	ResetAt           string   `json:"reset_at,omitempty"`             // 重置时间
-	NextResetAt       string   `json:"next_reset_at,omitempty"`        // 下次重置时间
-	IsBindGroup       bool     `json:"is_bind_group,omitempty"`        // 是否绑定分组
-	Group             string   `json:"group,omitempty"`                // 绑定分组
-	GroupName         string   `json:"group_name,omitempty"`           // 绑定分组名称
-	IpWhitelist       []string `json:"ip_whitelist,omitempty"`         // IP白名单
-	IpBlacklist       []string `json:"ip_blacklist,omitempty"`         // IP黑名单
-	Remark            string   `json:"remark,omitempty"`               // 备注
-	Status            int      `json:"status,omitempty"`               // 状态[1:正常, 2:禁用, -1:删除]
-	UserId            int      `json:"user_id,omitempty"`              // 用户ID
-	Creator           string   `json:"creator,omitempty"`              // 创建人
-	Updater           string   `json:"updater,omitempty"`              // 更新人
-	CreatedAt         string   `json:"created_at,omitempty"`           // 创建时间
-	UpdatedAt         string   `json:"updated_at,omitempty"`           // 更新时间
+	Id                string             `json:"id,omitempty"`                   // ID
+	AppId             int                `json:"app_id,omitempty"`               // 应用ID
+	Name              string             `json:"name,omitempty"`                 // 应用名称
+	Models            []string           `json:"models,omitempty"`               // 模型权限
+	ModelNames        []string           `json:"model_names,omitempty"`          // 模型名称
+	IsLimitQuota      bool               `json:"is_limit_quota,omitempty"`       // 是否限制额度
+	Quota             float64            `json:"quota,omitempty"`                // 剩余额度
+	UsedQuota         float64            `json:"used_quota,omitempty"`           // 已用额度
+	QuotaExpiresAt    string             `json:"quota_expires_at,omitempty"`     // 额度过期时间
+	IsCycleResetQuota bool               `json:"is_cycle_reset_quota,omitempty"` // 是否循环重置额度
+	ResetQuota        float64            `json:"reset_quota,omitempty"`          // 重置额度
+	CyclePeriod       int                `json:"cycle_period,omitempty"`         // 循环周期
+	PeriodUnit        string             `json:"period_unit,omitempty"`          // 周期单位[hour:小时, day:天]
+	ResetMode         string             `json:"reset_mode,omitempty"`           // 重置模式[natural:自然周期, relative:相对周期]
+	ResetAt           string             `json:"reset_at,omitempty"`             // 重置时间
+	NextResetAt       string             `json:"next_reset_at,omitempty"`        // 下次重置时间
+	IsBindGroup       bool               `json:"is_bind_group,omitempty"`        // 是否绑定分组
+	Group             string             `json:"group,omitempty"`                // 绑定分组
+	GroupName         string             `json:"group_name,omitempty"`           // 绑定分组名称
+	GroupTimeRules    []*common.TimeRule `json:"group_time_rules,omitempty"`     // 绑定分组时段规则
+	IpWhitelist       []string           `json:"ip_whitelist,omitempty"`         // IP白名单
+	IpBlacklist       []string           `json:"ip_blacklist,omitempty"`         // IP黑名单
+	Remark            string             `json:"remark,omitempty"`               // 备注
+	Status            int                `json:"status,omitempty"`               // 状态[1:正常, 2:禁用, -1:删除]
+	UserId            int                `json:"user_id,omitempty"`              // 用户ID
+	Creator           string             `json:"creator,omitempty"`              // 创建人
+	Updater           string             `json:"updater,omitempty"`              // 更新人
+	CreatedAt         string             `json:"created_at,omitempty"`           // 创建时间
+	UpdatedAt         string             `json:"updated_at,omitempty"`           // 更新时间
 }

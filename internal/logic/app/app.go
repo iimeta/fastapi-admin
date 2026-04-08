@@ -356,28 +356,11 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		return nil, errors.New("Unauthorized")
 	}
 
-	modelNames, err := service.Model().ModelNames(ctx, app.Models)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
-	groupName := ""
-	if app.IsBindGroup && app.Group != "" {
-		group, err := dao.Group.FindById(ctx, app.Group)
-		if err != nil {
-			logger.Error(ctx, err)
-		} else {
-			groupName = group.Name
-		}
-	}
-
-	return &model.App{
+	detail := &model.App{
 		Id:                app.Id,
 		AppId:             app.AppId,
 		Name:              app.Name,
 		Models:            app.Models,
-		ModelNames:        modelNames,
 		IsLimitQuota:      app.IsLimitQuota,
 		Quota:             common.ConvQuotaUnitReverse(app.Quota),
 		UsedQuota:         common.ConvQuotaUnitReverse(app.UsedQuota),
@@ -391,7 +374,6 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		NextResetAt:       util.FormatDateTime(app.NextResetAt),
 		IsBindGroup:       app.IsBindGroup,
 		Group:             app.Group,
-		GroupName:         groupName,
 		IpWhitelist:       app.IpWhitelist,
 		IpBlacklist:       app.IpBlacklist,
 		Remark:            app.Remark,
@@ -399,7 +381,23 @@ func (s *sApp) Detail(ctx context.Context, id string) (*model.App, error) {
 		UserId:            app.UserId,
 		CreatedAt:         util.FormatDateTime(app.CreatedAt),
 		UpdatedAt:         util.FormatDateTime(app.UpdatedAt),
-	}, nil
+	}
+
+	if detail.ModelNames, err = service.Model().ModelNames(ctx, app.Models); err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	if app.IsBindGroup && app.Group != "" {
+		if group, err := dao.Group.FindById(ctx, app.Group); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			detail.GroupName = group.Name
+			detail.GroupTimeRules = common.ConvTimeRulesToPercent(group.TimeRules)
+		}
+	}
+
+	return detail, nil
 }
 
 // 应用分页列表
