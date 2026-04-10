@@ -855,7 +855,13 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 	}
 
 	if params.Type != 0 {
-		filter["type"] = params.Type
+		filter["type"] = params.SearchValue
+	}
+
+	if params.BillingMethod != 0 {
+		filter["pricing.billing_methods"] = bson.M{
+			"$in": []int{params.BillingMethod},
+		}
 	}
 
 	if params.Remark != "" {
@@ -866,6 +872,14 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 
 	if params.Status != 0 {
 		filter["status"] = params.Status
+	}
+
+	if params.SearchValue != "" {
+		filter["$or"] = bson.A{
+			bson.M{"name": bson.M{"$regex": regexp.QuoteMeta(params.SearchValue)}},
+			bson.M{"model": bson.M{"$regex": regexp.QuoteMeta(params.SearchValue)}},
+			bson.M{"remark": bson.M{"$regex": regexp.QuoteMeta(params.SearchValue)}},
+		}
 	}
 
 	results, err := dao.Model.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-updated_at", "name"}})

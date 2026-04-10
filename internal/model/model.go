@@ -71,14 +71,16 @@ type ModelDetailRes struct {
 // 模型分页列表接口请求参数
 type ModelPageReq struct {
 	Paging
-	ProviderId string   `json:"provider_id,omitempty"` // 提供商ID
-	Name       string   `json:"name,omitempty"`        // 模型名称
-	Model      string   `json:"model,omitempty"`       // 模型
-	Type       int      `json:"type,omitempty"`        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
-	Group      string   `json:"group,omitempty"`       // 分组
-	Remark     string   `json:"remark,omitempty"`      // 备注
-	Status     int      `json:"status,omitempty"`      // 状态[1:正常, 2:禁用, -1:删除]
-	CreatedAt  []string `json:"created_at,omitempty"`  // 创建时间
+	ProviderId    string   `json:"provider_id,omitempty"`    // 提供商ID
+	Name          string   `json:"name,omitempty"`           // 模型名称
+	Model         string   `json:"model,omitempty"`          // 模型
+	Type          int      `json:"type,omitempty"`           // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
+	Group         string   `json:"group,omitempty"`          // 分组
+	BillingMethod int      `json:"billing_method,omitempty"` // 计费方式[1:按Tokens, 2:按次]
+	Remark        string   `json:"remark,omitempty"`         // 备注
+	Status        int      `json:"status,omitempty"`         // 状态[1:正常, 2:禁用, -1:删除]
+	CreatedAt     []string `json:"created_at,omitempty"`     // 创建时间
+	SearchValue   string   `json:"search_value,omitempty"`   // 搜索值
 }
 
 // 模型分页列表接口响应参数
