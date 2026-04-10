@@ -693,6 +693,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			RecoverCount:      15,
 			RecoverModelCount: 3,
 			StatPeriod:        15,
+			SmartCheck:        true,
 			TestMethod:        1,
 		},
 		ServiceUnavailable: &common.ServiceUnavailable{

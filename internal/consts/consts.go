@@ -65,6 +65,13 @@ const (
 )
 
 const (
+	SMART_HEALTH_AGENT_SUCCESS_KEY = "smart:health:agent:%s:success"    // 代理成功计数
+	SMART_HEALTH_AGENT_FAIL_KEY    = "smart:health:agent:%s:fail"       // 代理失败计数
+	SMART_HEALTH_MODEL_SUCCESS_KEY = "smart:health:model:%s:%s:success" // 模型成功计数
+	SMART_HEALTH_MODEL_FAIL_KEY    = "smart:health:model:%s:%s:fail"    // 模型失败计数
+)
+
+const (
 	STATISTICS_LOG_TEXT_LAST_ID_KEY      = "statistics:log:text:last_id"
 	STATISTICS_LOG_TEXT_LAST_TIME_KEY    = "statistics:log:text:last_time"
 	STATISTICS_LOG_IMAGE_LAST_ID_KEY     = "statistics:log:image:last_id"

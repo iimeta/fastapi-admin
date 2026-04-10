@@ -193,6 +193,7 @@ type ModelAgentHealthCheckTask struct {
 	RecoverCount      int64         `bson:"recover_count"       json:"recover_count"`       // 成功恢复次数
 	RecoverModelCount int64         `bson:"recover_model_count" json:"recover_model_count"` // 模型恢复次数
 	StatPeriod        time.Duration `bson:"stat_period"         json:"stat_period"`         // 统计周期, 单位: 分钟
+	SmartCheck        bool          `bson:"smart_check"         json:"smart_check"`         // 智能检查
 	TestMethod        int           `bson:"test_method"         json:"test_method"`         // 测试方式[1:FastAPI, 2:代理直连, 3:自定义]
 	BaseUrl           string        `bson:"base_url"            json:"base_url"`            // API接口地址
 	Key               string        `bson:"key"                 json:"key"`                 // API接口密钥
