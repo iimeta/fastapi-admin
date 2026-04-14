@@ -26,6 +26,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_video"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/model"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/model_agent"
+	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/monitor"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/notice"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/notice_template"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/open"

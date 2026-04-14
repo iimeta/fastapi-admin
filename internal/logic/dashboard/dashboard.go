@@ -547,7 +547,7 @@ func (s *sDashboard) ModelPercent(ctx context.Context, params model.DashboardMod
 	for _, res := range result {
 		items = append(items, &model.ModelPercent{
 			Name:  gconv.String(res["_id"]),
-			Value: gconv.Int(res["count"]),
+			Value: gconv.Float64(res["count"]),
 		})
 	}
 

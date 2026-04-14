@@ -127,19 +127,20 @@ type Expense struct {
 
 // 数据TOP
 type DataTop struct {
-	UserId int     `json:"user_id,omitempty"` // 用户ID
-	AppId  int     `json:"app_id,omitempty"`  // 应用ID
-	AppKey string  `json:"app_key,omitempty"` // 应用密钥
-	Model  string  `json:"model,omitempty"`   // 模型
-	Call   int     `json:"call,omitempty"`    // 调用数
-	Models int     `json:"models,omitempty"`  // 模型数
-	Tokens float64 `json:"tokens,omitempty"`  // 令牌数
-	User   int     `json:"user,omitempty"`    // 用户数
-	App    int     `json:"app,omitempty"`     // 应用数
+	Provider string  `json:"provider,omitempty"` // 提供商
+	UserId   int     `json:"user_id,omitempty"`  // 用户ID
+	AppId    int     `json:"app_id,omitempty"`   // 应用ID
+	AppKey   string  `json:"app_key,omitempty"`  // 应用密钥
+	Model    string  `json:"model,omitempty"`    // 模型
+	Call     int     `json:"call,omitempty"`     // 调用数
+	Models   int     `json:"models,omitempty"`   // 模型数
+	Tokens   float64 `json:"tokens,omitempty"`   // 令牌数
+	User     int     `json:"user,omitempty"`     // 用户数
+	App      int     `json:"app,omitempty"`      // 应用数
 }
 
 // 模型占比
 type ModelPercent struct {
-	Name  string `json:"name,omitempty"`  // 模型
-	Value int    `json:"value,omitempty"` // 调用数
+	Name  string  `json:"name,omitempty"`  // 模型
+	Value float64 `json:"value,omitempty"` // 调用数/花费
 }

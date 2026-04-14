@@ -45,6 +45,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/provider"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/site_config"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/statistics"
+	"github.com/iimeta/fastapi-admin/v2/internal/controller/monitor"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/sys_config"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_batch"
@@ -259,6 +260,12 @@ var (
 				v1.Group("/statistics", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						statistics.NewV1(),
+					)
+				})
+
+				v1.Group("/monitor", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						monitor.NewV1(),
 					)
 				})
 
