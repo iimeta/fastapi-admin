@@ -934,11 +934,36 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 		filter["models"] = bson.M{
 			"$in": params.Models,
 		}
+	} else if params.ProviderId != "" || params.Type != 0 {
+
+		models, err := service.Model().List(ctx, model.ModelListReq{ProviderId: params.ProviderId, Type: params.Type})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		if len(models) == 0 {
+			return nil, nil
+		}
+
+		for _, model := range models {
+			params.Models = append(params.Models, model.Id)
+		}
+
+		filter["models"] = bson.M{
+			"$in": params.Models,
+		}
 	}
 
 	if len(params.ModelAgents) > 0 {
 		filter["model_agents"] = bson.M{
 			"$in": params.ModelAgents,
+		}
+	}
+
+	if params.BillingMethod != 0 {
+		filter["billing_methods"] = bson.M{
+			"$in": []int{params.BillingMethod},
 		}
 	}
 
@@ -959,6 +984,36 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 			"$gte": gte,
 			"$lte": lte,
 		}
+	}
+
+	if params.SearchValue != "" {
+
+		orConditions := bson.A{
+			bson.M{"name": bson.M{"$regex": regexp.QuoteMeta(params.SearchValue)}},
+			bson.M{"remark": bson.M{"$regex": regexp.QuoteMeta(params.SearchValue)}},
+		}
+
+		if len(params.Models) == 0 {
+
+			models, err := service.Model().List(ctx, model.ModelListReq{Name: params.SearchValue})
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+
+			if len(models) > 0 {
+
+				for _, model := range models {
+					params.Models = append(params.Models, model.Id)
+				}
+
+				orConditions = append(orConditions, bson.M{
+					"models": bson.M{"$in": params.Models},
+				})
+			}
+		}
+
+		filter["$or"] = orConditions
 	}
 
 	results, err := dao.Group.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-is_default", "-weight", "-updated_at"}})

@@ -81,12 +81,16 @@ type GroupDetailRes struct {
 // 分组分页列表接口请求参数
 type GroupPageReq struct {
 	Paging
-	Name        string   `json:"name,omitempty"`         // 分组名称
-	Models      []string `json:"models,omitempty"`       // 模型
-	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
-	Remark      string   `json:"remark,omitempty"`       // 备注
-	Status      int      `json:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
-	ExpiresAt   []string `json:"created_at,omitempty"`   // 过期时间
+	ProviderId    string   `json:"provider_id,omitempty"`    // 提供商ID
+	Name          string   `json:"name,omitempty"`           // 分组名称
+	Models        []string `json:"models,omitempty"`         // 模型
+	Type          int      `json:"type,omitempty"`           // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
+	ModelAgents   []string `json:"model_agents,omitempty"`   // 模型代理
+	BillingMethod int      `json:"billing_method,omitempty"` // 计费方式[1:按Tokens, 2:按次]
+	Remark        string   `json:"remark,omitempty"`         // 备注
+	Status        int      `json:"status,omitempty"`         // 状态[1:正常, 2:禁用, -1:删除]
+	ExpiresAt     []string `json:"created_at,omitempty"`     // 过期时间
+	SearchValue   string   `json:"search_value,omitempty"`   // 搜索值
 }
 
 // 分组分页列表接口响应参数
