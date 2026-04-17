@@ -44,7 +44,9 @@ type StatisticsSummaryReq struct {
 	UserId        int      `json:"user_id"`         // 用户ID
 	AppId         int      `json:"app_id"`          // 应用ID
 	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用)
 	Models        []string `json:"models"`          // 模型
+	Provider      string   `json:"provider"`        // 提供商ID
 }
 
 // 数据看板汇总接口响应参数
@@ -69,7 +71,9 @@ type StatisticsTrendReq struct {
 	UserId        int      `json:"user_id"`         // 用户ID
 	AppId         int      `json:"app_id"`          // 应用ID
 	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用)
 	Models        []string `json:"models"`          // 模型
+	Provider      string   `json:"provider"`        // 提供商ID
 }
 
 // 数据看板趋势接口响应参数
@@ -90,13 +94,16 @@ type StatisticsTrendItem struct {
 
 // 数据看板模型分布接口请求参数
 type StatisticsModelPercentReq struct {
-	StatStartTime int64  `json:"stat_start_time"` // 统计开始时间
-	StatEndTime   int64  `json:"stat_end_time"`   // 统计结束时间
-	Rid           int    `json:"rid"`             // 代理商ID
-	UserId        int    `json:"user_id"`         // 用户ID
-	AppId         int    `json:"app_id"`          // 应用ID
-	AppKey        string `json:"app_key"`         // 应用密钥
-	DataType      string `json:"data_type"`       // 数据类型: calls(默认)/tokens
+	StatStartTime int64    `json:"stat_start_time"` // 统计开始时间
+	StatEndTime   int64    `json:"stat_end_time"`   // 统计结束时间
+	Rid           int      `json:"rid"`             // 代理商ID
+	UserId        int      `json:"user_id"`         // 用户ID
+	AppId         int      `json:"app_id"`          // 应用ID
+	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用)
+	Models        []string `json:"models"`          // 模型列表
+	Provider      string   `json:"provider"`        // 提供商名称
+	DataType      string   `json:"data_type"`       // 数据类型: calls(默认)/tokens
 }
 
 // 数据看板模型分布接口响应参数
@@ -107,14 +114,17 @@ type StatisticsModelPercentRes struct {
 
 // 数据看板排行接口请求参数
 type StatisticsTopReq struct {
-	StatStartTime int64  `json:"stat_start_time"` // 统计开始时间
-	StatEndTime   int64  `json:"stat_end_time"`   // 统计结束时间
-	DataType      string `json:"data_type"`       // 数据类型: user/app/app_key/model/provider
-	Rid           int    `json:"rid"`             // 代理商ID
-	UserId        int    `json:"user_id"`         // 用户ID
-	AppId         int    `json:"app_id"`          // 应用ID
-	Provider      string `json:"provider"`        // 提供商名称
-	Limit         int    `json:"limit"`           // 数量限制
+	StatStartTime int64    `json:"stat_start_time"` // 统计开始时间
+	StatEndTime   int64    `json:"stat_end_time"`   // 统计结束时间
+	DataType      string   `json:"data_type"`       // 数据类型: user/app/app_key/model/provider
+	Rid           int      `json:"rid"`             // 代理商ID
+	UserId        int      `json:"user_id"`         // 用户ID
+	AppId         int      `json:"app_id"`          // 应用ID
+	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用)
+	Models        []string `json:"models"`          // 模型列表
+	Provider      string   `json:"provider"`        // 提供商名称
+	Limit         int      `json:"limit"`           // 数量限制
 }
 
 // 数据看板排行接口响应参数
@@ -124,13 +134,17 @@ type StatisticsTopRes struct {
 
 // 数据看板明细接口请求参数
 type StatisticsDetailReq struct {
-	StatStartTime int64  `json:"stat_start_time"` // 统计开始时间
-	StatEndTime   int64  `json:"stat_end_time"`   // 统计结束时间
-	DataType      string `json:"data_type"`       // 数据类型: user/app/app_key/model
-	Rid           int    `json:"rid"`             // 代理商ID
-	UserId        int    `json:"user_id"`         // 用户ID
-	AppId         int    `json:"app_id"`          // 应用ID
-	ModelId       string `json:"model_id"`        // 模型ID
+	StatStartTime int64    `json:"stat_start_time"` // 统计开始时间
+	StatEndTime   int64    `json:"stat_end_time"`   // 统计结束时间
+	DataType      string   `json:"data_type"`       // 数据类型: user/app/app_key/model
+	Rid           int      `json:"rid"`             // 代理商ID
+	UserId        int      `json:"user_id"`         // 用户ID
+	AppId         int      `json:"app_id"`          // 应用ID
+	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用)
+	Models        []string `json:"models"`          // 模型列表
+	Provider      string   `json:"provider"`        // 提供商名称
+	ModelId       string   `json:"model_id"`        // 模型ID
 	Paging
 }
 
@@ -194,7 +208,9 @@ type StatisticsModelTrendReq struct {
 	UserId        int      `json:"user_id"`         // 用户ID
 	AppId         int      `json:"app_id"`          // 应用ID
 	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用)
 	Models        []string `json:"models"`          // 指定模型列表(为空则取top5)
+	Provider      string   `json:"provider"`        // 提供商ID
 }
 
 // 数据看板模型趋势接口响应参数
@@ -213,8 +229,12 @@ type ModelTrendSeries struct {
 
 // 数据看板密钥状态接口请求参数(仅admin)
 type StatisticsKeyStatusReq struct {
-	StatStartTime int64 `json:"stat_start_time"` // 统计开始时间
-	StatEndTime   int64 `json:"stat_end_time"`   // 统计结束时间
+	StatStartTime int64    `json:"stat_start_time"` // 统计开始时间
+	StatEndTime   int64    `json:"stat_end_time"`   // 统计结束时间
+	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用,匹配key.key或key.creator)
+	Models        []string `json:"models"`          // 模型列表
+	Provider      string   `json:"provider"`        // 提供商ID
 }
 
 // 数据看板密钥状态接口响应参数
@@ -235,8 +255,12 @@ type KeyStat struct {
 
 // 数据看板代理状态接口请求参数(仅admin)
 type StatisticsAgentStatusReq struct {
-	StatStartTime int64 `json:"stat_start_time"` // 统计开始时间
-	StatEndTime   int64 `json:"stat_end_time"`   // 统计结束时间
+	StatStartTime int64    `json:"stat_start_time"` // 统计开始时间
+	StatEndTime   int64    `json:"stat_end_time"`   // 统计结束时间
+	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用,匹配key.key或key.creator)
+	Models        []string `json:"models"`          // 模型列表
+	Provider      string   `json:"provider"`        // 提供商ID
 }
 
 // 数据看板代理状态接口响应参数
@@ -257,8 +281,15 @@ type AgentStat struct {
 
 // 数据看板任务状态分布接口请求参数
 type StatisticsTaskStatusReq struct {
-	StatStartTime int64 `json:"stat_start_time"` // 统计开始时间
-	StatEndTime   int64 `json:"stat_end_time"`   // 统计结束时间
+	StatStartTime int64    `json:"stat_start_time"` // 统计开始时间
+	StatEndTime   int64    `json:"stat_end_time"`   // 统计结束时间
+	Rid           int      `json:"rid"`             // 代理商ID
+	UserId        int      `json:"user_id"`         // 用户ID
+	AppId         int      `json:"app_id"`          // 应用ID
+	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用,匹配creator)
+	Models        []string `json:"models"`          // 模型列表
+	Provider      string   `json:"provider"`        // 提供商ID
 }
 
 // 任务状态项
@@ -280,19 +311,22 @@ type StatisticsTaskStatusRes struct {
 
 // 数据看板响应耗时趋势接口请求参数
 type StatisticsLatencyTrendReq struct {
-	StatStartTime int64  `json:"stat_start_time"` // 统计开始时间
-	StatEndTime   int64  `json:"stat_end_time"`   // 统计结束时间
-	Rid           int    `json:"rid"`             // 代理商ID
-	UserId        int    `json:"user_id"`         // 用户ID
-	AppId         int    `json:"app_id"`          // 应用ID
-	AppKey        string `json:"app_key"`         // 应用密钥
+	StatStartTime int64    `json:"stat_start_time"` // 统计开始时间
+	StatEndTime   int64    `json:"stat_end_time"`   // 统计结束时间
+	Rid           int      `json:"rid"`             // 代理商ID
+	UserId        int      `json:"user_id"`         // 用户ID
+	AppId         int      `json:"app_id"`          // 应用ID
+	AppKey        string   `json:"app_key"`         // 应用密钥
+	Key           string   `json:"key"`             // 密钥筛选(管理员专用)
+	Models        []string `json:"models"`          // 模型列表
+	Provider      string   `json:"provider"`        // 提供商名称
 }
 
 // 数据看板响应耗时趋势接口响应参数
 type StatisticsLatencyTrendRes struct {
-	Models []string                        `json:"models"` // 模型名列表
-	Dates  []string                        `json:"dates"`  // 日期列表
-	Series map[string]*LatencyTrendSeries  `json:"series"` // 按模型名索引
+	Models []string                       `json:"models"` // 模型名列表
+	Dates  []string                       `json:"dates"`  // 日期列表
+	Series map[string]*LatencyTrendSeries `json:"series"` // 按模型名索引
 }
 
 // 耗时趋势数据系列

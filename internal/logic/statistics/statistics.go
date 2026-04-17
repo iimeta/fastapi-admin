@@ -11,6 +11,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	mcommon "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/db"
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
@@ -143,7 +144,9 @@ func (s *sStatistics) DataAppKey(ctx context.Context, params model.StatisticsDat
 // 数据看板汇总
 func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSummaryReq) (*model.StatisticsSummaryRes, error) {
 
-	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid))
+	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
+
+	resolvedModels, useModels := s.resolveModels(ctx, params.Models, params.Provider)
 
 	// 用户维度汇总
 	pipeline := []bson.M{
@@ -158,11 +161,11 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 	}
 
 	// 如果指定了模型筛选, 使用 model_stats 展开
-	if len(params.Models) > 0 {
+	if useModels {
 		pipeline = []bson.M{
 			{"$match": match},
 			{"$unwind": "$model_stats"},
-			{"$match": bson.M{"model_stats.model": bson.M{"$in": params.Models}}},
+			{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
 			{"$group": bson.M{
 				"_id":      nil,
 				"total":    bson.M{"$sum": "$model_stats.total"},
@@ -174,7 +177,14 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 	}
 
 	result := make([]map[string]any, 0)
-	if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+	var err error
+	// 根据 appKey 选择查询维度
+	if params.AppKey != "" {
+		err = dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result)
+	} else {
+		err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result)
+	}
+	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
@@ -191,13 +201,26 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 	}
 
 	// 应用维度获取活跃应用数
-	appMatch := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid))
+	appMatch := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
 	appPipeline := []bson.M{
 		{"$match": appMatch},
 		{"$group": bson.M{
 			"_id":  nil,
 			"apps": bson.M{"$addToSet": "$app_id"},
 		}},
+	}
+
+	// 如果指定了模型筛选,需要先展开model_stats过滤
+	if useModels {
+		appPipeline = []bson.M{
+			{"$match": appMatch},
+			{"$unwind": "$model_stats"},
+			{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+			{"$group": bson.M{
+				"_id":  nil,
+				"apps": bson.M{"$addToSet": "$app_id"},
+			}},
+		}
 	}
 
 	appResult := make([]map[string]any, 0)
@@ -216,7 +239,7 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 		prevStart := params.StatStartTime - duration
 		prevEnd := params.StatStartTime - 1
 
-		prevMatch := s.buildMatchFilter(ctx, prevStart, prevEnd, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid))
+		prevMatch := s.buildMatchFilter(ctx, prevStart, prevEnd, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
 
 		prevPipeline := []bson.M{
 			{"$match": prevMatch},
@@ -228,11 +251,11 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 			}},
 		}
 
-		if len(params.Models) > 0 {
+		if useModels {
 			prevPipeline = []bson.M{
 				{"$match": prevMatch},
 				{"$unwind": "$model_stats"},
-				{"$match": bson.M{"model_stats.model": bson.M{"$in": params.Models}}},
+				{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
 				{"$group": bson.M{
 					"_id":      nil,
 					"total":    bson.M{"$sum": "$model_stats.total"},
@@ -243,8 +266,14 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 		}
 
 		prevResult := make([]map[string]any, 0)
-		if err := dao.StatisticsUser.Aggregate(ctx, prevPipeline, &prevResult); err != nil {
-			logger.Error(ctx, err)
+		var prevErr error
+		if params.AppKey != "" {
+			prevErr = dao.StatisticsAppKey.Aggregate(ctx, prevPipeline, &prevResult)
+		} else {
+			prevErr = dao.StatisticsUser.Aggregate(ctx, prevPipeline, &prevResult)
+		}
+		if prevErr != nil {
+			logger.Error(ctx, prevErr)
 		} else if len(prevResult) > 0 {
 			res.PrevTotal = gconv.Int(prevResult[0]["total"])
 			res.PrevTokens = common.ConvQuotaUnitReverse(gconv.Int(prevResult[0]["tokens"]))
@@ -261,7 +290,9 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 // 数据看板趋势
 func (s *sStatistics) DataTrend(ctx context.Context, params model.StatisticsTrendReq) (*model.StatisticsTrendRes, error) {
 
-	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid))
+	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
+
+	resolvedModels, useModels := s.resolveModels(ctx, params.Models, params.Provider)
 
 	pipeline := []bson.M{
 		{"$match": match},
@@ -274,11 +305,11 @@ func (s *sStatistics) DataTrend(ctx context.Context, params model.StatisticsTren
 		}},
 	}
 
-	if len(params.Models) > 0 {
+	if useModels {
 		pipeline = []bson.M{
 			{"$match": match},
 			{"$unwind": "$model_stats"},
-			{"$match": bson.M{"model_stats.model": bson.M{"$in": params.Models}}},
+			{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
 			{"$group": bson.M{
 				"_id":      "$stat_date",
 				"total":    bson.M{"$sum": "$model_stats.total"},
@@ -290,19 +321,37 @@ func (s *sStatistics) DataTrend(ctx context.Context, params model.StatisticsTren
 	}
 
 	result := make([]map[string]any, 0)
-	if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+	var err error
+	if params.AppKey != "" {
+		err = dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result)
+	} else {
+		err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result)
+	}
+	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
 
 	// 应用维度获取每日活跃应用数
-	appMatch := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid))
+	appMatch := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
 	appPipeline := []bson.M{
 		{"$match": appMatch},
 		{"$group": bson.M{
 			"_id":  "$stat_date",
 			"apps": bson.M{"$addToSet": "$app_id"},
 		}},
+	}
+
+	if useModels {
+		appPipeline = []bson.M{
+			{"$match": appMatch},
+			{"$unwind": "$model_stats"},
+			{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+			{"$group": bson.M{
+				"_id":  "$stat_date",
+				"apps": bson.M{"$addToSet": "$app_id"},
+			}},
+		}
 	}
 
 	appResult := make([]map[string]any, 0)
@@ -373,7 +422,9 @@ func (s *sStatistics) DataTrend(ctx context.Context, params model.StatisticsTren
 // 数据看板模型分布
 func (s *sStatistics) DataModelPercent(ctx context.Context, params model.StatisticsModelPercentReq) (*model.StatisticsModelPercentRes, error) {
 
-	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid))
+	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
+
+	resolvedModels, useModels := s.resolveModels(ctx, params.Models, params.Provider)
 
 	sumField := "$model_stats.total"
 	if params.DataType == "tokens" {
@@ -383,16 +434,30 @@ func (s *sStatistics) DataModelPercent(ctx context.Context, params model.Statist
 	pipeline := []bson.M{
 		{"$match": match},
 		{"$unwind": "$model_stats"},
-		{"$group": bson.M{
+	}
+
+	// 模型筛选
+	if useModels {
+		pipeline = append(pipeline, bson.M{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}})
+	}
+
+	pipeline = append(pipeline,
+		bson.M{"$group": bson.M{
 			"_id":   "$model_stats.model",
 			"count": bson.M{"$sum": sumField},
 		}},
-		{"$sort": bson.M{"count": -1}},
-		{"$limit": 10},
-	}
+		bson.M{"$sort": bson.M{"count": -1}},
+		bson.M{"$limit": 10},
+	)
 
 	result := make([]map[string]any, 0)
-	if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+	var err error
+	if params.AppKey != "" {
+		err = dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result)
+	} else {
+		err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result)
+	}
+	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
@@ -421,7 +486,9 @@ func (s *sStatistics) DataModelPercent(ctx context.Context, params model.Statist
 // 数据看板排行
 func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq) (*model.StatisticsTopRes, error) {
 
-	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, "", gconv.String(params.Rid))
+	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
+
+	resolvedModels, useModels := s.resolveModels(ctx, params.Models, params.Provider)
 
 	limit := params.Limit
 	if limit <= 0 {
@@ -430,35 +497,79 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 
 	pipeline := []bson.M{{"$match": match}}
 
+	// 如果指定了models筛选,需要先unwind model_stats并过滤
+	needUnwindForModels := useModels && params.DataType != "model"
+
 	switch params.DataType {
 	case "user":
-		pipeline = append(pipeline, bson.M{
-			"$group": bson.M{
-				"_id":    "$user_id",
-				"count":  bson.M{"$sum": "$total"},
-				"tokens": bson.M{"$sum": "$tokens"},
-			},
-		})
+		if needUnwindForModels {
+			pipeline = append(pipeline, bson.M{"$unwind": "$model_stats"})
+			pipeline = append(pipeline, bson.M{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}})
+			pipeline = append(pipeline, bson.M{
+				"$group": bson.M{
+					"_id":    "$user_id",
+					"count":  bson.M{"$sum": "$model_stats.total"},
+					"tokens": bson.M{"$sum": "$model_stats.tokens"},
+				},
+			})
+		} else {
+			pipeline = append(pipeline, bson.M{
+				"$group": bson.M{
+					"_id":    "$user_id",
+					"count":  bson.M{"$sum": "$total"},
+					"tokens": bson.M{"$sum": "$tokens"},
+				},
+			})
+		}
 	case "app":
-		pipeline = append(pipeline, bson.M{
-			"$group": bson.M{
-				"_id":     "$app_id",
-				"user_id": bson.M{"$first": "$user_id"},
-				"count":   bson.M{"$sum": "$total"},
-				"tokens":  bson.M{"$sum": "$tokens"},
-			},
-		})
+		if needUnwindForModels {
+			pipeline = append(pipeline, bson.M{"$unwind": "$model_stats"})
+			pipeline = append(pipeline, bson.M{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}})
+			pipeline = append(pipeline, bson.M{
+				"$group": bson.M{
+					"_id":     "$app_id",
+					"user_id": bson.M{"$first": "$user_id"},
+					"count":   bson.M{"$sum": "$model_stats.total"},
+					"tokens":  bson.M{"$sum": "$model_stats.tokens"},
+				},
+			})
+		} else {
+			pipeline = append(pipeline, bson.M{
+				"$group": bson.M{
+					"_id":     "$app_id",
+					"user_id": bson.M{"$first": "$user_id"},
+					"count":   bson.M{"$sum": "$total"},
+					"tokens":  bson.M{"$sum": "$tokens"},
+				},
+			})
+		}
 	case "app_key":
-		pipeline = append(pipeline, bson.M{
-			"$group": bson.M{
-				"_id":    "$app_key",
-				"app_id": bson.M{"$first": "$app_id"},
-				"count":  bson.M{"$sum": "$total"},
-				"tokens": bson.M{"$sum": "$tokens"},
-			},
-		})
+		if needUnwindForModels {
+			pipeline = append(pipeline, bson.M{"$unwind": "$model_stats"})
+			pipeline = append(pipeline, bson.M{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}})
+			pipeline = append(pipeline, bson.M{
+				"$group": bson.M{
+					"_id":    "$app_key",
+					"app_id": bson.M{"$first": "$app_id"},
+					"count":  bson.M{"$sum": "$model_stats.total"},
+					"tokens": bson.M{"$sum": "$model_stats.tokens"},
+				},
+			})
+		} else {
+			pipeline = append(pipeline, bson.M{
+				"$group": bson.M{
+					"_id":    "$app_key",
+					"app_id": bson.M{"$first": "$app_id"},
+					"count":  bson.M{"$sum": "$total"},
+					"tokens": bson.M{"$sum": "$tokens"},
+				},
+			})
+		}
 	case "model":
 		pipeline = append(pipeline, bson.M{"$unwind": "$model_stats"})
+		if useModels {
+			pipeline = append(pipeline, bson.M{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}})
+		}
 		pipeline = append(pipeline, bson.M{
 			"$group": bson.M{
 				"_id":    "$model_stats.model",
@@ -499,13 +610,29 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 		if params.AppId > 0 {
 			logMatch["app_id"] = params.AppId
 		}
+		if params.AppKey != "" {
+			logMatch["app_key"] = params.AppKey
+		}
+		// 管理员可通过key筛选
+		if params.Key != "" && service.Session().IsAdminRole(ctx) {
+			logMatch["app_key"] = params.Key
+		}
+		// 模型筛选(models 优先级高于 provider)
+		if len(params.Models) > 0 {
+			logMatch["model"] = bson.M{"$in": params.Models}
+		} else if params.Provider != "" {
+			// 提供商筛选(按 provider_id)
+			logMatch["provider_id"] = params.Provider
+		}
 
 		provPipeline := []bson.M{
 			{"$match": logMatch},
 			{"$group": bson.M{
-				"_id":    "$provider_name",
-				"count":  bson.M{"$sum": 1},
-				"tokens": bson.M{"$sum": "$spend.total_spend_tokens"},
+				"_id":           "$provider_name",
+				"provider_id":   bson.M{"$first": "$provider_id"},
+				"provider_name": bson.M{"$first": "$provider_name"},
+				"count":         bson.M{"$sum": 1},
+				"tokens":        bson.M{"$sum": "$spend.total_spend_tokens"},
 			}},
 			{"$sort": bson.M{"count": -1}},
 			{"$limit": limit},
@@ -520,9 +647,10 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 		items := make([]*model.DataTop, 0)
 		for _, res := range provResult {
 			items = append(items, &model.DataTop{
-				Provider: gconv.String(res["_id"]),
-				Call:     gconv.Int(res["count"]),
-				Tokens:   common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
+				Provider:   gconv.String(res["provider_name"]),
+				ProviderId: gconv.String(res["provider_id"]),
+				Call:       gconv.Int(res["count"]),
+				Tokens:     common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			})
 		}
 		return &model.StatisticsTopRes{Items: items}, nil
@@ -575,11 +703,13 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 		}
 	case "app_key":
 		for _, res := range result {
+			raw := gconv.String(res["_id"])
 			items = append(items, &model.DataTop{
-				AppKey: util.Desensitize(gconv.String(res["_id"])),
-				AppId:  gconv.Int(res["app_id"]),
-				Call:   gconv.Int(res["count"]),
-				Tokens: common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
+				AppKey:    util.Desensitize(raw),
+				AppKeyRaw: raw,
+				AppId:     gconv.Int(res["app_id"]),
+				Call:      gconv.Int(res["count"]),
+				Tokens:    common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			})
 		}
 	case "model":
@@ -599,6 +729,8 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDetailReq) (*model.StatisticsDetailRes, error) {
 
 	filter := bson.M{}
+
+	resolvedModels, useModels := s.resolveModels(ctx, params.Models, params.Provider)
 
 	if params.StatStartTime > 0 && params.StatEndTime > 0 {
 		filter["stat_time"] = bson.M{
@@ -633,6 +765,15 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 		filter["app_id"] = params.AppId
 	}
 
+	if params.AppKey != "" {
+		filter["app_key"] = params.AppKey
+	}
+
+	// 管理员可通过key筛选(匹配app_key字段)
+	if params.Key != "" && service.Session().IsAdminRole(ctx) {
+		filter["app_key"] = params.Key
+	}
+
 	paging := &db.Paging{
 		Page:     params.Page,
 		PageSize: params.PageSize,
@@ -651,80 +792,250 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 
 	items := make([]*model.StatisticsDetailItem, 0)
 
+	// 如果指定了models筛选,需要使用聚合管道
+	needAggregateForModels := useModels && params.DataType != "model"
+
 	switch params.DataType {
 	case "user":
-		results, err := dao.StatisticsUser.FindByPage(ctx, paging, filter, findOptions)
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-		for _, r := range results {
-			total := r.Total
-			abnormal := r.Abnormal
-			abnormalRate := float64(0)
-			if total > 0 {
-				abnormalRate = float64(abnormal) / float64(total) * 100
+		if needAggregateForModels {
+			// 使用聚合管道过滤models
+			pipeline := []bson.M{
+				{"$match": filter},
+				{"$unwind": "$model_stats"},
+				{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+				{"$group": bson.M{
+					"_id":         bson.M{"user_id": "$user_id", "stat_date": "$stat_date"},
+					"user_id":     bson.M{"$first": "$user_id"},
+					"stat_date":   bson.M{"$first": "$stat_date"},
+					"total":       bson.M{"$sum": "$model_stats.total"},
+					"tokens":      bson.M{"$sum": "$model_stats.tokens"},
+					"abnormal":    bson.M{"$sum": "$model_stats.abnormal"},
+					"model_stats": bson.M{"$push": "$model_stats"},
+				}},
+				{"$sort": bson.M{"stat_date": -1, "total": -1}},
+				{"$skip": (paging.Page - 1) * paging.PageSize},
+				{"$limit": paging.PageSize},
 			}
-			items = append(items, &model.StatisticsDetailItem{
-				UserId:       r.UserId,
-				StatDate:     r.StatDate,
-				Total:        total,
-				Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
-				Abnormal:     abnormal,
-				AbnormalRate: abnormalRate,
-				ModelStats:   r.ModelStats,
-			})
+			result := make([]map[string]any, 0)
+			if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			// 计算总数
+			countPipeline := []bson.M{
+				{"$match": filter},
+				{"$unwind": "$model_stats"},
+				{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+				{"$group": bson.M{"_id": bson.M{"user_id": "$user_id", "stat_date": "$stat_date"}}},
+				{"$count": "total"},
+			}
+			countResult := make([]map[string]any, 0)
+			if err := dao.StatisticsUser.Aggregate(ctx, countPipeline, &countResult); err == nil && len(countResult) > 0 {
+				paging.Total = gconv.Int64(countResult[0]["total"])
+			}
+			for _, r := range result {
+				total := gconv.Int(r["total"])
+				abnormal := gconv.Int(r["abnormal"])
+				abnormalRate := float64(0)
+				if total > 0 {
+					abnormalRate = float64(abnormal) / float64(total) * 100
+				}
+				items = append(items, &model.StatisticsDetailItem{
+					UserId:       gconv.Int(r["user_id"]),
+					StatDate:     gconv.String(r["stat_date"]),
+					Total:        total,
+					Tokens:       common.ConvQuotaUnitReverse(gconv.Int(r["tokens"])),
+					Abnormal:     abnormal,
+					AbnormalRate: abnormalRate,
+					ModelStats:   convModelStats(r["model_stats"]),
+				})
+			}
+		} else {
+			results, err := dao.StatisticsUser.FindByPage(ctx, paging, filter, findOptions)
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			for _, r := range results {
+				total := r.Total
+				abnormal := r.Abnormal
+				abnormalRate := float64(0)
+				if total > 0 {
+					abnormalRate = float64(abnormal) / float64(total) * 100
+				}
+				items = append(items, &model.StatisticsDetailItem{
+					UserId:       r.UserId,
+					StatDate:     r.StatDate,
+					Total:        total,
+					Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
+					Abnormal:     abnormal,
+					AbnormalRate: abnormalRate,
+					ModelStats:   r.ModelStats,
+				})
+			}
 		}
 
 	case "app":
-		results, err := dao.StatisticsApp.FindByPage(ctx, paging, filter, findOptions)
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-		for _, r := range results {
-			total := r.Total
-			abnormal := r.Abnormal
-			abnormalRate := float64(0)
-			if total > 0 {
-				abnormalRate = float64(abnormal) / float64(total) * 100
+		if needAggregateForModels {
+			pipeline := []bson.M{
+				{"$match": filter},
+				{"$unwind": "$model_stats"},
+				{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+				{"$group": bson.M{
+					"_id":         bson.M{"user_id": "$user_id", "app_id": "$app_id", "stat_date": "$stat_date"},
+					"user_id":     bson.M{"$first": "$user_id"},
+					"app_id":      bson.M{"$first": "$app_id"},
+					"stat_date":   bson.M{"$first": "$stat_date"},
+					"total":       bson.M{"$sum": "$model_stats.total"},
+					"tokens":      bson.M{"$sum": "$model_stats.tokens"},
+					"abnormal":    bson.M{"$sum": "$model_stats.abnormal"},
+					"model_stats": bson.M{"$push": "$model_stats"},
+				}},
+				{"$sort": bson.M{"stat_date": -1, "total": -1}},
+				{"$skip": (paging.Page - 1) * paging.PageSize},
+				{"$limit": paging.PageSize},
 			}
-			items = append(items, &model.StatisticsDetailItem{
-				UserId:       r.UserId,
-				AppId:        r.AppId,
-				StatDate:     r.StatDate,
-				Total:        total,
-				Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
-				Abnormal:     abnormal,
-				AbnormalRate: abnormalRate,
-				ModelStats:   r.ModelStats,
-			})
+			result := make([]map[string]any, 0)
+			if err := dao.StatisticsApp.Aggregate(ctx, pipeline, &result); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			countPipeline := []bson.M{
+				{"$match": filter},
+				{"$unwind": "$model_stats"},
+				{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+				{"$group": bson.M{"_id": bson.M{"user_id": "$user_id", "app_id": "$app_id", "stat_date": "$stat_date"}}},
+				{"$count": "total"},
+			}
+			countResult := make([]map[string]any, 0)
+			if err := dao.StatisticsApp.Aggregate(ctx, countPipeline, &countResult); err == nil && len(countResult) > 0 {
+				paging.Total = gconv.Int64(countResult[0]["total"])
+			}
+			for _, r := range result {
+				total := gconv.Int(r["total"])
+				abnormal := gconv.Int(r["abnormal"])
+				abnormalRate := float64(0)
+				if total > 0 {
+					abnormalRate = float64(abnormal) / float64(total) * 100
+				}
+				items = append(items, &model.StatisticsDetailItem{
+					UserId:       gconv.Int(r["user_id"]),
+					AppId:        gconv.Int(r["app_id"]),
+					StatDate:     gconv.String(r["stat_date"]),
+					Total:        total,
+					Tokens:       common.ConvQuotaUnitReverse(gconv.Int(r["tokens"])),
+					Abnormal:     abnormal,
+					AbnormalRate: abnormalRate,
+					ModelStats:   convModelStats(r["model_stats"]),
+				})
+			}
+		} else {
+			results, err := dao.StatisticsApp.FindByPage(ctx, paging, filter, findOptions)
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			for _, r := range results {
+				total := r.Total
+				abnormal := r.Abnormal
+				abnormalRate := float64(0)
+				if total > 0 {
+					abnormalRate = float64(abnormal) / float64(total) * 100
+				}
+				items = append(items, &model.StatisticsDetailItem{
+					UserId:       r.UserId,
+					AppId:        r.AppId,
+					StatDate:     r.StatDate,
+					Total:        total,
+					Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
+					Abnormal:     abnormal,
+					AbnormalRate: abnormalRate,
+					ModelStats:   r.ModelStats,
+				})
+			}
 		}
 
 	case "app_key":
-		results, err := dao.StatisticsAppKey.FindByPage(ctx, paging, filter, findOptions)
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-		for _, r := range results {
-			total := r.Total
-			abnormal := r.Abnormal
-			abnormalRate := float64(0)
-			if total > 0 {
-				abnormalRate = float64(abnormal) / float64(total) * 100
+		if needAggregateForModels {
+			pipeline := []bson.M{
+				{"$match": filter},
+				{"$unwind": "$model_stats"},
+				{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+				{"$group": bson.M{
+					"_id":         bson.M{"user_id": "$user_id", "app_id": "$app_id", "app_key": "$app_key", "stat_date": "$stat_date"},
+					"user_id":     bson.M{"$first": "$user_id"},
+					"app_id":      bson.M{"$first": "$app_id"},
+					"app_key":     bson.M{"$first": "$app_key"},
+					"stat_date":   bson.M{"$first": "$stat_date"},
+					"total":       bson.M{"$sum": "$model_stats.total"},
+					"tokens":      bson.M{"$sum": "$model_stats.tokens"},
+					"abnormal":    bson.M{"$sum": "$model_stats.abnormal"},
+					"model_stats": bson.M{"$push": "$model_stats"},
+				}},
+				{"$sort": bson.M{"stat_date": -1, "total": -1}},
+				{"$skip": (paging.Page - 1) * paging.PageSize},
+				{"$limit": paging.PageSize},
 			}
-			items = append(items, &model.StatisticsDetailItem{
-				UserId:       r.UserId,
-				AppId:        r.AppId,
-				AppKey:       util.Desensitize(r.AppKey),
-				StatDate:     r.StatDate,
-				Total:        total,
-				Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
-				Abnormal:     abnormal,
-				AbnormalRate: abnormalRate,
-				ModelStats:   r.ModelStats,
-			})
+			result := make([]map[string]any, 0)
+			if err := dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			countPipeline := []bson.M{
+				{"$match": filter},
+				{"$unwind": "$model_stats"},
+				{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
+				{"$group": bson.M{"_id": bson.M{"user_id": "$user_id", "app_id": "$app_id", "app_key": "$app_key", "stat_date": "$stat_date"}}},
+				{"$count": "total"},
+			}
+			countResult := make([]map[string]any, 0)
+			if err := dao.StatisticsAppKey.Aggregate(ctx, countPipeline, &countResult); err == nil && len(countResult) > 0 {
+				paging.Total = gconv.Int64(countResult[0]["total"])
+			}
+			for _, r := range result {
+				total := gconv.Int(r["total"])
+				abnormal := gconv.Int(r["abnormal"])
+				abnormalRate := float64(0)
+				if total > 0 {
+					abnormalRate = float64(abnormal) / float64(total) * 100
+				}
+				items = append(items, &model.StatisticsDetailItem{
+					UserId:       gconv.Int(r["user_id"]),
+					AppId:        gconv.Int(r["app_id"]),
+					AppKey:       util.Desensitize(gconv.String(r["app_key"])),
+					StatDate:     gconv.String(r["stat_date"]),
+					Total:        total,
+					Tokens:       common.ConvQuotaUnitReverse(gconv.Int(r["tokens"])),
+					Abnormal:     abnormal,
+					AbnormalRate: abnormalRate,
+					ModelStats:   convModelStats(r["model_stats"]),
+				})
+			}
+		} else {
+			results, err := dao.StatisticsAppKey.FindByPage(ctx, paging, filter, findOptions)
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+			for _, r := range results {
+				total := r.Total
+				abnormal := r.Abnormal
+				abnormalRate := float64(0)
+				if total > 0 {
+					abnormalRate = float64(abnormal) / float64(total) * 100
+				}
+				items = append(items, &model.StatisticsDetailItem{
+					UserId:       r.UserId,
+					AppId:        r.AppId,
+					AppKey:       util.Desensitize(r.AppKey),
+					StatDate:     r.StatDate,
+					Total:        total,
+					Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
+					Abnormal:     abnormal,
+					AbnormalRate: abnormalRate,
+					ModelStats:   r.ModelStats,
+				})
+			}
 		}
 
 	case "model":
@@ -755,6 +1066,13 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 		}
 		if params.AppId != 0 {
 			match["app_id"] = params.AppId
+		}
+		if params.AppKey != "" {
+			match["app_key"] = params.AppKey
+		}
+		// 管理员可通过key筛选
+		if params.Key != "" && service.Session().IsAdminRole(ctx) {
+			match["app_key"] = params.Key
 		}
 
 		pipeline := []bson.M{
@@ -804,6 +1122,175 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 				end = len(items)
 			}
 			items = items[start:end]
+		}
+
+	case "provider":
+		// 提供商维度: 按日期聚合该提供商下的调用数据, 从日志表查询
+		if params.Provider == "" {
+			break
+		}
+		logMatch := bson.M{
+			"is_smart_match": bson.M{"$ne": true},
+			"is_retry":       bson.M{"$ne": true},
+			"provider_id":    params.Provider,
+		}
+		if params.StatStartTime > 0 {
+			logMatch["created_at"] = bson.M{"$gte": params.StatStartTime}
+		}
+		if params.StatEndTime > 0 {
+			if existing, ok := logMatch["created_at"]; ok {
+				existing.(bson.M)["$lte"] = params.StatEndTime
+			} else {
+				logMatch["created_at"] = bson.M{"$lte": params.StatEndTime}
+			}
+		}
+		if service.Session().IsResellerRole(ctx) {
+			logMatch["rid"] = service.Session().GetRid(ctx)
+		}
+		if service.Session().IsUserRole(ctx) {
+			logMatch["user_id"] = service.Session().GetUserId(ctx)
+		}
+		if service.Session().IsAdminRole(ctx) && params.Rid != 0 {
+			logMatch["rid"] = params.Rid
+		}
+		if !service.Session().IsUserRole(ctx) && params.UserId != 0 {
+			logMatch["user_id"] = params.UserId
+		}
+		if params.AppId != 0 {
+			logMatch["app_id"] = params.AppId
+		}
+		if params.AppKey != "" {
+			logMatch["app_key"] = params.AppKey
+		}
+		if params.Key != "" && service.Session().IsAdminRole(ctx) {
+			logMatch["app_key"] = params.Key
+		}
+		if len(params.Models) > 0 {
+			logMatch["model"] = bson.M{"$in": params.Models}
+		}
+
+		// 按 日期+模型 分组
+		logPipeline := []bson.M{
+			{"$match": logMatch},
+			{"$group": bson.M{
+				"_id": bson.M{
+					"date": bson.M{
+						"$dateToString": bson.M{
+							"format": "%Y-%m-%d",
+							"date":   bson.M{"$toDate": "$created_at"},
+						},
+					},
+					"model": "$model",
+				},
+				"total":    bson.M{"$sum": 1},
+				"tokens":   bson.M{"$sum": "$spend.total_spend_tokens"},
+				"abnormal": bson.M{"$sum": bson.M{"$cond": bson.A{bson.M{"$eq": bson.A{"$status", -1}}, 1, 0}}},
+			}},
+		}
+
+		logResults := s.aggregateAllLogs(ctx, logPipeline)
+
+		// 按 date 聚合; model_stats收集该天各模型的数据
+		type dayAgg struct {
+			date       string
+			total      int
+			tokens     float64
+			abnormal   int
+			modelStats map[string]*mcommon.ModelStat
+		}
+		dayMap := make(map[string]*dayAgg)
+		for _, r := range logResults {
+			var date, modelName string
+			switch id := r["_id"].(type) {
+			case bson.D:
+				for _, elem := range id {
+					switch elem.Key {
+					case "date":
+						date = gconv.String(elem.Value)
+					case "model":
+						modelName = gconv.String(elem.Value)
+					}
+				}
+			case bson.M:
+				date = gconv.String(id["date"])
+				modelName = gconv.String(id["model"])
+			case map[string]any:
+				date = gconv.String(id["date"])
+				modelName = gconv.String(id["model"])
+			}
+			if date == "" {
+				continue
+			}
+			total := gconv.Int(r["total"])
+			tokens := gconv.Float64(r["tokens"])
+			abnormal := gconv.Int(r["abnormal"])
+
+			agg, ok := dayMap[date]
+			if !ok {
+				agg = &dayAgg{date: date, modelStats: make(map[string]*mcommon.ModelStat)}
+				dayMap[date] = agg
+			}
+			agg.total += total
+			agg.tokens += tokens
+			agg.abnormal += abnormal
+			if modelName != "" {
+				ms, exist := agg.modelStats[modelName]
+				if !exist {
+					ms = &mcommon.ModelStat{Model: modelName}
+					agg.modelStats[modelName] = ms
+				}
+				ms.Total += total
+				ms.Tokens += tokens
+				ms.Abnormal += abnormal
+			}
+		}
+
+		// 按日期倒序
+		dates := make([]string, 0, len(dayMap))
+		for d := range dayMap {
+			dates = append(dates, d)
+		}
+		for i := 0; i < len(dates); i++ {
+			for j := i + 1; j < len(dates); j++ {
+				if dates[j] > dates[i] {
+					dates[i], dates[j] = dates[j], dates[i]
+				}
+			}
+		}
+
+		allItems := make([]*model.StatisticsDetailItem, 0, len(dates))
+		for _, d := range dates {
+			agg := dayMap[d]
+			abnormalRate := float64(0)
+			if agg.total > 0 {
+				abnormalRate = float64(agg.abnormal) / float64(agg.total) * 100
+			}
+			stats := make([]*mcommon.ModelStat, 0, len(agg.modelStats))
+			for _, ms := range agg.modelStats {
+				ms.Tokens = common.ConvQuotaUnitReverse(int(ms.Tokens))
+				stats = append(stats, ms)
+			}
+			allItems = append(allItems, &model.StatisticsDetailItem{
+				StatDate:     d,
+				Total:        agg.total,
+				Tokens:       common.ConvQuotaUnitReverse(int(agg.tokens)),
+				Abnormal:     agg.abnormal,
+				AbnormalRate: abnormalRate,
+				ModelStats:   stats,
+			})
+		}
+
+		paging.Total = int64(len(allItems))
+		// 手动分页
+		startIdx := int((paging.Page - 1) * paging.PageSize)
+		endIdx := startIdx + int(paging.PageSize)
+		if startIdx > len(allItems) {
+			items = items[:0]
+		} else {
+			if endIdx > len(allItems) {
+				endIdx = len(allItems)
+			}
+			items = allItems[startIdx:endIdx]
 		}
 
 	default:
@@ -860,7 +1347,13 @@ func (s *sStatistics) DataOverview(ctx context.Context, params model.StatisticsO
 	}
 
 	result := make([]map[string]any, 0)
-	if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+	var err error
+	if params.AppKey != "" {
+		err = dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result)
+	} else {
+		err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result)
+	}
+	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
@@ -886,8 +1379,14 @@ func (s *sStatistics) DataOverview(ctx context.Context, params model.StatisticsO
 	}
 
 	todayResult := make([]map[string]any, 0)
-	if err := dao.StatisticsUser.Aggregate(ctx, todayPipeline, &todayResult); err != nil {
-		logger.Error(ctx, err)
+	var todayErr error
+	if params.AppKey != "" {
+		todayErr = dao.StatisticsAppKey.Aggregate(ctx, todayPipeline, &todayResult)
+	} else {
+		todayErr = dao.StatisticsUser.Aggregate(ctx, todayPipeline, &todayResult)
+	}
+	if todayErr != nil {
+		logger.Error(ctx, todayErr)
 	}
 	if len(todayResult) > 0 {
 		res.TodayCalls = gconv.Int(todayResult[0]["total"])
@@ -896,7 +1395,6 @@ func (s *sStatistics) DataOverview(ctx context.Context, params model.StatisticsO
 	}
 
 	// 实体计数 - 根据角色
-	var err error
 	if service.Session().IsAdminRole(ctx) {
 		res.TotalUsers, err = dao.User.EstimatedDocumentCount(ctx)
 		if err != nil {
@@ -1006,30 +1504,50 @@ func (s *sStatistics) DataOverview(ctx context.Context, params model.StatisticsO
 // 数据看板模型趋势
 func (s *sStatistics) DataModelTrend(ctx context.Context, params model.StatisticsModelTrendReq) (*model.StatisticsModelTrendRes, error) {
 
-	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid))
+	match := s.buildMatchFilter(ctx, params.StatStartTime, params.StatEndTime, params.UserId, params.AppId, params.AppKey, gconv.String(params.Rid), params.Key)
 
-	// 先获取 top 模型列表
-	models := params.Models
-	if len(models) == 0 {
+	// 解析筛选 (models 优先级高于 provider): resolvedModels 仅作 $match 过滤条件
+	resolvedModels, useFilter := s.resolveModels(ctx, params.Models, params.Provider)
+
+	// 最终显示的模型列表:
+	// - 用户明确传了 models: 按用户指定展示(即使某些模型当前区间无数据也按用户意图展示空线)
+	// - 其他情况(仅 provider 或无筛选): 按实际数据取 top5, 确保只展示有数据的模型
+	var models []string
+	if len(params.Models) > 0 {
+		models = params.Models
+	} else {
 		topPipeline := []bson.M{
 			{"$match": match},
 			{"$unwind": "$model_stats"},
-			{"$group": bson.M{
+		}
+		if useFilter {
+			topPipeline = append(topPipeline, bson.M{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}})
+		}
+		topPipeline = append(topPipeline,
+			bson.M{"$group": bson.M{
 				"_id":   "$model_stats.model",
 				"count": bson.M{"$sum": "$model_stats.total"},
 			}},
-			{"$sort": bson.M{"count": -1}},
-			{"$limit": 5},
-		}
+			bson.M{"$sort": bson.M{"count": -1}},
+			bson.M{"$limit": 5},
+		)
 
 		topResult := make([]map[string]any, 0)
-		if err := dao.StatisticsUser.Aggregate(ctx, topPipeline, &topResult); err != nil {
-			logger.Error(ctx, err)
-			return nil, err
+		var topErr error
+		if params.AppKey != "" {
+			topErr = dao.StatisticsAppKey.Aggregate(ctx, topPipeline, &topResult)
+		} else {
+			topErr = dao.StatisticsUser.Aggregate(ctx, topPipeline, &topResult)
+		}
+		if topErr != nil {
+			logger.Error(ctx, topErr)
+			return nil, topErr
 		}
 
 		for _, r := range topResult {
-			models = append(models, gconv.String(r["_id"]))
+			if name := gconv.String(r["_id"]); name != "" {
+				models = append(models, name)
+			}
 		}
 	}
 
@@ -1054,7 +1572,13 @@ func (s *sStatistics) DataModelTrend(ctx context.Context, params model.Statistic
 	}
 
 	result := make([]map[string]any, 0)
-	if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+	var err error
+	if params.AppKey != "" {
+		err = dao.StatisticsAppKey.Aggregate(ctx, pipeline, &result)
+	} else {
+		err = dao.StatisticsUser.Aggregate(ctx, pipeline, &result)
+	}
+	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
 	}
@@ -1183,6 +1707,19 @@ func (s *sStatistics) DataLatencyTrend(ctx context.Context, params model.Statist
 	}
 	if params.AppKey != "" {
 		baseMatch["app_key"] = params.AppKey
+	}
+
+	// 管理员可通过key筛选(匹配app_key字段)
+	if params.Key != "" && service.Session().IsAdminRole(ctx) {
+		baseMatch["app_key"] = params.Key
+	}
+
+	// 模型筛选 (models 优先级高于 provider)
+	if len(params.Models) > 0 {
+		baseMatch["model"] = bson.M{"$in": params.Models}
+	} else if params.Provider != "" {
+		// 按 provider_id 过滤(params.Provider 是 provider 的 id)
+		baseMatch["provider_id"] = params.Provider
 	}
 
 	// 第一步: 找出 top5 模型
@@ -1369,6 +1906,45 @@ func (s *sStatistics) DataTaskStatus(ctx context.Context, params model.Statistic
 		match["created_at"] = bson.M{"$lte": gtime.NewFromTimeStamp(params.StatEndTime)}
 	}
 
+	// 角色过滤
+	if service.Session().IsResellerRole(ctx) {
+		match["rid"] = service.Session().GetRid(ctx)
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		match["user_id"] = service.Session().GetUserId(ctx)
+	}
+
+	// 管理员可按代理商筛选
+	if service.Session().IsAdminRole(ctx) && params.Rid != 0 {
+		match["rid"] = params.Rid
+	}
+
+	// 管理员/代理商可按用户筛选
+	if !service.Session().IsUserRole(ctx) && params.UserId != 0 {
+		match["user_id"] = params.UserId
+	}
+
+	if params.AppId != 0 {
+		match["app_id"] = params.AppId
+	}
+
+	// 应用密钥筛选(用户和代理商使用)
+	if params.AppKey != "" {
+		match["creator"] = params.AppKey
+	}
+
+	// 管理员可通过key筛选(匹配creator字段)
+	if params.Key != "" && service.Session().IsAdminRole(ctx) {
+		match["creator"] = params.Key
+	}
+
+	// 模型筛选 (models 优先级高于 provider)
+	taskResolvedModels, taskUseModels := s.resolveModels(ctx, params.Models, params.Provider)
+	if taskUseModels {
+		match["model"] = bson.M{"$in": taskResolvedModels}
+	}
+
 	buildPipeline := func() []bson.M {
 		pipeline := make([]bson.M, 0)
 		if len(match) > 0 {
@@ -1488,6 +2064,13 @@ func (s *sStatistics) DataAgentStatus(ctx context.Context, params model.Statisti
 	for k, v := range timeFilter {
 		agentMatchFilter[k] = v
 	}
+
+	// 模型筛选(models 优先, 其次 provider → 解析为模型ID列表, ModelAgent.models 存的是模型ID)
+	agentModelIds, agentUseModelIds := s.resolveModelIds(ctx, params.Models, params.Provider)
+	if agentUseModelIds {
+		agentMatchFilter["models"] = bson.M{"$in": agentModelIds}
+	}
+
 	agentPipeline := []bson.M{
 		{"$match": agentMatchFilter},
 		{"$sort": bson.M{"used_quota": -1}},
@@ -1513,8 +2096,28 @@ func (s *sStatistics) DataAgentStatus(ctx context.Context, params model.Statisti
 		}
 
 		// 聚合key表, 按model_agents分组统计used_quota
+		keyMatchFilter := bson.M{"model_agents": bson.M{"$in": agentIds}}
+
+		// 应用密钥筛选(用户和代理商使用)
+		if params.AppKey != "" {
+			keyMatchFilter["creator"] = params.AppKey
+		}
+
+		// 管理员可通过key筛选(匹配key或creator字段)
+		if params.Key != "" && service.Session().IsAdminRole(ctx) {
+			keyMatchFilter["$or"] = bson.A{
+				bson.M{"key": params.Key},
+				bson.M{"creator": params.Key},
+			}
+		}
+
+		// 模型筛选(Key.models 存的也是模型ID)
+		if agentUseModelIds {
+			keyMatchFilter["models"] = bson.M{"$in": agentModelIds}
+		}
+
 		keyPipeline := []bson.M{
-			{"$match": bson.M{"model_agents": bson.M{"$in": agentIds}}},
+			{"$match": keyMatchFilter},
 			{"$unwind": "$model_agents"},
 			{"$match": bson.M{"model_agents": bson.M{"$in": agentIds}}},
 			{"$group": bson.M{
@@ -1564,6 +2167,19 @@ func (s *sStatistics) DataKeyStatus(ctx context.Context, params model.Statistics
 		timeFilter["updated_at"] = bson.M{"$lte": gtime.NewFromTimeStamp(params.StatEndTime)}
 	}
 
+	// 应用密钥筛选(用户和代理商使用)
+	if params.AppKey != "" {
+		timeFilter["creator"] = params.AppKey
+	}
+
+	// 管理员可通过key筛选(匹配key或creator字段)
+	if params.Key != "" && service.Session().IsAdminRole(ctx) {
+		timeFilter["$or"] = bson.A{
+			bson.M{"key": params.Key},
+			bson.M{"creator": params.Key},
+		}
+	}
+
 	activeFilter := bson.M{"status": 1}
 	disabledFilter := bson.M{"status": 2}
 	autoDisabledFilter := bson.M{"is_auto_disabled": true}
@@ -1604,6 +2220,13 @@ func (s *sStatistics) DataKeyStatus(ctx context.Context, params model.Statistics
 	for k, v := range timeFilter {
 		matchFilter[k] = v
 	}
+
+	// 模型筛选(models 优先, 其次 provider → 解析为模型ID列表, Key.models 存的是模型ID)
+	keyModelIds, keyUseModelIds := s.resolveModelIds(ctx, params.Models, params.Provider)
+	if keyUseModelIds {
+		matchFilter["models"] = bson.M{"$in": keyModelIds}
+	}
+
 	pipeline := []bson.M{
 		{"$match": matchFilter},
 		{"$sort": bson.M{"used_quota": -1}},
@@ -1635,9 +2258,10 @@ func (s *sStatistics) DataKeyStatus(ctx context.Context, params model.Statistics
 // 构建基础匹配过滤器
 func (s *sStatistics) buildMatchFilter(ctx context.Context, statStartTime, statEndTime int64, userId, appId int, extras ...string) bson.M {
 
-	// extras: [0]=appKey, [1]=rid (as string)
+	// extras: [0]=appKey, [1]=rid (as string), [2]=key (admin only)
 	appKey := ""
 	rid := 0
+	key := ""
 
 	if len(extras) > 0 {
 		appKey = extras[0]
@@ -1645,6 +2269,10 @@ func (s *sStatistics) buildMatchFilter(ctx context.Context, statStartTime, statE
 
 	if len(extras) > 1 {
 		rid = gconv.Int(extras[1])
+	}
+
+	if len(extras) > 2 {
+		key = extras[2]
 	}
 
 	match := bson.M{}
@@ -1687,6 +2315,11 @@ func (s *sStatistics) buildMatchFilter(ctx context.Context, statStartTime, statE
 		match["app_key"] = appKey
 	}
 
+	// 管理员可通过key筛选(匹配app_key字段)
+	if key != "" && service.Session().IsAdminRole(ctx) {
+		match["app_key"] = key
+	}
+
 	return match
 }
 
@@ -1712,4 +2345,138 @@ func (s *sStatistics) aggregateAllLogs(ctx context.Context, pipeline []bson.M) [
 	}
 	wg.Wait()
 	return merged
+}
+
+// 将聚合管道$push出的model_stats转为[]*common.ModelStat
+func convModelStats(v any) []*mcommon.ModelStat {
+	if v == nil {
+		return nil
+	}
+
+	toMap := func(item any) map[string]any {
+		switch x := item.(type) {
+		case map[string]any:
+			return x
+		case bson.M:
+			return x
+		case bson.D:
+			m := make(map[string]any, len(x))
+			for _, e := range x {
+				m[e.Key] = e.Value
+			}
+			return m
+		default:
+			m := make(map[string]any)
+			_ = gconv.Struct(item, &m)
+			return m
+		}
+	}
+
+	items := make([]any, 0)
+	switch arr := v.(type) {
+	case []any:
+		items = arr
+	case bson.A:
+		for _, x := range arr {
+			items = append(items, x)
+		}
+	default:
+		return nil
+	}
+
+	if len(items) == 0 {
+		return nil
+	}
+
+	stats := make([]*mcommon.ModelStat, 0, len(items))
+	for _, item := range items {
+		m := toMap(item)
+		if len(m) == 0 {
+			continue
+		}
+		stats = append(stats, &mcommon.ModelStat{
+			ModelId:        gconv.String(m["model_id"]),
+			Model:          gconv.String(m["model"]),
+			Total:          gconv.Int(m["total"]),
+			Tokens:         common.ConvQuotaUnitReverse(gconv.Int(m["tokens"])),
+			Abnormal:       gconv.Int(m["abnormal"]),
+			AbnormalTokens: common.ConvQuotaUnitReverse(gconv.Int(m["abnormal_tokens"])),
+		})
+	}
+	return stats
+}
+
+// 按筛选条件解析出最终需要过滤的模型名列表
+// 1. 若传入了 models(优先级最高), 直接返回
+// 2. 否则若传入了 provider(provider_id), 通过 provider 查出对应模型名列表
+// 3. 返回: models 列表, 是否应使用 models 过滤
+// 说明: 当仅选了 provider 但该 provider 下无模型时, 返回 ([""], true), 配合 $in 查询保证查不到数据
+func (s *sStatistics) resolveModels(ctx context.Context, models []string, provider string) ([]string, bool) {
+	if len(models) > 0 {
+		return models, true
+	}
+	if provider == "" {
+		return nil, false
+	}
+	list, err := service.Model().List(ctx, model.ModelListReq{ProviderId: provider})
+	if err != nil {
+		logger.Error(ctx, err)
+		return []string{""}, true
+	}
+	if len(list) == 0 {
+		return []string{""}, true
+	}
+	names := make([]string, 0, len(list))
+	for _, m := range list {
+		if m.Model != "" {
+			names = append(names, m.Model)
+		}
+	}
+	if len(names) == 0 {
+		return []string{""}, true
+	}
+	return names, true
+}
+
+// 按筛选条件解析出最终需要过滤的模型ID列表(用于 ModelAgent/Key 等使用模型ID绑定的表)
+// 1. 若传入了 models(按名称), 通过名称查出 modelId 列表
+// 2. 否则若传入了 provider(provider_id), 通过 provider 查出该 provider 下的所有模型ID
+// 3. 返回: modelId 列表, 是否应使用 models 过滤
+func (s *sStatistics) resolveModelIds(ctx context.Context, models []string, provider string) ([]string, bool) {
+	if len(models) == 0 && provider == "" {
+		return nil, false
+	}
+	req := model.ModelListReq{}
+	if provider != "" && len(models) == 0 {
+		req.ProviderId = provider
+	}
+	list, err := service.Model().List(ctx, req)
+	if err != nil {
+		logger.Error(ctx, err)
+		return []string{""}, true
+	}
+	if len(list) == 0 {
+		return []string{""}, true
+	}
+	ids := make([]string, 0, len(list))
+	if len(models) > 0 {
+		// 按名称匹配
+		nameSet := make(map[string]struct{}, len(models))
+		for _, n := range models {
+			nameSet[n] = struct{}{}
+		}
+		for _, m := range list {
+			if _, ok := nameSet[m.Model]; ok {
+				ids = append(ids, m.Id)
+			}
+		}
+	} else {
+		for _, m := range list {
+			ids = append(ids, m.Id)
+		}
+	}
+	if len(ids) == 0 {
+		return []string{""}, true
+	}
+	return ids, true
 }
