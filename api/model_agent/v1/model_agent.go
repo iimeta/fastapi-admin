@@ -119,3 +119,36 @@ type TestModelRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.ModelAgentTestModelRes
 }
+
+// 模型代理会话保持缓存数量接口请求参数
+type SessionKeepCountReq struct {
+	g.Meta `path:"/session/keep/count" method:"get" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理会话保持缓存数量接口"`
+	Id     string `json:"id"`
+}
+
+// 模型代理会话保持缓存数量接口响应参数
+type SessionKeepCountRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ModelAgentSessionKeepCacheStatsRes
+}
+
+// 模型代理会话保持缓存清空接口请求参数
+type SessionKeepClearReq struct {
+	g.Meta `path:"/session/keep/clear" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理会话保持缓存清空接口"`
+	Id     string `json:"id"`
+}
+
+// 模型代理会话保持缓存清空接口响应参数
+type SessionKeepClearRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
+// 模型代理会话保持缓存清空全部接口请求参数
+type SessionKeepClearAllReq struct {
+	g.Meta `path:"/session/keep/clear/all" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理会话保持缓存清空全部接口"`
+}
+
+// 模型代理会话保持缓存清空全部接口响应参数
+type SessionKeepClearAllRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

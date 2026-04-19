@@ -160,6 +160,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 			logger.Error(ctx, err)
 			return nil, err
 		}
+	case "model_agent_session_keep":
+		sysConfig = &do.SysConfig{ModelAgentSessionKeep: params.ModelAgentSessionKeep}
 	case "service_unavailable":
 		sysConfig = &do.SysConfig{ServiceUnavailable: params.ServiceUnavailable}
 	case "general_api":
@@ -255,6 +257,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		BatchTask:                 sysConfig.BatchTask,
 		ResetTask:                 sysConfig.ResetTask,
 		ModelAgentHealthCheckTask: sysConfig.ModelAgentHealthCheckTask,
+		ModelAgentSessionKeep:     sysConfig.ModelAgentSessionKeep,
 		ServiceUnavailable:        sysConfig.ServiceUnavailable,
 		GeneralApi:                sysConfig.GeneralApi,
 		Test:                      sysConfig.Test,
@@ -338,6 +341,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.ResetTask = s.Default().ResetTask
 	case "model_agent_health_check_task":
 		sysConfigUpdateReq.ModelAgentHealthCheckTask = s.Default().ModelAgentHealthCheckTask
+	case "model_agent_session_keep":
+		sysConfigUpdateReq.ModelAgentSessionKeep = s.Default().ModelAgentSessionKeep
 	case "service_unavailable":
 		sysConfigUpdateReq.ServiceUnavailable = s.Default().ServiceUnavailable
 	case "general_api":
@@ -481,6 +486,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.ModelAgentHealthCheckTask == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "model_agent_health_check_task"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.ModelAgentSessionKeep == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "model_agent_session_keep"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -680,6 +692,15 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Open:        true,
 			Cron:        "0 0/5 * * * ?",
 			LockMinutes: 30,
+		},
+		ModelAgentSessionKeep: &common.ModelAgentSessionKeep{
+			Open:                true,
+			Ttl:                 3600,
+			FailTtl:             300,
+			FailSwitchThreshold: 3,
+			UserLimit:           100,
+			AgentLimit:          10000,
+			GlobalLimit:         100000,
 		},
 		ModelAgentHealthCheckTask: &common.ModelAgentHealthCheckTask{
 			Open:              false,

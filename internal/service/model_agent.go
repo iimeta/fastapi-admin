@@ -35,6 +35,12 @@ type (
 		QuickFillModel(ctx context.Context, params model.ModelAgentQuickFillModelReq) ([]string, error)
 		// 测试模型
 		TestModel(ctx context.Context, params model.ModelAgentTestModelReq) (*model.ModelAgentTestModelRes, error)
+		// 会话保持缓存数量
+		SessionKeepCount(ctx context.Context, id string) (int64, error)
+		// 会话保持缓存清空
+		SessionKeepClear(ctx context.Context, id string) (int64, error)
+		// 会话保持缓存清空全部
+		SessionKeepClearAll(ctx context.Context) (int64, error)
 		// 健康检查任务
 		HealthCheckTask(ctx context.Context)
 	}

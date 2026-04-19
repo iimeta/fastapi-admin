@@ -29,6 +29,7 @@ type SysConfigUpdateReq struct {
 	BatchTask                 *common.BatchTask                 `json:"batch_task,omitempty"`                    // 批处理任务
 	ResetTask                 *common.ResetTask                 `json:"reset_task,omitempty"`                    // 重置任务
 	ModelAgentHealthCheckTask *common.ModelAgentHealthCheckTask `json:"model_agent_health_check_task,omitempty"` // 模型代理健康检查任务
+	ModelAgentSessionKeep     *common.ModelAgentSessionKeep     `json:"model_agent_session_keep,omitempty"`      // 会话保持
 	ServiceUnavailable        *common.ServiceUnavailable        `json:"service_unavailable,omitempty"`           // 暂停服务
 	GeneralApi                *common.GeneralApi                `json:"general_api,omitempty"`                   // 通用API
 	Test                      *common.Test                      `json:"test,omitempty"`                          // 测试
@@ -82,6 +83,7 @@ type SysConfig struct {
 	BatchTask                 *common.BatchTask                 `json:"batch_task,omitempty"`                    // 批处理任务
 	ResetTask                 *common.ResetTask                 `json:"reset_task,omitempty"`                    // 重置任务
 	ModelAgentHealthCheckTask *common.ModelAgentHealthCheckTask `json:"model_agent_health_check_task,omitempty"` // 模型代理健康检查任务
+	ModelAgentSessionKeep     *common.ModelAgentSessionKeep     `json:"model_agent_session_keep,omitempty"`      // 会话保持
 	ServiceUnavailable        *common.ServiceUnavailable        `json:"service_unavailable,omitempty"`           // 暂停服务
 	GeneralApi                *common.GeneralApi                `json:"general_api,omitempty"`                   // 通用API
 	Test                      *common.Test                      `json:"test,omitempty"`                          // 测试

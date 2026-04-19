@@ -1,52 +1,58 @@
 package model
 
+import "github.com/iimeta/fastapi-admin/v2/internal/model/common"
+
 // 新建模型代理接口请求参数
 type ModelAgentCreateReq struct {
-	ProviderId            string   `json:"provider_id,omitempty"`              // 提供商ID
-	Name                  string   `json:"name,omitempty"`                     // 模型代理名称
-	BaseUrl               string   `json:"base_url,omitempty"`                 // 模型代理地址
-	Path                  string   `json:"path,omitempty"`                     // 模型代理地址路径
-	Weight                int      `json:"weight,omitempty"`                   // 权重
-	BillingMethods        []int    `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
-	Groups                []string `json:"groups,omitempty"`                   // 绑定分组
-	Models                []string `json:"models,omitempty" d:"[]"`            // 绑定模型
-	IsEnableModelReplace  bool     `json:"is_enable_model_replace,omitempty"`  // 是否启用模型替换
-	ReplaceModels         []string `json:"replace_models,omitempty"`           // 替换模型
-	TargetModels          []string `json:"target_models,omitempty"`            // 目标模型
-	IsEnableHealthCheck   bool     `json:"is_enable_health_check,omitempty"`   // 是否启用健康检查
-	IsRemoveAbnormalModel bool     `json:"is_remove_abnormal_model,omitempty"` // 是否移除异常模型
-	IsNeverDisable        bool     `json:"is_never_disable,omitempty"`         // 是否永不禁用
-	LbStrategy            int      `json:"lb_strategy,omitempty" d:"1"`        // 密钥负载均衡策略[1:轮询, 2:权重]
-	Key                   string   `json:"key,omitempty"`                      // 密钥
-	IsAgentsOnly          bool     `json:"is_agents_only,omitempty"`           // 是否代理专用
-	IsNeverDisableKey     bool     `json:"is_never_disable_key,omitempty"`     // 是否永不禁用密钥
-	Remark                string   `json:"remark,omitempty"`                   // 备注
-	Status                int      `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
+	ProviderId            string                        `json:"provider_id,omitempty"`              // 提供商ID
+	Name                  string                        `json:"name,omitempty"`                     // 模型代理名称
+	BaseUrl               string                        `json:"base_url,omitempty"`                 // 模型代理地址
+	Path                  string                        `json:"path,omitempty"`                     // 模型代理地址路径
+	Weight                int                           `json:"weight,omitempty"`                   // 权重
+	BillingMethods        []int                         `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
+	Groups                []string                      `json:"groups,omitempty"`                   // 绑定分组
+	Models                []string                      `json:"models,omitempty" d:"[]"`            // 绑定模型
+	IsEnableModelReplace  bool                          `json:"is_enable_model_replace,omitempty"`  // 是否启用模型替换
+	ReplaceModels         []string                      `json:"replace_models,omitempty"`           // 替换模型
+	TargetModels          []string                      `json:"target_models,omitempty"`            // 目标模型
+	IsEnableHealthCheck   bool                          `json:"is_enable_health_check,omitempty"`   // 是否启用健康检查
+	IsRemoveAbnormalModel bool                          `json:"is_remove_abnormal_model,omitempty"` // 是否移除异常模型
+	IsEnableSessionKeep   bool                          `json:"is_enable_session_keep,omitempty"`   // 是否启用会话保持
+	SessionKeepConfig     *common.ModelAgentSessionKeep `json:"session_keep_config,omitempty"`      // 会话保持配置
+	IsNeverDisable        bool                          `json:"is_never_disable,omitempty"`         // 是否永不禁用
+	LbStrategy            int                           `json:"lb_strategy,omitempty" d:"1"`        // 密钥负载均衡策略[1:轮询, 2:权重]
+	Key                   string                        `json:"key,omitempty"`                      // 密钥
+	IsAgentsOnly          bool                          `json:"is_agents_only,omitempty"`           // 是否代理专用
+	IsNeverDisableKey     bool                          `json:"is_never_disable_key,omitempty"`     // 是否永不禁用密钥
+	Remark                string                        `json:"remark,omitempty"`                   // 备注
+	Status                int                           `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新模型代理接口请求参数
 type ModelAgentUpdateReq struct {
-	Id                    string   `json:"id" v:"required"`                    // ID
-	ProviderId            string   `json:"provider_id,omitempty"`              // 提供商ID
-	Name                  string   `json:"name,omitempty"`                     // 模型代理名称
-	BaseUrl               string   `json:"base_url,omitempty"`                 // 模型代理地址
-	Path                  string   `json:"path,omitempty"`                     // 模型代理地址路径
-	Weight                int      `json:"weight,omitempty"`                   // 权重
-	BillingMethods        []int    `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
-	Groups                []string `json:"groups,omitempty"`                   // 绑定分组
-	Models                []string `json:"models,omitempty" d:"[]"`            // 绑定模型
-	IsEnableModelReplace  bool     `json:"is_enable_model_replace,omitempty"`  // 是否启用模型替换
-	ReplaceModels         []string `json:"replace_models,omitempty"`           // 替换模型
-	TargetModels          []string `json:"target_models,omitempty"`            // 目标模型
-	IsEnableHealthCheck   bool     `json:"is_enable_health_check,omitempty"`   // 是否启用健康检查
-	IsRemoveAbnormalModel bool     `json:"is_remove_abnormal_model,omitempty"` // 是否移除异常模型
-	IsNeverDisable        bool     `json:"is_never_disable,omitempty"`         // 是否永不禁用
-	LbStrategy            int      `json:"lb_strategy,omitempty" d:"1"`        // 密钥负载均衡策略[1:轮询, 2:权重]
-	Key                   string   `json:"key,omitempty"`                      // 密钥
-	IsAgentsOnly          bool     `json:"is_agents_only,omitempty"`           // 是否代理专用
-	IsNeverDisableKey     bool     `json:"is_never_disable_key,omitempty"`     // 是否永不禁用密钥
-	Remark                string   `json:"remark,omitempty"`                   // 备注
-	Status                int      `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
+	Id                    string                        `json:"id" v:"required"`                    // ID
+	ProviderId            string                        `json:"provider_id,omitempty"`              // 提供商ID
+	Name                  string                        `json:"name,omitempty"`                     // 模型代理名称
+	BaseUrl               string                        `json:"base_url,omitempty"`                 // 模型代理地址
+	Path                  string                        `json:"path,omitempty"`                     // 模型代理地址路径
+	Weight                int                           `json:"weight,omitempty"`                   // 权重
+	BillingMethods        []int                         `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
+	Groups                []string                      `json:"groups,omitempty"`                   // 绑定分组
+	Models                []string                      `json:"models,omitempty" d:"[]"`            // 绑定模型
+	IsEnableModelReplace  bool                          `json:"is_enable_model_replace,omitempty"`  // 是否启用模型替换
+	ReplaceModels         []string                      `json:"replace_models,omitempty"`           // 替换模型
+	TargetModels          []string                      `json:"target_models,omitempty"`            // 目标模型
+	IsEnableHealthCheck   bool                          `json:"is_enable_health_check,omitempty"`   // 是否启用健康检查
+	IsRemoveAbnormalModel bool                          `json:"is_remove_abnormal_model,omitempty"` // 是否移除异常模型
+	IsEnableSessionKeep   bool                          `json:"is_enable_session_keep,omitempty"`   // 是否启用会话保持
+	SessionKeepConfig     *common.ModelAgentSessionKeep `json:"session_keep_config,omitempty"`      // 会话保持配置
+	IsNeverDisable        bool                          `json:"is_never_disable,omitempty"`         // 是否永不禁用
+	LbStrategy            int                           `json:"lb_strategy,omitempty" d:"1"`        // 密钥负载均衡策略[1:轮询, 2:权重]
+	Key                   string                        `json:"key,omitempty"`                      // 密钥
+	IsAgentsOnly          bool                          `json:"is_agents_only,omitempty"`           // 是否代理专用
+	IsNeverDisableKey     bool                          `json:"is_never_disable_key,omitempty"`     // 是否永不禁用密钥
+	Remark                string                        `json:"remark,omitempty"`                   // 备注
+	Status                int                           `json:"status,omitempty" d:"1"`             // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改模型代理状态接口请求参数
@@ -126,37 +132,45 @@ type ModelAgentTestModelRes struct {
 	Error     string `json:"error"`      // 错误信息
 }
 
+// 模型代理会话保持缓存数量接口响应参数
+type ModelAgentSessionKeepCacheStatsRes struct {
+	Count int64 `json:"count"`
+}
+
 type ModelAgent struct {
-	Id                    string   `json:"id,omitempty"`                       // ID
-	ProviderId            string   `json:"provider_id,omitempty"`              // 提供商ID
-	ProviderName          string   `json:"provider_name,omitempty"`            // 提供商名称
-	Name                  string   `json:"name,omitempty"`                     // 模型代理名称
-	BaseUrl               string   `json:"base_url,omitempty"`                 // 模型代理地址
-	Path                  string   `json:"path,omitempty"`                     // 模型代理地址路径
-	Weight                int      `json:"weight,omitempty"`                   // 权重
-	BillingMethods        []int    `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
-	Groups                []string `json:"groups,omitempty"`                   // 绑定分组
-	GroupNames            []string `json:"group_names,omitempty"`              // 分组名称
-	Models                []string `json:"models,omitempty"`                   // 绑定模型
-	ModelNames            []string `json:"model_names,omitempty"`              // 模型名称
-	FallbackModels        []string `json:"fallback_models,omitempty"`          // 后备模型
-	FallbackModelNames    []string `json:"fallback_model_names,omitempty"`     // 后备模型名称
-	IsEnableModelReplace  bool     `json:"is_enable_model_replace,omitempty"`  // 是否启用模型替换
-	ReplaceModels         []string `json:"replace_models,omitempty"`           // 替换模型
-	TargetModels          []string `json:"target_models,omitempty"`            // 目标模型
-	IsEnableHealthCheck   bool     `json:"is_enable_health_check,omitempty"`   // 是否启用健康检查
-	IsRemoveAbnormalModel bool     `json:"is_remove_abnormal_model,omitempty"` // 是否移除异常模型
-	AbnormalModels        []string `json:"abnormal_models,omitempty"`          // 异常模型
-	AbnormalModelNames    []string `json:"abnormal_model_names,omitempty"`     // 异常模型名称
-	IsNeverDisable        bool     `json:"is_never_disable,omitempty"`         // 是否永不禁用
-	LbStrategy            int      `json:"lb_strategy,omitempty"`              // 密钥负载均衡策略[1:轮询, 2:权重]
-	Key                   string   `json:"key,omitempty"`                      // 密钥
-	Remark                string   `json:"remark,omitempty"`                   // 备注
-	Status                int      `json:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
-	IsAutoDisabled        bool     `json:"is_auto_disabled,omitempty"`         // 是否自动禁用
-	AutoDisabledReason    string   `json:"auto_disabled_reason,omitempty"`     // 自动禁用原因
-	Creator               string   `json:"creator,omitempty"`                  // 创建人
-	Updater               string   `json:"updater,omitempty"`                  // 更新人
-	CreatedAt             string   `json:"created_at,omitempty"`               // 创建时间
-	UpdatedAt             string   `json:"updated_at,omitempty"`               // 更新时间
+	Id                    string                        `json:"id,omitempty"`                       // ID
+	ProviderId            string                        `json:"provider_id,omitempty"`              // 提供商ID
+	ProviderName          string                        `json:"provider_name,omitempty"`            // 提供商名称
+	Name                  string                        `json:"name,omitempty"`                     // 模型代理名称
+	BaseUrl               string                        `json:"base_url,omitempty"`                 // 模型代理地址
+	Path                  string                        `json:"path,omitempty"`                     // 模型代理地址路径
+	Weight                int                           `json:"weight,omitempty"`                   // 权重
+	BillingMethods        []int                         `json:"billing_methods,omitempty"`          // 计费方式[1:按Tokens, 2:按次]
+	Groups                []string                      `json:"groups,omitempty"`                   // 绑定分组
+	GroupNames            []string                      `json:"group_names,omitempty"`              // 分组名称
+	Models                []string                      `json:"models,omitempty"`                   // 绑定模型
+	ModelNames            []string                      `json:"model_names,omitempty"`              // 模型名称
+	FallbackModels        []string                      `json:"fallback_models,omitempty"`          // 后备模型
+	FallbackModelNames    []string                      `json:"fallback_model_names,omitempty"`     // 后备模型名称
+	IsEnableModelReplace  bool                          `json:"is_enable_model_replace,omitempty"`  // 是否启用模型替换
+	ReplaceModels         []string                      `json:"replace_models,omitempty"`           // 替换模型
+	TargetModels          []string                      `json:"target_models,omitempty"`            // 目标模型
+	IsEnableHealthCheck   bool                          `json:"is_enable_health_check,omitempty"`   // 是否启用健康检查
+	IsRemoveAbnormalModel bool                          `json:"is_remove_abnormal_model,omitempty"` // 是否移除异常模型
+	AbnormalModels        []string                      `json:"abnormal_models,omitempty"`          // 异常模型
+	AbnormalModelNames    []string                      `json:"abnormal_model_names,omitempty"`     // 异常模型名称
+	IsEnableSessionKeep   bool                          `json:"is_enable_session_keep,omitempty"`   // 是否启用会话保持
+	SessionKeepConfig     *common.ModelAgentSessionKeep `json:"session_keep_config,omitempty"`      // 会话保持配置
+	SessionKeepCount      int64                         `json:"session_keep_count,omitempty"`       // 会话保持缓存数量
+	IsNeverDisable        bool                          `json:"is_never_disable,omitempty"`         // 是否永不禁用
+	LbStrategy            int                           `json:"lb_strategy,omitempty"`              // 密钥负载均衡策略[1:轮询, 2:权重]
+	Key                   string                        `json:"key,omitempty"`                      // 密钥
+	Remark                string                        `json:"remark,omitempty"`                   // 备注
+	Status                int                           `json:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
+	IsAutoDisabled        bool                          `json:"is_auto_disabled,omitempty"`         // 是否自动禁用
+	AutoDisabledReason    string                        `json:"auto_disabled_reason,omitempty"`     // 自动禁用原因
+	Creator               string                        `json:"creator,omitempty"`                  // 创建人
+	Updater               string                        `json:"updater,omitempty"`                  // 更新人
+	CreatedAt             string                        `json:"created_at,omitempty"`               // 创建时间
+	UpdatedAt             string                        `json:"updated_at,omitempty"`               // 更新时间
 }

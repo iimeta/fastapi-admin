@@ -75,6 +75,8 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		ReplaceModels:         params.ReplaceModels,
 		TargetModels:          params.TargetModels,
 		IsEnableHealthCheck:   params.IsEnableHealthCheck,
+		IsEnableSessionKeep:   params.IsEnableSessionKeep,
+		SessionKeepConfig:     params.SessionKeepConfig,
 		IsRemoveAbnormalModel: params.IsRemoveAbnormalModel,
 		AbnormalModels:        []string{},
 		IsNeverDisable:        params.IsNeverDisable,
@@ -199,6 +201,8 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		ReplaceModels:         params.ReplaceModels,
 		TargetModels:          params.TargetModels,
 		IsEnableHealthCheck:   params.IsEnableHealthCheck,
+		IsEnableSessionKeep:   params.IsEnableSessionKeep,
+		SessionKeepConfig:     params.SessionKeepConfig,
 		IsRemoveAbnormalModel: params.IsRemoveAbnormalModel,
 		AbnormalModels:        oldData.AbnormalModels,
 		IsNeverDisable:        params.IsNeverDisable,
@@ -622,6 +626,11 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		}
 	}
 
+	sessionKeepCount, err := s.SessionKeepCount(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+	}
+
 	return &model.ModelAgent{
 		Id:                    modelAgent.Id,
 		ProviderId:            modelAgent.ProviderId,
@@ -641,6 +650,9 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		ReplaceModels:         modelAgent.ReplaceModels,
 		TargetModels:          modelAgent.TargetModels,
 		IsEnableHealthCheck:   modelAgent.IsEnableHealthCheck,
+		IsEnableSessionKeep:   modelAgent.IsEnableSessionKeep,
+		SessionKeepConfig:     modelAgent.SessionKeepConfig,
+		SessionKeepCount:      sessionKeepCount,
 		IsRemoveAbnormalModel: modelAgent.IsRemoveAbnormalModel,
 		AbnormalModels:        modelAgent.AbnormalModels,
 		AbnormalModelNames:    abnormalModelNames,
@@ -768,8 +780,8 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			Models:         result.Models,
 			Remark:         result.Remark,
 			Status:         result.Status,
-			CreatedAt:      util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:      util.FormatDateTimeMonth(result.UpdatedAt),
+			CreatedAt:      util.FormatDateTime(result.CreatedAt),
+			UpdatedAt:      util.FormatDateTime(result.UpdatedAt),
 		})
 	}
 
@@ -1116,4 +1128,64 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 	}
 
 	return modelAgentTestModelRes, nil
+}
+
+// 会话保持缓存数量
+func (s *sModelAgent) SessionKeepCount(ctx context.Context, id string) (int64, error) {
+	return redis.ZCard(ctx, fmt.Sprintf("session:agent:set:%s", id))
+}
+
+// 会话保持缓存清空
+func (s *sModelAgent) SessionKeepClear(ctx context.Context, id string) (int64, error) {
+
+	keys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:u:*"))
+	if err != nil {
+		return 0, err
+	}
+
+	var deleteKeys []string
+	for _, key := range keys {
+		value, getErr := redis.GetStr(ctx, key)
+		if getErr != nil {
+			return 0, getErr
+		}
+		if value == id {
+			deleteKeys = append(deleteKeys, key)
+		}
+	}
+
+	if len(deleteKeys) == 0 {
+		return 0, nil
+	}
+
+	failKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:fail:u:*:a:%s", id))
+	if err == nil && len(failKeys) > 0 {
+		deleteKeys = append(deleteKeys, failKeys...)
+	}
+
+	indexKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:set:%s", id))
+	if err == nil && len(indexKeys) > 0 {
+		deleteKeys = append(deleteKeys, indexKeys...)
+	}
+
+	if len(deleteKeys) == 0 {
+		return 0, nil
+	}
+
+	return redis.Del(ctx, deleteKeys...)
+}
+
+// 会话保持缓存清空全部
+func (s *sModelAgent) SessionKeepClearAll(ctx context.Context) (int64, error) {
+
+	keys, err := redis.Keys(ctx, "session:agent:*")
+	if err != nil {
+		return 0, err
+	}
+
+	if len(keys) == 0 {
+		return 0, nil
+	}
+
+	return redis.Del(ctx, keys...)
 }

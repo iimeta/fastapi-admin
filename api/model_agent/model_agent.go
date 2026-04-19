@@ -21,4 +21,7 @@ type IModelAgentV1 interface {
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
 	QuickFillModel(ctx context.Context, req *v1.QuickFillModelReq) (res *v1.QuickFillModelRes, err error)
 	TestModel(ctx context.Context, req *v1.TestModelReq) (res *v1.TestModelRes, err error)
+	SessionKeepCount(ctx context.Context, req *v1.SessionKeepCountReq) (res *v1.SessionKeepCountRes, err error)
+	SessionKeepClear(ctx context.Context, req *v1.SessionKeepClearReq) (res *v1.SessionKeepClearRes, err error)
+	SessionKeepClearAll(ctx context.Context, req *v1.SessionKeepClearAllReq) (res *v1.SessionKeepClearAllRes, err error)
 }

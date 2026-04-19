@@ -262,3 +262,7 @@ func TTL(ctx context.Context, key string) (int64, error) {
 func Keys(ctx context.Context, pattern string) ([]string, error) {
 	return slave.Keys(ctx, pattern)
 }
+
+func ZCard(ctx context.Context, key string) (int64, error) {
+	return slave.ZCard(ctx, key)
+}
