@@ -39,13 +39,13 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_video"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/model_agent"
+	"github.com/iimeta/fastapi-admin/v2/internal/controller/monitor"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/notice"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/notice_template"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/open"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/provider"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/site_config"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/statistics"
-	"github.com/iimeta/fastapi-admin/v2/internal/controller/monitor"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/sys_admin"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/sys_config"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_batch"
@@ -92,6 +92,7 @@ var (
 			s.AddStaticPath("/model/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/model/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/model/update", "./resource/fastapi-web/")
+			s.AddStaticPath("/model/square", "./resource/fastapi-web/")
 			s.AddStaticPath("/key/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/key/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/key/update", "./resource/fastapi-web/")
@@ -101,6 +102,7 @@ var (
 			s.AddStaticPath("/group/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/group/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/group/update", "./resource/fastapi-web/")
+			s.AddStaticPath("/group/square", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/user/update", "./resource/fastapi-web/")
@@ -111,6 +113,8 @@ var (
 			s.AddStaticPath("/notice/template/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/notice/template/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/notice/template/update", "./resource/fastapi-web/")
+			s.AddStaticPath("/statistics/databoard", "./resource/fastapi-web/")
+			s.AddStaticPath("/monitor/center", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/video", "./resource/fastapi-web/")

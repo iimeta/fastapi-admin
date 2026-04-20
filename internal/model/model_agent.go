@@ -140,6 +140,7 @@ type ModelAgentSessionKeepCacheStatsRes struct {
 type ModelAgent struct {
 	Id                    string                        `json:"id,omitempty"`                       // ID
 	ProviderId            string                        `json:"provider_id,omitempty"`              // 提供商ID
+	ProviderCode          string                        `json:"provider_code,omitempty"`            // 提供商代码
 	ProviderName          string                        `json:"provider_name,omitempty"`            // 提供商名称
 	Name                  string                        `json:"name,omitempty"`                     // 模型代理名称
 	BaseUrl               string                        `json:"base_url,omitempty"`                 // 模型代理地址

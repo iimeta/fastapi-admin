@@ -754,8 +754,10 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 	for _, result := range results {
 
 		providerName := result.ProviderId
+		providerCode := result.ProviderId
 		if providerMap[result.ProviderId] != nil {
 			providerName = providerMap[result.ProviderId].Name
+			providerCode = providerMap[result.ProviderId].Code
 		}
 
 		groupIds := make([]string, 0)
@@ -770,6 +772,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		items = append(items, &model.ModelAgent{
 			Id:             result.Id,
 			ProviderId:     result.ProviderId,
+			ProviderCode:   providerCode,
 			ProviderName:   providerName,
 			Name:           result.Name,
 			Weight:         result.Weight,
