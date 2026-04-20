@@ -855,7 +855,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 	}
 
 	if params.Type != 0 {
-		filter["type"] = params.SearchValue
+		filter["type"] = params.Type
 	}
 
 	if params.BillingMethod != 0 {
