@@ -266,3 +266,53 @@ func Keys(ctx context.Context, pattern string) ([]string, error) {
 func ZCard(ctx context.Context, key string) (int64, error) {
 	return slave.ZCard(ctx, key)
 }
+
+func ZRem(ctx context.Context, key string, members ...string) (int64, error) {
+
+	args := make([]any, 0, len(members)+1)
+	args = append(args, key)
+	for _, member := range members {
+		args = append(args, member)
+	}
+
+	reply, err := master.Do(ctx, "ZREM", args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.Int64(), nil
+}
+
+func ZRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
+
+	reply, err := slave.ZRange(ctx, key, start, stop)
+	if err != nil {
+		return nil, err
+	}
+
+	return reply.Strings(), nil
+}
+
+type ZItem struct {
+	Member string
+	Score  float64
+}
+
+func ZRangeWithScores(ctx context.Context, key string, start, stop int64) ([]ZItem, error) {
+
+	reply, err := Client.ZRangeWithScores(ctx, key, start, stop).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]ZItem, 0, len(reply))
+	for _, item := range reply {
+		member, _ := item.Member.(string)
+		items = append(items, ZItem{
+			Member: member,
+			Score:  item.Score,
+		})
+	}
+
+	return items, nil
+}

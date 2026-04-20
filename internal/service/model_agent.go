@@ -41,6 +41,8 @@ type (
 		SessionKeepClear(ctx context.Context, id string) (int64, error)
 		// 会话保持缓存清空全部
 		SessionKeepClearAll(ctx context.Context) (int64, error)
+		// 会话保持清理任务
+		SessionKeepCleanupTask(ctx context.Context)
 		// 健康检查任务
 		HealthCheckTask(ctx context.Context)
 	}

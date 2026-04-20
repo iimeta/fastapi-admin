@@ -26,6 +26,9 @@ func Init(ctx context.Context) {
 	// 模型代理健康检查任务
 	modelAgentHealthCheckTask(ctx)
 
+	// 会话保持清理任务
+	sessionKeepCleanupTask(ctx)
+
 	// 错误检查任务
 	errorCheckTask(ctx)
 

@@ -209,6 +209,12 @@ type ModelAgentSessionKeep struct {
 	GlobalLimit         int64         `bson:"global_limit"          json:"global_limit"`          // 全局总上限
 }
 
+type ModelAgentSessionKeepTask struct {
+	Open        bool          `bson:"open"         json:"open"`         // 开关
+	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式
+	LockMinutes time.Duration `bson:"lock_minutes" json:"lock_minutes"` // 锁定时长, 单位: 分钟
+}
+
 type ServiceUnavailable struct {
 	Open        bool     `bson:"open"         json:"open"`         // 开关
 	IpWhitelist []string `bson:"ip_whitelist" json:"ip_whitelist"` // IP白名单
