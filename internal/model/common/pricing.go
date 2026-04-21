@@ -184,9 +184,10 @@ type VideoSpend struct {
 }
 
 type VideoGenerationSpend struct {
-	Pricing     *VideoGenerationPricing `bson:"pricing,omitempty"      json:"pricing,omitempty"`      // 定价
-	Seconds     int                     `bson:"seconds,omitempty"      json:"seconds,omitempty"`      // 秒数
-	SpendTokens float64                 `bson:"spend_tokens,omitempty" json:"spend_tokens,omitempty"` // 花费Token数
+	Pricing     *VideoGenerationPricing `bson:"pricing,omitempty"       json:"pricing,omitempty"`      // 定价
+	Seconds     int                     `bson:"seconds,omitempty"       json:"seconds,omitempty"`      // 秒数
+	InputTokens int                     `bson:"input_tokens,omitempty"  json:"input_tokens,omitempty"` // 输入Token数
+	SpendTokens float64                 `bson:"spend_tokens,omitempty"  json:"spend_tokens,omitempty"` // 花费Token数
 }
 
 type SearchSpend struct {

@@ -55,6 +55,7 @@ type TaskVideo struct {
 	VideoUrl           string             `json:"video_url,omitempty"`             // 视频地址
 	FileName           string             `json:"file_name,omitempty"`             // 文件名
 	FilePath           string             `json:"file_path,omitempty"`             // 文件路径
+	ResponseData       map[string]any     `json:"response_data,omitempty"`         // 响应数据
 	Error              *smodel.VideoError `json:"error,omitempty"`                 // 错误信息
 	Creator            string             `json:"creator,omitempty"`               // 创建人
 	Updater            string             `json:"updater,omitempty"`               // 更新人

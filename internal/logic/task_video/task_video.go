@@ -15,6 +15,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
@@ -23,6 +24,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	sdk "github.com/iimeta/fastapi-sdk/v2"
+	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -329,51 +331,71 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 			filePath string
 		)
 
-		if retrieve.Status == "completed" && config.Cfg.VideoTask.IsEnableStorage {
+		if retrieve.Status == "completed" {
 
-			adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-				Provider: provider.Code,
-				Model:    logVideo.Model,
-				Key:      logVideo.Key,
-				BaseUrl:  logVideo.ModelAgent.BaseUrl,
-				Path:     logVideo.ModelAgent.Path,
-				Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
-				ProxyUrl: config.Cfg.Http.ProxyUrl,
-			})
+			if provider.Code == sconsts.PROVIDER_VOLC_ENGINE && retrieve.Usage != nil {
 
-			if content, err := adapter.VideoContent(ctx, smodel.VideoContentRequest{VideoId: taskVideo.VideoId}); err != nil {
-				logger.Error(ctx, err)
-			} else {
+				// 计算花费
+				common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
 
-				filePath = config.Cfg.VideoTask.StorageDir
-
-				if filePath == "" {
-					filePath = "./resource/public/video/"
-				} else if !gstr.HasSuffix(filePath, "/") {
-					filePath = filePath + "/"
+				// 记录花费
+				if err = common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
+					logger.Error(ctx, err)
+					continue
 				}
 
-				fileName = taskVideo.VideoId + "_video.mp4"
+				if err = dao.LogVideo.UpdateById(ctx, logVideo.Id, bson.M{"spend": logVideo.Spend}); err != nil {
+					logger.Error(ctx, err)
+					continue
+				}
+			}
 
-				if err = gfile.PutBytes(filePath+fileName, content.Data); err != nil {
+			if config.Cfg.VideoTask.IsEnableStorage {
+
+				adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
+					Provider: provider.Code,
+					Model:    logVideo.Model,
+					Key:      logVideo.Key,
+					BaseUrl:  logVideo.ModelAgent.BaseUrl,
+					Path:     logVideo.ModelAgent.Path,
+					Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
+					ProxyUrl: config.Cfg.Http.ProxyUrl,
+				})
+
+				if content, err := adapter.VideoContent(ctx, smodel.VideoContentRequest{VideoId: taskVideo.VideoId}); err != nil {
 					logger.Error(ctx, err)
 				} else {
 
-					if gstr.HasPrefix(filePath, "./resource/public/") {
-						videoUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
-					} else if config.Cfg.VideoTask.StorageBaseUrl == "" {
-						videoUrl = "/open/video/" + fileName
-					} else {
-						videoUrl = fileName
+					filePath = config.Cfg.VideoTask.StorageDir
+
+					if filePath == "" {
+						filePath = "./resource/public/video/"
+					} else if !gstr.HasSuffix(filePath, "/") {
+						filePath = filePath + "/"
 					}
 
-					if config.Cfg.VideoTask.StorageExpiresAt > 0 {
-						if retrieve.CompletedAt == nil {
-							completedAt := now / 1000
-							retrieve.CompletedAt = &completedAt
+					fileName = taskVideo.VideoId + "_video.mp4"
+
+					if err = gfile.PutBytes(filePath+fileName, content.Data); err != nil {
+						logger.Error(ctx, err)
+					} else {
+
+						if gstr.HasPrefix(filePath, "./resource/public/") {
+							videoUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
+						} else if config.Cfg.VideoTask.StorageBaseUrl == "" {
+							videoUrl = "/open/video/" + fileName
+						} else {
+							videoUrl = fileName
 						}
-						expiresAt := gtime.NewFromTimeStamp(*retrieve.CompletedAt).Add(config.Cfg.VideoTask.StorageExpiresAt * time.Minute).Unix()
-						retrieve.ExpiresAt = &expiresAt
+
+						if config.Cfg.VideoTask.StorageExpiresAt > 0 {
+							if retrieve.CompletedAt == nil {
+								completedAt := now / 1000
+								retrieve.CompletedAt = &completedAt
+							}
+							expiresAt := gtime.NewFromTimeStamp(*retrieve.CompletedAt).Add(config.Cfg.VideoTask.StorageExpiresAt * time.Minute).Unix()
+							retrieve.ExpiresAt = &expiresAt
+						}
 					}
 				}
 			}
@@ -388,6 +410,7 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 			"file_name":             fileName,
 			"file_path":             filePath + fileName,
 			"remixed_from_video_id": retrieve.RemixedFromVideoId,
+			"response_data":         util.ConvToMap(retrieve.ResponseBytes),
 			"error":                 retrieve.Error,
 		}); err != nil {
 			logger.Error(ctx, err)

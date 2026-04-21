@@ -17,6 +17,8 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 			text(ctx, usage, spend)
 		case "text_cache":
 			textCache(ctx, usage, spend)
+		case "video_generation":
+			videoGeneration(ctx, usage, spend)
 		}
 	}
 
@@ -28,6 +30,10 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 	if spend.TextCache != nil {
 		spend.TextCache.SpendTokens *= 0.5
 		spend.TotalSpendTokens += spend.TextCache.SpendTokens
+	}
+
+	if spend.VideoGeneration != nil {
+		spend.TotalSpendTokens += spend.VideoGeneration.SpendTokens
 	}
 
 	// 模型时段折扣
@@ -43,7 +49,6 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 
 // 文本
 func text(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
-
 	spend.Text.InputTokens = usage.InputTokens
 	spend.Text.OutputTokens = usage.OutputTokens
 	spend.Text.ReasoningTokens = usage.OutputTokensDetails.ReasoningTokens
@@ -66,4 +71,10 @@ func textCache(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 	}
 
 	spend.TextCache.SpendTokens = math.Ceil(float64(spend.TextCache.ReadTokens) * spend.TextCache.Pricing.ReadRatio)
+}
+
+// 视频生成
+func videoGeneration(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
+	spend.VideoGeneration.InputTokens = usage.CompletionTokens
+	spend.VideoGeneration.SpendTokens = math.Ceil(float64(spend.VideoGeneration.InputTokens) * ConvRatio(spend.VideoGeneration.Pricing.OnceRatio))
 }
