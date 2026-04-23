@@ -216,7 +216,7 @@ func (s *sModelAgent) healthCheck(ctx context.Context, modelAgent *entity.ModelA
 		})
 
 		result := "1" // 成功
-		if err != nil || (res != nil && !res.Result) {
+		if err != nil || (res != nil && !res.Success) {
 			result = "0" // 失败
 		}
 
@@ -489,7 +489,7 @@ func (s *sModelAgent) smartVerify(ctx context.Context, modelAgent *entity.ModelA
 			BaseUrl:      cfg.BaseUrl,
 			Key:          cfg.Key,
 		})
-		if err != nil || (res != nil && !res.Result) {
+		if err != nil || (res != nil && !res.Success) {
 			return true
 		}
 	}
@@ -527,7 +527,7 @@ func (s *sModelAgent) smartCheckModels(ctx context.Context, modelAgent *entity.M
 					BaseUrl:      cfg.BaseUrl,
 					Key:          cfg.Key,
 				})
-				if err != nil || (res != nil && !res.Result) {
+				if err != nil || (res != nil && !res.Success) {
 					failedFromModels = append(failedFromModels, modelId)
 					logger.Infof(ctx, "SmartCheck 模型代理[%s %s]模型[%s]已标记异常, API失败%d次, 主动验证确认", modelAgent.Name, modelAgent.Id, modelId, failCount)
 				}
@@ -553,7 +553,7 @@ func (s *sModelAgent) smartCheckModels(ctx context.Context, modelAgent *entity.M
 				Key:          cfg.Key,
 			})
 
-			if err == nil && (res == nil || res.Result) {
+			if err == nil && (res == nil || res.Success) {
 				modelResultKey := fmt.Sprintf(consts.TASK_MODEL_AGENT_HEALTH_CHECK_MODEL_RESULT_KEY, modelAgent.Id, modelId)
 				record := fmt.Sprintf("%d,%s", gtime.TimestampMilli(), "1")
 				if _, err = redis.LPush(ctx, modelResultKey, record); err != nil {

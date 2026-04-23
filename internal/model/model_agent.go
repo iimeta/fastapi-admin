@@ -127,7 +127,8 @@ type ModelAgentTestModelReq struct {
 // 模型代理测试模型接口响应参数
 type ModelAgentTestModelRes struct {
 	TraceId   string `json:"trace_id"`   // 日志ID
-	Result    bool   `json:"result"`     // 结果
+	Success   bool   `json:"success"`    // 状态
+	Result    string `json:"result"`     // 结果
 	TotalTime int64  `json:"total_time"` // 总时间
 	Error     string `json:"error"`      // 错误信息
 }

@@ -1054,11 +1054,12 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 			modelAgentTestModelRes.Error = err.Error()
 		}
 
-		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.Success = err == nil
+		modelAgentTestModelRes.Result = string(response.ResponseBytes)
 		modelAgentTestModelRes.TotalTime = response.TotalTime
 
 		if response.Error != nil && modelAgentTestModelRes.Error == "" {
-			modelAgentTestModelRes.Result = false
+			modelAgentTestModelRes.Success = false
 			modelAgentTestModelRes.Error = response.Error.Error()
 		}
 
@@ -1070,7 +1071,7 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 			modelAgentTestModelRes.Error = err.Error()
 		}
 
-		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.Success = err == nil
 		modelAgentTestModelRes.TotalTime = response.TotalTime
 
 	case 5:
@@ -1081,7 +1082,7 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 			modelAgentTestModelRes.Error = err.Error()
 		}
 
-		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.Success = err == nil
 		modelAgentTestModelRes.TotalTime = response.TotalTime
 
 	case 7:
@@ -1092,7 +1093,8 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 			modelAgentTestModelRes.Error = err.Error()
 		}
 
-		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.Success = err == nil
+		modelAgentTestModelRes.Result = gconv.String(response.Data)
 		modelAgentTestModelRes.TotalTime = response.TotalTime
 
 	case 8:
@@ -1110,7 +1112,8 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 			modelAgentTestModelRes.Error = err.Error()
 		}
 
-		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.Success = err == nil
+		modelAgentTestModelRes.Result = string(response.ResponseBytes)
 		modelAgentTestModelRes.TotalTime = response.TotalTime
 
 	default:
@@ -1121,11 +1124,12 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 			modelAgentTestModelRes.Error = err.Error()
 		}
 
-		modelAgentTestModelRes.Result = err == nil
+		modelAgentTestModelRes.Success = err == nil
+		modelAgentTestModelRes.Result = string(response.ResponseBytes)
 		modelAgentTestModelRes.TotalTime = response.TotalTime
 
 		if response.Error != nil && modelAgentTestModelRes.Error == "" {
-			modelAgentTestModelRes.Result = false
+			modelAgentTestModelRes.Success = false
 			modelAgentTestModelRes.Error = response.Error.Error()
 		}
 	}
