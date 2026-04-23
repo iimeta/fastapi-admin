@@ -133,6 +133,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{AutoDisabledError: params.AutoDisabledError}
 	case "auto_enable_error":
 		sysConfig = &do.SysConfig{AutoEnableError: params.AutoEnableError}
+	case "auto_retry_error":
+		sysConfig = &do.SysConfig{AutoRetryError: params.AutoRetryError}
 	case "not_retry_error":
 		sysConfig = &do.SysConfig{NotRetryError: params.NotRetryError}
 	case "not_shield_error":
@@ -249,6 +251,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		AdminLogin:                sysConfig.AdminLogin,
 		AutoDisabledError:         sysConfig.AutoDisabledError,
 		AutoEnableError:           sysConfig.AutoEnableError,
+		AutoRetryError:            sysConfig.AutoRetryError,
 		NotRetryError:             sysConfig.NotRetryError,
 		NotShieldError:            sysConfig.NotShieldError,
 		Notice:                    sysConfig.Notice,
@@ -308,6 +311,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.AutoDisabledError = s.Default().AutoDisabledError
 	case "auto_enable_error":
 		sysConfigUpdateReq.AutoEnableError = s.Default().AutoEnableError
+	case "auto_retry_error":
+		sysConfigUpdateReq.AutoRetryError = s.Default().AutoRetryError
 	case "not_retry_error":
 		sysConfigUpdateReq.NotRetryError = s.Default().NotRetryError
 	case "not_shield_error":
@@ -510,6 +515,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}
 
+	if sysConfig.AutoRetryError == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "auto_retry_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
 	return sysConfig, nil
 }
 
@@ -621,19 +633,19 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		AutoDisabledError: &common.AutoDisabledError{
 			Open: true,
 			Errors: []string{
-				"Incorrect API key provided or has been disabled.",
-				"You exceeded your current quota.",
-				"The OpenAI account associated with this API key has been deactivated.",
-				"PERMISSION_DENIED",
-				"BILLING_DISABLED",
-				"ACCESS_TOKEN_EXPIRED",
-				"is not allowed to use Publisher Model",
-				"Resource has been exhausted",
-				"IAM_PERMISSION_DENIED",
-				"SERVICE_DISABLED",
-				"ACCOUNT_STATE_INVALID",
-				"on requests per min (RPM): Limit",
-				"on tokens per min (TPM): Limit",
+				`Incorrect API key provided or has been disabled.`,
+				`You exceeded your current quota.`,
+				`The OpenAI account associated with this API key has been deactivated.`,
+				`PERMISSION_DENIED`,
+				`BILLING_DISABLED`,
+				`ACCESS_TOKEN_EXPIRED`,
+				`is not allowed to use Publisher Model`,
+				`Resource has been exhausted`,
+				`IAM_PERMISSION_DENIED`,
+				`SERVICE_DISABLED`,
+				`ACCOUNT_STATE_INVALID`,
+				`on requests per min (RPM): Limit`,
+				`on tokens per min (TPM): Limit`,
 			},
 		},
 		AutoEnableError: &common.AutoEnableError{
@@ -651,16 +663,73 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				},
 			},
 		},
+		AutoRetryError: &common.AutoRetryError{
+			Open: true,
+			Errors: []string{
+				`content management policy`,
+				`The service is currently unable to handle additional requests`,
+				`Your credit balance is too low to access the Anthropic API`,
+				`This request would exceed your account's rate limit`,
+				`authentication`,
+				`Overloaded`,
+				`An error occurred while processing your request`,
+				`or contact us through our help center`,
+				`model is not supported`,
+				`invalid type for 'input': expected a string`,
+			},
+		},
 		NotRetryError: &common.NotRetryError{
 			Open: true,
 			Errors: []string{
-				"Please reduce the length of the messages.",
+				`Please reduce the length of the messages.`,
+				`Timeout while downloading`,
+				`You uploaded an unsupported image`,
+				`Invalid image data`,
+				`The image is too large`,
+				`safety system`,
+				`input length and max_tokens exceed context limit`,
+				`Image does not match the provided media type`,
+				`Input data may contain inappropriate content`,
+				`Too many images in request`,
+				`not found in provided tools`,
+				`prompt is too long`,
+				`image exceeds`,
+				`please check url`,
+				`aspect_ratio must be one of`,
+				`parameter.enable_thinking must be set to false for non-streaming`,
+				`Extra usage is required for long context requests`,
+				`The URL must be a valid HTTP or HTTPS URL`,
+				`Input or output data may contain inappropriate content`,
+				`Range of input length should be`,
+				`inputs are not permitted`,
+				`At least one of the image dimensions exceed max`,
 			},
 		},
 		NotShieldError: &common.NotShieldError{
 			Open: true,
 			Errors: []string{
-				"Please reduce the length of the messages.",
+				`Please reduce the length of the messages.`,
+				`Timeout while downloading`,
+				`You uploaded an unsupported image`,
+				`Invalid image data`,
+				`The image is too large`,
+				`safety system`,
+				`input length and max_tokens exceed context limit`,
+				`Image does not match the provided media type`,
+				`Input data may contain inappropriate content`,
+				`Too many images in request`,
+				`not found in provided tools`,
+				`prompt is too long`,
+				`image exceeds`,
+				`please check url`,
+				`aspect_ratio must be one of`,
+				`parameter.enable_thinking must be set to false for non-streaming`,
+				`Extra usage is required for long context requests`,
+				`The URL must be a valid HTTP or HTTPS URL`,
+				`Input or output data may contain inappropriate content`,
+				`Range of input length should be`,
+				`inputs are not permitted`,
+				`At least one of the image dimensions exceed max`,
 			},
 		},
 		Notice: &common.Notice{
