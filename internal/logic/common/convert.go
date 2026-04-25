@@ -121,8 +121,8 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 	// 阶梯文本
 	if pricing.TieredText != nil {
 		for i, tieredText := range pricing.TieredText {
-			pricing.TieredText[i].Gt *= 1024
-			pricing.TieredText[i].Lte *= 1024
+			pricing.TieredText[i].Gt *= 1000
+			pricing.TieredText[i].Lte *= 1000
 			pricing.TieredText[i].InputRatio = ConvRatio(tieredText.InputRatio)
 			pricing.TieredText[i].OutputRatio = ConvRatio(tieredText.OutputRatio)
 			pricing.TieredText[i].ReasoningRatio = ConvRatio(tieredText.ReasoningRatio)
@@ -132,8 +132,8 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 	// 阶梯文本缓存
 	if pricing.TieredTextCache != nil {
 		for i, tieredTextCache := range pricing.TieredTextCache {
-			pricing.TieredTextCache[i].Gt *= 1024
-			pricing.TieredTextCache[i].Lte *= 1024
+			pricing.TieredTextCache[i].Gt *= 1000
+			pricing.TieredTextCache[i].Lte *= 1000
 			pricing.TieredTextCache[i].ReadRatio = ConvRatio(tieredTextCache.ReadRatio)
 			pricing.TieredTextCache[i].WriteRatio = ConvRatio(tieredTextCache.WriteRatio)
 		}
@@ -201,8 +201,8 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 	// 阶梯文本
 	if pricing.TieredText != nil {
 		for i, tieredText := range pricing.TieredText {
-			pricing.TieredText[i].Gt /= 1024
-			pricing.TieredText[i].Lte /= 1024
+			pricing.TieredText[i].Gt /= 1000
+			pricing.TieredText[i].Lte /= 1000
 			pricing.TieredText[i].InputRatio = ConvPrice(tieredText.InputRatio)
 			pricing.TieredText[i].OutputRatio = ConvPrice(tieredText.OutputRatio)
 			pricing.TieredText[i].ReasoningRatio = ConvPrice(tieredText.ReasoningRatio)
@@ -212,8 +212,8 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 	// 阶梯文本缓存
 	if pricing.TieredTextCache != nil {
 		for i, tieredTextCache := range pricing.TieredTextCache {
-			pricing.TieredTextCache[i].Gt /= 1024
-			pricing.TieredTextCache[i].Lte /= 1024
+			pricing.TieredTextCache[i].Gt /= 1000
+			pricing.TieredTextCache[i].Lte /= 1000
 			pricing.TieredTextCache[i].ReadRatio = ConvPrice(tieredTextCache.ReadRatio)
 			pricing.TieredTextCache[i].WriteRatio = ConvPrice(tieredTextCache.WriteRatio)
 		}
@@ -288,8 +288,8 @@ func ConvSpend(spend common.Spend) common.Spend {
 	if spend.TieredText != nil {
 
 		if spend.TieredText.Pricing != nil {
-			spend.TieredText.Pricing.Gt /= 1024
-			spend.TieredText.Pricing.Lte /= 1024
+			spend.TieredText.Pricing.Gt /= 1000
+			spend.TieredText.Pricing.Lte /= 1000
 			spend.TieredText.Pricing.InputRatio = ConvPrice(spend.TieredText.Pricing.InputRatio)
 			spend.TieredText.Pricing.OutputRatio = ConvPrice(spend.TieredText.Pricing.OutputRatio)
 			spend.TieredText.Pricing.ReasoningRatio = ConvPrice(spend.TieredText.Pricing.ReasoningRatio)
@@ -302,8 +302,8 @@ func ConvSpend(spend common.Spend) common.Spend {
 	if spend.TieredTextCache != nil {
 
 		if spend.TieredTextCache.Pricing != nil {
-			spend.TieredTextCache.Pricing.Gt /= 1024
-			spend.TieredTextCache.Pricing.Lte /= 1024
+			spend.TieredTextCache.Pricing.Gt /= 1000
+			spend.TieredTextCache.Pricing.Lte /= 1000
 			spend.TieredTextCache.Pricing.ReadRatio = ConvPrice(spend.TieredTextCache.Pricing.ReadRatio)
 			spend.TieredTextCache.Pricing.WriteRatio = ConvPrice(spend.TieredTextCache.Pricing.WriteRatio)
 		}
