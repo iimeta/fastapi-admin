@@ -28,6 +28,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/finance"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/group"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/health"
+	"github.com/iimeta/fastapi-admin/v2/internal/controller/invite"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/key"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_audio"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_batch"
@@ -117,6 +118,13 @@ var (
 			s.AddStaticPath("/monitor/center", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
 			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
+			s.AddStaticPath("/finance/invite/relations", "./resource/fastapi-web/")
+			s.AddStaticPath("/finance/invite/rewards", "./resource/fastapi-web/")
+			s.AddStaticPath("/finance/invite/apply", "./resource/fastapi-web/")
+			s.AddStaticPath("/invite/profile", "./resource/fastapi-web/")
+			s.AddStaticPath("/invite/relations", "./resource/fastapi-web/")
+			s.AddStaticPath("/invite/rewards", "./resource/fastapi-web/")
+			s.AddStaticPath("/invite/apply", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/video", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/file", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/batch", "./resource/fastapi-web/")
@@ -258,6 +266,12 @@ var (
 				v1.Group("/finance", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						finance.NewV1(),
+					)
+				})
+
+				v1.Group("/invite", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						invite.NewV1(),
 					)
 				})
 

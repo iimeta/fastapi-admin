@@ -14,6 +14,7 @@ import (
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/dashboard"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/finance"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/group"
+	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/invite"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/key"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_audio"

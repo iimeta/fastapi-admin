@@ -89,6 +89,21 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		}
 	}
 
+	var inviterUserId int
+
+	if params.InviteCode != "" && params.Channel == consts.USER_CHANNEL {
+		inviteUserId, err := service.Invite().ResolveInviteCode(params.InviteCode)
+		if err == nil {
+			inviter, err := dao.User.FindUserByUserId(ctx, inviteUserId)
+			if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled && inviter.Rid == siteConfig.Rid) {
+				inviterUserId = inviter.UserId
+			}
+		}
+		if inviterUserId == 0 && siteConfig != nil && siteConfig.InviteInvalidCodeAction == consts.INVITE_INVALID_CODE_ACTION_BLOCK_REGISTER {
+			return errors.New("邀请码无效, 无法注册")
+		}
+	}
+
 	if params.Channel == consts.USER_CHANNEL && dao.User.IsAccountExist(ctx, params.Account) {
 		return errors.New(params.Account + " 账号已存在")
 	}
@@ -108,14 +123,17 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		salt := grand.Letters(8)
 		id := util.GenerateId()
 
+		userId := core.IncrUserId(ctx)
+
 		user := &do.User{
-			Id:      id,
-			UserId:  core.IncrUserId(ctx),
-			Name:    params.Account,
-			Email:   params.Account,
-			Groups:  groups,
-			Status:  1,
-			Creator: id,
+			Id:         id,
+			UserId:     userId,
+			Name:       params.Account,
+			Email:      params.Account,
+			Groups:     groups,
+			InviteCode: service.Invite().GenerateInviteCode(userId),
+			Status:     1,
+			Creator:    id,
 		}
 
 		if siteConfig != nil && siteConfig.GrantQuota > 0 {
@@ -150,6 +168,15 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			}
 		}
 
+		if inviterUserId != 0 && siteConfig != nil && siteConfig.InviteeGrantQuota > 0 {
+			user.Quota += siteConfig.InviteeGrantQuota
+		}
+
+		if inviterUserId != 0 {
+			user.InviterUserId = inviterUserId
+			user.InvitedAt = gtime.TimestampMilli()
+		}
+
 		uid, err := dao.User.Insert(ctx, user)
 		if err != nil {
 			logger.Error(ctx, err)
@@ -171,6 +198,26 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		}
 
 		_ = service.Common().DelCode(ctx, consts.SCENE_REGISTER, params.Account)
+
+		if inviterUserId != 0 && siteConfig != nil && siteConfig.InviteRewardQuota > 0 {
+			now := gtime.TimestampMilli()
+			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: params.InviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: g.RequestFromCtx(ctx).GetClientIp(), Status: consts.INVITE_RELATION_STATUS_VALID, RewardQuota: siteConfig.InviteRewardQuota, CreatedAt: now, UpdatedAt: now}
+			relationId, err := dao.InviteRelation.Insert(ctx, relation)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+			reward := &do.InviteReward{Id: util.GenerateId(), RelationId: relationId, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Quota: siteConfig.InviteRewardQuota, Status: consts.INVITE_REWARD_STATUS_PENDING, TriggerType: consts.SCENE_REGISTER, CreatedAt: now, UpdatedAt: now}
+			rewardId, err := dao.InviteReward.Insert(ctx, reward)
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+			if err = dao.InviteRelation.UpdateById(ctx, relationId, bson.M{"reward_id": rewardId}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
 
 		if user.Quota != 0 {
 
