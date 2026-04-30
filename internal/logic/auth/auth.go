@@ -102,7 +102,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			inviteUserId, err := service.Invite().ResolveInviteCode(inviteCode)
 			if err == nil {
 				inviter, err := dao.User.FindUserByUserId(ctx, inviteUserId)
-				if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled && inviter.Rid == siteConfig.Rid) {
+				if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled) {
 					inviterUserId = inviter.UserId
 				}
 			}

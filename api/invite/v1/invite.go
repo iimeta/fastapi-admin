@@ -5,129 +5,129 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 )
 
-// ProfileReq 我的邀请信息请求。
+// 我的邀请信息接口请求参数
 type ProfileReq struct {
 	g.Meta `path:"/profile" method:"get" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请信息接口"`
 }
 
-// ProfileRes 我的邀请信息响应。
+// 我的邀请信息接口响应参数
 type ProfileRes struct {
-	g.Meta                  `mime:"application/json" example:"json"`
-	*model.InviteProfileRes // 邀请码、邀请链接、邀请统计和收益额度概览。
+	g.Meta `mime:"application/json" example:"json"`
+	*model.InviteProfileRes
 }
 
-// RelationsPageReq 我的邀请记录分页请求。
+// 我的邀请记录分页接口请求参数
 type RelationsPageReq struct {
-	g.Meta                      `path:"/relations/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请记录分页接口"`
-	model.InviteRelationPageReq // 邀请关系筛选条件和分页参数。
+	g.Meta `path:"/relations/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请记录分页接口"`
+	model.InviteRelationPageReq
 }
 
-// RelationsPageRes 我的邀请记录分页响应。
+// 我的邀请记录分页接口响应参数
 type RelationsPageRes struct {
-	g.Meta                       `mime:"application/json" example:"json"`
-	*model.InviteRelationPageRes // 邀请关系列表和分页信息。
+	g.Meta `mime:"application/json" example:"json"`
+	*model.InviteRelationPageRes
 }
 
-// RewardsPageReq 我的邀请收益分页请求。
+// 我的邀请收益分页接口请求参数
 type RewardsPageReq struct {
-	g.Meta                    `path:"/rewards/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请收益分页接口"`
-	model.InviteRewardPageReq // 邀请收益筛选条件和分页参数。
+	g.Meta `path:"/rewards/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请收益分页接口"`
+	model.InviteRewardPageReq
 }
 
-// RewardsPageRes 我的邀请收益分页响应。
+// 我的邀请收益分页接口响应参数
 type RewardsPageRes struct {
-	g.Meta                     `mime:"application/json" example:"json"`
-	*model.InviteRewardPageRes // 邀请收益列表和分页信息。
+	g.Meta `mime:"application/json" example:"json"`
+	*model.InviteRewardPageRes
 }
 
-// RewardApplyReq 邀请收益入账申请请求。
+// 邀请收益入账申请接口请求参数
 type RewardApplyReq struct {
-	g.Meta                     `path:"/reward/apply" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"邀请收益入账申请接口"`
-	model.InviteRewardApplyReq // 待申请入账的邀请收益ID列表。
+	g.Meta `path:"/reward/apply" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"邀请收益入账申请接口"`
+	model.InviteRewardApplyReq
 }
 
-// RewardApplyRes 邀请收益入账申请响应。
+// 邀请收益入账申请接口响应参数
 type RewardApplyRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
-// RewardApplyPageReq 我的邀请收益入账申请分页请求。
+// 我的邀请收益入账申请分页接口请求参数
 type RewardApplyPageReq struct {
-	g.Meta                         `path:"/reward/apply/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请收益入账申请分页接口"`
-	model.InviteRewardApplyPageReq // 入账申请筛选条件和分页参数。
+	g.Meta `path:"/reward/apply/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请收益入账申请分页接口"`
+	model.InviteRewardApplyPageReq
 }
 
-// RewardApplyPageRes 我的邀请收益入账申请分页响应。
+// 我的邀请收益入账申请分页接口响应参数
 type RewardApplyPageRes struct {
-	g.Meta                          `mime:"application/json" example:"json"`
-	*model.InviteRewardApplyPageRes // 入账申请列表和分页信息。
+	g.Meta `mime:"application/json" example:"json"`
+	*model.InviteRewardApplyPageRes
 }
 
-// ManageRelationsPageReq 管理端邀请关系列表请求。
+// 管理端邀请关系列表接口请求参数
 type ManageRelationsPageReq struct {
-	g.Meta                      `path:"/manage/relations/page" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请关系列表接口"`
-	model.InviteRelationPageReq // 邀请关系筛选条件和分页参数。
+	g.Meta `path:"/manage/relations/page" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请关系列表接口"`
+	model.InviteRelationPageReq
 }
 
-// ManageRelationsPageRes 管理端邀请关系列表响应。
+// 管理端邀请关系列表接口响应参数
 type ManageRelationsPageRes struct {
-	g.Meta                       `mime:"application/json" example:"json"`
-	*model.InviteRelationPageRes // 邀请关系列表和分页信息。
+	g.Meta `mime:"application/json" example:"json"`
+	*model.InviteRelationPageRes
 }
 
-// ManageRewardsPageReq 管理端邀请收益列表请求。
+// 管理端邀请收益列表接口请求参数
 type ManageRewardsPageReq struct {
-	g.Meta                    `path:"/manage/rewards/page" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益列表接口"`
-	model.InviteRewardPageReq // 邀请收益筛选条件和分页参数。
+	g.Meta `path:"/manage/rewards/page" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益列表接口"`
+	model.InviteRewardPageReq
 }
 
-// ManageRewardsPageRes 管理端邀请收益列表响应。
+// 管理端邀请收益列表接口响应参数
 type ManageRewardsPageRes struct {
-	g.Meta                     `mime:"application/json" example:"json"`
-	*model.InviteRewardPageRes // 邀请收益列表和分页信息。
+	g.Meta `mime:"application/json" example:"json"`
+	*model.InviteRewardPageRes
 }
 
-// ManageRewardApplyPageReq 管理端邀请收益入账申请列表请求。
+// 管理端邀请收益入账申请列表接口请求参数
 type ManageRewardApplyPageReq struct {
-	g.Meta                         `path:"/manage/reward/apply/page" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益入账申请列表接口"`
-	model.InviteRewardApplyPageReq // 入账申请筛选条件和分页参数。
+	g.Meta `path:"/manage/reward/apply/page" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益入账申请列表接口"`
+	model.InviteRewardApplyPageReq
 }
 
-// ManageRewardApplyPageRes 管理端邀请收益入账申请列表响应。
+// 管理端邀请收益入账申请列表接口响应参数
 type ManageRewardApplyPageRes struct {
-	g.Meta                          `mime:"application/json" example:"json"`
-	*model.InviteRewardApplyPageRes // 入账申请列表和分页信息。
+	g.Meta `mime:"application/json" example:"json"`
+	*model.InviteRewardApplyPageRes
 }
 
-// ManageRewardApplyApproveReq 邀请收益入账申请审核通过请求。
+// 邀请收益入账申请审核通过接口请求参数
 type ManageRewardApplyApproveReq struct {
-	g.Meta                          `path:"/manage/reward/apply/approve" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益入账申请审核通过接口"`
-	model.InviteRewardApplyAuditReq // 入账申请ID和审核备注。
+	g.Meta `path:"/manage/reward/apply/approve" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益入账申请审核通过接口"`
+	model.InviteRewardApplyAuditReq
 }
 
-// ManageRewardApplyApproveRes 邀请收益入账申请审核通过响应。
+// 邀请收益入账申请审核通过接口响应参数
 type ManageRewardApplyApproveRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
-// ManageRewardApplyRejectReq 邀请收益入账申请审核驳回请求。
+// 邀请收益入账申请审核驳回接口请求参数
 type ManageRewardApplyRejectReq struct {
-	g.Meta                          `path:"/manage/reward/apply/reject" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益入账申请审核驳回接口"`
-	model.InviteRewardApplyAuditReq // 入账申请ID、驳回原因和收益退回策略。
+	g.Meta `path:"/manage/reward/apply/reject" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"邀请收益入账申请审核驳回接口"`
+	model.InviteRewardApplyAuditReq
 }
 
-// ManageRewardApplyRejectRes 邀请收益入账申请审核驳回响应。
+// 邀请收益入账申请审核驳回接口响应参数
 type ManageRewardApplyRejectRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
-// ManageRewardsCancelReq 作废邀请收益请求。
+// 作废邀请收益接口请求参数
 type ManageRewardsCancelReq struct {
-	g.Meta                       `path:"/manage/rewards/cancel" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"作废邀请收益接口"`
-	model.InviteRewardsCancelReq // 待作废的邀请收益ID列表和作废原因。
+	g.Meta `path:"/manage/rewards/cancel" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"作废邀请收益接口"`
+	model.InviteRewardsCancelReq
 }
 
-// ManageRewardsCancelRes 作废邀请收益响应。
+// 作废邀请收益接口响应参数
 type ManageRewardsCancelRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }

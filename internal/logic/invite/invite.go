@@ -51,7 +51,7 @@ func (s *sInvite) ResolveInviteCode(code string) (int, error) {
 	return int(userId), nil
 }
 
-// 查询当前用户邀请概览，必要时为历史用户懒生成邀请码
+// 查询当前用户邀请概览, 必要时为历史用户懒生成邀请码
 func (s *sInvite) Profile(ctx context.Context) (*model.InviteProfileRes, error) {
 	userId := service.Session().GetUserId(ctx)
 	user, err := dao.User.FindOne(ctx, bson.M{"user_id": userId})
@@ -151,7 +151,7 @@ func (s *sInvite) RewardApplyPage(ctx context.Context, params model.InviteReward
 	return s.applyPage(ctx, params)
 }
 
-// 管理端查询邀请关系列表，代理商角色自动限制为自身rid
+// 管理端查询邀请关系列表, 代理商角色自动限制为自身rid
 func (s *sInvite) ManageRelationsPage(ctx context.Context, params model.InviteRelationPageReq) (*model.InviteRelationPageRes, error) {
 	if service.Session().IsResellerRole(ctx) {
 		params.Rid = service.Session().GetRid(ctx)
@@ -159,7 +159,7 @@ func (s *sInvite) ManageRelationsPage(ctx context.Context, params model.InviteRe
 	return s.relationsPage(ctx, params)
 }
 
-// 管理端查询邀请收益列表，代理商角色自动限制为自身rid
+// 管理端查询邀请收益列表, 代理商角色自动限制为自身rid
 func (s *sInvite) ManageRewardsPage(ctx context.Context, params model.InviteRewardPageReq) (*model.InviteRewardPageRes, error) {
 	if service.Session().IsResellerRole(ctx) {
 		params.Rid = service.Session().GetRid(ctx)
@@ -257,7 +257,7 @@ func (s *sInvite) CreateRechargeRebate(ctx context.Context, inviteeUserId int, s
 	return nil
 }
 
-// 管理端查询邀请收益入账申请列表，代理商角色自动限制为自身rid
+// 管理端查询邀请收益入账申请列表, 代理商角色自动限制为自身rid
 func (s *sInvite) ManageRewardApplyPage(ctx context.Context, params model.InviteRewardApplyPageReq) (*model.InviteRewardApplyPageRes, error) {
 	if service.Session().IsResellerRole(ctx) {
 		params.Rid = service.Session().GetRid(ctx)
@@ -265,14 +265,27 @@ func (s *sInvite) ManageRewardApplyPage(ctx context.Context, params model.Invite
 	return s.applyPage(ctx, params)
 }
 
-// 审核通过邀请收益入账申请，将额度加到用户quota并写财务流水
+// 审核通过邀请收益入账申请, 将额度加到用户quota并写财务流水
 func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.InviteRewardApplyAuditReq) error {
 	filter := bson.M{"_id": params.Id, "status": consts.INVITE_REWARD_APPLY_STATUS_PENDING}
 	if service.Session().IsResellerRole(ctx) {
 		filter["rid"] = service.Session().GetRid(ctx)
 	}
 	now := gtime.TimestampMilli()
-	apply, err := dao.InviteRewardApply.FindOneAndUpdate(ctx, filter, bson.M{"status": consts.INVITE_REWARD_APPLY_STATUS_CREDITED, "audit_role": service.Session().GetRole(ctx), "audit_user_id": service.Session().GetUserId(ctx), "audit_remark": params.AuditRemark, "audited_at": now, "credited_at": now})
+	apply, err := dao.InviteRewardApply.FindOne(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+	rewards, err := dao.InviteReward.Find(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+	if len(rewards) != len(apply.RewardIds) {
+		return errors.New("存在不可入账的邀请收益")
+	}
+	apply, err = dao.InviteRewardApply.FindOneAndUpdate(ctx, filter, bson.M{"status": consts.INVITE_REWARD_APPLY_STATUS_APPROVED, "audit_role": service.Session().GetRole(ctx), "audit_user_id": service.Session().GetUserId(ctx), "audit_remark": params.AuditRemark, "audited_at": now})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -296,11 +309,11 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	if err = dao.InviteRewardApply.UpdateById(ctx, apply.Id, bson.M{"deal_record_id": dealId}); err != nil {
+	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
-	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
+	if err = dao.InviteRewardApply.UpdateOne(ctx, bson.M{"_id": apply.Id, "status": consts.INVITE_REWARD_APPLY_STATUS_APPROVED}, bson.M{"status": consts.INVITE_REWARD_APPLY_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -311,7 +324,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 	return nil
 }
 
-// 驳回邀请收益入账申请，并按参数决定收益退回待申请或标记驳回
+// 驳回邀请收益入账申请, 并按参数决定收益退回待申请或标记驳回
 func (s *sInvite) ManageRewardApplyReject(ctx context.Context, params model.InviteRewardApplyAuditReq) error {
 	filter := bson.M{"_id": params.Id, "status": consts.INVITE_REWARD_APPLY_STATUS_PENDING}
 	if service.Session().IsResellerRole(ctx) {
@@ -451,7 +464,7 @@ func (s *sInvite) sumRewardQuota(ctx context.Context, filter bson.M) int {
 	return total
 }
 
-// 获取用户所属站点配置，优先使用当前请求域名，代理商用户回退到rid配置
+// 获取用户所属站点配置, 优先使用当前请求域名, 代理商用户回退到rid配置
 func (s *sInvite) getUserSiteConfig(ctx context.Context, user *entity.User) *entity.SiteConfig {
 	if r := g.RequestFromCtx(ctx); r != nil {
 		if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, r.GetHost()); siteConfig != nil {
