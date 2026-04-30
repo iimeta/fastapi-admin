@@ -4,101 +4,121 @@ import "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 
 // 新建站点配置接口请求参数
 type SiteConfigCreateReq struct {
-	Domain                  string                `json:"domain,omitempty"`                     // 域名
-	Title                   string                `json:"title,omitempty"`                      // 标题
-	Logo                    string                `json:"logo,omitempty"`                       // Logo
-	Favicon                 string                `json:"favicon,omitempty"`                    // Favicon
-	Avatar                  string                `json:"avatar,omitempty"`                     // 头像
-	BgImg                   string                `json:"bg_img,omitempty"`                     // 背景图
-	Copyright               string                `json:"copyright,omitempty"`                  // 版权信息
-	JumpUrl                 string                `json:"jump_url,omitempty"`                   // 跳转URL
-	Keywords                string                `json:"keywords,omitempty"`                   // 关键词
-	Description             string                `json:"description,omitempty"`                // 描述
-	IcpBeian                string                `json:"icp_beian,omitempty"`                  // ICP备案
-	GaBeian                 string                `json:"ga_beian,omitempty"`                   // 公安备案
-	RegisterTips            string                `json:"register_tips,omitempty"`              // 注册提示
-	GrantQuota              float64               `json:"grant_quota,omitempty"`                // 注册授予额度
-	InviteEnabled           bool                  `json:"invite_enabled,omitempty"`             // 是否开启邀请注册
-	InviteRewardQuota       float64               `json:"invite_reward_quota,omitempty"`        // 邀请人收益额度
-	InviteeGrantQuota       float64               `json:"invitee_grant_quota,omitempty"`        // 被邀请人额外赠送额度
-	InviteMinApplyQuota     float64               `json:"invite_min_apply_quota,omitempty"`     // 最低申请入账额度
-	InviteDailyLimit        int                   `json:"invite_daily_limit,omitempty"`         // 单日邀请收益次数上限
-	InviteTotalLimit        int                   `json:"invite_total_limit,omitempty"`         // 累计邀请收益次数上限
-	InviteRuleText          string                `json:"invite_rule_text,omitempty"`           // 邀请规则说明
-	InviteInvalidCodeAction string                `json:"invite_invalid_code_action,omitempty"` // 无效邀请码处理方式
-	QuotaExpiresAt          int                   `json:"quota_expires_at,omitempty"`           // 注册授予额度过期时间, 单位: 分钟
-	SupportEmailSuffix      []string              `json:"support_email_suffix,omitempty"`       // 注册支持的邮箱后缀
-	RegisterWelcome         string                `json:"register_welcome,omitempty"`           // 注册欢迎语
-	DefaultLanguage         string                `json:"default_language,omitempty"`           // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
-	CurrencySymbol          string                `json:"currency_symbol,omitempty"`            // 货币符号
-	Host                    string                `json:"host,omitempty"`                       // 发信服务器
-	Port                    int                   `json:"port,omitempty"`                       // 发信端口号
-	UserName                string                `json:"user_name,omitempty"`                  // 发信账号
-	Password                string                `json:"password,omitempty"`                   // 发信密码
-	FromName                string                `json:"from_name,omitempty"`                  // 发信人名称
-	Carousel1Title          string                `json:"carousel1_title,omitempty"`            // 轮播图1标题
-	Carousels1              []common.Carousel     `json:"carousels1,omitempty"`                 // 轮播图1
-	Carousel2Title          string                `json:"carousel2_title,omitempty"`            // 轮播图2标题
-	Carousels2              []common.Carousel     `json:"carousels2,omitempty"`                 // 轮播图2
-	AnnouncementTitle       string                `json:"announcement_title,omitempty"`         // 公告标题
-	AnnouncementMoreUrl     string                `json:"announcement_more_url,omitempty"`      // 公告更多URL
-	Announcements           []common.Announcement `json:"announcements,omitempty"`              // 公告
-	DocumentTitle           string                `json:"document_title,omitempty"`             // 文档标题
-	DocumentMoreUrl         string                `json:"document_more_url,omitempty"`          // 文档更多URL
-	Documents               []common.Document     `json:"documents,omitempty"`                  // 文档
-	RechargeTips            string                `json:"recharge_tips,omitempty"`              // 充值提示
-	Remark                  string                `json:"remark,omitempty"`                     // 备注
-	Status                  int                   `json:"status,omitempty" d:"1"`               // 状态[1:正常, 2:禁用, -1:删除]
+	Domain                            string                `json:"domain,omitempty"`                                // 域名
+	Title                             string                `json:"title,omitempty"`                                 // 标题
+	Logo                              string                `json:"logo,omitempty"`                                  // Logo
+	Favicon                           string                `json:"favicon,omitempty"`                               // Favicon
+	Avatar                            string                `json:"avatar,omitempty"`                                // 头像
+	BgImg                             string                `json:"bg_img,omitempty"`                                // 背景图
+	Copyright                         string                `json:"copyright,omitempty"`                             // 版权信息
+	JumpUrl                           string                `json:"jump_url,omitempty"`                              // 跳转URL
+	Keywords                          string                `json:"keywords,omitempty"`                              // 关键词
+	Description                       string                `json:"description,omitempty"`                           // 描述
+	IcpBeian                          string                `json:"icp_beian,omitempty"`                             // ICP备案
+	GaBeian                           string                `json:"ga_beian,omitempty"`                              // 公安备案
+	RegisterTips                      string                `json:"register_tips,omitempty"`                         // 注册提示
+	GrantQuota                        float64               `json:"grant_quota,omitempty"`                           // 注册授予额度
+	InviteEnabled                     bool                  `json:"invite_enabled,omitempty"`                        // 是否开启邀请注册
+	InviteCodeRequired                bool                  `json:"invite_code_required,omitempty"`                  // 注册时邀请码是否必填
+	InviteRewardQuota                 float64               `json:"invite_reward_quota,omitempty"`                   // 邀请人收益额度
+	InviteeGrantQuota                 float64               `json:"invitee_grant_quota,omitempty"`                   // 被邀请人额外赠送额度
+	InviteMinApplyQuota               float64               `json:"invite_min_apply_quota,omitempty"`                // 最低申请入账额度
+	InviteDailyLimit                  int                   `json:"invite_daily_limit,omitempty"`                    // 单日邀请收益次数上限
+	InviteTotalLimit                  int                   `json:"invite_total_limit,omitempty"`                    // 累计邀请收益次数上限
+	InviteRuleText                    string                `json:"invite_rule_text,omitempty"`                      // 邀请规则说明
+	InviteInvalidCodeAction           string                `json:"invite_invalid_code_action,omitempty"`            // 无效邀请码处理方式
+	InviteRechargeRebateEnabled       bool                  `json:"invite_recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
+	InviteRechargeRebateFirstEnabled  bool                  `json:"invite_recharge_rebate_first_enabled,omitempty"`  // 首次充值返利是否开启
+	InviteRechargeRebateFirstType     string                `json:"invite_recharge_rebate_first_type,omitempty"`     // 首次充值返利类型[percent:百分比, fixed:固定额度]
+	InviteRechargeRebateFirstRate     float64               `json:"invite_recharge_rebate_first_rate,omitempty"`     // 首次充值返利比例
+	InviteRechargeRebateFirstQuota    float64               `json:"invite_recharge_rebate_first_quota,omitempty"`    // 首次充值固定返利额度
+	InviteRechargeRebateSecondEnabled bool                  `json:"invite_recharge_rebate_second_enabled,omitempty"` // 后续充值返利是否开启
+	InviteRechargeRebateSecondType    string                `json:"invite_recharge_rebate_second_type,omitempty"`    // 后续充值返利类型[percent:百分比, fixed:固定额度]
+	InviteRechargeRebateSecondRate    float64               `json:"invite_recharge_rebate_second_rate,omitempty"`    // 后续充值返利比例
+	InviteRechargeRebateSecondQuota   float64               `json:"invite_recharge_rebate_second_quota,omitempty"`   // 后续充值固定返利额度
+	QuotaExpiresAt                    int                   `json:"quota_expires_at,omitempty"`                      // 注册授予额度过期时间, 单位: 分钟
+	SupportEmailSuffix                []string              `json:"support_email_suffix,omitempty"`                  // 注册支持的邮箱后缀
+	RegisterWelcome                   string                `json:"register_welcome,omitempty"`                      // 注册欢迎语
+	DefaultLanguage                   string                `json:"default_language,omitempty"`                      // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
+	CurrencySymbol                    string                `json:"currency_symbol,omitempty"`                       // 货币符号
+	Host                              string                `json:"host,omitempty"`                                  // 发信服务器
+	Port                              int                   `json:"port,omitempty"`                                  // 发信端口号
+	UserName                          string                `json:"user_name,omitempty"`                             // 发信账号
+	Password                          string                `json:"password,omitempty"`                              // 发信密码
+	FromName                          string                `json:"from_name,omitempty"`                             // 发信人名称
+	Carousel1Title                    string                `json:"carousel1_title,omitempty"`                       // 轮播图1标题
+	Carousels1                        []common.Carousel     `json:"carousels1,omitempty"`                            // 轮播图1
+	Carousel2Title                    string                `json:"carousel2_title,omitempty"`                       // 轮播图2标题
+	Carousels2                        []common.Carousel     `json:"carousels2,omitempty"`                            // 轮播图2
+	AnnouncementTitle                 string                `json:"announcement_title,omitempty"`                    // 公告标题
+	AnnouncementMoreUrl               string                `json:"announcement_more_url,omitempty"`                 // 公告更多URL
+	Announcements                     []common.Announcement `json:"announcements,omitempty"`                         // 公告
+	DocumentTitle                     string                `json:"document_title,omitempty"`                        // 文档标题
+	DocumentMoreUrl                   string                `json:"document_more_url,omitempty"`                     // 文档更多URL
+	Documents                         []common.Document     `json:"documents,omitempty"`                             // 文档
+	RechargeTips                      string                `json:"recharge_tips,omitempty"`                         // 充值提示
+	Remark                            string                `json:"remark,omitempty"`                                // 备注
+	Status                            int                   `json:"status,omitempty" d:"1"`                          // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新站点配置接口请求参数
 type SiteConfigUpdateReq struct {
-	Id                      string                `json:"id,omitempty"`                         // ID
-	Domain                  string                `json:"domain,omitempty"`                     // 域名
-	Title                   string                `json:"title,omitempty"`                      // 标题
-	Logo                    string                `json:"logo,omitempty"`                       // Logo
-	Favicon                 string                `json:"favicon,omitempty"`                    // Favicon
-	Avatar                  string                `json:"avatar,omitempty"`                     // 头像
-	BgImg                   string                `json:"bg_img,omitempty"`                     // 背景图
-	Copyright               string                `json:"copyright,omitempty"`                  // 版权信息
-	JumpUrl                 string                `json:"jump_url,omitempty"`                   // 跳转URL
-	Keywords                string                `json:"keywords,omitempty"`                   // 关键词
-	Description             string                `json:"description,omitempty"`                // 描述
-	IcpBeian                string                `json:"icp_beian,omitempty"`                  // ICP备案
-	GaBeian                 string                `json:"ga_beian,omitempty"`                   // 公安备案
-	RegisterTips            string                `json:"register_tips,omitempty"`              // 注册提示
-	GrantQuota              float64               `json:"grant_quota,omitempty"`                // 注册授予额度
-	InviteEnabled           bool                  `json:"invite_enabled,omitempty"`             // 是否开启邀请注册
-	InviteRewardQuota       float64               `json:"invite_reward_quota,omitempty"`        // 邀请人收益额度
-	InviteeGrantQuota       float64               `json:"invitee_grant_quota,omitempty"`        // 被邀请人额外赠送额度
-	InviteMinApplyQuota     float64               `json:"invite_min_apply_quota,omitempty"`     // 最低申请入账额度
-	InviteDailyLimit        int                   `json:"invite_daily_limit,omitempty"`         // 单日邀请收益次数上限
-	InviteTotalLimit        int                   `json:"invite_total_limit,omitempty"`         // 累计邀请收益次数上限
-	InviteRuleText          string                `json:"invite_rule_text,omitempty"`           // 邀请规则说明
-	InviteInvalidCodeAction string                `json:"invite_invalid_code_action,omitempty"` // 无效邀请码处理方式
-	QuotaExpiresAt          int                   `json:"quota_expires_at,omitempty"`           // 注册授予额度过期时间, 单位: 分钟
-	SupportEmailSuffix      []string              `json:"support_email_suffix,omitempty"`       // 注册支持的邮箱后缀
-	RegisterWelcome         string                `json:"register_welcome,omitempty"`           // 注册欢迎语
-	DefaultLanguage         string                `json:"default_language,omitempty"`           // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
-	CurrencySymbol          string                `json:"currency_symbol,omitempty"`            // 货币符号
-	Host                    string                `json:"host,omitempty"`                       // 发信服务器
-	Port                    int                   `json:"port,omitempty"`                       // 发信端口号
-	UserName                string                `json:"user_name,omitempty"`                  // 发信账号
-	Password                string                `json:"password,omitempty"`                   // 发信密码
-	FromName                string                `json:"from_name,omitempty"`                  // 发信人名称
-	Carousel1Title          string                `json:"carousel1_title,omitempty"`            // 轮播图1标题
-	Carousels1              []common.Carousel     `json:"carousels1,omitempty"`                 // 轮播图1
-	Carousel2Title          string                `json:"carousel2_title,omitempty"`            // 轮播图2标题
-	Carousels2              []common.Carousel     `json:"carousels2,omitempty"`                 // 轮播图2
-	AnnouncementTitle       string                `json:"announcement_title,omitempty"`         // 公告标题
-	AnnouncementMoreUrl     string                `json:"announcement_more_url,omitempty"`      // 公告更多URL
-	Announcements           []common.Announcement `json:"announcements,omitempty"`              // 公告
-	DocumentTitle           string                `json:"document_title,omitempty"`             // 文档标题
-	DocumentMoreUrl         string                `json:"document_more_url,omitempty"`          // 文档更多URL
-	Documents               []common.Document     `json:"documents,omitempty"`                  // 文档
-	RechargeTips            string                `json:"recharge_tips,omitempty"`              // 充值提示
-	Remark                  string                `json:"remark,omitempty"`                     // 备注
-	Status                  int                   `json:"status,omitempty" d:"1"`               // 状态[1:正常, 2:禁用, -1:删除]
+	Id                                string                `json:"id,omitempty"`                                    // ID
+	Domain                            string                `json:"domain,omitempty"`                                // 域名
+	Title                             string                `json:"title,omitempty"`                                 // 标题
+	Logo                              string                `json:"logo,omitempty"`                                  // Logo
+	Favicon                           string                `json:"favicon,omitempty"`                               // Favicon
+	Avatar                            string                `json:"avatar,omitempty"`                                // 头像
+	BgImg                             string                `json:"bg_img,omitempty"`                                // 背景图
+	Copyright                         string                `json:"copyright,omitempty"`                             // 版权信息
+	JumpUrl                           string                `json:"jump_url,omitempty"`                              // 跳转URL
+	Keywords                          string                `json:"keywords,omitempty"`                              // 关键词
+	Description                       string                `json:"description,omitempty"`                           // 描述
+	IcpBeian                          string                `json:"icp_beian,omitempty"`                             // ICP备案
+	GaBeian                           string                `json:"ga_beian,omitempty"`                              // 公安备案
+	RegisterTips                      string                `json:"register_tips,omitempty"`                         // 注册提示
+	GrantQuota                        float64               `json:"grant_quota,omitempty"`                           // 注册授予额度
+	InviteEnabled                     bool                  `json:"invite_enabled,omitempty"`                        // 是否开启邀请注册
+	InviteCodeRequired                bool                  `json:"invite_code_required,omitempty"`                  // 注册时邀请码是否必填
+	InviteRewardQuota                 float64               `json:"invite_reward_quota,omitempty"`                   // 邀请人收益额度
+	InviteeGrantQuota                 float64               `json:"invitee_grant_quota,omitempty"`                   // 被邀请人额外赠送额度
+	InviteMinApplyQuota               float64               `json:"invite_min_apply_quota,omitempty"`                // 最低申请入账额度
+	InviteDailyLimit                  int                   `json:"invite_daily_limit,omitempty"`                    // 单日邀请收益次数上限
+	InviteTotalLimit                  int                   `json:"invite_total_limit,omitempty"`                    // 累计邀请收益次数上限
+	InviteRuleText                    string                `json:"invite_rule_text,omitempty"`                      // 邀请规则说明
+	InviteInvalidCodeAction           string                `json:"invite_invalid_code_action,omitempty"`            // 无效邀请码处理方式
+	InviteRechargeRebateEnabled       bool                  `json:"invite_recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
+	InviteRechargeRebateFirstEnabled  bool                  `json:"invite_recharge_rebate_first_enabled,omitempty"`  // 首次充值返利是否开启
+	InviteRechargeRebateFirstType     string                `json:"invite_recharge_rebate_first_type,omitempty"`     // 首次充值返利类型[percent:百分比, fixed:固定额度]
+	InviteRechargeRebateFirstRate     float64               `json:"invite_recharge_rebate_first_rate,omitempty"`     // 首次充值返利比例
+	InviteRechargeRebateFirstQuota    float64               `json:"invite_recharge_rebate_first_quota,omitempty"`    // 首次充值固定返利额度
+	InviteRechargeRebateSecondEnabled bool                  `json:"invite_recharge_rebate_second_enabled,omitempty"` // 后续充值返利是否开启
+	InviteRechargeRebateSecondType    string                `json:"invite_recharge_rebate_second_type,omitempty"`    // 后续充值返利类型[percent:百分比, fixed:固定额度]
+	InviteRechargeRebateSecondRate    float64               `json:"invite_recharge_rebate_second_rate,omitempty"`    // 后续充值返利比例
+	InviteRechargeRebateSecondQuota   float64               `json:"invite_recharge_rebate_second_quota,omitempty"`   // 后续充值固定返利额度
+	QuotaExpiresAt                    int                   `json:"quota_expires_at,omitempty"`                      // 注册授予额度过期时间, 单位: 分钟
+	SupportEmailSuffix                []string              `json:"support_email_suffix,omitempty"`                  // 注册支持的邮箱后缀
+	RegisterWelcome                   string                `json:"register_welcome,omitempty"`                      // 注册欢迎语
+	DefaultLanguage                   string                `json:"default_language,omitempty"`                      // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
+	CurrencySymbol                    string                `json:"currency_symbol,omitempty"`                       // 货币符号
+	Host                              string                `json:"host,omitempty"`                                  // 发信服务器
+	Port                              int                   `json:"port,omitempty"`                                  // 发信端口号
+	UserName                          string                `json:"user_name,omitempty"`                             // 发信账号
+	Password                          string                `json:"password,omitempty"`                              // 发信密码
+	FromName                          string                `json:"from_name,omitempty"`                             // 发信人名称
+	Carousel1Title                    string                `json:"carousel1_title,omitempty"`                       // 轮播图1标题
+	Carousels1                        []common.Carousel     `json:"carousels1,omitempty"`                            // 轮播图1
+	Carousel2Title                    string                `json:"carousel2_title,omitempty"`                       // 轮播图2标题
+	Carousels2                        []common.Carousel     `json:"carousels2,omitempty"`                            // 轮播图2
+	AnnouncementTitle                 string                `json:"announcement_title,omitempty"`                    // 公告标题
+	AnnouncementMoreUrl               string                `json:"announcement_more_url,omitempty"`                 // 公告更多URL
+	Announcements                     []common.Announcement `json:"announcements,omitempty"`                         // 公告
+	DocumentTitle                     string                `json:"document_title,omitempty"`                        // 文档标题
+	DocumentMoreUrl                   string                `json:"document_more_url,omitempty"`                     // 文档更多URL
+	Documents                         []common.Document     `json:"documents,omitempty"`                             // 文档
+	RechargeTips                      string                `json:"recharge_tips,omitempty"`                         // 充值提示
+	Remark                            string                `json:"remark,omitempty"`                                // 备注
+	Status                            int                   `json:"status,omitempty" d:"1"`                          // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改站点配置状态接口请求参数
@@ -143,55 +163,65 @@ type SiteConfigBatchOperateReq struct {
 }
 
 type SiteConfig struct {
-	Id                      string                `json:"id,omitempty"`                         // ID
-	Domain                  string                `json:"domain,omitempty"`                     // 域名
-	Title                   string                `json:"title,omitempty"`                      // 标题
-	Logo                    string                `json:"logo,omitempty"`                       // Logo
-	Favicon                 string                `json:"favicon,omitempty"`                    // Favicon
-	Avatar                  string                `json:"avatar,omitempty"`                     // 头像
-	BgImg                   string                `json:"bg_img,omitempty"`                     // 背景图
-	Copyright               string                `json:"copyright,omitempty"`                  // 版权信息
-	JumpUrl                 string                `json:"jump_url,omitempty"`                   // 跳转URL
-	Keywords                string                `json:"keywords,omitempty"`                   // 关键词
-	Description             string                `json:"description,omitempty"`                // 描述
-	IcpBeian                string                `json:"icp_beian,omitempty"`                  // ICP备案
-	GaBeian                 string                `json:"ga_beian,omitempty"`                   // 公安备案
-	RegisterTips            string                `json:"register_tips,omitempty"`              // 注册提示
-	GrantQuota              float64               `json:"grant_quota,omitempty"`                // 注册授予额度
-	InviteEnabled           bool                  `json:"invite_enabled,omitempty"`             // 是否开启邀请注册
-	InviteRewardQuota       float64               `json:"invite_reward_quota,omitempty"`        // 邀请人收益额度
-	InviteeGrantQuota       float64               `json:"invitee_grant_quota,omitempty"`        // 被邀请人额外赠送额度
-	InviteMinApplyQuota     float64               `json:"invite_min_apply_quota,omitempty"`     // 最低申请入账额度
-	InviteDailyLimit        int                   `json:"invite_daily_limit,omitempty"`         // 单日邀请收益次数上限
-	InviteTotalLimit        int                   `json:"invite_total_limit,omitempty"`         // 累计邀请收益次数上限
-	InviteRuleText          string                `json:"invite_rule_text,omitempty"`           // 邀请规则说明
-	InviteInvalidCodeAction string                `json:"invite_invalid_code_action,omitempty"` // 无效邀请码处理方式
-	QuotaExpiresAt          int                   `json:"quota_expires_at,omitempty"`           // 注册授予额度过期时间, 单位: 分钟
-	SupportEmailSuffix      []string              `json:"support_email_suffix,omitempty"`       // 注册支持的邮箱后缀
-	RegisterWelcome         string                `json:"register_welcome,omitempty"`           // 注册欢迎语
-	DefaultLanguage         string                `json:"default_language,omitempty"`           // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
-	CurrencySymbol          string                `json:"currency_symbol,omitempty"`            // 货币符号
-	Host                    string                `json:"host,omitempty"`                       // 发信服务器
-	Port                    int                   `json:"port,omitempty"`                       // 发信端口号
-	UserName                string                `json:"user_name,omitempty"`                  // 发信账号
-	Password                string                `json:"password,omitempty"`                   // 发信密码
-	FromName                string                `json:"from_name,omitempty"`                  // 发信人名称
-	Carousel1Title          string                `json:"carousel1_title,omitempty"`            // 轮播图1标题
-	Carousels1              []common.Carousel     `json:"carousels1,omitempty"`                 // 轮播图1
-	Carousel2Title          string                `json:"carousel2_title,omitempty"`            // 轮播图2标题
-	Carousels2              []common.Carousel     `json:"carousels2,omitempty"`                 // 轮播图2
-	AnnouncementTitle       string                `json:"announcement_title,omitempty"`         // 公告标题
-	AnnouncementMoreUrl     string                `json:"announcement_more_url,omitempty"`      // 公告更多URL
-	Announcements           []common.Announcement `json:"announcements,omitempty"`              // 公告
-	DocumentTitle           string                `json:"document_title,omitempty"`             // 文档标题
-	DocumentMoreUrl         string                `json:"document_more_url,omitempty"`          // 文档更多URL
-	Documents               []common.Document     `json:"documents,omitempty"`                  // 文档
-	RechargeTips            string                `json:"recharge_tips,omitempty"`              // 充值提示
-	Remark                  string                `json:"remark,omitempty"`                     // 备注
-	Status                  int                   `json:"status,omitempty"`                     // 状态[1:正常, 2:禁用, -1:删除]
-	UserId                  int                   `json:"user_id,omitempty"`                    // 用户ID
-	Creator                 string                `json:"creator,omitempty"`                    // 创建人
-	Updater                 string                `json:"updater,omitempty"`                    // 更新人
-	CreatedAt               string                `json:"created_at,omitempty"`                 // 创建时间
-	UpdatedAt               string                `json:"updated_at,omitempty"`                 // 更新时间
+	Id                                string                `json:"id,omitempty"`                                    // ID
+	Domain                            string                `json:"domain,omitempty"`                                // 域名
+	Title                             string                `json:"title,omitempty"`                                 // 标题
+	Logo                              string                `json:"logo,omitempty"`                                  // Logo
+	Favicon                           string                `json:"favicon,omitempty"`                               // Favicon
+	Avatar                            string                `json:"avatar,omitempty"`                                // 头像
+	BgImg                             string                `json:"bg_img,omitempty"`                                // 背景图
+	Copyright                         string                `json:"copyright,omitempty"`                             // 版权信息
+	JumpUrl                           string                `json:"jump_url,omitempty"`                              // 跳转URL
+	Keywords                          string                `json:"keywords,omitempty"`                              // 关键词
+	Description                       string                `json:"description,omitempty"`                           // 描述
+	IcpBeian                          string                `json:"icp_beian,omitempty"`                             // ICP备案
+	GaBeian                           string                `json:"ga_beian,omitempty"`                              // 公安备案
+	RegisterTips                      string                `json:"register_tips,omitempty"`                         // 注册提示
+	GrantQuota                        float64               `json:"grant_quota,omitempty"`                           // 注册授予额度
+	InviteEnabled                     bool                  `json:"invite_enabled,omitempty"`                        // 是否开启邀请注册
+	InviteCodeRequired                bool                  `json:"invite_code_required,omitempty"`                  // 注册时邀请码是否必填
+	InviteRewardQuota                 float64               `json:"invite_reward_quota,omitempty"`                   // 邀请人收益额度
+	InviteeGrantQuota                 float64               `json:"invitee_grant_quota,omitempty"`                   // 被邀请人额外赠送额度
+	InviteMinApplyQuota               float64               `json:"invite_min_apply_quota,omitempty"`                // 最低申请入账额度
+	InviteDailyLimit                  int                   `json:"invite_daily_limit,omitempty"`                    // 单日邀请收益次数上限
+	InviteTotalLimit                  int                   `json:"invite_total_limit,omitempty"`                    // 累计邀请收益次数上限
+	InviteRuleText                    string                `json:"invite_rule_text,omitempty"`                      // 邀请规则说明
+	InviteInvalidCodeAction           string                `json:"invite_invalid_code_action,omitempty"`            // 无效邀请码处理方式
+	InviteRechargeRebateEnabled       bool                  `json:"invite_recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
+	InviteRechargeRebateFirstEnabled  bool                  `json:"invite_recharge_rebate_first_enabled,omitempty"`  // 首次充值返利是否开启
+	InviteRechargeRebateFirstType     string                `json:"invite_recharge_rebate_first_type,omitempty"`     // 首次充值返利类型[percent:百分比, fixed:固定额度]
+	InviteRechargeRebateFirstRate     float64               `json:"invite_recharge_rebate_first_rate,omitempty"`     // 首次充值返利比例
+	InviteRechargeRebateFirstQuota    float64               `json:"invite_recharge_rebate_first_quota,omitempty"`    // 首次充值固定返利额度
+	InviteRechargeRebateSecondEnabled bool                  `json:"invite_recharge_rebate_second_enabled,omitempty"` // 后续充值返利是否开启
+	InviteRechargeRebateSecondType    string                `json:"invite_recharge_rebate_second_type,omitempty"`    // 后续充值返利类型[percent:百分比, fixed:固定额度]
+	InviteRechargeRebateSecondRate    float64               `json:"invite_recharge_rebate_second_rate,omitempty"`    // 后续充值返利比例
+	InviteRechargeRebateSecondQuota   float64               `json:"invite_recharge_rebate_second_quota,omitempty"`   // 后续充值固定返利额度
+	QuotaExpiresAt                    int                   `json:"quota_expires_at,omitempty"`                      // 注册授予额度过期时间, 单位: 分钟
+	SupportEmailSuffix                []string              `json:"support_email_suffix,omitempty"`                  // 注册支持的邮箱后缀
+	RegisterWelcome                   string                `json:"register_welcome,omitempty"`                      // 注册欢迎语
+	DefaultLanguage                   string                `json:"default_language,omitempty"`                      // 默认语言[zh-CN:简体中文, zh-TW:繁體中文, en-US:English]
+	CurrencySymbol                    string                `json:"currency_symbol,omitempty"`                       // 货币符号
+	Host                              string                `json:"host,omitempty"`                                  // 发信服务器
+	Port                              int                   `json:"port,omitempty"`                                  // 发信端口号
+	UserName                          string                `json:"user_name,omitempty"`                             // 发信账号
+	Password                          string                `json:"password,omitempty"`                              // 发信密码
+	FromName                          string                `json:"from_name,omitempty"`                             // 发信人名称
+	Carousel1Title                    string                `json:"carousel1_title,omitempty"`                       // 轮播图1标题
+	Carousels1                        []common.Carousel     `json:"carousels1,omitempty"`                            // 轮播图1
+	Carousel2Title                    string                `json:"carousel2_title,omitempty"`                       // 轮播图2标题
+	Carousels2                        []common.Carousel     `json:"carousels2,omitempty"`                            // 轮播图2
+	AnnouncementTitle                 string                `json:"announcement_title,omitempty"`                    // 公告标题
+	AnnouncementMoreUrl               string                `json:"announcement_more_url,omitempty"`                 // 公告更多URL
+	Announcements                     []common.Announcement `json:"announcements,omitempty"`                         // 公告
+	DocumentTitle                     string                `json:"document_title,omitempty"`                        // 文档标题
+	DocumentMoreUrl                   string                `json:"document_more_url,omitempty"`                     // 文档更多URL
+	Documents                         []common.Document     `json:"documents,omitempty"`                             // 文档
+	RechargeTips                      string                `json:"recharge_tips,omitempty"`                         // 充值提示
+	Remark                            string                `json:"remark,omitempty"`                                // 备注
+	Status                            int                   `json:"status,omitempty"`                                // 状态[1:正常, 2:禁用, -1:删除]
+	UserId                            int                   `json:"user_id,omitempty"`                               // 用户ID
+	Creator                           string                `json:"creator,omitempty"`                               // 创建人
+	Updater                           string                `json:"updater,omitempty"`                               // 更新人
+	CreatedAt                         string                `json:"created_at,omitempty"`                            // 创建时间
+	UpdatedAt                         string                `json:"updated_at,omitempty"`                            // 更新时间
 }

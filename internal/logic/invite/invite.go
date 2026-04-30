@@ -3,6 +3,7 @@ package invite
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -20,6 +21,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type sInvite struct{}
@@ -70,6 +72,15 @@ func (s *sInvite) Profile(ctx context.Context) (*model.InviteProfileRes, error) 
 		if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, r.GetHost()); siteConfig != nil {
 			res.InviteRuleText = siteConfig.InviteRuleText
 			res.InviteMinApplyQuota = common.ConvQuotaUnitReverse(siteConfig.InviteMinApplyQuota)
+			res.InviteRechargeRebateEnabled = siteConfig.InviteRechargeRebateEnabled
+			res.InviteRechargeRebateFirstEnabled = siteConfig.InviteRechargeRebateFirstEnabled
+			res.InviteRechargeRebateFirstType = siteConfig.InviteRechargeRebateFirstType
+			res.InviteRechargeRebateFirstRate = siteConfig.InviteRechargeRebateFirstRate
+			res.InviteRechargeRebateFirstQuota = common.ConvQuotaUnitReverse(siteConfig.InviteRechargeRebateFirstQuota)
+			res.InviteRechargeRebateSecondEnabled = siteConfig.InviteRechargeRebateSecondEnabled
+			res.InviteRechargeRebateSecondType = siteConfig.InviteRechargeRebateSecondType
+			res.InviteRechargeRebateSecondRate = siteConfig.InviteRechargeRebateSecondRate
+			res.InviteRechargeRebateSecondQuota = common.ConvQuotaUnitReverse(siteConfig.InviteRechargeRebateSecondQuota)
 		}
 	}
 	if total, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"inviter_user_id": userId}); err == nil {
@@ -154,6 +165,96 @@ func (s *sInvite) ManageRewardsPage(ctx context.Context, params model.InviteRewa
 		params.Rid = service.Session().GetRid(ctx)
 	}
 	return s.rewardsPage(ctx, params)
+}
+
+// 根据被邀请人充值流水生成邀请充值返利
+func (s *sInvite) CreateRechargeRebate(ctx context.Context, inviteeUserId int, sourceDealRecordId string, rechargeQuota int) error {
+	if inviteeUserId == 0 || sourceDealRecordId == "" || rechargeQuota <= 0 {
+		return nil
+	}
+	invitee, err := dao.User.FindOne(ctx, bson.M{"user_id": inviteeUserId})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+	if invitee.InviterUserId == 0 {
+		return nil
+	}
+	relation, err := dao.InviteRelation.FindOne(ctx, bson.M{"inviter_user_id": invitee.InviterUserId, "invitee_user_id": inviteeUserId, "status": consts.INVITE_RELATION_STATUS_VALID})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil
+		}
+		logger.Error(ctx, err)
+		return err
+	}
+	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, relation.Domain)
+	if siteConfig == nil && relation.Rid != 0 {
+		siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, relation.Rid)
+		if len(siteConfigs) > 0 {
+			siteConfig = siteConfigs[0]
+		}
+	}
+	if siteConfig == nil || !siteConfig.InviteEnabled || !siteConfig.InviteRechargeRebateEnabled {
+		return nil
+	}
+	rechargeCount, err := dao.DealRecord.CountDocuments(ctx, bson.M{"user_id": inviteeUserId, "type": 1, "quota": bson.M{"$gt": 0}, "status": 1, "created_at": bson.M{"$lte": gtime.TimestampMilli()}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+	sequence := int(rechargeCount)
+	enabled := false
+	rebateType := ""
+	rate := 0.0
+	rebateQuota := 0
+	if sequence == 1 {
+		enabled = siteConfig.InviteRechargeRebateFirstEnabled
+		rebateType = siteConfig.InviteRechargeRebateFirstType
+		rate = siteConfig.InviteRechargeRebateFirstRate
+		rebateQuota = siteConfig.InviteRechargeRebateFirstQuota
+	} else if sequence >= 2 {
+		enabled = siteConfig.InviteRechargeRebateSecondEnabled
+		rebateType = siteConfig.InviteRechargeRebateSecondType
+		rate = siteConfig.InviteRechargeRebateSecondRate
+		rebateQuota = siteConfig.InviteRechargeRebateSecondQuota
+	}
+	if !enabled {
+		return nil
+	}
+	if rebateType == "" {
+		rebateType = "percent"
+	}
+	exists, err := dao.InviteReward.FindOne(ctx, bson.M{"trigger_type": consts.SCENE_RECHARGE, "source_deal_record_id": sourceDealRecordId, "inviter_user_id": invitee.InviterUserId, "invitee_user_id": inviteeUserId})
+	if err == nil && exists != nil {
+		return nil
+	}
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		logger.Error(ctx, err)
+		return err
+	}
+	rewardQuota := 0
+	switch rebateType {
+	case "fixed":
+		rewardQuota = rebateQuota
+	case "percent":
+		if rate <= 0 {
+			return nil
+		}
+		rewardQuota = int(math.Floor(float64(rechargeQuota) * rate / 100))
+	default:
+		return nil
+	}
+	if rewardQuota <= 0 {
+		return nil
+	}
+	now := gtime.TimestampMilli()
+	_, err = dao.InviteReward.Insert(ctx, &do.InviteReward{Id: util.GenerateId(), RelationId: relation.Id, InviterUserId: invitee.InviterUserId, InviteeUserId: inviteeUserId, Rid: relation.Rid, Quota: rewardQuota, Status: consts.INVITE_REWARD_STATUS_PENDING, TriggerType: consts.SCENE_RECHARGE, SourceDealRecordId: sourceDealRecordId, RechargeSequence: sequence, RechargeQuota: rechargeQuota, RebateType: rebateType, RebateRate: rate, RebateQuota: rebateQuota, CreatedAt: now, UpdatedAt: now})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+	return nil
 }
 
 // 管理端查询邀请收益入账申请列表，代理商角色自动限制为自身rid
@@ -303,7 +404,7 @@ func (s *sInvite) rewardsPage(ctx context.Context, params model.InviteRewardPage
 	}
 	items := make([]*model.InviteReward, 0)
 	for _, result := range results {
-		items = append(items, &model.InviteReward{Id: result.Id, RelationId: result.RelationId, InviterUserId: result.InviterUserId, InviteeUserId: result.InviteeUserId, Rid: result.Rid, Quota: common.ConvQuotaUnitReverse(result.Quota), Status: result.Status, TriggerType: result.TriggerType, ApplyOrderId: result.ApplyOrderId, DealRecordId: result.DealRecordId, CreditedAt: util.FormatDateTime(result.CreditedAt), RejectedReason: result.RejectedReason, CancelledReason: result.CancelledReason, CreatedAt: util.FormatDateTime(result.CreatedAt), UpdatedAt: util.FormatDateTime(result.UpdatedAt)})
+		items = append(items, &model.InviteReward{Id: result.Id, RelationId: result.RelationId, InviterUserId: result.InviterUserId, InviteeUserId: result.InviteeUserId, Rid: result.Rid, Quota: common.ConvQuotaUnitReverse(result.Quota), Status: result.Status, TriggerType: result.TriggerType, SourceDealRecordId: result.SourceDealRecordId, RechargeSequence: result.RechargeSequence, RechargeQuota: common.ConvQuotaUnitReverse(result.RechargeQuota), RebateType: result.RebateType, RebateRate: result.RebateRate, RebateQuota: common.ConvQuotaUnitReverse(result.RebateQuota), ApplyOrderId: result.ApplyOrderId, DealRecordId: result.DealRecordId, CreditedAt: util.FormatDateTime(result.CreditedAt), RejectedReason: result.RejectedReason, CancelledReason: result.CancelledReason, CreatedAt: util.FormatDateTime(result.CreatedAt), UpdatedAt: util.FormatDateTime(result.UpdatedAt)})
 	}
 	return &model.InviteRewardPageRes{Items: items, Paging: &model.Paging{Page: paging.Page, PageSize: paging.PageSize, Total: paging.Total}}, nil
 }

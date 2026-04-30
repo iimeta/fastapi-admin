@@ -31,6 +31,8 @@ type (
 		ManageRelationsPage(ctx context.Context, params model.InviteRelationPageReq) (*model.InviteRelationPageRes, error)
 		// 管理端查询邀请收益列表，代理商角色自动限制为自身rid
 		ManageRewardsPage(ctx context.Context, params model.InviteRewardPageReq) (*model.InviteRewardPageRes, error)
+		// 根据被邀请人充值流水生成邀请充值返利
+		CreateRechargeRebate(ctx context.Context, inviteeUserId int, sourceDealRecordId string, rechargeQuota int) error
 		// 管理端查询邀请收益入账申请列表，代理商角色自动限制为自身rid
 		ManageRewardApplyPage(ctx context.Context, params model.InviteRewardApplyPageReq) (*model.InviteRewardApplyPageRes, error)
 		// 审核通过邀请收益入账申请，将额度加到用户quota并写财务流水

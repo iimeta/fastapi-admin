@@ -90,17 +90,25 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	}
 
 	var inviterUserId int
+	inviteCode := gstr.Trim(params.InviteCode)
 
-	if params.InviteCode != "" && params.Channel == consts.USER_CHANNEL {
-		inviteUserId, err := service.Invite().ResolveInviteCode(params.InviteCode)
-		if err == nil {
-			inviter, err := dao.User.FindUserByUserId(ctx, inviteUserId)
-			if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled && inviter.Rid == siteConfig.Rid) {
-				inviterUserId = inviter.UserId
+	if params.Channel == consts.USER_CHANNEL {
+		inviteCodeRequired := siteConfig != nil && siteConfig.InviteCodeRequired
+		if inviteCode == "" {
+			if inviteCodeRequired {
+				return errors.New("邀请码不能为空")
 			}
-		}
-		if inviterUserId == 0 && siteConfig != nil && siteConfig.InviteInvalidCodeAction == consts.INVITE_INVALID_CODE_ACTION_BLOCK_REGISTER {
-			return errors.New("邀请码无效, 无法注册")
+		} else {
+			inviteUserId, err := service.Invite().ResolveInviteCode(inviteCode)
+			if err == nil {
+				inviter, err := dao.User.FindUserByUserId(ctx, inviteUserId)
+				if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled && inviter.Rid == siteConfig.Rid) {
+					inviterUserId = inviter.UserId
+				}
+			}
+			if inviterUserId == 0 && (inviteCodeRequired || siteConfig != nil && siteConfig.InviteInvalidCodeAction == consts.INVITE_INVALID_CODE_ACTION_BLOCK_REGISTER) {
+				return errors.New("邀请码无效, 无法注册")
+			}
 		}
 	}
 
@@ -136,11 +144,11 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			Creator:    id,
 		}
 
-		if siteConfig != nil && siteConfig.GrantQuota > 0 {
+		if siteConfig != nil {
 
 			user.Rid = siteConfig.Rid
 
-			if user.Rid != 0 {
+			if siteConfig.GrantQuota > 0 && user.Rid != 0 {
 
 				tmpCtx := gctx.New()
 				tmpCtx = context.WithValue(tmpCtx, consts.SESSION_RID, user.Rid)
@@ -160,7 +168,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 					}
 				}
 
-			} else {
+			} else if siteConfig.GrantQuota > 0 {
 				user.Quota = siteConfig.GrantQuota
 				if siteConfig.QuotaExpiresAt > 0 {
 					user.QuotaExpiresAt = gtime.Now().Add(time.Duration(siteConfig.QuotaExpiresAt) * time.Minute).TimestampMilli()
@@ -199,23 +207,29 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 
 		_ = service.Common().DelCode(ctx, consts.SCENE_REGISTER, params.Account)
 
-		if inviterUserId != 0 && siteConfig != nil && siteConfig.InviteRewardQuota > 0 {
+		if inviterUserId != 0 {
 			now := gtime.TimestampMilli()
-			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: params.InviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: g.RequestFromCtx(ctx).GetClientIp(), Status: consts.INVITE_RELATION_STATUS_VALID, RewardQuota: siteConfig.InviteRewardQuota, CreatedAt: now, UpdatedAt: now}
+			rewardQuota := 0
+			if siteConfig != nil && siteConfig.InviteRewardQuota > 0 {
+				rewardQuota = siteConfig.InviteRewardQuota
+			}
+			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: inviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: g.RequestFromCtx(ctx).GetClientIp(), Status: consts.INVITE_RELATION_STATUS_VALID, RewardQuota: rewardQuota, CreatedAt: now, UpdatedAt: now}
 			relationId, err := dao.InviteRelation.Insert(ctx, relation)
 			if err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
-			reward := &do.InviteReward{Id: util.GenerateId(), RelationId: relationId, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Quota: siteConfig.InviteRewardQuota, Status: consts.INVITE_REWARD_STATUS_PENDING, TriggerType: consts.SCENE_REGISTER, CreatedAt: now, UpdatedAt: now}
-			rewardId, err := dao.InviteReward.Insert(ctx, reward)
-			if err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
-			if err = dao.InviteRelation.UpdateById(ctx, relationId, bson.M{"reward_id": rewardId}); err != nil {
-				logger.Error(ctx, err)
-				return err
+			if rewardQuota > 0 {
+				reward := &do.InviteReward{Id: util.GenerateId(), RelationId: relationId, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Quota: rewardQuota, Status: consts.INVITE_REWARD_STATUS_PENDING, TriggerType: consts.SCENE_REGISTER, CreatedAt: now, UpdatedAt: now}
+				rewardId, err := dao.InviteReward.Insert(ctx, reward)
+				if err != nil {
+					logger.Error(ctx, err)
+					return err
+				}
+				if err = dao.InviteRelation.UpdateById(ctx, relationId, bson.M{"reward_id": rewardId}); err != nil {
+					logger.Error(ctx, err)
+					return err
+				}
 			}
 		}
 
@@ -522,12 +536,14 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 				if errors.Is(err, mongo.ErrNoDocuments) {
 
 					if err = s.Register(ctx, model.RegisterReq{
-						Account:  params.Account,
-						Password: grand.Letters(8),
-						Terminal: params.Terminal,
-						Channel:  params.Channel,
-						Code:     params.Code,
-						Domain:   params.Domain,
+						Account:    params.Account,
+						Password:   grand.Letters(8),
+						Terminal:   params.Terminal,
+						Channel:    params.Channel,
+						Code:       params.Code,
+						Domain:     params.Domain,
+						Path:       params.Path,
+						InviteCode: params.InviteCode,
 					}, consts.SCENE_LOGIN); err != nil {
 						logger.Error(ctx, err)
 						return nil, err

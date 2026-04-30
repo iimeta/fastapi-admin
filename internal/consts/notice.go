@@ -3,6 +3,7 @@ package consts
 const (
 	SCENE_CODE                 = "code"                 // 安全验证
 	SCENE_REGISTER             = "register"             // 注册
+	SCENE_RECHARGE             = "recharge"             // 充值返利
 	SCENE_LOGIN                = "login"                // 登录
 	SCENE_FORGET_PASSWORD      = "forget_password"      // 找回密码
 	SCENE_USER_AGREEMENT       = "user_agreement"       // 用户协议
@@ -35,6 +36,7 @@ var QUOTA_NOTICE = map[string]string{
 var SCENE = map[string]string{
 	SCENE_CODE:                 "安全验证",
 	SCENE_REGISTER:             "注册",
+	SCENE_RECHARGE:             "充值返利",
 	SCENE_LOGIN:                "登录",
 	SCENE_FORGET_PASSWORD:      "找回密码",
 	SCENE_USER_AGREEMENT:       "用户协议",

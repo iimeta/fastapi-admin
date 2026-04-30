@@ -2,14 +2,15 @@ package model
 
 // 登录接口请求参数
 type LoginReq struct {
-	Account  string `json:"account,omitempty" v:"required"`                            // 账号
-	Password string `json:"password,omitempty"`                                        // 密码
-	Code     string `json:"code,omitempty"`                                            // 验证码
-	Terminal string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
-	Channel  string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
-	Method   string `json:"method,omitempty" v:"required|in:account,code"`             // 登录方式
-	Domain   string `json:"domain,omitempty"`                                          // 域名
-	Path     string `json:"path,omitempty"`                                            // 路径
+	Account    string `json:"account,omitempty" v:"required"`                            // 账号
+	Password   string `json:"password,omitempty"`                                        // 密码
+	Code       string `json:"code,omitempty"`                                            // 验证码
+	Terminal   string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
+	Channel    string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
+	Method     string `json:"method,omitempty" v:"required|in:account,code"`             // 登录方式
+	Domain     string `json:"domain,omitempty"`                                          // 域名
+	Path       string `json:"path,omitempty"`                                            // 路径
+	InviteCode string `json:"invite_code,omitempty"`                                     // 邀请码
 }
 
 // 登录接口响应参数

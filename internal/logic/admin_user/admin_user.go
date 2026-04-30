@@ -825,15 +825,22 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 	}
 
 	// 交易记录
-	if _, err = dao.DealRecord.Insert(ctx, &do.DealRecord{
+	dealRecordId, err := dao.DealRecord.Insert(ctx, &do.DealRecord{
 		UserId: params.UserId,
 		Quota:  int(params.Quota),
 		Type:   params.QuotaType,
 		Status: 1,
 		Rid:    newData.Rid,
-	}); err != nil {
+	})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if params.QuotaType == 1 && params.Quota > 0 {
+		if err = service.Invite().CreateRechargeRebate(ctx, params.UserId, dealRecordId, int(params.Quota)); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{

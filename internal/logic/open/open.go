@@ -58,6 +58,8 @@ func (s *sOpen) Site(ctx context.Context, params model.SiteConfigDetailReq) *mod
 		IcpBeian:            siteConfig.IcpBeian,
 		GaBeian:             siteConfig.GaBeian,
 		RegisterTips:        siteConfig.RegisterTips,
+		InviteEnabled:       siteConfig.InviteEnabled,
+		InviteCodeRequired:  siteConfig.InviteCodeRequired,
 		DefaultLanguage:     siteConfig.DefaultLanguage,
 		CurrencySymbol:      siteConfig.CurrencySymbol,
 		Carousel1Title:      siteConfig.Carousel1Title,
