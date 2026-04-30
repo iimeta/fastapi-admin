@@ -116,15 +116,14 @@ var (
 			s.AddStaticPath("/notice/template/update", "./resource/fastapi-web/")
 			s.AddStaticPath("/statistics/databoard", "./resource/fastapi-web/")
 			s.AddStaticPath("/monitor/center", "./resource/fastapi-web/")
-			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
-			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
-			s.AddStaticPath("/finance/invite/relations", "./resource/fastapi-web/")
-			s.AddStaticPath("/finance/invite/rewards", "./resource/fastapi-web/")
-			s.AddStaticPath("/finance/invite/apply", "./resource/fastapi-web/")
-			s.AddStaticPath("/invite/profile", "./resource/fastapi-web/")
 			s.AddStaticPath("/invite/relations", "./resource/fastapi-web/")
 			s.AddStaticPath("/invite/rewards", "./resource/fastapi-web/")
 			s.AddStaticPath("/invite/apply", "./resource/fastapi-web/")
+			s.AddStaticPath("/invite/manage/relations", "./resource/fastapi-web/")
+			s.AddStaticPath("/invite/manage/rewards", "./resource/fastapi-web/")
+			s.AddStaticPath("/invite/manage/apply", "./resource/fastapi-web/")
+			s.AddStaticPath("/finance/bill", "./resource/fastapi-web/")
+			s.AddStaticPath("/finance/deal", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/video", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/file", "./resource/fastapi-web/")
 			s.AddStaticPath("/task/batch", "./resource/fastapi-web/")
@@ -263,15 +262,15 @@ var (
 					)
 				})
 
-				v1.Group("/finance", func(g *ghttp.RouterGroup) {
-					g.Bind(
-						finance.NewV1(),
-					)
-				})
-
 				v1.Group("/invite", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						invite.NewV1(),
+					)
+				})
+
+				v1.Group("/finance", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						finance.NewV1(),
 					)
 				})
 
