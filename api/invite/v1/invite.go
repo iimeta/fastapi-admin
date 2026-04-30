@@ -7,7 +7,7 @@ import (
 
 // 我的邀请信息接口请求参数
 type ProfileReq struct {
-	g.Meta `path:"/profile" method:"get" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请信息接口"`
+	g.Meta `path:"/profile" method:"get" auth:"true" role:"user" tags:"invite" summary:"我的邀请信息接口"`
 }
 
 // 我的邀请信息接口响应参数
@@ -18,7 +18,7 @@ type ProfileRes struct {
 
 // 我的邀请记录分页接口请求参数
 type RelationsPageReq struct {
-	g.Meta `path:"/relations/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请记录分页接口"`
+	g.Meta `path:"/relations/page" method:"post" auth:"true" role:"user" tags:"invite" summary:"我的邀请记录分页接口"`
 	model.InviteRelationPageReq
 }
 
@@ -30,7 +30,7 @@ type RelationsPageRes struct {
 
 // 我的邀请收益分页接口请求参数
 type RewardsPageReq struct {
-	g.Meta `path:"/rewards/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请收益分页接口"`
+	g.Meta `path:"/rewards/page" method:"post" auth:"true" role:"user" tags:"invite" summary:"我的邀请收益分页接口"`
 	model.InviteRewardPageReq
 }
 
@@ -42,7 +42,7 @@ type RewardsPageRes struct {
 
 // 邀请收益入账申请接口请求参数
 type RewardApplyReq struct {
-	g.Meta `path:"/reward/apply" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"邀请收益入账申请接口"`
+	g.Meta `path:"/reward/apply" method:"post" auth:"true" role:"user" tags:"invite" summary:"邀请收益入账申请接口"`
 	model.InviteRewardApplyReq
 }
 
@@ -53,7 +53,7 @@ type RewardApplyRes struct {
 
 // 我的邀请收益入账申请分页接口请求参数
 type RewardApplyPageReq struct {
-	g.Meta `path:"/reward/apply/page" method:"post" auth:"true" role:"user,reseller,admin" tags:"invite" summary:"我的邀请收益入账申请分页接口"`
+	g.Meta `path:"/reward/apply/page" method:"post" auth:"true" role:"user" tags:"invite" summary:"我的邀请收益入账申请分页接口"`
 	model.InviteRewardApplyPageReq
 }
 

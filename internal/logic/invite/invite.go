@@ -173,13 +173,23 @@ func (s *sInvite) Profile(ctx context.Context) (*model.InviteProfileRes, error) 
 // 查询当前用户作为邀请人的邀请关系列表
 func (s *sInvite) RelationsPage(ctx context.Context, params model.InviteRelationPageReq) (*model.InviteRelationPageRes, error) {
 	params.InviterUserId = service.Session().GetUserId(ctx)
-	return s.relationsPage(ctx, params)
+	res, err := s.relationsPage(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	s.sanitizeUserRelationPage(res)
+	return res, nil
 }
 
 // 查询当前用户可申请、审核中或已入账的邀请收益列表
 func (s *sInvite) RewardsPage(ctx context.Context, params model.InviteRewardPageReq) (*model.InviteRewardPageRes, error) {
 	params.InviterUserId = service.Session().GetUserId(ctx)
-	return s.rewardsPage(ctx, params)
+	res, err := s.rewardsPage(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	s.sanitizeUserRewardPage(res)
+	return res, nil
 }
 
 // 将当前用户选中的待申请邀请收益提交为入账申请
@@ -226,7 +236,12 @@ func (s *sInvite) RewardApply(ctx context.Context, params model.InviteRewardAppl
 // 查询当前用户的邀请收益入账申请记录
 func (s *sInvite) RewardApplyPage(ctx context.Context, params model.InviteRewardApplyPageReq) (*model.InviteRewardApplyPageRes, error) {
 	params.UserId = service.Session().GetUserId(ctx)
-	return s.applyPage(ctx, params)
+	res, err := s.applyPage(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	s.sanitizeUserApplyPage(res)
+	return res, nil
 }
 
 // 管理端查询邀请关系列表, 代理商角色自动限制为自身rid
@@ -355,7 +370,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	rewards, err := dao.InviteReward.Find(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING})
+	rewards, err := dao.InviteReward.Find(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "rid": apply.Rid, "status": consts.INVITE_REWARD_STATUS_APPLYING})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -387,7 +402,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
+	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "rid": apply.Rid, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -418,7 +433,7 @@ func (s *sInvite) ManageRewardApplyReject(ctx context.Context, params model.Invi
 	if params.ReturnPending {
 		rewardStatus = consts.INVITE_REWARD_STATUS_PENDING
 	}
-	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": rewardStatus, "rejected_reason": params.RejectReason, "apply_order_id": ""}); err != nil {
+	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "rid": apply.Rid, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": rewardStatus, "rejected_reason": params.RejectReason, "apply_order_id": ""}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -500,7 +515,7 @@ func (s *sInvite) rewardsPage(ctx context.Context, params model.InviteRewardPage
 	return &model.InviteRewardPageRes{Items: items, Paging: &model.Paging{Page: paging.Page, PageSize: paging.PageSize, Total: paging.Total}}, nil
 }
 
-// applyPage 按条件分页查询邀请收益入账申请并转换为前端展示模型
+// 按条件分页查询邀请收益入账申请并转换为前端展示模型
 func (s *sInvite) applyPage(ctx context.Context, params model.InviteRewardApplyPageReq) (*model.InviteRewardApplyPageRes, error) {
 	paging := &db.Paging{Page: params.Page, PageSize: params.PageSize}
 	filter := bson.M{}
@@ -529,6 +544,57 @@ func (s *sInvite) applyPage(ctx context.Context, params model.InviteRewardApplyP
 }
 
 // 汇总符合条件的邀请收益内部额度
+func (s *sInvite) sanitizeUserRelationPage(res *model.InviteRelationPageRes) {
+	if res == nil {
+		return
+	}
+	for _, item := range res.Items {
+		item.Id = ""
+		item.InviteCode = ""
+		item.InviterUserId = 0
+		item.Rid = 0
+		item.Domain = ""
+		item.Terminal = ""
+		item.Channel = ""
+		item.Account = ""
+		item.Ip = ""
+		item.RewardId = ""
+		item.Remark = ""
+		item.UpdatedAt = ""
+	}
+}
+
+func (s *sInvite) sanitizeUserRewardPage(res *model.InviteRewardPageRes) {
+	if res == nil {
+		return
+	}
+	for _, item := range res.Items {
+		item.RelationId = ""
+		item.InviterUserId = 0
+		item.Rid = 0
+		item.SourceDealRecordId = ""
+		item.DealRecordId = ""
+		item.CancelledReason = ""
+		item.UpdatedAt = ""
+	}
+}
+
+func (s *sInvite) sanitizeUserApplyPage(res *model.InviteRewardApplyPageRes) {
+	if res == nil {
+		return
+	}
+	for _, item := range res.Items {
+		item.UserId = 0
+		item.Rid = 0
+		item.RewardIds = nil
+		item.AuditRole = ""
+		item.AuditUserId = 0
+		item.AuditRemark = ""
+		item.DealRecordId = ""
+		item.CreatedAt = ""
+		item.UpdatedAt = ""
+	}
+}
 func (s *sInvite) sumRewardQuota(ctx context.Context, filter bson.M) int {
 	rewards, err := dao.InviteReward.Find(ctx, filter)
 	if err != nil {
