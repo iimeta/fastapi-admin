@@ -83,6 +83,7 @@ var (
 			s.AddStaticPath("/reseller", "./resource/fastapi-web/")
 			s.AddStaticPath("/user-agreement", "./resource/fastapi-web/")
 			s.AddStaticPath("/privacy-policy", "./resource/fastapi-web/")
+			s.BindHandler("/register/invite/*", serveWebIndex)
 			s.AddStaticPath("/dashboard/workplace", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/model", "./resource/fastapi-web/")
 			s.AddStaticPath("/my/group", "./resource/fastapi-web/")
@@ -579,4 +580,8 @@ func checkRole(roles []string, userRole string) bool {
 		}
 	}
 	return false
+}
+
+func serveWebIndex(r *ghttp.Request) {
+	r.Response.ServeFile("./resource/fastapi-web/index.html")
 }
