@@ -99,7 +99,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 				return errors.New("邀请码不能为空")
 			}
 		} else {
-			inviteUserId, err := service.Invite().ResolveInviteCode(inviteCode)
+			inviteUserId, err := service.Invite().ResolveInviteCode(ctx, inviteCode)
 			if err == nil {
 				inviter, err := dao.User.FindUserByUserId(ctx, inviteUserId)
 				if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled) {
@@ -133,13 +133,19 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 
 		userId := core.IncrUserId(ctx)
 
+		userInviteCode, err := service.Invite().GenerateInviteCode(ctx)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
 		user := &do.User{
 			Id:         id,
 			UserId:     userId,
 			Name:       params.Account,
 			Email:      params.Account,
 			Groups:     groups,
-			InviteCode: service.Invite().GenerateInviteCode(userId),
+			InviteCode: userInviteCode,
 			Status:     1,
 			Creator:    id,
 		}

@@ -2,9 +2,13 @@ package invite
 
 import (
 	"context"
+	crand "crypto/rand"
 	"fmt"
 	"math"
-	"strconv"
+	"math/big"
+	mrand "math/rand"
+	"strings"
+	"unicode"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -24,6 +28,15 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+const (
+	inviteCodeMinLength = 5
+	inviteCodeMaxLength = 8
+	inviteCodeDigits    = 2
+	inviteCodeCharset   = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	inviteCodeNumbers   = "23456789"
+	inviteCodeMaxRetry  = 32
+)
+
 type sInvite struct{}
 
 func init() {
@@ -34,21 +47,82 @@ func New() service.IInvite {
 	return &sInvite{}
 }
 
-// 根据用户ID生成稳定的邀请码
-func (s *sInvite) GenerateInviteCode(userId int) string {
-	return "I" + strconv.FormatInt(int64(userId), 36)
+// 生成唯一随机邀请码
+func (s *sInvite) GenerateInviteCode(ctx context.Context) (string, error) {
+	for i := 0; i < inviteCodeMaxRetry; i++ {
+		code := s.generateRandomInviteCode()
+		total, err := dao.User.CountDocuments(ctx, bson.M{"invite_code": code})
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+		if total == 0 {
+			return code, nil
+		}
+	}
+	return "", errors.New("生成邀请码失败, 请稍后重试")
 }
 
-// 将邀请码解析回邀请人用户ID
-func (s *sInvite) ResolveInviteCode(code string) (int, error) {
-	if len(code) < 2 || code[0] != 'I' {
+// 校验邀请码格式并查询邀请人用户ID
+func (s *sInvite) ResolveInviteCode(ctx context.Context, code string) (int, error) {
+	code = strings.TrimSpace(code)
+	if !s.isValidInviteCodeFormat(code) {
 		return 0, errors.New("无效的邀请码")
 	}
-	userId, err := strconv.ParseInt(code[1:], 36, 64)
-	if err != nil || userId <= 0 {
-		return 0, errors.New("无效的邀请码")
+	user, err := dao.User.FindOne(ctx, bson.M{"invite_code": code})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return 0, errors.New("无效的邀请码")
+		}
+		logger.Error(ctx, err)
+		return 0, err
 	}
-	return int(userId), nil
+	return user.UserId, nil
+}
+
+func (s *sInvite) generateRandomInviteCode() string {
+	length := inviteCodeMinLength + s.randomInt(inviteCodeMaxLength-inviteCodeMinLength+1)
+	code := make([]byte, length)
+	for i := range code {
+		code[i] = inviteCodeCharset[s.randomInt(len(inviteCodeCharset))]
+	}
+	used := make(map[int]bool, inviteCodeDigits)
+	for i := 0; i < inviteCodeDigits; i++ {
+		pos := s.randomInt(length)
+		for used[pos] {
+			pos = s.randomInt(length)
+		}
+		used[pos] = true
+		code[pos] = inviteCodeNumbers[s.randomInt(len(inviteCodeNumbers))]
+	}
+	return string(code)
+}
+
+func (s *sInvite) randomInt(max int) int {
+	if max <= 0 {
+		return 0
+	}
+	index, err := crand.Int(crand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		return mrand.Intn(max)
+	}
+	return int(index.Int64())
+}
+
+func (s *sInvite) isValidInviteCodeFormat(code string) bool {
+	if len(code) < inviteCodeMinLength || len(code) > inviteCodeMaxLength {
+		return false
+	}
+	digitCount := 0
+	for _, ch := range code {
+		if !strings.ContainsRune(inviteCodeCharset, ch) {
+			return false
+		}
+		if unicode.IsDigit(ch) {
+			digitCount++
+		}
+	}
+	return digitCount >= inviteCodeDigits
 }
 
 // 查询当前用户邀请概览, 必要时为历史用户懒生成邀请码
@@ -60,8 +134,12 @@ func (s *sInvite) Profile(ctx context.Context) (*model.InviteProfileRes, error) 
 		return nil, err
 	}
 	inviteCode := user.InviteCode
-	if inviteCode == "" {
-		inviteCode = s.GenerateInviteCode(userId)
+	if !s.isValidInviteCodeFormat(inviteCode) {
+		inviteCode, err = s.GenerateInviteCode(ctx)
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 		if _, err = dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": userId}, bson.M{"invite_code": inviteCode}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
@@ -304,7 +382,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	dealId, err := dao.DealRecord.Insert(ctx, &do.DealRecord{UserId: apply.UserId, Quota: apply.TotalQuota, Type: 5, Remark: "邀请奖励入账: " + apply.OrderNo, Status: 1, Rid: newUser.Rid})
+	dealId, err := dao.DealRecord.Insert(ctx, &do.DealRecord{UserId: apply.UserId, Quota: apply.TotalQuota, Type: 5, Remark: "邀请奖励: " + apply.OrderNo, Status: 1, Rid: newUser.Rid})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err

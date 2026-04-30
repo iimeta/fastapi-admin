@@ -13,10 +13,10 @@ import (
 
 type (
 	IInvite interface {
-		// 根据用户ID生成稳定的邀请码
-		GenerateInviteCode(userId int) string
-		// 将邀请码解析回邀请人用户ID
-		ResolveInviteCode(code string) (int, error)
+		// 生成唯一随机邀请码
+		GenerateInviteCode(ctx context.Context) (string, error)
+		// 校验邀请码格式并查询邀请人用户ID
+		ResolveInviteCode(ctx context.Context, code string) (int, error)
 		// 查询当前用户邀请概览, 必要时为历史用户懒生成邀请码
 		Profile(ctx context.Context) (*model.InviteProfileRes, error)
 		// 查询当前用户作为邀请人的邀请关系列表

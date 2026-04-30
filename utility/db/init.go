@@ -65,6 +65,13 @@ func init() {
 		panic(err)
 	}
 
+	if _, err = client.Database(DefaultDatabase).Collection("user").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.M{"invite_code": 1},
+		Options: options.Index().SetUnique(true).SetSparse(true),
+	}); err != nil {
+		panic(err)
+	}
+
 	if _, err = client.Database(DefaultDatabase).Collection("account").Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys:    bson.M{"account": 1},
 		Options: options.Index().SetUnique(true),
