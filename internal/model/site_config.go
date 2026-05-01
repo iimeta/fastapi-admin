@@ -25,6 +25,10 @@ type SiteConfigCreateReq struct {
 	InviteMinApplyQuota               float64               `json:"invite_min_apply_quota,omitempty"`                // 最低申请入账额度
 	InviteDailyLimit                  int                   `json:"invite_daily_limit,omitempty"`                    // 单日邀请收益次数上限
 	InviteTotalLimit                  int                   `json:"invite_total_limit,omitempty"`                    // 累计邀请收益次数上限
+	InviteIpDailyLimit                int                   `json:"invite_ip_daily_limit,omitempty"`                 // 同IP每日邀请注册上限
+	InviteIpTotalLimit                int                   `json:"invite_ip_total_limit,omitempty"`                 // 同IP累计邀请注册上限
+	InviteIpPerInviterLimit           int                   `json:"invite_ip_per_inviter_limit,omitempty"`           // 同IP+同邀请人注册上限
+	InviteIpLimitAction               string                `json:"invite_ip_limit_action,omitempty"`                // IP限制触发动作[block:拒绝注册, silent:允许注册但不发放额度]
 	InviteRuleText                    string                `json:"invite_rule_text,omitempty"`                      // 邀请规则说明
 	InviteInvalidCodeAction           string                `json:"invite_invalid_code_action,omitempty"`            // 无效邀请码处理方式
 	InviteRechargeRebateEnabled       bool                  `json:"invite_recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
@@ -85,6 +89,10 @@ type SiteConfigUpdateReq struct {
 	InviteMinApplyQuota               float64               `json:"invite_min_apply_quota,omitempty"`                // 最低申请入账额度
 	InviteDailyLimit                  int                   `json:"invite_daily_limit,omitempty"`                    // 单日邀请收益次数上限
 	InviteTotalLimit                  int                   `json:"invite_total_limit,omitempty"`                    // 累计邀请收益次数上限
+	InviteIpDailyLimit                int                   `json:"invite_ip_daily_limit,omitempty"`                 // 同IP每日邀请注册上限
+	InviteIpTotalLimit                int                   `json:"invite_ip_total_limit,omitempty"`                 // 同IP累计邀请注册上限
+	InviteIpPerInviterLimit           int                   `json:"invite_ip_per_inviter_limit,omitempty"`           // 同IP+同邀请人注册上限
+	InviteIpLimitAction               string                `json:"invite_ip_limit_action,omitempty"`                // IP限制触发动作[block:拒绝注册, silent:允许注册但不发放额度]
 	InviteRuleText                    string                `json:"invite_rule_text,omitempty"`                      // 邀请规则说明
 	InviteInvalidCodeAction           string                `json:"invite_invalid_code_action,omitempty"`            // 无效邀请码处理方式
 	InviteRechargeRebateEnabled       bool                  `json:"invite_recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
@@ -185,6 +193,10 @@ type SiteConfig struct {
 	InviteMinApplyQuota               float64               `json:"invite_min_apply_quota,omitempty"`                // 最低申请入账额度
 	InviteDailyLimit                  int                   `json:"invite_daily_limit,omitempty"`                    // 单日邀请收益次数上限
 	InviteTotalLimit                  int                   `json:"invite_total_limit,omitempty"`                    // 累计邀请收益次数上限
+	InviteIpDailyLimit                int                   `json:"invite_ip_daily_limit,omitempty"`                 // 同IP每日邀请注册上限
+	InviteIpTotalLimit                int                   `json:"invite_ip_total_limit,omitempty"`                 // 同IP累计邀请注册上限
+	InviteIpPerInviterLimit           int                   `json:"invite_ip_per_inviter_limit,omitempty"`           // 同IP+同邀请人注册上限
+	InviteIpLimitAction               string                `json:"invite_ip_limit_action,omitempty"`                // IP限制触发动作[block:拒绝注册, silent:允许注册但不发放额度]
 	InviteRuleText                    string                `json:"invite_rule_text,omitempty"`                      // 邀请规则说明
 	InviteInvalidCodeAction           string                `json:"invite_invalid_code_action,omitempty"`            // 无效邀请码处理方式
 	InviteRechargeRebateEnabled       bool                  `json:"invite_recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利

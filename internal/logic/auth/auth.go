@@ -90,6 +90,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	}
 
 	var inviterUserId int
+	var inviterRid int
 	inviteCode := gstr.Trim(params.InviteCode)
 
 	if params.Channel == consts.USER_CHANNEL {
@@ -104,6 +105,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 				inviter, err := dao.User.FindUserByUserId(ctx, inviteUserId)
 				if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled) {
 					inviterUserId = inviter.UserId
+					inviterRid = inviter.Rid
 				}
 			}
 			if inviterUserId == 0 && (inviteCodeRequired || siteConfig != nil && siteConfig.InviteInvalidCodeAction == consts.INVITE_INVALID_CODE_ACTION_BLOCK_REGISTER) {
@@ -182,7 +184,19 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			}
 		}
 
-		if inviterUserId != 0 && siteConfig != nil && siteConfig.InviteeGrantQuota > 0 {
+		// IP限制检查: 防止恶意邀请注册套取额度
+		ipLimited := false
+		if inviterUserId != 0 && siteConfig != nil {
+			registerIp := g.RequestFromCtx(ctx).GetClientIp()
+			if service.Invite().CheckInviteIpLimit(ctx, registerIp, inviterUserId, siteConfig) {
+				if siteConfig.InviteIpLimitAction == "block" {
+					return errors.New("注册过于频繁, 请稍后再试")
+				}
+				ipLimited = true
+			}
+		}
+
+		if inviterUserId != 0 && !ipLimited && siteConfig != nil && siteConfig.InviteeGrantQuota > 0 {
 			user.Quota += siteConfig.InviteeGrantQuota
 		}
 
@@ -216,26 +230,16 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		if inviterUserId != 0 {
 			now := gtime.TimestampMilli()
 			rewardQuota := 0
-			if siteConfig != nil && siteConfig.InviteRewardQuota > 0 {
+			relationStatus := consts.INVITE_RELATION_STATUS_REGISTERED
+			if ipLimited {
+				relationStatus = consts.INVITE_RELATION_STATUS_INVALID
+			} else if siteConfig != nil && siteConfig.InviteRewardQuota > 0 {
 				rewardQuota = siteConfig.InviteRewardQuota
 			}
-			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: inviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: g.RequestFromCtx(ctx).GetClientIp(), Status: consts.INVITE_RELATION_STATUS_VALID, RewardQuota: rewardQuota, CreatedAt: now, UpdatedAt: now}
-			relationId, err := dao.InviteRelation.Insert(ctx, relation)
-			if err != nil {
+			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: inviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: inviterRid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: g.RequestFromCtx(ctx).GetClientIp(), Status: relationStatus, RewardQuota: rewardQuota, CreatedAt: now, UpdatedAt: now}
+			if _, err = dao.InviteRelation.Insert(ctx, relation); err != nil {
 				logger.Error(ctx, err)
 				return err
-			}
-			if rewardQuota > 0 {
-				reward := &do.InviteReward{Id: util.GenerateId(), RelationId: relationId, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: user.Rid, Quota: rewardQuota, Status: consts.INVITE_REWARD_STATUS_PENDING, TriggerType: consts.SCENE_REGISTER, CreatedAt: now, UpdatedAt: now}
-				rewardId, err := dao.InviteReward.Insert(ctx, reward)
-				if err != nil {
-					logger.Error(ctx, err)
-					return err
-				}
-				if err = dao.InviteRelation.UpdateById(ctx, relationId, bson.M{"reward_id": rewardId}); err != nil {
-					logger.Error(ctx, err)
-					return err
-				}
 			}
 		}
 
@@ -591,6 +595,11 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			"login_domain": params.Domain,
 		}); err != nil {
 			logger.Error(ctx, err)
+		}
+
+		// 首次登录激活邀请关系并创建注册奖励
+		if user.InviterUserId != 0 {
+			service.Invite().ActivateInviteRelation(ctx, user.UserId)
 		}
 
 		if token, err = s.GenUserToken(ctx, &model.User{

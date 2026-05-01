@@ -5,6 +5,8 @@ type InviteProfileRes struct {
 	InviteCode                        string  `json:"invite_code,omitempty"`                           // 当前用户的邀请码
 	InviteLink                        string  `json:"invite_link,omitempty"`                           // 当前用户的邀请注册链接
 	InviteRuleText                    string  `json:"invite_rule_text,omitempty"`                      // 站点配置的邀请规则说明
+	InviteRewardQuota                 float64 `json:"invite_reward_quota,omitempty"`                   // 邀请人每次邀请获得的收益额度
+	InviteeGrantQuota                 float64 `json:"invitee_grant_quota,omitempty"`                   // 被邀请人通过邀请注册额外获得的额度
 	TotalInvites                      int64   `json:"total_invites,omitempty"`                         // 当前用户累计邀请成功人数
 	PendingQuota                      float64 `json:"pending_quota,omitempty"`                         // 待申请入账的邀请收益额度
 	ApplyingQuota                     float64 `json:"applying_quota,omitempty"`                        // 已提交申请、审核中的邀请收益额度
@@ -86,6 +88,11 @@ type InviteRewardApplyAuditReq struct {
 type InviteRewardsCancelReq struct {
 	Ids             []string `json:"ids,omitempty" v:"required"` // 需要作废的邀请收益ID列表
 	CancelledReason string   `json:"cancelled_reason,omitempty"` // 作废原因
+}
+
+// 取消邀请关系接口请求参数
+type InviteRelationCancelReq struct {
+	Ids []string `json:"ids,omitempty" v:"required"` // 需要取消的邀请关系ID列表
 }
 
 // 邀请关系

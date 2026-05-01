@@ -28,6 +28,10 @@ type SiteConfig struct {
 	InviteMinApplyQuota               int                   `bson:"invite_min_apply_quota"`                // 最低申请入账额度
 	InviteDailyLimit                  int                   `bson:"invite_daily_limit"`                    // 单日邀请收益次数上限
 	InviteTotalLimit                  int                   `bson:"invite_total_limit"`                    // 累计邀请收益次数上限
+	InviteIpDailyLimit                int                   `bson:"invite_ip_daily_limit"`                 // 同IP每日邀请注册上限
+	InviteIpTotalLimit                int                   `bson:"invite_ip_total_limit"`                 // 同IP累计邀请注册上限
+	InviteIpPerInviterLimit           int                   `bson:"invite_ip_per_inviter_limit"`           // 同IP+同邀请人注册上限
+	InviteIpLimitAction               string                `bson:"invite_ip_limit_action"`                // IP限制触发动作[block:拒绝注册, silent:允许注册但不发放额度]
 	InviteRuleText                    string                `bson:"invite_rule_text"`                      // 邀请规则说明
 	InviteInvalidCodeAction           string                `bson:"invite_invalid_code_action"`            // 无效邀请码处理方式
 	InviteRechargeRebateEnabled       bool                  `bson:"invite_recharge_rebate_enabled"`        // 是否开启邀请充值返利

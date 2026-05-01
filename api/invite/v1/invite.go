@@ -131,3 +131,14 @@ type ManageRewardsCancelReq struct {
 type ManageRewardsCancelRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
+
+// 取消邀请关系接口请求参数
+type ManageRelationsCancelReq struct {
+	g.Meta `path:"/manage/relations/cancel" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"取消邀请关系接口"`
+	model.InviteRelationCancelReq
+}
+
+// 取消邀请关系接口响应参数
+type ManageRelationsCancelRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

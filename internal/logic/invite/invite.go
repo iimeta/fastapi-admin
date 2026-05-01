@@ -149,6 +149,8 @@ func (s *sInvite) Profile(ctx context.Context) (*model.InviteProfileRes, error) 
 	if r := g.RequestFromCtx(ctx); r != nil {
 		if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, r.GetHost()); siteConfig != nil {
 			res.InviteRuleText = siteConfig.InviteRuleText
+			res.InviteRewardQuota = common.ConvQuotaUnitReverse(siteConfig.InviteRewardQuota)
+			res.InviteeGrantQuota = common.ConvQuotaUnitReverse(siteConfig.InviteeGrantQuota)
 			res.InviteMinApplyQuota = common.ConvQuotaUnitReverse(siteConfig.InviteMinApplyQuota)
 			res.InviteRechargeRebateEnabled = siteConfig.InviteRechargeRebateEnabled
 			res.InviteRechargeRebateFirstEnabled = siteConfig.InviteRechargeRebateFirstEnabled
@@ -249,7 +251,14 @@ func (s *sInvite) ManageRelationsPage(ctx context.Context, params model.InviteRe
 	if service.Session().IsResellerRole(ctx) {
 		params.Rid = service.Session().GetRid(ctx)
 	}
-	return s.relationsPage(ctx, params)
+	res, err := s.relationsPage(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	if service.Session().IsResellerRole(ctx) {
+		s.sanitizeResellerRelationPage(res)
+	}
+	return res, nil
 }
 
 // 管理端查询邀请收益列表, 代理商角色自动限制为自身rid
@@ -341,6 +350,9 @@ func (s *sInvite) CreateRechargeRebate(ctx context.Context, inviteeUserId int, s
 	if rewardQuota <= 0 {
 		return nil
 	}
+	if s.CheckRewardLimit(ctx, invitee.InviterUserId, siteConfig) {
+		return nil
+	}
 	now := gtime.TimestampMilli()
 	_, err = dao.InviteReward.Insert(ctx, &do.InviteReward{Id: util.GenerateId(), RelationId: relation.Id, InviterUserId: invitee.InviterUserId, InviteeUserId: inviteeUserId, Rid: relation.Rid, Quota: rewardQuota, Status: consts.INVITE_REWARD_STATUS_PENDING, TriggerType: consts.SCENE_RECHARGE, SourceDealRecordId: sourceDealRecordId, RechargeSequence: sequence, RechargeQuota: rechargeQuota, RebateType: rebateType, RebateRate: rate, RebateQuota: rebateQuota, CreatedAt: now, UpdatedAt: now})
 	if err != nil {
@@ -370,7 +382,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	rewards, err := dao.InviteReward.Find(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "rid": apply.Rid, "status": consts.INVITE_REWARD_STATUS_APPLYING})
+	rewards, err := dao.InviteReward.Find(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -402,7 +414,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "rid": apply.Rid, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
+	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -433,7 +445,7 @@ func (s *sInvite) ManageRewardApplyReject(ctx context.Context, params model.Invi
 	if params.ReturnPending {
 		rewardStatus = consts.INVITE_REWARD_STATUS_PENDING
 	}
-	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "rid": apply.Rid, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": rewardStatus, "rejected_reason": params.RejectReason, "apply_order_id": ""}); err != nil {
+	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": rewardStatus, "rejected_reason": params.RejectReason, "apply_order_id": ""}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -450,6 +462,54 @@ func (s *sInvite) ManageRewardsCancel(ctx context.Context, params model.InviteRe
 		logger.Error(ctx, err)
 		return err
 	}
+	return nil
+}
+
+// 取消邀请关系, 同时撤销关联的待申请收益
+func (s *sInvite) ManageRelationsCancel(ctx context.Context, params model.InviteRelationCancelReq) error {
+
+	filter := bson.M{
+		"_id":    bson.M{"$in": params.Ids},
+		"status": bson.M{"$in": []int{consts.INVITE_RELATION_STATUS_REGISTERED, consts.INVITE_RELATION_STATUS_VALID}},
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
+
+	// 查出即将被取消的关系, 用于后续撤销关联收益
+	relations, err := dao.InviteRelation.Find(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if len(relations) == 0 {
+		return nil
+	}
+
+	// 更新邀请关系状态为已取消
+	if err = dao.InviteRelation.UpdateMany(ctx, filter, bson.M{"status": consts.INVITE_RELATION_STATUS_CANCELLED}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	// 收集关系ID, 撤销这些关系下的待申请收益
+	relationIds := make([]string, 0, len(relations))
+	for _, r := range relations {
+		relationIds = append(relationIds, r.Id)
+	}
+
+	rewardFilter := bson.M{
+		"relation_id": bson.M{"$in": relationIds},
+		"status":      consts.INVITE_REWARD_STATUS_PENDING,
+	}
+
+	if err = dao.InviteReward.UpdateMany(ctx, rewardFilter, bson.M{"status": consts.INVITE_REWARD_STATUS_CANCELLED, "cancelled_reason": "邀请关系已取消"}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
 	return nil
 }
 
@@ -574,8 +634,17 @@ func (s *sInvite) sanitizeUserRewardPage(res *model.InviteRewardPageRes) {
 		item.Rid = 0
 		item.SourceDealRecordId = ""
 		item.DealRecordId = ""
-		item.CancelledReason = ""
 		item.UpdatedAt = ""
+	}
+}
+
+// 代理商管理端: 隐藏注册IP, 仅管理员可见
+func (s *sInvite) sanitizeResellerRelationPage(res *model.InviteRelationPageRes) {
+	if res == nil {
+		return
+	}
+	for _, item := range res.Items {
+		item.Ip = ""
 	}
 }
 
@@ -608,6 +677,74 @@ func (s *sInvite) sumRewardQuota(ctx context.Context, filter bson.M) int {
 	return total
 }
 
+// 校验邀请注册IP限制, 返回true表示已触发限制
+func (s *sInvite) CheckInviteIpLimit(ctx context.Context, ip string, inviterUserId int, siteConfig *entity.SiteConfig) bool {
+	if siteConfig == nil || ip == "" {
+		return false
+	}
+	if siteConfig.InviteIpDailyLimit > 0 {
+		todayStart := gtime.Now().StartOfDay().TimestampMilli()
+		count, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"ip": ip, "created_at": bson.M{"$gte": todayStart}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return true
+		}
+		if int(count) >= siteConfig.InviteIpDailyLimit {
+			return true
+		}
+	}
+	if siteConfig.InviteIpTotalLimit > 0 {
+		count, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"ip": ip})
+		if err != nil {
+			logger.Error(ctx, err)
+			return true
+		}
+		if int(count) >= siteConfig.InviteIpTotalLimit {
+			return true
+		}
+	}
+	if siteConfig.InviteIpPerInviterLimit > 0 {
+		count, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"ip": ip, "inviter_user_id": inviterUserId})
+		if err != nil {
+			logger.Error(ctx, err)
+			return true
+		}
+		if int(count) >= siteConfig.InviteIpPerInviterLimit {
+			return true
+		}
+	}
+	return false
+}
+
+// 校验邀请人是否超出单日或累计收益次数上限, 返回true表示已达上限
+func (s *sInvite) CheckRewardLimit(ctx context.Context, inviterUserId int, siteConfig *entity.SiteConfig) bool {
+	if siteConfig == nil {
+		return false
+	}
+	if siteConfig.InviteDailyLimit > 0 {
+		todayStart := gtime.Now().StartOfDay().TimestampMilli()
+		dailyCount, err := dao.InviteReward.CountDocuments(ctx, bson.M{"inviter_user_id": inviterUserId, "created_at": bson.M{"$gte": todayStart}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return true
+		}
+		if int(dailyCount) >= siteConfig.InviteDailyLimit {
+			return true
+		}
+	}
+	if siteConfig.InviteTotalLimit > 0 {
+		totalCount, err := dao.InviteReward.CountDocuments(ctx, bson.M{"inviter_user_id": inviterUserId})
+		if err != nil {
+			logger.Error(ctx, err)
+			return true
+		}
+		if int(totalCount) >= siteConfig.InviteTotalLimit {
+			return true
+		}
+	}
+	return false
+}
+
 // 获取用户所属站点配置, 优先使用当前请求域名, 代理商用户回退到rid配置
 func (s *sInvite) getUserSiteConfig(ctx context.Context, user *entity.User) *entity.SiteConfig {
 	if r := g.RequestFromCtx(ctx); r != nil {
@@ -623,4 +760,40 @@ func (s *sInvite) getUserSiteConfig(ctx context.Context, user *entity.User) *ent
 		return nil
 	}
 	return siteConfigs[0]
+}
+
+// 用户首次登录时激活邀请关系: REGISTERED(1)->VALID(2), 并创建注册奖励
+func (s *sInvite) ActivateInviteRelation(ctx context.Context, inviteeUserId int) {
+	relation, err := dao.InviteRelation.FindOneAndUpdate(ctx, bson.M{"invitee_user_id": inviteeUserId, "status": consts.INVITE_RELATION_STATUS_REGISTERED}, bson.M{"status": consts.INVITE_RELATION_STATUS_VALID})
+	if err != nil {
+		if !errors.Is(err, mongo.ErrNoDocuments) {
+			logger.Error(ctx, err)
+		}
+		return
+	}
+	if relation.RewardQuota <= 0 || relation.InviterUserId == 0 {
+		return
+	}
+	inviter, err := dao.User.FindOne(ctx, bson.M{"user_id": relation.InviterUserId, "status": 1})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+	siteConfig := s.getUserSiteConfig(ctx, inviter)
+	if siteConfig != nil && !siteConfig.InviteEnabled {
+		return
+	}
+	if s.CheckRewardLimit(ctx, relation.InviterUserId, siteConfig) {
+		return
+	}
+	now := gtime.TimestampMilli()
+	reward := &do.InviteReward{Id: util.GenerateId(), RelationId: relation.Id, InviterUserId: relation.InviterUserId, InviteeUserId: inviteeUserId, Rid: relation.Rid, Quota: relation.RewardQuota, Status: consts.INVITE_REWARD_STATUS_PENDING, TriggerType: consts.SCENE_REGISTER, CreatedAt: now, UpdatedAt: now}
+	rewardId, err := dao.InviteReward.Insert(ctx, reward)
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+	if err = dao.InviteRelation.UpdateById(ctx, relation.Id, bson.M{"reward_id": rewardId}); err != nil {
+		logger.Error(ctx, err)
+	}
 }

@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
 )
 
 type (
@@ -41,6 +42,14 @@ type (
 		ManageRewardApplyReject(ctx context.Context, params model.InviteRewardApplyAuditReq) error
 		// 作废尚未申请入账的邀请收益
 		ManageRewardsCancel(ctx context.Context, params model.InviteRewardsCancelReq) error
+		// 取消邀请关系, 同时撤销关联的待申请收益
+		ManageRelationsCancel(ctx context.Context, params model.InviteRelationCancelReq) error
+		// 校验邀请注册IP限制, 返回true表示已触发限制
+		CheckInviteIpLimit(ctx context.Context, ip string, inviterUserId int, siteConfig *entity.SiteConfig) bool
+		// 校验邀请人是否超出单日或累计收益次数上限, 返回true表示已达上限
+		CheckRewardLimit(ctx context.Context, inviterUserId int, siteConfig *entity.SiteConfig) bool
+		// 用户首次登录时激活邀请关系: REGISTERED(1)->VALID(2), 并创建注册奖励
+		ActivateInviteRelation(ctx context.Context, inviteeUserId int)
 	}
 )
 
