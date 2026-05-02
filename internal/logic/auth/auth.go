@@ -108,7 +108,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 					inviterRid = inviter.Rid
 				}
 			}
-			if inviterUserId == 0 && (inviteCodeRequired || siteConfig != nil && siteConfig.InviteInvalidCodeAction == consts.INVITE_INVALID_CODE_ACTION_BLOCK_REGISTER) {
+			if inviterUserId == 0 && (inviteCodeRequired || siteConfig != nil && siteConfig.InviteConfig.InvalidCodeAction == consts.INVITE_INVALID_CODE_ACTION_BLOCK_REGISTER) {
 				return errors.New("邀请码无效, 无法注册")
 			}
 		}
@@ -189,15 +189,15 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		if inviterUserId != 0 && siteConfig != nil {
 			registerIp := g.RequestFromCtx(ctx).GetClientIp()
 			if service.Invite().CheckInviteIpLimit(ctx, registerIp, inviterUserId, siteConfig) {
-				if siteConfig.InviteIpLimitAction == "block" {
+				if siteConfig.InviteConfig.IpLimitAction == "block" {
 					return errors.New("注册过于频繁, 请稍后再试")
 				}
 				ipLimited = true
 			}
 		}
 
-		if inviterUserId != 0 && !ipLimited && siteConfig != nil && siteConfig.InviteeGrantQuota > 0 {
-			user.Quota += siteConfig.InviteeGrantQuota
+		if inviterUserId != 0 && !ipLimited && siteConfig != nil && siteConfig.InviteConfig.GrantQuota > 0 {
+			user.Quota += siteConfig.InviteConfig.GrantQuota
 		}
 
 		if inviterUserId != 0 {
@@ -233,8 +233,8 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			relationStatus := consts.INVITE_RELATION_STATUS_REGISTERED
 			if ipLimited {
 				relationStatus = consts.INVITE_RELATION_STATUS_INVALID
-			} else if siteConfig != nil && siteConfig.InviteRewardQuota > 0 {
-				rewardQuota = siteConfig.InviteRewardQuota
+			} else if siteConfig != nil && siteConfig.InviteConfig.RewardQuota > 0 {
+				rewardQuota = siteConfig.InviteConfig.RewardQuota
 			}
 			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: inviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: inviterRid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: g.RequestFromCtx(ctx).GetClientIp(), Status: relationStatus, RewardQuota: rewardQuota, CreatedAt: now, UpdatedAt: now}
 			if _, err = dao.InviteRelation.Insert(ctx, relation); err != nil {

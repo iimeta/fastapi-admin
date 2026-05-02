@@ -2,26 +2,26 @@ package model
 
 // 我的邀请信息接口响应参数
 type InviteProfileRes struct {
-	InviteCode                        string  `json:"invite_code,omitempty"`                           // 当前用户的邀请码
-	InviteLink                        string  `json:"invite_link,omitempty"`                           // 当前用户的邀请注册链接
-	InviteRuleText                    string  `json:"invite_rule_text,omitempty"`                      // 站点配置的邀请规则说明
-	InviteRewardQuota                 float64 `json:"invite_reward_quota,omitempty"`                   // 邀请人每次邀请获得的收益额度
-	InviteeGrantQuota                 float64 `json:"invitee_grant_quota,omitempty"`                   // 被邀请人通过邀请注册额外获得的额度
-	TotalInvites                      int64   `json:"total_invites,omitempty"`                         // 当前用户累计邀请成功人数
-	PendingQuota                      float64 `json:"pending_quota,omitempty"`                         // 待申请入账的邀请收益额度
-	ApplyingQuota                     float64 `json:"applying_quota,omitempty"`                        // 已提交申请、审核中的邀请收益额度
-	CreditedQuota                     float64 `json:"credited_quota,omitempty"`                        // 已审核通过并入账的邀请收益额度
-	CurrentQuota                      float64 `json:"current_quota,omitempty"`                         // 当前用户现有可用额度
-	InviteMinApplyQuota               float64 `json:"invite_min_apply_quota,omitempty"`                // 邀请收益最低申请入账额度
-	InviteRechargeRebateEnabled       bool    `json:"invite_recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
-	InviteRechargeRebateFirstEnabled  bool    `json:"invite_recharge_rebate_first_enabled,omitempty"`  // 首次充值返利是否开启
-	InviteRechargeRebateFirstType     string  `json:"invite_recharge_rebate_first_type,omitempty"`     // 首次充值返利类型
-	InviteRechargeRebateFirstRate     float64 `json:"invite_recharge_rebate_first_rate,omitempty"`     // 首次充值返利比例
-	InviteRechargeRebateFirstQuota    float64 `json:"invite_recharge_rebate_first_quota,omitempty"`    // 首次充值固定返利额度
-	InviteRechargeRebateSecondEnabled bool    `json:"invite_recharge_rebate_second_enabled,omitempty"` // 后续充值返利是否开启
-	InviteRechargeRebateSecondType    string  `json:"invite_recharge_rebate_second_type,omitempty"`    // 后续充值返利类型
-	InviteRechargeRebateSecondRate    float64 `json:"invite_recharge_rebate_second_rate,omitempty"`    // 后续充值返利比例
-	InviteRechargeRebateSecondQuota   float64 `json:"invite_recharge_rebate_second_quota,omitempty"`   // 后续充值固定返利额度
+	InviteCode                  string  `json:"invite_code,omitempty"`                    // 当前用户的邀请码
+	InviteLink                  string  `json:"invite_link,omitempty"`                    // 当前用户的邀请注册链接
+	RuleText                    string  `json:"rule_text,omitempty"`                      // 站点配置的邀请规则说明
+	RewardQuota                 float64 `json:"reward_quota,omitempty"`                   // 邀请人每次邀请获得的收益额度
+	GrantQuota                  float64 `json:"grant_quota,omitempty"`                    // 被邀请人通过邀请注册额外获得的额度
+	TotalInvites                int64   `json:"total_invites,omitempty"`                  // 当前用户累计邀请成功人数
+	PendingQuota                float64 `json:"pending_quota,omitempty"`                  // 待申请入账的邀请收益额度
+	ApplyingQuota               float64 `json:"applying_quota,omitempty"`                 // 已提交申请、审核中的邀请收益额度
+	CreditedQuota               float64 `json:"credited_quota,omitempty"`                 // 已审核通过并入账的邀请收益额度
+	CurrentQuota                float64 `json:"current_quota,omitempty"`                  // 当前用户现有可用额度
+	MinApplyQuota               float64 `json:"min_apply_quota,omitempty"`                // 邀请收益最低申请入账额度
+	RechargeRebateEnabled       bool    `json:"recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
+	RechargeRebateFirstEnabled  bool    `json:"recharge_rebate_first_enabled,omitempty"`  // 首次充值返利是否开启
+	RechargeRebateFirstType     string  `json:"recharge_rebate_first_type,omitempty"`     // 首次充值返利类型
+	RechargeRebateFirstRate     float64 `json:"recharge_rebate_first_rate,omitempty"`     // 首次充值返利比例
+	RechargeRebateFirstQuota    float64 `json:"recharge_rebate_first_quota,omitempty"`    // 首次充值固定返利额度
+	RechargeRebateSecondEnabled bool    `json:"recharge_rebate_second_enabled,omitempty"` // 后续充值返利是否开启
+	RechargeRebateSecondType    string  `json:"recharge_rebate_second_type,omitempty"`    // 后续充值返利类型
+	RechargeRebateSecondRate    float64 `json:"recharge_rebate_second_rate,omitempty"`    // 后续充值返利比例
+	RechargeRebateSecondQuota   float64 `json:"recharge_rebate_second_quota,omitempty"`   // 后续充值固定返利额度
 }
 
 // 我的邀请记录分页接口请求参数

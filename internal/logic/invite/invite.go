@@ -148,19 +148,19 @@ func (s *sInvite) Profile(ctx context.Context) (*model.InviteProfileRes, error) 
 	res := &model.InviteProfileRes{InviteCode: inviteCode, InviteLink: "/register/invite/" + inviteCode, CurrentQuota: common.ConvQuotaUnitReverse(user.Quota)}
 	if r := g.RequestFromCtx(ctx); r != nil {
 		if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, r.GetHost()); siteConfig != nil {
-			res.InviteRuleText = siteConfig.InviteRuleText
-			res.InviteRewardQuota = common.ConvQuotaUnitReverse(siteConfig.InviteRewardQuota)
-			res.InviteeGrantQuota = common.ConvQuotaUnitReverse(siteConfig.InviteeGrantQuota)
-			res.InviteMinApplyQuota = common.ConvQuotaUnitReverse(siteConfig.InviteMinApplyQuota)
-			res.InviteRechargeRebateEnabled = siteConfig.InviteRechargeRebateEnabled
-			res.InviteRechargeRebateFirstEnabled = siteConfig.InviteRechargeRebateFirstEnabled
-			res.InviteRechargeRebateFirstType = siteConfig.InviteRechargeRebateFirstType
-			res.InviteRechargeRebateFirstRate = siteConfig.InviteRechargeRebateFirstRate
-			res.InviteRechargeRebateFirstQuota = common.ConvQuotaUnitReverse(siteConfig.InviteRechargeRebateFirstQuota)
-			res.InviteRechargeRebateSecondEnabled = siteConfig.InviteRechargeRebateSecondEnabled
-			res.InviteRechargeRebateSecondType = siteConfig.InviteRechargeRebateSecondType
-			res.InviteRechargeRebateSecondRate = siteConfig.InviteRechargeRebateSecondRate
-			res.InviteRechargeRebateSecondQuota = common.ConvQuotaUnitReverse(siteConfig.InviteRechargeRebateSecondQuota)
+			res.RuleText = siteConfig.InviteConfig.RuleText
+			res.RewardQuota = common.ConvQuotaUnitReverse(siteConfig.InviteConfig.RewardQuota)
+			res.GrantQuota = common.ConvQuotaUnitReverse(siteConfig.InviteConfig.GrantQuota)
+			res.MinApplyQuota = common.ConvQuotaUnitReverse(siteConfig.InviteConfig.MinApplyQuota)
+			res.RechargeRebateEnabled = siteConfig.InviteConfig.RechargeRebateEnabled
+			res.RechargeRebateFirstEnabled = siteConfig.InviteConfig.RechargeRebateFirstEnabled
+			res.RechargeRebateFirstType = siteConfig.InviteConfig.RechargeRebateFirstType
+			res.RechargeRebateFirstRate = siteConfig.InviteConfig.RechargeRebateFirstRate
+			res.RechargeRebateFirstQuota = common.ConvQuotaUnitReverse(siteConfig.InviteConfig.RechargeRebateFirstQuota)
+			res.RechargeRebateSecondEnabled = siteConfig.InviteConfig.RechargeRebateSecondEnabled
+			res.RechargeRebateSecondType = siteConfig.InviteConfig.RechargeRebateSecondType
+			res.RechargeRebateSecondRate = siteConfig.InviteConfig.RechargeRebateSecondRate
+			res.RechargeRebateSecondQuota = common.ConvQuotaUnitReverse(siteConfig.InviteConfig.RechargeRebateSecondQuota)
 		}
 	}
 	if total, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"inviter_user_id": userId}); err == nil {
@@ -219,8 +219,8 @@ func (s *sInvite) RewardApply(ctx context.Context, params model.InviteRewardAppl
 		logger.Error(ctx, err)
 		return err
 	}
-	if siteConfig := s.getUserSiteConfig(ctx, user); siteConfig != nil && siteConfig.InviteMinApplyQuota > 0 && totalQuota < siteConfig.InviteMinApplyQuota {
-		return errors.Newf("邀请收益满 %g 才可申请入账", common.ConvQuotaUnitReverse(siteConfig.InviteMinApplyQuota))
+	if siteConfig := s.getUserSiteConfig(ctx, user); siteConfig != nil && siteConfig.InviteConfig.MinApplyQuota > 0 && totalQuota < siteConfig.InviteConfig.MinApplyQuota {
+		return errors.Newf("邀请收益满 %g 才可申请入账", common.ConvQuotaUnitReverse(siteConfig.InviteConfig.MinApplyQuota))
 	}
 	now := gtime.TimestampMilli()
 	apply := &do.InviteRewardApply{Id: util.GenerateId(), OrderNo: fmt.Sprintf("IA%d%d", userId, now), UserId: userId, Rid: rid, RewardIds: params.RewardIds, TotalQuota: totalQuota, Status: consts.INVITE_REWARD_APPLY_STATUS_PENDING, AppliedAt: now, CreatedAt: now, UpdatedAt: now}
@@ -297,7 +297,7 @@ func (s *sInvite) CreateRechargeRebate(ctx context.Context, inviteeUserId int, s
 			siteConfig = siteConfigs[0]
 		}
 	}
-	if siteConfig == nil || !siteConfig.InviteEnabled || !siteConfig.InviteRechargeRebateEnabled {
+	if siteConfig == nil || !siteConfig.InviteEnabled || !siteConfig.InviteConfig.RechargeRebateEnabled {
 		return nil
 	}
 	rechargeCount, err := dao.DealRecord.CountDocuments(ctx, bson.M{"user_id": inviteeUserId, "type": 1, "quota": bson.M{"$gt": 0}, "status": 1, "created_at": bson.M{"$lte": gtime.TimestampMilli()}})
@@ -311,15 +311,15 @@ func (s *sInvite) CreateRechargeRebate(ctx context.Context, inviteeUserId int, s
 	rate := 0.0
 	rebateQuota := 0
 	if sequence == 1 {
-		enabled = siteConfig.InviteRechargeRebateFirstEnabled
-		rebateType = siteConfig.InviteRechargeRebateFirstType
-		rate = siteConfig.InviteRechargeRebateFirstRate
-		rebateQuota = siteConfig.InviteRechargeRebateFirstQuota
+		enabled = siteConfig.InviteConfig.RechargeRebateFirstEnabled
+		rebateType = siteConfig.InviteConfig.RechargeRebateFirstType
+		rate = siteConfig.InviteConfig.RechargeRebateFirstRate
+		rebateQuota = siteConfig.InviteConfig.RechargeRebateFirstQuota
 	} else if sequence >= 2 {
-		enabled = siteConfig.InviteRechargeRebateSecondEnabled
-		rebateType = siteConfig.InviteRechargeRebateSecondType
-		rate = siteConfig.InviteRechargeRebateSecondRate
-		rebateQuota = siteConfig.InviteRechargeRebateSecondQuota
+		enabled = siteConfig.InviteConfig.RechargeRebateSecondEnabled
+		rebateType = siteConfig.InviteConfig.RechargeRebateSecondType
+		rate = siteConfig.InviteConfig.RechargeRebateSecondRate
+		rebateQuota = siteConfig.InviteConfig.RechargeRebateSecondQuota
 	}
 	if !enabled {
 		return nil
@@ -682,34 +682,34 @@ func (s *sInvite) CheckInviteIpLimit(ctx context.Context, ip string, inviterUser
 	if siteConfig == nil || ip == "" {
 		return false
 	}
-	if siteConfig.InviteIpDailyLimit > 0 {
+	if siteConfig.InviteConfig.IpDailyLimit > 0 {
 		todayStart := gtime.Now().StartOfDay().TimestampMilli()
 		count, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"ip": ip, "created_at": bson.M{"$gte": todayStart}})
 		if err != nil {
 			logger.Error(ctx, err)
 			return true
 		}
-		if int(count) >= siteConfig.InviteIpDailyLimit {
+		if int(count) >= siteConfig.InviteConfig.IpDailyLimit {
 			return true
 		}
 	}
-	if siteConfig.InviteIpTotalLimit > 0 {
+	if siteConfig.InviteConfig.IpTotalLimit > 0 {
 		count, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"ip": ip})
 		if err != nil {
 			logger.Error(ctx, err)
 			return true
 		}
-		if int(count) >= siteConfig.InviteIpTotalLimit {
+		if int(count) >= siteConfig.InviteConfig.IpTotalLimit {
 			return true
 		}
 	}
-	if siteConfig.InviteIpPerInviterLimit > 0 {
+	if siteConfig.InviteConfig.IpPerInviterLimit > 0 {
 		count, err := dao.InviteRelation.CountDocuments(ctx, bson.M{"ip": ip, "inviter_user_id": inviterUserId})
 		if err != nil {
 			logger.Error(ctx, err)
 			return true
 		}
-		if int(count) >= siteConfig.InviteIpPerInviterLimit {
+		if int(count) >= siteConfig.InviteConfig.IpPerInviterLimit {
 			return true
 		}
 	}
@@ -721,24 +721,24 @@ func (s *sInvite) CheckRewardLimit(ctx context.Context, inviterUserId int, siteC
 	if siteConfig == nil {
 		return false
 	}
-	if siteConfig.InviteDailyLimit > 0 {
+	if siteConfig.InviteConfig.DailyLimit > 0 {
 		todayStart := gtime.Now().StartOfDay().TimestampMilli()
 		dailyCount, err := dao.InviteReward.CountDocuments(ctx, bson.M{"inviter_user_id": inviterUserId, "created_at": bson.M{"$gte": todayStart}})
 		if err != nil {
 			logger.Error(ctx, err)
 			return true
 		}
-		if int(dailyCount) >= siteConfig.InviteDailyLimit {
+		if int(dailyCount) >= siteConfig.InviteConfig.DailyLimit {
 			return true
 		}
 	}
-	if siteConfig.InviteTotalLimit > 0 {
+	if siteConfig.InviteConfig.TotalLimit > 0 {
 		totalCount, err := dao.InviteReward.CountDocuments(ctx, bson.M{"inviter_user_id": inviterUserId})
 		if err != nil {
 			logger.Error(ctx, err)
 			return true
 		}
-		if int(totalCount) >= siteConfig.InviteTotalLimit {
+		if int(totalCount) >= siteConfig.InviteConfig.TotalLimit {
 			return true
 		}
 	}

@@ -80,3 +80,26 @@ type Document struct {
 	Title   string `bson:"title,omitempty"    json:"title,omitempty"`    // 文档标题
 	JumpUrl string `bson:"jump_url,omitempty" json:"jump_url,omitempty"` // 跳转URL
 }
+
+type InviteConfig struct {
+	RewardQuota                 int     `bson:"reward_quota,omitempty"                   json:"reward_quota,omitempty"`                   // 邀请人收益额度
+	GrantQuota                  int     `bson:"grant_quota,omitempty"                    json:"grant_quota,omitempty"`                    // 被邀请人额外赠送额度
+	MinApplyQuota               int     `bson:"min_apply_quota,omitempty"                json:"min_apply_quota,omitempty"`                // 最低申请入账额度
+	DailyLimit                  int     `bson:"daily_limit,omitempty"                    json:"daily_limit,omitempty"`                    // 单日邀请收益次数上限
+	TotalLimit                  int     `bson:"total_limit,omitempty"                    json:"total_limit,omitempty"`                    // 累计邀请收益次数上限
+	IpDailyLimit                int     `bson:"ip_daily_limit,omitempty"                 json:"ip_daily_limit,omitempty"`                 // 同IP每日邀请注册上限
+	IpTotalLimit                int     `bson:"ip_total_limit,omitempty"                 json:"ip_total_limit,omitempty"`                 // 同IP累计邀请注册上限
+	IpPerInviterLimit           int     `bson:"ip_per_inviter_limit,omitempty"           json:"ip_per_inviter_limit,omitempty"`           // 同IP+同邀请人注册上限
+	IpLimitAction               string  `bson:"ip_limit_action,omitempty"                json:"ip_limit_action,omitempty"`                // IP限制触发动作[block:拒绝注册, silent:允许注册但不发放额度]
+	RuleText                    string  `bson:"rule_text,omitempty"                      json:"rule_text,omitempty"`                      // 邀请规则说明
+	InvalidCodeAction           string  `bson:"invalid_code_action,omitempty"            json:"invalid_code_action,omitempty"`            // 无效邀请码处理方式
+	RechargeRebateEnabled       bool    `bson:"recharge_rebate_enabled,omitempty"        json:"recharge_rebate_enabled,omitempty"`        // 是否开启邀请充值返利
+	RechargeRebateFirstEnabled  bool    `bson:"recharge_rebate_first_enabled,omitempty"  json:"recharge_rebate_first_enabled,omitempty"`  // 首次充值返利是否开启
+	RechargeRebateFirstType     string  `bson:"recharge_rebate_first_type,omitempty"     json:"recharge_rebate_first_type,omitempty"`     // 首次充值返利类型[percent:百分比, fixed:固定额度]
+	RechargeRebateFirstRate     float64 `bson:"recharge_rebate_first_rate,omitempty"     json:"recharge_rebate_first_rate,omitempty"`     // 首次充值返利比例
+	RechargeRebateFirstQuota    int     `bson:"recharge_rebate_first_quota,omitempty"    json:"recharge_rebate_first_quota,omitempty"`    // 首次充值固定返利额度
+	RechargeRebateSecondEnabled bool    `bson:"recharge_rebate_second_enabled,omitempty" json:"recharge_rebate_second_enabled,omitempty"` // 后续充值返利是否开启
+	RechargeRebateSecondType    string  `bson:"recharge_rebate_second_type,omitempty"    json:"recharge_rebate_second_type,omitempty"`    // 后续充值返利类型[percent:百分比, fixed:固定额度]
+	RechargeRebateSecondRate    float64 `bson:"recharge_rebate_second_rate,omitempty"    json:"recharge_rebate_second_rate,omitempty"`    // 后续充值返利比例
+	RechargeRebateSecondQuota   int     `bson:"recharge_rebate_second_quota,omitempty"   json:"recharge_rebate_second_quota,omitempty"`   // 后续充值固定返利额度
+}
