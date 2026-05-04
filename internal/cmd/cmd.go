@@ -52,6 +52,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_batch"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_file"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_video"
+	"github.com/iimeta/fastapi-admin/v2/internal/controller/ticket"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/user"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
@@ -135,6 +136,10 @@ var (
 			s.AddStaticPath("/log/file", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/batch", "./resource/fastapi-web/")
 			s.AddStaticPath("/log/general", "./resource/fastapi-web/")
+			s.AddStaticPath("/ticket/create", "./resource/fastapi-web/")
+			s.AddStaticPath("/ticket/detail", "./resource/fastapi-web/")
+			s.AddStaticPath("/ticket/my", "./resource/fastapi-web/")
+			s.AddStaticPath("/ticket/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/list", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/create", "./resource/fastapi-web/")
 			s.AddStaticPath("/sys/provider/update", "./resource/fastapi-web/")
@@ -350,6 +355,12 @@ var (
 				v1.Group("/log/general", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						log_general.NewV1(),
+					)
+				})
+
+				v1.Group("/ticket", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						ticket.NewV1(),
 					)
 				})
 

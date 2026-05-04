@@ -35,4 +35,6 @@ const (
 	INVITE_RELATION     = "invite_relation"
 	INVITE_REWARD       = "invite_reward"
 	INVITE_REWARD_APPLY = "invite_reward_apply"
+	TICKET              = "ticket"
+	TICKET_REPLY        = "ticket_reply"
 )

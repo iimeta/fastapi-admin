@@ -43,5 +43,6 @@ import (
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/task_batch"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/task_file"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/task_video"
+	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/ticket"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/user"
 )

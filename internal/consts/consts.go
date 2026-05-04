@@ -157,3 +157,13 @@ const (
 	INVITE_REWARD_APPLY_STATUS_REJECTED  = 4
 	INVITE_REWARD_APPLY_STATUS_CANCELLED = 5
 )
+
+// 工单状态
+const (
+	STATUS_AWAITING_REPLY = 1 // 待回复: 客户已回复, 等待工作人员回复
+	STATUS_PENDING        = 2 // 待处理: 新工单, 尚未有人处理
+	STATUS_PROCESSING     = 3 // 处理中: 工作人员正在处理
+	STATUS_REPLIED        = 4 // 已回复: 工作人员已回复, 等待客户确认
+	STATUS_RESOLVED       = 5 // 已解决: 问题已解决
+	STATUS_CLOSED         = 6 // 已关闭: 工单已归档
+)
