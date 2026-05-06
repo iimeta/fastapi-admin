@@ -743,6 +743,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 						Name:     params.Account,
 						Account:  params.Account,
 						Password: params.Password,
+						Status:   1,
 					}); err != nil {
 						logger.Error(ctx, err)
 						return nil, err

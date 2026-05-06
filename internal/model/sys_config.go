@@ -24,6 +24,7 @@ type SysConfigUpdateReq struct {
 	NotShieldError            *common.NotShieldError            `json:"not_shield_error,omitempty"`              // 不屏蔽错误
 	Notice                    *common.Notice                    `json:"notice,omitempty"`                        // 通知
 	Quota                     *common.Quota                     `json:"quota,omitempty"`                         // 额度
+	Ticket                    *common.Ticket                    `json:"ticket,omitempty"`                        // 工单
 	QuotaTask                 *common.QuotaTask                 `json:"quota_task,omitempty"`                    // 额度任务
 	VideoTask                 *common.VideoTask                 `json:"video_task,omitempty"`                    // 视频任务
 	FileTask                  *common.FileTask                  `json:"file_task,omitempty"`                     // 文件任务
@@ -80,6 +81,7 @@ type SysConfig struct {
 	NotShieldError            *common.NotShieldError            `json:"not_shield_error,omitempty"`              // 不屏蔽错误
 	Notice                    *common.Notice                    `json:"notice,omitempty"`                        // 通知
 	Quota                     *common.Quota                     `json:"quota,omitempty"`                         // 额度
+	Ticket                    *common.Ticket                    `json:"ticket,omitempty"`                        // 工单
 	QuotaTask                 *common.QuotaTask                 `json:"quota_task,omitempty"`                    // 额度任务
 	VideoTask                 *common.VideoTask                 `json:"video_task,omitempty"`                    // 视频任务
 	FileTask                  *common.FileTask                  `json:"file_task,omitempty"`                     // 文件任务

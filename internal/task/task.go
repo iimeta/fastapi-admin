@@ -37,4 +37,7 @@ func Init(ctx context.Context) {
 
 	// 通知任务
 	noticeTask(ctx)
+
+	// 工单任务
+	ticketTask(ctx)
 }

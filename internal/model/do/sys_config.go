@@ -26,6 +26,7 @@ type SysConfig struct {
 	NotShieldError            *common.NotShieldError            `bson:"not_shield_error,omitempty"`              // 不屏蔽错误
 	Notice                    *common.Notice                    `bson:"notice,omitempty"`                        // 通知
 	Quota                     *common.Quota                     `bson:"quota,omitempty"`                         // 额度
+	Ticket                    *common.Ticket                    `bson:"ticket,omitempty"`                        // 工单
 	QuotaTask                 *common.QuotaTask                 `bson:"quota_task,omitempty"`                    // 额度任务
 	VideoTask                 *common.VideoTask                 `bson:"video_task,omitempty"`                    // 视频任务
 	FileTask                  *common.FileTask                  `bson:"file_task,omitempty"`                     // 文件任务

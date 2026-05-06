@@ -146,6 +146,14 @@ type Quota struct {
 	ExpiredClearDefer time.Duration `bson:"expired_clear_defer" json:"expired_clear_defer"` // 额度过期清零延迟, 单位: 分钟
 }
 
+type Ticket struct {
+	Open          bool          `bson:"open"            json:"open"`            // 开关
+	Notice        bool          `bson:"notice"          json:"notice"`          // 通知提醒
+	Cron          string        `bson:"cron"            json:"cron"`            // CRON表达式
+	LockMinutes   time.Duration `bson:"lock_minutes"    json:"lock_minutes"`    // 锁定时长, 单位: 分钟
+	AutoCloseDays time.Duration `bson:"auto_close_days" json:"auto_close_days"` // 自动关闭天数
+}
+
 type QuotaTask struct {
 	Open        bool          `bson:"open"         json:"open"`         // 开关
 	Cron        string        `bson:"cron"         json:"cron"`         // CRON表达式

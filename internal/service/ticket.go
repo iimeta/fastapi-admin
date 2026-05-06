@@ -13,6 +13,7 @@ import (
 
 type (
 	ITicket interface {
+		AutoCloseTask(ctx context.Context)
 		// 创建工单
 		Create(ctx context.Context, params model.TicketCreateReq) (string, error)
 		// 回复工单

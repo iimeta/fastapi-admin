@@ -146,6 +146,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 			params.Quota.Threshold *= consts.QUOTA_DEFAULT_UNIT
 		}
 		sysConfig = &do.SysConfig{Quota: params.Quota}
+	case "ticket":
+		sysConfig = &do.SysConfig{Ticket: params.Ticket}
 	case "quota_task":
 		sysConfig = &do.SysConfig{QuotaTask: params.QuotaTask}
 	case "video_task":
@@ -256,6 +258,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		NotShieldError:            sysConfig.NotShieldError,
 		Notice:                    sysConfig.Notice,
 		Quota:                     sysConfig.Quota,
+		Ticket:                    sysConfig.Ticket,
 		QuotaTask:                 sysConfig.QuotaTask,
 		VideoTask:                 sysConfig.VideoTask,
 		FileTask:                  sysConfig.FileTask,
@@ -337,6 +340,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Notice = s.Default().Notice
 	case "quota":
 		sysConfigUpdateReq.Quota = s.Default().Quota
+	case "ticket":
+		sysConfigUpdateReq.Ticket = s.Default().Ticket
 	case "quota_task":
 		sysConfigUpdateReq.QuotaTask = s.Default().QuotaTask
 	case "video_task":
@@ -517,6 +522,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.AutoRetryError == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "auto_retry_error"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.Ticket == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "ticket"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -746,6 +758,13 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			ExpiredNotice:     true,
 			ExpiredClear:      false,
 			ExpiredClearDefer: 5,
+		},
+		Ticket: &common.Ticket{
+			Open:          true,
+			Notice:        true,
+			Cron:          "0 0 2 * * ?",
+			LockMinutes:   30,
+			AutoCloseDays: 3,
 		},
 		QuotaTask: &common.QuotaTask{
 			Open:        true,
