@@ -616,7 +616,7 @@ func (s *sTicket) assigneeMailTarget(ctx context.Context, ticket *entity.Ticket)
 
 	switch ticket.AssigneeRole {
 	case consts.SESSION_RESELLER:
-		reseller, err := dao.Reseller.FindOne(ctx, bson.M{"user_id": ticket.AssigneeId})
+		reseller, err := dao.Reseller.FindOne(gctx.New(), bson.M{"user_id": ticket.AssigneeId})
 		if err != nil {
 			return "", "", nil, err
 		}
