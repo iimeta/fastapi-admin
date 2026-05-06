@@ -33,9 +33,8 @@ type User struct {
 	ExpireWarningNotice    bool          `bson:"expire_warning_notice"`              // 额度过期预警通知
 	ExpireNotice           bool          `bson:"expire_notice"`                      // 额度过期通知
 	Remark                 string        `bson:"remark,omitempty"`                   // 备注
-	InviteCode             string        `bson:"invite_code,omitempty"`              // 邀请码
 	InviterUserId          int           `bson:"inviter_user_id,omitempty"`          // 邀请人用户ID
-	InvitedAt              int64         `bson:"invited_at,omitempty"`               // 邀请绑定时间
+	InviteCode             string        `bson:"invite_code,omitempty"`              // 邀请码
 	Status                 int           `bson:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
 	Rid                    int           `bson:"rid,omitempty"`                      // 代理商ID
 	Creator                string        `bson:"creator,omitempty"`                  // 创建人

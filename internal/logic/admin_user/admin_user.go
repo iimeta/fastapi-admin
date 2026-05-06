@@ -604,6 +604,8 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		ExpireWarningNotice:    user.ExpireWarningNotice,
 		ExpireNotice:           user.ExpireNotice,
 		Remark:                 user.Remark,
+		InviterUserId:          user.InviterUserId,
+		InviteCode:             user.InviteCode,
 		Status:                 user.Status,
 		Rid:                    user.Rid,
 		LoginIP:                account.LoginIP,

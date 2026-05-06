@@ -174,6 +174,8 @@ type User struct {
 	ExpireWarningNotice    bool          `json:"expire_warning_notice,omitempty"`    // 额度过期预警通知
 	ExpireNotice           bool          `json:"expire_notice,omitempty"`            // 额度过期通知
 	Remark                 string        `json:"remark,omitempty"`                   // 备注
+	InviterUserId          int           `json:"inviter_user_id,omitempty"`          // 邀请人用户ID
+	InviteCode             string        `json:"invite_code,omitempty"`              // 邀请码
 	Status                 int           `json:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
 	Rid                    int           `json:"rid,omitempty"`                      // 代理商ID
 	LoginIP                string        `json:"login_ip,omitempty"`                 // 登录IP

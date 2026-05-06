@@ -202,7 +202,6 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 
 		if inviterUserId != 0 {
 			user.InviterUserId = inviterUserId
-			user.InvitedAt = gtime.TimestampMilli()
 		}
 
 		uid, err := dao.User.Insert(ctx, user)
