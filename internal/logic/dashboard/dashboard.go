@@ -578,10 +578,26 @@ func (s *sDashboard) PerSecond(ctx context.Context, params model.DashboardPerSec
 		},
 		{
 			"$group": bson.M{
-				"_id":           nil,
-				"rps":           bson.M{"$sum": 1},
-				"input_tokens":  bson.M{"$sum": "$spend.text.input_tokens"},
-				"output_tokens": bson.M{"$sum": "$spend.text.output_tokens"},
+				"_id": nil,
+				"rps": bson.M{"$sum": 1},
+				"input_tokens": bson.M{"$sum": bson.M{
+					"$add": bson.A{
+						bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
+					},
+				}},
+				"output_tokens": bson.M{"$sum": bson.M{
+					"$add": bson.A{
+						bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
+					},
+				}},
 			},
 		},
 	}
@@ -660,10 +676,26 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 		},
 		{
 			"$group": bson.M{
-				"_id":           nil,
-				"rpm":           bson.M{"$sum": 1},
-				"input_tokens":  bson.M{"$sum": "$spend.text.input_tokens"},
-				"output_tokens": bson.M{"$sum": "$spend.text.output_tokens"},
+				"_id": nil,
+				"rpm": bson.M{"$sum": 1},
+				"input_tokens": bson.M{"$sum": bson.M{
+					"$add": bson.A{
+						bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
+					},
+				}},
+				"output_tokens": bson.M{"$sum": bson.M{
+					"$add": bson.A{
+						bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
+						bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
+					},
+				}},
 			},
 		},
 	}
