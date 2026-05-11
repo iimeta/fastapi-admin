@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
 	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	mcommon "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/do"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/crypto"
@@ -214,6 +216,62 @@ func (s *sUser) ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error 
 	return nil
 }
 
+// 用户隐私设置
+func (s *sUser) Privacy(ctx context.Context) (*model.UserPrivacyRes, error) {
+
+	if !service.Session().IsUserRole(ctx) {
+		return &model.UserPrivacyRes{
+			UserPrivacy: mcommon.DefaultUserPrivacy(),
+		}, nil
+	}
+
+	user, err := dao.User.FindUserByUserId(ctx, service.Session().GetUserId(ctx))
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	return &model.UserPrivacyRes{
+		UserPrivacy: mcommon.NormalizeUserPrivacy(user.Privacy, config.Cfg.Log.PrivacyFields),
+	}, nil
+}
+
+// 用户更新隐私设置
+func (s *sUser) UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) error {
+
+	if !service.Session().IsUserRole(ctx) {
+		return nil
+	}
+
+	privacy := mcommon.NormalizeUserPrivacy(params.UserPrivacy, config.Cfg.Log.PrivacyFields)
+	if err := dao.User.UpdateById(ctx, service.Session().GetUid(ctx), bson.M{
+		"privacy": privacy,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	user := service.Session().GetUser(ctx)
+	if user != nil {
+		user.Privacy = privacy
+		_ = service.Session().UpdateUserSession(ctx, user)
+	}
+
+	if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		NewData: user,
+	}); err != nil {
+		logger.Error(ctx, err)
+	}
+
+	return nil
+}
+
+// 用户隐私日志字段
+func (s *sUser) PrivacyFields(ctx context.Context) []mcommon.PrivacyLogFieldOption {
+	return mcommon.EnabledPrivacyLogFields(config.Cfg.Log.PrivacyFields)
+}
+
 // 根据userId获取用户信息
 func (s *sUser) GetUserByUserId(ctx context.Context, userId int) (*model.User, error) {
 
@@ -238,6 +296,7 @@ func (s *sUser) GetUserByUserId(ctx context.Context, userId int) (*model.User, e
 		WarningThreshold:       user.WarningThreshold,
 		ExpireWarningThreshold: user.ExpireWarningThreshold,
 		Remark:                 user.Remark,
+		Privacy:                user.Privacy,
 		Status:                 user.Status,
 		Rid:                    user.Rid,
 		CreatedAt:              util.FormatDateTime(user.CreatedAt),

@@ -236,6 +236,9 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 	if sysConfig.Quota != nil {
 		sysConfig.Quota.Threshold /= consts.QUOTA_DEFAULT_UNIT
 	}
+	if sysConfig.Log != nil && len(sysConfig.Log.PrivacyFields) == 0 {
+		sysConfig.Log.PrivacyFields = common.DefaultPrivacyLogFields()
+	}
 
 	return &model.SysConfig{
 		Id:         sysConfig.Id,
@@ -593,6 +596,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			FileReserve:    90,
 			BatchReserve:   90,
 			GeneralReserve: 90,
+			PrivacyFields:  common.DefaultPrivacyLogFields(),
 			Status:         []int{1, 2, 3, -1},
 			Cron:           "0 0 2 * * ?",
 		},

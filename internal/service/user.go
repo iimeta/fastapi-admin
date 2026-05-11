@@ -10,6 +10,7 @@ import (
 
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 )
 
 type (
@@ -22,6 +23,12 @@ type (
 		ChangeEmail(ctx context.Context, params model.UserChangeEmailReq) error
 		// 用户更改头像
 		ChangeAvatar(ctx context.Context, file *ghttp.UploadFile) error
+		// 用户隐私设置
+		Privacy(ctx context.Context) (*model.UserPrivacyRes, error)
+		// 用户更新隐私设置
+		UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) error
+		// 用户隐私日志字段
+		PrivacyFields(ctx context.Context) []common.PrivacyLogFieldOption
 		// 根据userId获取用户信息
 		GetUserByUserId(ctx context.Context, userId int) (*model.User, error)
 	}
