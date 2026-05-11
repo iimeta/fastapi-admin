@@ -3,12 +3,15 @@ package model
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"regexp"
 	"slices"
 	"time"
 
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
@@ -33,7 +36,28 @@ import (
 type sModel struct{}
 
 func init() {
-	service.RegisterModel(New())
+
+	ctx := gctx.New()
+	sModel := New()
+	service.RegisterModel(sModel)
+
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+		if count, err := dao.Model.EstimatedDocumentCount(ctx); err != nil {
+			logger.Error(ctx, err)
+		} else if count == 0 {
+			if err := sModel.InitSync(ctx, model.ModelInitSyncReq{
+				Url:                "https://api.fastapi.ai/v1/models",
+				Key:                "sk-FastAPI1DKp0fzcD0Bf0sOJV1IJW1Fjnn0y0rXV0GNb1aolA",
+				IsConfigModelAgent: true,
+			}); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+	}
 }
 
 func New() service.IModel {
@@ -57,7 +81,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		IsEnablePresetConfig: params.IsEnablePresetConfig,
 		PresetConfig:         params.PresetConfig,
 		TimeRules:            common.ConvTimeRulesToRatio(params.TimeRules),
-		Pricing:              common.ConvModelPricingToRatio(params.Pricing),
+		Pricing:              params.Pricing,
 		RequestDataFormat:    params.RequestDataFormat,
 		ResponseDataFormat:   params.ResponseDataFormat,
 		IsPublic:             params.IsPublic,
@@ -69,6 +93,10 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		FallbackConfig:       params.FallbackConfig,
 		Remark:               params.Remark,
 		Status:               params.Status,
+	}
+
+	if !params.InitSync {
+		m.Pricing = common.ConvModelPricingToRatio(params.Pricing)
 	}
 
 	id, err := dao.Model.Insert(ctx, m)
@@ -223,7 +251,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		IsEnablePresetConfig: params.IsEnablePresetConfig,
 		PresetConfig:         params.PresetConfig,
 		TimeRules:            common.ConvTimeRulesToRatio(params.TimeRules),
-		Pricing:              common.ConvModelPricingToRatio(params.Pricing),
+		Pricing:              params.Pricing,
 		RequestDataFormat:    params.RequestDataFormat,
 		ResponseDataFormat:   params.ResponseDataFormat,
 		IsPublic:             params.IsPublic,
@@ -235,6 +263,10 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		FallbackConfig:       params.FallbackConfig,
 		Remark:               params.Remark,
 		Status:               params.Status,
+	}
+
+	if !params.InitSync {
+		m.Pricing = common.ConvModelPricingToRatio(params.Pricing)
 	}
 
 	newData, err := dao.Model.FindOneAndUpdateById(ctx, params.Id, m)
@@ -577,6 +609,60 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 		}
 
 		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_GROUP, model.PubMessage{
+			Action:  consts.ACTION_UPDATE,
+			OldData: oldData,
+			NewData: newData,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{id}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	for _, oldData := range modelAgents {
+
+		modelAgent := &do.ModelAgent{
+			ProviderId:           oldData.ProviderId,
+			Name:                 oldData.Name,
+			BaseUrl:              oldData.BaseUrl,
+			Path:                 oldData.Path,
+			Weight:               oldData.Weight,
+			Models:               oldData.Models,
+			IsEnableModelReplace: oldData.IsEnableModelReplace,
+			ReplaceModels:        oldData.ReplaceModels,
+			TargetModels:         oldData.TargetModels,
+			IsNeverDisable:       oldData.IsNeverDisable,
+			LbStrategy:           oldData.LbStrategy,
+			Remark:               oldData.Remark,
+			Status:               oldData.Status,
+			IsAutoDisabled:       oldData.IsAutoDisabled,
+			AutoDisabledReason:   oldData.AutoDisabledReason,
+		}
+
+		for i, modelId := range modelAgent.Models {
+			if modelId == id {
+				modelAgent.Models = util.Delete(modelAgent.Models, i)
+				break
+			}
+		}
+
+		if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, modelAgent); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		newData, err := service.ModelAgent().Detail(ctx, oldData.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
 			Action:  consts.ACTION_UPDATE,
 			OldData: oldData,
 			NewData: newData,
@@ -1599,8 +1685,21 @@ func (s *sModel) Permissions(ctx context.Context, params model.ModelPermissionsR
 // 模型初始化同步
 func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) error {
 
+	url, err := url.Parse(params.Url)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	path := "/v1/models"
+	if url.Path != "" && url.Path != "/" && url.Path != "/v1" && url.Path != "/v1beta" {
+		path = url.Path
+	}
+
+	rawURL := fmt.Sprintf("%s://%s%s", url.Scheme, url.Host, path)
+
 	result := &model.ModelsRes{}
-	if _, err := sutil.HttpGet(ctx, params.Url, g.MapStrStr{"Authorization": "Bearer " + params.Key}, g.MapStrAny{"is_fastapi": true}, &result, config.Cfg.Http.Timeout*time.Second, config.Cfg.Http.ProxyUrl, nil); err != nil {
+	if _, err = sutil.HttpGet(ctx, rawURL, g.MapStrStr{"Authorization": "Bearer " + params.Key}, g.MapStrAny{"is_fastapi": true}, &result, config.Cfg.Http.Timeout*time.Second, config.Cfg.Http.ProxyUrl, nil); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -1652,13 +1751,15 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				}
 
 				if modelAgentId, err = service.ModelAgent().Create(ctx, model.ModelAgentCreateReq{
-					ProviderId:   providerCodeMap["FastAPI"],
-					Name:         "智元 Fast API",
-					BaseUrl:      gstr.Replace(params.Url, "/models", ""),
-					Models:       []string{},
-					Key:          params.Key,
-					IsAgentsOnly: true,
-					Status:       1,
+					ProviderId:     providerCodeMap["FastAPI"],
+					Name:           "智元 Fast API",
+					BaseUrl:        gstr.Replace(rawURL, "/models", ""),
+					BillingMethods: []int{1, 2},
+					Models:         []string{},
+					Key:            params.Key,
+					LbStrategy:     1,
+					IsAgentsOnly:   true,
+					Status:         1,
 				}); err != nil {
 					logger.Error(ctx, err)
 					return err
@@ -1681,7 +1782,8 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 	}
 
 	if len(groups) == 0 {
-		if _, err = service.Group().Create(ctx, model.GroupCreateReq{
+
+		groupCreateReq := model.GroupCreateReq{
 			TimeRules: []*mcommon.TimeRule{{
 				TimeType:  "all",
 				Name:      "全天",
@@ -1696,7 +1798,15 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 			IsPublic:       true,
 			Remark:         "此分组为系统自动创建, 可修改和删除",
 			Status:         1,
-		}); err != nil {
+		}
+
+		if modelAgentId != "" {
+			groupCreateReq.IsEnableModelAgent = true
+			groupCreateReq.LbStrategy = 1
+			groupCreateReq.ModelAgents = []string{modelAgentId}
+		}
+
+		if _, err = service.Group().Create(ctx, groupCreateReq); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
@@ -1734,6 +1844,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				ModelAgents:        []string{},
 				Remark:             data.FastAPI.Remark,
 				Status:             1,
+				InitSync:           true,
 			}
 
 			if params.IsConfigModelAgent && modelAgentId != "" {
@@ -1781,6 +1892,7 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				FallbackConfig:       detail.FallbackConfig,
 				Remark:               detail.Remark,
 				Status:               detail.Status,
+				InitSync:             true,
 			}
 
 			if params.IsConfigModelAgent && modelAgentId != "" && !slices.Contains(modelUpdateReq.ModelAgents, modelAgentId) {

@@ -27,6 +27,7 @@ type ModelCreateReq struct {
 	FallbackConfig       *common.FallbackConfig `json:"fallback_config,omitempty"`         // 后备配置
 	Remark               string                 `json:"remark,omitempty"`                  // 备注
 	Status               int                    `json:"status,omitempty" d:"1"`            // 状态[1:正常, 2:禁用, -1:删除]
+	InitSync             bool                   `json:"-"`                                 // 模型初始化同步
 }
 
 // 更新模型接口请求参数
@@ -55,6 +56,7 @@ type ModelUpdateReq struct {
 	FallbackConfig       *common.FallbackConfig `json:"fallback_config,omitempty"`         // 后备配置
 	Remark               string                 `json:"remark,omitempty"`                  // 备注
 	Status               int                    `json:"status,omitempty" d:"1"`            // 状态[1:正常, 2:禁用, -1:删除]
+	InitSync             bool                   `json:"-"`                                 // 模型初始化同步
 }
 
 // 更改模型状态接口请求参数
