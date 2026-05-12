@@ -9,7 +9,14 @@ import (
 
 func (c *ControllerV1) UpdatePrivacy(ctx context.Context, req *v1.UpdatePrivacyReq) (res *v1.UpdatePrivacyRes, err error) {
 
-	err = service.User().UpdatePrivacy(ctx, req.UserPrivacyReq)
+	privacy, err := service.User().UpdatePrivacy(ctx, req.UserPrivacyReq)
+	if err != nil {
+		return nil, err
+	}
+
+	res = &v1.UpdatePrivacyRes{
+		UserPrivacyRes: privacy,
+	}
 
 	return
 }

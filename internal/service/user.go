@@ -27,7 +27,7 @@ type (
 		// 用户隐私设置
 		Privacy(ctx context.Context) (*model.UserPrivacyRes, error)
 		// 用户更新隐私设置
-		UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) error
+		UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) (*model.UserPrivacyRes, error)
 	}
 )
 

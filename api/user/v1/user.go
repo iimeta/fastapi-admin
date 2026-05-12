@@ -81,4 +81,5 @@ type UpdatePrivacyReq struct {
 // 用户更新隐私设置接口响应参数
 type UpdatePrivacyRes struct {
 	g.Meta `mime:"application/json" example:"json"`
+	*model.UserPrivacyRes
 }

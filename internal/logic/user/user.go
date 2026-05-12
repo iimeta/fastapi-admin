@@ -270,10 +270,13 @@ func (s *sUser) Privacy(ctx context.Context) (*model.UserPrivacyRes, error) {
 }
 
 // 用户更新隐私设置
-func (s *sUser) UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) error {
+func (s *sUser) UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) (*model.UserPrivacyRes, error) {
 
 	if !service.Session().IsUserRole(ctx) {
-		return nil
+		return &model.UserPrivacyRes{
+			Privacy:    common.DefaultLogUserPrivacy(config.Cfg.Log.Privacy),
+			LogPrivacy: config.Cfg.Log.Privacy,
+		}, nil
 	}
 
 	if params.UserPrivacy == nil {
@@ -288,7 +291,7 @@ func (s *sUser) UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) 
 	})
 	if err != nil {
 		logger.Error(ctx, err)
-		return err
+		return nil, err
 	}
 
 	user := service.Session().GetUser(ctx)
@@ -304,5 +307,8 @@ func (s *sUser) UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) 
 		logger.Error(ctx, err)
 	}
 
-	return nil
+	return &model.UserPrivacyRes{
+		Privacy:    privacy,
+		LogPrivacy: config.Cfg.Log.Privacy,
+	}, nil
 }
