@@ -283,9 +283,10 @@ func (s *sUser) UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) 
 
 	privacy := common.NormalizeUserPrivacy(params.UserPrivacy, config.Cfg.Log.Privacy)
 
-	if err := dao.User.UpdateById(ctx, service.Session().GetUid(ctx), bson.M{
+	newData, err := dao.User.FindOneAndUpdateById(ctx, service.Session().GetUid(ctx), bson.M{
 		"privacy": privacy,
-	}); err != nil {
+	})
+	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -298,7 +299,7 @@ func (s *sUser) UpdatePrivacy(ctx context.Context, params model.UserPrivacyReq) 
 
 	if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
 		Action:  consts.ACTION_UPDATE,
-		NewData: user,
+		NewData: newData,
 	}); err != nil {
 		logger.Error(ctx, err)
 	}

@@ -624,8 +624,8 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					{Key: "b64_json", Label: "Base64 图片数据", Description: "保存 Base64 图片数据", Enabled: true, Sort: 60},
 					{Key: "data", Label: "内联资源数据", Description: "保存内联资源数据", Enabled: true, Sort: 70},
 				},
-				IsEnableNetwork:        true,
-				IsDefaultEnableNetwork: false,
+				IsEnableNetwork:        false,
+				IsDefaultEnableNetwork: true,
 				NetworkPrivacyFields: []common.PrivacyLogFieldOption{
 					{Key: "client_ip", Label: "客户端 IP", Description: "保存发起请求的客户端 IP", Enabled: true, Sort: 10},
 				},
