@@ -18,5 +18,4 @@ type IUserV1 interface {
 	ChangeAvatar(ctx context.Context, req *v1.ChangeAvatarReq) (res *v1.ChangeAvatarRes, err error)
 	Privacy(ctx context.Context, req *v1.PrivacyReq) (res *v1.PrivacyRes, err error)
 	UpdatePrivacy(ctx context.Context, req *v1.UpdatePrivacyReq) (res *v1.UpdatePrivacyRes, err error)
-	PrivacyFields(ctx context.Context, req *v1.PrivacyFieldsReq) (res *v1.PrivacyFieldsRes, err error)
 }

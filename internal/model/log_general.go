@@ -39,7 +39,6 @@ type LogGeneralCopyFieldRes struct {
 }
 
 type LogGeneral struct {
-	Privacy              *common.UserPrivacy    `json:"privacy,omitempty"`                 // 隐私设置
 	Id                   string                 `json:"id,omitempty"`                      // ID
 	TraceId              string                 `json:"trace_id,omitempty"`                // 日志ID
 	UserId               int                    `json:"user_id,omitempty"`                 // 用户ID

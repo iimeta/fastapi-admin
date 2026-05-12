@@ -103,3 +103,39 @@ type InviteConfig struct {
 	RechargeRebateSecondRate    float64 `bson:"recharge_rebate_second_rate,omitempty"    json:"recharge_rebate_second_rate,omitempty"`    // 后续充值返利比例
 	RechargeRebateSecondQuota   int     `bson:"recharge_rebate_second_quota,omitempty"   json:"recharge_rebate_second_quota,omitempty"`   // 后续充值固定返利额度
 }
+
+type UserPrivacy struct {
+	IsConfigured       bool     `bson:"is_configured"        json:"is_configured"`        // 是否已配置
+	LogRequestContent  bool     `bson:"log_request_content"  json:"log_request_content"`  // 记录请求内容
+	LogResponseContent bool     `bson:"log_response_content" json:"log_response_content"` // 记录响应内容
+	LogResourceUrl     bool     `bson:"log_resource_url"     json:"log_resource_url"`     // 记录资源链接
+	LogClientIp        bool     `bson:"log_client_ip"        json:"log_client_ip"`        // 记录客户端IP
+	LogRequestFields   []string `bson:"log_request_fields"   json:"log_request_fields"`   // 请求内容字段
+	LogResponseFields  []string `bson:"log_response_fields"  json:"log_response_fields"`  // 响应内容字段
+	LogResourceFields  []string `bson:"log_resource_fields"  json:"log_resource_fields"`  // 资源链接字段
+	LogNetworkFields   []string `bson:"log_network_fields"   json:"log_network_fields"`   // 网络信息字段
+}
+
+type LogPrivacy struct {
+	IsEnableRequest         bool                    `bson:"is_enable_request"           json:"is_enable_request"`          // 是否启用请求内容隐私配置
+	IsDefaultEnableRequest  bool                    `bson:"is_default_enable_request"   json:"is_default_enable_request"`  // 是否默认记录请求内容
+	RequestPrivacyFields    []PrivacyLogFieldOption `bson:"request_privacy_fields"      json:"request_privacy_fields"`     // 请求内容字段
+	IsEnableResponse        bool                    `bson:"is_enable_response"          json:"is_enable_response"`         // 是否启用响应内容隐私配置
+	IsDefaultEnableResponse bool                    `bson:"is_default_enable_response"  json:"is_default_enable_response"` // 是否默认记录响应内容
+	ResponsePrivacyFields   []PrivacyLogFieldOption `bson:"response_privacy_fields"     json:"response_privacy_fields"`    // 响应内容字段
+	IsEnableResource        bool                    `bson:"is_enable_resource"          json:"is_enable_resource"`         // 是否启用资源链接隐私配置
+	IsDefaultEnableResource bool                    `bson:"is_default_enable_resource"  json:"is_default_enable_resource"` // 是否默认记录资源链接
+	ResourcePrivacyFields   []PrivacyLogFieldOption `bson:"resource_privacy_fields"     json:"resource_privacy_fields"`    // 资源链接字段
+	IsEnableNetwork         bool                    `bson:"is_enable_network"           json:"is_enable_network"`          // 是否启用网络信息隐私配置
+	IsDefaultEnableNetwork  bool                    `bson:"is_default_enable_network"   json:"is_default_enable_network"`  // 是否默认记录网络信息
+	NetworkPrivacyFields    []PrivacyLogFieldOption `bson:"network_privacy_fields"      json:"network_privacy_fields"`     // 网络信息字段
+}
+
+type PrivacyLogFieldOption struct {
+	Key         string   `bson:"key"         json:"key"`                   // 字段标识
+	Label       string   `bson:"label"       json:"label"`                 // 展示名称
+	Description string   `bson:"description" json:"description,omitempty"` // 描述
+	LogTypes    []string `bson:"log_types"   json:"log_types,omitempty"`   // 日志类型
+	Enabled     bool     `bson:"enabled"     json:"enabled"`               // 是否启用
+	Sort        int      `bson:"sort"        json:"sort,omitempty"`        // 排序
+}

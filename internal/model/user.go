@@ -44,7 +44,8 @@ type UserPrivacyReq struct {
 
 // 用户隐私设置接口响应参数
 type UserPrivacyRes struct {
-	*common.UserPrivacy
+	Privacy    *common.UserPrivacy `json:"privacy"`
+	LogPrivacy *common.LogPrivacy  `json:"log_privacy"`
 }
 
 // 新建用户接口请求参数
@@ -190,9 +191,9 @@ type User struct {
 	Remark                 string              `json:"remark,omitempty"`                   // 备注
 	InviterUserId          int                 `json:"inviter_user_id,omitempty"`          // 邀请人用户ID
 	InviteCode             string              `json:"invite_code,omitempty"`              // 邀请码
+	Privacy                *common.UserPrivacy `json:"privacy,omitempty"`                  // 隐私设置
 	Status                 int                 `json:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
 	Rid                    int                 `json:"rid,omitempty"`                      // 代理商ID
-	Privacy                *common.UserPrivacy `json:"privacy,omitempty"`                  // 隐私设置
 	LoginIP                string              `json:"login_ip,omitempty"`                 // 登录IP
 	LoginTime              string              `json:"login_time,omitempty"`               // 登录时间
 	LoginDomain            string              `json:"login_domain,omitempty"`             // 登录域名

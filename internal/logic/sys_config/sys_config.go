@@ -236,9 +236,6 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 	if sysConfig.Quota != nil {
 		sysConfig.Quota.Threshold /= consts.QUOTA_DEFAULT_UNIT
 	}
-	if sysConfig.Log != nil && len(sysConfig.Log.PrivacyFields) == 0 {
-		sysConfig.Log.PrivacyFields = common.DefaultPrivacyLogFields()
-	}
 
 	return &model.SysConfig{
 		Id:         sysConfig.Id,
@@ -596,9 +593,43 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			FileReserve:    90,
 			BatchReserve:   90,
 			GeneralReserve: 90,
-			PrivacyFields:  common.DefaultPrivacyLogFields(),
 			Status:         []int{1, 2, 3, -1},
 			Cron:           "0 0 2 * * ?",
+			Privacy: &common.LogPrivacy{
+				IsEnableRequest:        true,
+				IsDefaultEnableRequest: false,
+				RequestPrivacyFields: []common.PrivacyLogFieldOption{
+					{Key: "messages", Label: "完整消息上下文", Description: "保存文本对话的完整 messages", LogTypes: []string{"log_text"}, Enabled: true, Sort: 10},
+					{Key: "prompt", Label: "提示词", Description: "保存文本、绘图、Midjourney 等提示词", LogTypes: []string{"log_text", "log_image", "log_midjourney"}, Enabled: true, Sort: 20},
+					{Key: "request_data", Label: "请求参数", Description: "保存视频、文件、批处理、通用接口请求参数", LogTypes: []string{"log_video", "log_file", "log_batch", "log_general"}, Enabled: true, Sort: 30},
+					{Key: "input", Label: "音频输入文本", Description: "保存音频接口输入文本", LogTypes: []string{"log_audio"}, Enabled: true, Sort: 40},
+				},
+				IsEnableResponse:        true,
+				IsDefaultEnableResponse: false,
+				ResponsePrivacyFields: []common.PrivacyLogFieldOption{
+					{Key: "completion", Label: "模型输出", Description: "保存文本或通用接口模型输出", LogTypes: []string{"log_text", "log_general"}, Enabled: true, Sort: 10},
+					{Key: "response_data", Label: "响应数据", Description: "保存视频、文件、批处理、通用接口响应数据", LogTypes: []string{"log_video", "log_file", "log_batch", "log_general"}, Enabled: true, Sort: 20},
+					{Key: "text", Label: "音频输出文本", Description: "保存音频接口输出或转写文本", LogTypes: []string{"log_audio"}, Enabled: true, Sort: 30},
+					{Key: "revised_prompt", Label: "改写提示词", Description: "保存绘图接口返回的改写提示词", LogTypes: []string{"log_image"}, Enabled: true, Sort: 40},
+					{Key: "upstream_response", Label: "上游完整响应", Description: "保存 Midjourney 等上游完整响应", LogTypes: []string{"log_midjourney"}, Enabled: true, Sort: 50},
+				},
+				IsEnableResource:        true,
+				IsDefaultEnableResource: false,
+				ResourcePrivacyFields: []common.PrivacyLogFieldOption{
+					{Key: "image_url", Label: "图片地址", Description: "保存生成图片或图片资源地址", Enabled: true, Sort: 10},
+					{Key: "file_url", Label: "文件地址", Description: "保存文件资源地址", Enabled: true, Sort: 20},
+					{Key: "video_url", Label: "视频地址", Description: "保存视频资源地址", Enabled: true, Sort: 30},
+					{Key: "download_url", Label: "下载地址", Description: "保存下载地址", Enabled: true, Sort: 40},
+					{Key: "content_url", Label: "内容地址", Description: "保存内容访问地址", Enabled: true, Sort: 50},
+					{Key: "b64_json", Label: "Base64 图片数据", Description: "保存 Base64 图片数据", Enabled: true, Sort: 60},
+					{Key: "data", Label: "内联资源数据", Description: "保存内联资源数据", Enabled: true, Sort: 70},
+				},
+				IsEnableNetwork:        true,
+				IsDefaultEnableNetwork: false,
+				NetworkPrivacyFields: []common.PrivacyLogFieldOption{
+					{Key: "client_ip", Label: "客户端 IP", Description: "保存发起请求的客户端 IP", Enabled: true, Sort: 10},
+				},
+			},
 		},
 		UserLoginRegister: &common.UserLoginRegister{
 			AccountLogin:  true,

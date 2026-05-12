@@ -4,7 +4,6 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
-	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 )
 
 // 用户信息接口请求参数
@@ -82,15 +81,4 @@ type UpdatePrivacyReq struct {
 // 用户更新隐私设置接口响应参数
 type UpdatePrivacyRes struct {
 	g.Meta `mime:"application/json" example:"json"`
-}
-
-// 用户隐私日志字段接口请求参数
-type PrivacyFieldsReq struct {
-	g.Meta `path:"/privacy/fields" method:"get" auth:"true" role:"user,reseller,admin" tags:"user" summary:"用户隐私日志字段接口"`
-}
-
-// 用户隐私日志字段接口响应参数
-type PrivacyFieldsRes struct {
-	g.Meta `mime:"application/json" example:"json"`
-	Items  []common.PrivacyLogFieldOption `json:"items"`
 }

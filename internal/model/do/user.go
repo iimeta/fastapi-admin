@@ -37,9 +37,9 @@ type User struct {
 	Remark                 string              `bson:"remark,omitempty"`                   // 备注
 	InviterUserId          int                 `bson:"inviter_user_id,omitempty"`          // 邀请人用户ID
 	InviteCode             string              `bson:"invite_code,omitempty"`              // 邀请码
+	Privacy                *common.UserPrivacy `bson:"privacy,omitempty"`                  // 隐私设置
 	Status                 int                 `bson:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
 	Rid                    int                 `bson:"rid,omitempty"`                      // 代理商ID
-	Privacy                *common.UserPrivacy `bson:"privacy,omitempty"`                  // 隐私设置
 	Creator                string              `bson:"creator,omitempty"`                  // 创建人
 	Updater                string              `bson:"updater,omitempty"`                  // 更新人
 	CreatedAt              int64               `bson:"created_at,omitempty"`               // 创建时间
