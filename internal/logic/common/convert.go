@@ -17,7 +17,7 @@ func ConvTimeRulesToRatio(rules []*common.TimeRule) []*common.TimeRule {
 	}
 
 	for i := range rules {
-		rules[i].Discount = util.Round(rules[i].Discount/100, 2)
+		rules[i].Discount = util.Round(rules[i].Discount/100, 6)
 		sort.Slice(rules[i].Days, func(j, k int) bool {
 			if rules[i].Days[j] == 0 && rules[i].Days[k] != 0 {
 				return false
@@ -44,7 +44,7 @@ func ConvTimeRulesToPercent(rules []*common.TimeRule) []*common.TimeRule {
 	}
 
 	for i := range rules {
-		rules[i].Discount = util.Round(rules[i].Discount*100, 2)
+		rules[i].Discount = util.Round(rules[i].Discount*100, 6)
 	}
 
 	return rules
