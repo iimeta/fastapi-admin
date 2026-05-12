@@ -62,7 +62,7 @@ type Log struct {
 	GeneralReserve time.Duration `bson:"general_reserve" json:"general_reserve"` // 通用日志保留天数
 	Status         []int         `bson:"status"          json:"status"`          // 删除日志状态
 	Cron           string        `bson:"cron"            json:"cron"`            // CRON表达式
-	Privacy        *LogPrivacy   `bson:"privacy"         json:"privacy"`         // 隐私日志配置
+	Privacy        *LogPrivacy   `bson:"privacy"         json:"privacy"`         // 日志隐私
 }
 
 type UserLoginRegister struct {

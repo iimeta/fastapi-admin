@@ -606,6 +606,7 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		Remark:                 user.Remark,
 		InviterUserId:          user.InviterUserId,
 		InviteCode:             user.InviteCode,
+		Privacy:                user.Privacy,
 		Status:                 user.Status,
 		Rid:                    user.Rid,
 		LoginIP:                account.LoginIP,

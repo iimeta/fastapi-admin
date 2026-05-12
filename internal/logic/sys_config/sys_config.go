@@ -611,7 +611,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					{Key: "response_data", Label: "响应数据", Description: "保存视频、文件、批处理、通用接口响应数据", LogTypes: []string{"log_video", "log_file", "log_batch", "log_general"}, Enabled: true, Sort: 20},
 					{Key: "text", Label: "音频输出文本", Description: "保存音频接口输出或转写文本", LogTypes: []string{"log_audio"}, Enabled: true, Sort: 30},
 					{Key: "revised_prompt", Label: "改写提示词", Description: "保存绘图接口返回的改写提示词", LogTypes: []string{"log_image"}, Enabled: true, Sort: 40},
-					{Key: "upstream_response", Label: "上游完整响应", Description: "保存 Midjourney 等上游完整响应", LogTypes: []string{"log_midjourney"}, Enabled: true, Sort: 50},
+					{Key: "upstream_response", Label: "完整响应", Description: "保存 Midjourney 等完整响应", LogTypes: []string{"log_midjourney"}, Enabled: true, Sort: 50},
 				},
 				IsEnableResource:        true,
 				IsDefaultEnableResource: false,
