@@ -43,12 +43,31 @@ func (s *sTicket) AutoCloseTask(ctx context.Context) {
 		"updated_at": bson.M{"$lte": deadline},
 	}
 
+	tickets, err := dao.Ticket.Find(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	if len(tickets) == 0 {
+		if _, err := redis.Set(ctx, consts.TASK_TICKET_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
+			logger.Error(ctx, err)
+		}
+		return
+	}
+
 	if err := dao.Ticket.UpdateMany(ctx, filter, bson.M{
 		"status":     consts.STATUS_CLOSED,
 		"updated_at": gtime.TimestampMilli(),
 	}); err != nil {
 		logger.Error(ctx, err)
 		return
+	}
+
+	for _, ticket := range tickets {
+		ticket.Status = consts.STATUS_CLOSED
+		ticket.UpdatedAt = gtime.TimestampMilli()
+		s.noticeAutoClosedUser(ctx, ticket)
 	}
 
 	if _, err := redis.Set(ctx, consts.TASK_TICKET_END_TIME_KEY, gtime.TimestampMilli()); err != nil {

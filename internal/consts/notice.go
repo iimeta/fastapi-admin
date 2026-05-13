@@ -19,6 +19,10 @@ const (
 	SCENE_NOTICE               = "notice"               // 消息通知
 	SCENE_NOTICE_REGISTER      = "notice_register"      // 注册通知
 	SCENE_NOTICE_LOGIN         = "notice_login"         // 登录通知
+	SCENE_TICKET_CREATE        = "ticket_create"        // 工单创建提醒
+	SCENE_TICKET_REPLY         = "ticket_reply"         // 工单回复提醒
+	SCENE_TICKET_STATUS        = "ticket_status"        // 工单状态变更提醒
+	SCENE_TICKET_AUTO_CLOSE    = "ticket_auto_close"    // 工单超时关闭提醒
 )
 
 const (
@@ -52,4 +56,8 @@ var SCENE = map[string]string{
 	SCENE_NOTICE:               "消息通知",
 	SCENE_NOTICE_REGISTER:      "注册通知",
 	SCENE_NOTICE_LOGIN:         "登录通知",
+	SCENE_TICKET_CREATE:        "工单创建提醒",
+	SCENE_TICKET_REPLY:         "工单回复提醒",
+	SCENE_TICKET_STATUS:        "工单状态变更提醒",
+	SCENE_TICKET_AUTO_CLOSE:    "工单超时关闭提醒",
 }

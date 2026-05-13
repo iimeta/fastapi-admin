@@ -2,7 +2,6 @@ package ticket
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/do"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
@@ -101,7 +101,7 @@ func (s *sTicket) Create(ctx context.Context, params model.TicketCreateReq) (str
 	if newTicket, err := dao.Ticket.FindById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 	} else {
-		s.noticeAssignee(ctx, newTicket, "工单创建提醒")
+		s.noticeAssignee(ctx, newTicket, consts.SCENE_TICKET_CREATE)
 	}
 
 	return id, nil
@@ -202,9 +202,9 @@ func (s *sTicket) Reply(ctx context.Context, params model.TicketReplyReq) (strin
 		logger.Error(ctx, err)
 	} else {
 		if replyRole == consts.SESSION_RESELLER || replyRole == consts.SESSION_ADMIN {
-			s.noticeUser(ctx, newTicket, "工单回复提醒")
+			s.noticeUser(ctx, newTicket, consts.SCENE_TICKET_REPLY)
 		} else {
-			s.noticeAssignee(ctx, newTicket, "工单回复提醒")
+			s.noticeAssignee(ctx, newTicket, consts.SCENE_TICKET_REPLY)
 		}
 	}
 
@@ -402,9 +402,9 @@ func (s *sTicket) UpdateStatus(ctx context.Context, params model.TicketUpdateSta
 		logger.Error(ctx, err)
 	} else {
 		if role == consts.SESSION_RESELLER || role == consts.SESSION_ADMIN {
-			s.noticeUser(ctx, newTicket, "工单状态变更提醒")
+			s.noticeUser(ctx, newTicket, consts.SCENE_TICKET_STATUS)
 		} else {
-			s.noticeAssignee(ctx, newTicket, "工单状态变更提醒")
+			s.noticeAssignee(ctx, newTicket, consts.SCENE_TICKET_STATUS)
 		}
 	}
 
@@ -542,19 +542,19 @@ func (s *sTicket) BatchDelete(ctx context.Context, params model.TicketBatchDelet
 	return nil
 }
 
-func (s *sTicket) noticeUser(ctx context.Context, ticket *entity.Ticket, action string) {
+func (s *sTicket) noticeUser(ctx context.Context, ticket *entity.Ticket, scene string) {
 
 	if ticket == nil || ticket.UserNotice || ticket.Status == consts.STATUS_CLOSED || config.Cfg.Ticket == nil || !config.Cfg.Ticket.Notice {
 		return
 	}
 
-	to, name, dialer, err := s.userMailTarget(ctx, ticket)
+	to, name, dialer, siteConfig, err := s.userMailTarget(ctx, ticket)
 	if err != nil {
 		logger.Infof(ctx, "sTicket noticeUser ticket: %s, error: %v", ticket.Id, err)
 		return
 	}
 
-	if err = s.sendNoticeMail(ctx, to, name, ticket, action, dialer); err != nil {
+	if err = s.sendNoticeMail(ctx, to, name, ticket, scene, dialer, siteConfig); err != nil {
 		logger.Errorf(ctx, "sTicket noticeUser ticket: %s, email: %s, error: %v", ticket.Id, to, err)
 		return
 	}
@@ -564,19 +564,41 @@ func (s *sTicket) noticeUser(ctx context.Context, ticket *entity.Ticket, action 
 	}
 }
 
-func (s *sTicket) noticeAssignee(ctx context.Context, ticket *entity.Ticket, action string) {
+func (s *sTicket) noticeAutoClosedUser(ctx context.Context, ticket *entity.Ticket) {
+
+	if ticket == nil || config.Cfg.Ticket == nil || !config.Cfg.Ticket.Notice {
+		return
+	}
+
+	to, name, dialer, siteConfig, err := s.userMailTarget(ctx, ticket)
+	if err != nil {
+		logger.Infof(ctx, "sTicket noticeAutoClosedUser ticket: %s, error: %v", ticket.Id, err)
+		return
+	}
+
+	if err = s.sendNoticeMail(ctx, to, name, ticket, consts.SCENE_TICKET_AUTO_CLOSE, dialer, siteConfig); err != nil {
+		logger.Errorf(ctx, "sTicket noticeAutoClosedUser ticket: %s, email: %s, error: %v", ticket.Id, to, err)
+		return
+	}
+
+	if err = dao.Ticket.UpdateById(gctx.New(), ticket.Id, bson.M{"user_notice": true}); err != nil {
+		logger.Error(ctx, err)
+	}
+}
+
+func (s *sTicket) noticeAssignee(ctx context.Context, ticket *entity.Ticket, scene string) {
 
 	if ticket == nil || ticket.AssigneeNotice || ticket.Status == consts.STATUS_CLOSED || config.Cfg.Ticket == nil || !config.Cfg.Ticket.Notice {
 		return
 	}
 
-	to, name, dialer, err := s.assigneeMailTarget(ctx, ticket)
+	to, name, dialer, siteConfig, err := s.assigneeMailTarget(ctx, ticket)
 	if err != nil {
 		logger.Infof(ctx, "sTicket noticeAssignee ticket: %s, error: %v", ticket.Id, err)
 		return
 	}
 
-	if err = s.sendNoticeMail(ctx, to, name, ticket, action, dialer); err != nil {
+	if err = s.sendNoticeMail(ctx, to, name, ticket, scene, dialer, siteConfig); err != nil {
 		logger.Errorf(ctx, "sTicket noticeAssignee ticket: %s, email: %s, error: %v", ticket.Id, to, err)
 		return
 	}
@@ -586,45 +608,45 @@ func (s *sTicket) noticeAssignee(ctx context.Context, ticket *entity.Ticket, act
 	}
 }
 
-func (s *sTicket) userMailTarget(ctx context.Context, ticket *entity.Ticket) (string, string, *email.Dialer, error) {
+func (s *sTicket) userMailTarget(ctx context.Context, ticket *entity.Ticket) (string, string, *email.Dialer, *entity.SiteConfig, error) {
 
 	switch ticket.UserRole {
 	case consts.SESSION_RESELLER:
 		reseller, err := dao.Reseller.FindOne(ctx, bson.M{"user_id": ticket.UserId})
 		if err != nil {
-			return "", "", nil, err
+			return "", "", nil, nil, err
 		}
-		dialer, err := s.dialerForReseller(ctx, reseller)
+		dialer, siteConfig, err := s.dialerForReseller(ctx, reseller)
 		if err != nil {
-			return "", "", nil, err
+			return "", "", nil, nil, err
 		}
-		return reseller.Email, reseller.Name, dialer, email.Verify(reseller.Email)
+		return reseller.Email, reseller.Name, dialer, siteConfig, email.Verify(reseller.Email)
 	default:
 		user, err := dao.User.FindOne(ctx, bson.M{"user_id": ticket.UserId})
 		if err != nil {
-			return "", "", nil, err
+			return "", "", nil, nil, err
 		}
-		dialer, err := s.dialerForUser(ctx, user)
+		dialer, siteConfig, err := s.dialerForUser(ctx, user)
 		if err != nil {
-			return "", "", nil, err
+			return "", "", nil, nil, err
 		}
-		return user.Email, user.Name, dialer, email.Verify(user.Email)
+		return user.Email, user.Name, dialer, siteConfig, email.Verify(user.Email)
 	}
 }
 
-func (s *sTicket) assigneeMailTarget(ctx context.Context, ticket *entity.Ticket) (string, string, *email.Dialer, error) {
+func (s *sTicket) assigneeMailTarget(ctx context.Context, ticket *entity.Ticket) (string, string, *email.Dialer, *entity.SiteConfig, error) {
 
 	switch ticket.AssigneeRole {
 	case consts.SESSION_RESELLER:
 		reseller, err := dao.Reseller.FindOne(gctx.New(), bson.M{"user_id": ticket.AssigneeId})
 		if err != nil {
-			return "", "", nil, err
+			return "", "", nil, nil, err
 		}
-		dialer, err := s.dialerForReseller(ctx, reseller)
+		dialer, siteConfig, err := s.dialerForReseller(ctx, reseller)
 		if err != nil {
-			return "", "", nil, err
+			return "", "", nil, nil, err
 		}
-		return reseller.Email, reseller.Name, dialer, email.Verify(reseller.Email)
+		return reseller.Email, reseller.Name, dialer, siteConfig, email.Verify(reseller.Email)
 	case consts.SESSION_ADMIN:
 		filter := bson.M{"status": 1}
 		if ticket.AssigneeId > 0 {
@@ -634,16 +656,16 @@ func (s *sTicket) assigneeMailTarget(ctx context.Context, ticket *entity.Ticket)
 		}
 		admin, err := dao.SysAdmin.FindOne(gctx.New(), filter, &dao.FindOptions{SortFields: []string{"-is_super_admin", "-updated_at"}})
 		if err != nil {
-			return "", "", nil, err
+			return "", "", nil, nil, err
 		}
-		dialer := s.dialerByDomain(ctx, admin.LoginDomain)
-		return admin.Email, admin.Name, dialer, email.Verify(admin.Email)
+		dialer, siteConfig := s.dialerByDomain(ctx, admin.LoginDomain)
+		return admin.Email, admin.Name, dialer, siteConfig, email.Verify(admin.Email)
 	default:
-		return "", "", nil, errors.New("工单处理人角色无效")
+		return "", "", nil, nil, errors.New("工单处理人角色无效")
 	}
 }
 
-func (s *sTicket) dialerForUser(ctx context.Context, user *entity.User) (*email.Dialer, error) {
+func (s *sTicket) dialerForUser(ctx context.Context, user *entity.User) (*email.Dialer, *entity.SiteConfig, error) {
 
 	dialer := email.NewDefaultDialer()
 	account, err := dao.Account.FindOne(ctx, bson.M{"user_id": user.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
@@ -654,25 +676,26 @@ func (s *sTicket) dialerForUser(ctx context.Context, user *entity.User) (*email.
 	if user.Rid > 0 {
 		if account != nil {
 			if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, account.LoginDomain); siteConfig != nil && siteConfig.Rid == user.Rid && siteConfig.Host != "" {
-				return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName), nil
+				return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName), siteConfig, nil
 			}
 		}
 		for _, siteConfig := range service.SiteConfig().GetSiteConfigsByRid(ctx, user.Rid) {
 			if siteConfig != nil && siteConfig.Host != "" {
-				return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName), nil
+				return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName), siteConfig, nil
 			}
 		}
-		return nil, errors.Newf("代理商 %d 未配置发信邮箱", user.Rid)
+		return nil, nil, errors.Newf("代理商 %d 未配置发信邮箱", user.Rid)
 	}
 
 	if account != nil {
-		dialer = s.dialerByDomain(ctx, account.LoginDomain)
+		dialer, siteConfig := s.dialerByDomain(ctx, account.LoginDomain)
+		return dialer, siteConfig, nil
 	}
 
-	return dialer, nil
+	return dialer, nil, nil
 }
 
-func (s *sTicket) dialerForReseller(ctx context.Context, reseller *entity.Reseller) (*email.Dialer, error) {
+func (s *sTicket) dialerForReseller(ctx context.Context, reseller *entity.Reseller) (*email.Dialer, *entity.SiteConfig, error) {
 
 	account, err := dao.ResellerAccount.FindOne(ctx, bson.M{"user_id": reseller.UserId, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
 	if err != nil {
@@ -680,38 +703,80 @@ func (s *sTicket) dialerForReseller(ctx context.Context, reseller *entity.Resell
 	}
 
 	if account != nil {
-		return s.dialerByDomain(ctx, account.LoginDomain), nil
+		dialer, siteConfig := s.dialerByDomain(ctx, account.LoginDomain)
+		return dialer, siteConfig, nil
+	}
+
+	return email.NewDefaultDialer(), nil, nil
+}
+
+func (s *sTicket) dialerByDomain(ctx context.Context, domain string) (*email.Dialer, *entity.SiteConfig) {
+
+	if domain != "" {
+		if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, domain); siteConfig != nil && siteConfig.Host != "" {
+			return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName), siteConfig
+		}
+	}
+
+	if siteConfig, err := dao.SiteConfig.FindOne(gctx.New(), bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err == nil && siteConfig != nil && siteConfig.Host != "" {
+		return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName), siteConfig
 	}
 
 	return email.NewDefaultDialer(), nil
 }
 
-func (s *sTicket) dialerByDomain(ctx context.Context, domain string) *email.Dialer {
-
-	if domain != "" {
-		if siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, domain); siteConfig != nil && siteConfig.Host != "" {
-			return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-		}
-	}
-
-	if siteConfig, err := dao.SiteConfig.FindOne(gctx.New(), bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}}); err == nil && siteConfig != nil && siteConfig.Host != "" {
-		return email.NewDialer(siteConfig.Host, siteConfig.Port, siteConfig.UserName, siteConfig.Password, siteConfig.FromName)
-	}
-
-	return email.NewDefaultDialer()
-}
-
-func (s *sTicket) sendNoticeMail(ctx context.Context, to, name string, ticket *entity.Ticket, action string, dialer *email.Dialer) error {
+func (s *sTicket) sendNoticeMail(ctx context.Context, to, name string, ticket *entity.Ticket, scene string, dialer *email.Dialer, siteConfig *entity.SiteConfig) error {
 
 	if to == "" {
 		return errors.New("收件邮箱为空")
 	}
 
-	title := fmt.Sprintf("工单%s：%s", action, ticket.Title)
-	content := fmt.Sprintf(`<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;font-family:Arial,'Microsoft YaHei',sans-serif;line-height:1.6;color:#333"><div style="background:#2563eb;padding:24px;text-align:center;color:#fff"><span style="font-size:22px;font-weight:700">%s</span></div><div style="padding:28px"><p style="margin:0 0 14px">尊敬的 <strong>%s</strong>：</p><p style="margin:0 0 18px">工单 <strong>%s</strong> 有新的动态，请及时查看处理。</p><div style="background:#f8fafc;border-radius:8px;padding:16px;border:1px solid #e2e8f0"><p style="margin:0 0 8px"><strong>工单编号：</strong>%s</p><p style="margin:0 0 8px"><strong>标题：</strong>%s</p><p style="margin:0"><strong>当前状态：</strong>%s</p></div></div><div style="padding:18px;text-align:center;font-size:12px;color:#9ca3af;background:#f9fafb"><p style="margin:0">此为系统邮件，请勿直接回复</p></div></div>`,
-		action, name, ticket.TicketNo, ticket.TicketNo, ticket.Title, s.statusName(ticket.Status))
+	noticeTemplate, err := service.NoticeTemplate().GetNoticeTemplateByScene(ctx, scene, []string{consts.NOTICE_CHANNEL_EMAIL})
+	if err != nil {
+		return err
+	}
+
+	if siteConfig == nil {
+		siteConfig, _ = dao.SiteConfig.FindOne(gctx.New(), bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	}
+
+	data := common.GetVariableData(ctx, nil, nil, siteConfig, noticeTemplate.Variables)
+	data["name"] = name
+	data["action"] = s.noticeAction(scene)
+	data["auto_close_days"] = int64(config.Cfg.Ticket.AutoCloseDays)
+	data["ticket"] = map[string]any{
+		"id":            ticket.Id,
+		"ticket_no":     ticket.TicketNo,
+		"title":         ticket.Title,
+		"content":       ticket.Content,
+		"category":      ticket.Category,
+		"priority":      ticket.Priority,
+		"status":        ticket.Status,
+		"status_name":   s.statusName(ticket.Status),
+		"user_id":       ticket.UserId,
+		"user_name":     ticket.UserName,
+		"user_role":     ticket.UserRole,
+		"assignee_id":   ticket.AssigneeId,
+		"assignee_role": ticket.AssigneeRole,
+		"reply_count":   ticket.ReplyCount,
+		"last_reply_at": util.FormatDateTime(ticket.LastReplyAt),
+		"created_at":    util.FormatDateTime(ticket.CreatedAt),
+		"updated_at":    util.FormatDateTime(ticket.UpdatedAt),
+	}
+
+	title, content, err := util.RenderTemplate(noticeTemplate.Title, noticeTemplate.Content, data)
+	if err != nil {
+		return err
+	}
 
 	return email.SendMailTask(ctx, email.NewMessage([]string{to}, title, content), dialer)
+}
+
+func (s *sTicket) noticeAction(scene string) string {
+	if action, ok := consts.SCENE[scene]; ok {
+		return action
+	}
+	return scene
 }
 
 func (s *sTicket) statusName(status int) string {
