@@ -870,7 +870,7 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 					Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
 					Abnormal:     abnormal,
 					AbnormalRate: abnormalRate,
-					ModelStats:   r.ModelStats,
+					ModelStats:   convModelStats(r.ModelStats),
 				})
 			}
 		}
@@ -950,7 +950,7 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 					Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
 					Abnormal:     abnormal,
 					AbnormalRate: abnormalRate,
-					ModelStats:   r.ModelStats,
+					ModelStats:   convModelStats(r.ModelStats),
 				})
 			}
 		}
@@ -1033,7 +1033,7 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 					Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
 					Abnormal:     abnormal,
 					AbnormalRate: abnormalRate,
-					ModelStats:   r.ModelStats,
+					ModelStats:   convModelStats(r.ModelStats),
 				})
 			}
 		}
@@ -1314,7 +1314,7 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 				Tokens:       common.ConvQuotaUnitReverse(r.Tokens),
 				Abnormal:     abnormal,
 				AbnormalRate: abnormalRate,
-				ModelStats:   r.ModelStats,
+				ModelStats:   convModelStats(r.ModelStats),
 			})
 		}
 	}
@@ -2376,6 +2376,10 @@ func convModelStats(v any) []*mcommon.ModelStat {
 	switch arr := v.(type) {
 	case []any:
 		items = arr
+	case []*mcommon.ModelStat:
+		for _, x := range arr {
+			items = append(items, x)
+		}
 	case bson.A:
 		for _, x := range arr {
 			items = append(items, x)
