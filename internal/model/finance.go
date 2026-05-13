@@ -20,9 +20,10 @@ type FinanceBillPageRes struct {
 
 // 账单明细导出接口请求参数
 type FinanceBillExportReq struct {
-	Ids      []string `json:"ids,omitempty"`       // 主键Ids
-	StatDate []string `json:"stat_date,omitempty"` // 统计日期
-	UserId   int      `json:"user_id,omitempty"`   // 用户ID
+	Ids      []string `json:"ids,omitempty"`                // 主键Ids
+	StatDate []string `json:"stat_date,omitempty"`          // 统计日期
+	UserId   int      `json:"user_id,omitempty"`            // 用户ID
+	DataType string   `json:"data_type,omitempty" d:"user"` // 数据维度[user:用户, app:应用, app_key:应用密钥]
 }
 
 // 账单明细
@@ -39,6 +40,8 @@ type Bill struct {
 type BillExport struct {
 	StatDate string  `json:"stat_date"` // 统计日期
 	UserId   int     `json:"user_id"`   // 用户ID
+	AppId    int     `json:"app_id"`    // 应用ID
+	AppKey   string  `json:"app_key"`   // 应用密钥
 	Model    string  `json:"model"`     // 模型
 	Total    int     `json:"total"`     // 总数
 	Tokens   float64 `json:"tokens"`    // 令牌数

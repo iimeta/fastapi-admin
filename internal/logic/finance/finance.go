@@ -126,7 +126,24 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 
 	filter := bson.M{}
 	if len(params.Ids) > 0 {
-		filter = bson.M{"_id": bson.M{"$in": params.Ids}}
+
+		selectedResults, err := dao.StatisticsUser.Find(ctx, bson.M{"_id": bson.M{"$in": params.Ids}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		orFilters := make([]bson.M, 0)
+		for _, result := range selectedResults {
+			orFilters = append(orFilters, bson.M{"user_id": result.UserId, "stat_date": result.StatDate})
+		}
+
+		if len(orFilters) == 0 {
+			return "", errors.New("selected bill data not found")
+		}
+
+		filter["$or"] = orFilters
+
 	} else {
 		filter = bson.M{
 			"stat_date": bson.M{
@@ -142,16 +159,8 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 
 	if service.Session().IsUserRole(ctx) {
 		filter["user_id"] = service.Session().GetUserId(ctx)
-	} else {
-		if params.UserId != 0 {
-			filter["user_id"] = params.UserId
-		}
-	}
-
-	results, err := dao.StatisticsUser.Find(ctx, filter, &dao.FindOptions{SortFields: []string{"-stat_date", "-tokens"}})
-	if err != nil {
-		logger.Error(ctx, err)
-		return "", err
+	} else if len(params.Ids) == 0 && params.UserId != 0 {
+		filter["user_id"] = params.UserId
 	}
 
 	colFieldMap := make(map[string]string)
@@ -160,27 +169,40 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 	colFieldMap["调用数"] = "Total"
 	colFieldMap["花费"] = "Tokens"
 
-	var titleCols []string
-	if service.Session().IsUserRole(ctx) {
-		titleCols = append(titleCols, "账单日期", "模型", "调用数", "花费")
-	} else {
-		titleCols = append(titleCols, "账单日期", "用户ID", "模型", "调用数", "花费")
+	titleCols := []string{"账单日期"}
+
+	if !service.Session().IsUserRole(ctx) {
+		titleCols = append(titleCols, "用户ID")
 		colFieldMap["用户ID"] = "UserId"
 	}
+
+	if params.DataType == "app" || params.DataType == "app_key" {
+		titleCols = append(titleCols, "应用ID")
+		colFieldMap["应用ID"] = "AppId"
+	}
+
+	if params.DataType == "app_key" {
+		titleCols = append(titleCols, "应用密钥")
+		colFieldMap["应用密钥"] = "AppKey"
+	}
+
+	titleCols = append(titleCols, "模型", "调用数", "花费")
 
 	filePath := fmt.Sprintf("./resource/export/bill_%d.xlsx", gtime.TimestampMilli())
 
 	values := make([]any, 0)
-	for _, result := range results {
+	appendValues := func(statDate string, userId int, appId int, appKey string, modelStats []*mcommon.ModelStat) {
 
-		slices.SortFunc(result.ModelStats, func(s1, s2 *mcommon.ModelStat) int {
+		slices.SortFunc(modelStats, func(s1, s2 *mcommon.ModelStat) int {
 			return cmp.Compare(s2.Tokens, s1.Tokens)
 		})
 
-		for _, modelStat := range result.ModelStats {
+		for _, modelStat := range modelStats {
 			values = append(values, &model.BillExport{
-				StatDate: result.StatDate,
-				UserId:   result.UserId,
+				StatDate: statDate,
+				UserId:   userId,
+				AppId:    appId,
+				AppKey:   appKey,
 				Model:    modelStat.Model,
 				Total:    modelStat.Total,
 				Tokens:   common.ConvQuotaUnitReverse(int(modelStat.Tokens)),
@@ -188,7 +210,47 @@ func (s *sFinance) BillExport(ctx context.Context, params model.FinanceBillExpor
 		}
 	}
 
-	if err = util.ExcelExport("账单明细", titleCols, colFieldMap, values, filePath); err != nil {
+	findOptions := &dao.FindOptions{SortFields: []string{"-stat_date", "-tokens"}}
+
+	switch params.DataType {
+	case "app":
+
+		results, err := dao.StatisticsApp.Find(ctx, filter, findOptions)
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		for _, result := range results {
+			appendValues(result.StatDate, result.UserId, result.AppId, "", result.ModelStats)
+		}
+
+	case "app_key":
+
+		results, err := dao.StatisticsAppKey.Find(ctx, filter, findOptions)
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		for _, result := range results {
+			appendValues(result.StatDate, result.UserId, result.AppId, result.AppKey, result.ModelStats)
+		}
+
+	default:
+
+		results, err := dao.StatisticsUser.Find(ctx, filter, findOptions)
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		for _, result := range results {
+			appendValues(result.StatDate, result.UserId, 0, "", result.ModelStats)
+		}
+	}
+
+	if err := util.ExcelExport("账单明细", titleCols, colFieldMap, values, filePath); err != nil {
 		return "", err
 	}
 

@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -17,7 +18,7 @@ func ExcelExport(sheetName string, titleCols []string, colFieldMap map[string]st
 		return err
 	}
 
-	style, err := f.NewStyle(&excelize.Style{
+	headerStyle, err := f.NewStyle(&excelize.Style{
 		Font: &excelize.Font{
 			Bold: true,
 			Size: 14,
@@ -36,7 +37,7 @@ func ExcelExport(sheetName string, titleCols []string, colFieldMap map[string]st
 			return err
 		}
 
-		if err = f.SetCellStyle(sheetName, fmt.Sprintf("%c1", COL_A+i), fmt.Sprintf("%c1", COL_A+i), style); err != nil {
+		if err = f.SetCellStyle(sheetName, fmt.Sprintf("%c1", COL_A+i), fmt.Sprintf("%c1", COL_A+i), headerStyle); err != nil {
 			return err
 		}
 	}
@@ -45,10 +46,33 @@ func ExcelExport(sheetName string, titleCols []string, colFieldMap map[string]st
 		return err
 	}
 
+	textNumFmt := "@"
+	textStyle, err := f.NewStyle(&excelize.Style{CustomNumFmt: &textNumFmt})
+	if err != nil {
+		return err
+	}
+
 	for i := 0; i < len(values); i++ {
+
 		value := reflect.ValueOf(values[i]).Elem()
 		for j := 0; j < len(titleCols); j++ {
-			if err = f.SetCellValue(sheetName, fmt.Sprintf("%c%d", COL_A+j, 2+i), value.FieldByName(colFieldMap[titleCols[j]])); err != nil {
+
+			cell := fmt.Sprintf("%c%d", COL_A+j, 2+i)
+			field := value.FieldByName(colFieldMap[titleCols[j]])
+
+			if field.Kind() == reflect.Float32 || field.Kind() == reflect.Float64 {
+
+				if err = f.SetCellStr(sheetName, cell, strconv.FormatFloat(field.Float(), 'f', -1, field.Type().Bits())); err != nil {
+					return err
+				}
+
+				if err = f.SetCellStyle(sheetName, cell, cell, textStyle); err != nil {
+					return err
+				}
+				continue
+			}
+
+			if err = f.SetCellValue(sheetName, cell, field); err != nil {
 				return err
 			}
 		}
