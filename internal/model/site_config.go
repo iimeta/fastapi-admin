@@ -28,7 +28,7 @@ type InviteConfig struct {
 
 // 新建站点配置接口请求参数
 type SiteConfigCreateReq struct {
-	Domain              string                `json:"domain,omitempty"`                // 域名
+	Domains             []string              `json:"domains,omitempty"`               // 域名
 	Title               string                `json:"title,omitempty"`                 // 标题
 	Logo                string                `json:"logo,omitempty"`                  // Logo
 	Favicon             string                `json:"favicon,omitempty"`               // Favicon
@@ -73,7 +73,7 @@ type SiteConfigCreateReq struct {
 // 更新站点配置接口请求参数
 type SiteConfigUpdateReq struct {
 	Id                  string                `json:"id,omitempty"`                    // ID
-	Domain              string                `json:"domain,omitempty"`                // 域名
+	Domains             []string              `json:"domains,omitempty"`               // 域名
 	Title               string                `json:"title,omitempty"`                 // 标题
 	Logo                string                `json:"logo,omitempty"`                  // Logo
 	Favicon             string                `json:"favicon,omitempty"`               // Favicon
@@ -158,7 +158,7 @@ type SiteConfigBatchOperateReq struct {
 
 type SiteConfig struct {
 	Id                  string                `json:"id,omitempty"`                    // ID
-	Domain              string                `json:"domain,omitempty"`                // 域名
+	Domains             []string              `json:"domains,omitempty"`               // 域名
 	Title               string                `json:"title,omitempty"`                 // 标题
 	Logo                string                `json:"logo,omitempty"`                  // Logo
 	Favicon             string                `json:"favicon,omitempty"`               // Favicon

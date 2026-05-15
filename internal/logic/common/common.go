@@ -431,7 +431,7 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 
 			switch parts[1] {
 			case consts.ATTRIBUTE_DOMAIN:
-				siteAttribute[parts[1]] = siteConfig.Domain
+				siteAttribute[parts[1]] = strings.Join(siteConfig.Domains, ", ")
 			case consts.ATTRIBUTE_TITLE:
 				siteAttribute[parts[1]] = siteConfig.Title
 			case consts.ATTRIBUTE_LOGO:

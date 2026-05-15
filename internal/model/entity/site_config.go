@@ -8,7 +8,7 @@ import (
 type SiteConfig struct {
 	gmeta.Meta          `role:"*" bson:"-"`
 	Id                  string                `bson:"_id,omitempty"`                   // ID
-	Domain              string                `bson:"domain,omitempty"`                // 域名
+	Domains             []string              `bson:"domains,omitempty"`               // 域名
 	Title               string                `bson:"title,omitempty"`                 // 标题
 	Logo                string                `bson:"logo,omitempty"`                  // Logo
 	Favicon             string                `bson:"favicon,omitempty"`               // Favicon

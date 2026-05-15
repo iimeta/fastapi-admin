@@ -33,7 +33,7 @@ func (s *sOpen) Site(ctx context.Context, params model.SiteConfigDetailReq) *mod
 	var siteConfig *entity.SiteConfig
 
 	if params.Domain != "" {
-		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"domain": params.Domain, "status": 1})
+		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"domains": params.Domain, "status": 1})
 	}
 
 	if siteConfig == nil {
@@ -45,7 +45,7 @@ func (s *sOpen) Site(ctx context.Context, params model.SiteConfigDetailReq) *mod
 	}
 
 	return &model.SiteConfig{
-		Domain:              siteConfig.Domain,
+		Domains:             siteConfig.Domains,
 		Title:               siteConfig.Title,
 		Logo:                siteConfig.Logo,
 		Favicon:             siteConfig.Favicon,
@@ -142,7 +142,7 @@ func (s *sOpen) UserAgreement(ctx context.Context, params model.SysConfigReq) (s
 	var siteConfig *entity.SiteConfig
 
 	if params.Domain != "" {
-		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"domain": params.Domain, "status": 1})
+		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"domains": params.Domain, "status": 1})
 	}
 
 	if siteConfig == nil {
@@ -170,7 +170,7 @@ func (s *sOpen) PrivacyPolicy(ctx context.Context, params model.SysConfigReq) (s
 	var siteConfig *entity.SiteConfig
 
 	if params.Domain != "" {
-		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"domain": params.Domain, "status": 1})
+		siteConfig, _ = dao.SiteConfig.FindOne(ctx, bson.M{"domains": params.Domain, "status": 1})
 	}
 
 	if siteConfig == nil {

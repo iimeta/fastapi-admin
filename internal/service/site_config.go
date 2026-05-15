@@ -30,8 +30,8 @@ type (
 		BatchOperate(ctx context.Context, params model.SiteConfigBatchOperateReq) error
 		// 根据域名获取站点配置
 		GetSiteConfigByDomain(ctx context.Context, domain string) *entity.SiteConfig
-		// 站点域名是否存在
-		IsDomainExist(ctx context.Context, domain string, id ...string) bool
+		// 获取已存在的域名
+		GetExistDomains(ctx context.Context, domains []string, id ...string) []string
 		// 根据代理商ID获取站点配置列表
 		GetSiteConfigsByRid(ctx context.Context, rid int) []*entity.SiteConfig
 	}

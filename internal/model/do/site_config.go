@@ -7,7 +7,7 @@ import (
 
 type SiteConfig struct {
 	gmeta.Meta          `collection:"site_config" bson:"-"`
-	Domain              string                `bson:"domain,omitempty"`      // 域名
+	Domains             []string              `bson:"domains,omitempty"`     // 域名
 	Title               string                `bson:"title,omitempty"`       // 标题
 	Logo                string                `bson:"logo,omitempty"`        // Logo
 	Favicon             string                `bson:"favicon,omitempty"`     // Favicon

@@ -35,27 +35,27 @@ func New() service.ISiteConfig {
 // 新建站点配置
 func (s *sSiteConfig) Create(ctx context.Context, params model.SiteConfigCreateReq) error {
 
-	if s.IsDomainExist(ctx, params.Domain) {
-		return errors.Newf("域名 \"%s\" 已存在", params.Domain)
+	if existDomains := s.GetExistDomains(ctx, params.Domains); len(existDomains) > 0 {
+		return errors.Newf("域名 \"%s\" 已存在", gstr.Join(existDomains, ", "))
 	}
 
 	siteConfig := &do.SiteConfig{
-		Domain:                            gstr.Trim(params.Domain),
-		Title:                             params.Title,
-		Logo:                              params.Logo,
-		Favicon:                           params.Favicon,
-		Avatar:                            params.Avatar,
-		BgImg:                             params.BgImg,
-		Copyright:                         params.Copyright,
-		JumpUrl:                           params.JumpUrl,
-		Keywords:                          params.Keywords,
-		Description:                       params.Description,
-		IcpBeian:                          params.IcpBeian,
-		GaBeian:                           params.GaBeian,
-		RegisterTips:                      params.RegisterTips,
-		GrantQuota:                        common.ConvQuotaUnit(params.GrantQuota),
-		InviteEnabled:                     params.InviteEnabled,
-		InviteCodeRequired:                params.InviteCodeRequired,
+		Domains:            trimDomains(params.Domains),
+		Title:              params.Title,
+		Logo:               params.Logo,
+		Favicon:            params.Favicon,
+		Avatar:             params.Avatar,
+		BgImg:              params.BgImg,
+		Copyright:          params.Copyright,
+		JumpUrl:            params.JumpUrl,
+		Keywords:           params.Keywords,
+		Description:        params.Description,
+		IcpBeian:           params.IcpBeian,
+		GaBeian:            params.GaBeian,
+		RegisterTips:       params.RegisterTips,
+		GrantQuota:         common.ConvQuotaUnit(params.GrantQuota),
+		InviteEnabled:      params.InviteEnabled,
+		InviteCodeRequired: params.InviteCodeRequired,
 		InviteConfig: mcommon.InviteConfig{
 			RewardQuota:                 common.ConvQuotaUnit(params.InviteConfig.RewardQuota),
 			GrantQuota:                  common.ConvQuotaUnit(params.InviteConfig.GrantQuota),
@@ -78,30 +78,30 @@ func (s *sSiteConfig) Create(ctx context.Context, params model.SiteConfigCreateR
 			RechargeRebateSecondRate:    params.InviteConfig.RechargeRebateSecondRate,
 			RechargeRebateSecondQuota:   common.ConvQuotaUnit(params.InviteConfig.RechargeRebateSecondQuota),
 		},
-		QuotaExpiresAt:                    params.QuotaExpiresAt,
-		SupportEmailSuffix:                params.SupportEmailSuffix,
-		RegisterWelcome:                   params.RegisterWelcome,
-		DefaultLanguage:                   params.DefaultLanguage,
-		CurrencySymbol:                    params.CurrencySymbol,
-		Host:                              params.Host,
-		Port:                              params.Port,
-		UserName:                          params.UserName,
-		Password:                          params.Password,
-		FromName:                          params.FromName,
-		Carousel1Title:                    params.Carousel1Title,
-		Carousels1:                        params.Carousels1,
-		Carousel2Title:                    params.Carousel2Title,
-		Carousels2:                        params.Carousels2,
-		AnnouncementTitle:                 params.AnnouncementTitle,
-		AnnouncementMoreUrl:               params.AnnouncementMoreUrl,
-		Announcements:                     params.Announcements,
-		DocumentTitle:                     params.DocumentTitle,
-		DocumentMoreUrl:                   params.DocumentMoreUrl,
-		Documents:                         params.Documents,
-		RechargeTips:                      params.RechargeTips,
-		Remark:                            params.Remark,
-		Status:                            params.Status,
-		UserId:                            service.Session().GetUserId(ctx),
+		QuotaExpiresAt:      params.QuotaExpiresAt,
+		SupportEmailSuffix:  params.SupportEmailSuffix,
+		RegisterWelcome:     params.RegisterWelcome,
+		DefaultLanguage:     params.DefaultLanguage,
+		CurrencySymbol:      params.CurrencySymbol,
+		Host:                params.Host,
+		Port:                params.Port,
+		UserName:            params.UserName,
+		Password:            params.Password,
+		FromName:            params.FromName,
+		Carousel1Title:      params.Carousel1Title,
+		Carousels1:          params.Carousels1,
+		Carousel2Title:      params.Carousel2Title,
+		Carousels2:          params.Carousels2,
+		AnnouncementTitle:   params.AnnouncementTitle,
+		AnnouncementMoreUrl: params.AnnouncementMoreUrl,
+		Announcements:       params.Announcements,
+		DocumentTitle:       params.DocumentTitle,
+		DocumentMoreUrl:     params.DocumentMoreUrl,
+		Documents:           params.Documents,
+		RechargeTips:        params.RechargeTips,
+		Remark:              params.Remark,
+		Status:              params.Status,
+		UserId:              service.Session().GetUserId(ctx),
 	}
 
 	if _, err := dao.SiteConfig.Insert(ctx, siteConfig); err != nil {
@@ -115,27 +115,27 @@ func (s *sSiteConfig) Create(ctx context.Context, params model.SiteConfigCreateR
 // 更新站点配置
 func (s *sSiteConfig) Update(ctx context.Context, params model.SiteConfigUpdateReq) error {
 
-	if s.IsDomainExist(ctx, params.Domain, params.Id) {
-		return errors.Newf("域名 \"%s\" 已存在", params.Domain)
+	if existDomains := s.GetExistDomains(ctx, params.Domains, params.Id); len(existDomains) > 0 {
+		return errors.Newf("域名 \"%s\" 已存在", gstr.Join(existDomains, ", "))
 	}
 
 	siteConfig := &do.SiteConfig{
-		Domain:                            gstr.Trim(params.Domain),
-		Title:                             params.Title,
-		Logo:                              params.Logo,
-		Favicon:                           params.Favicon,
-		Avatar:                            params.Avatar,
-		BgImg:                             params.BgImg,
-		Copyright:                         params.Copyright,
-		JumpUrl:                           params.JumpUrl,
-		Keywords:                          params.Keywords,
-		Description:                       params.Description,
-		IcpBeian:                          params.IcpBeian,
-		GaBeian:                           params.GaBeian,
-		RegisterTips:                      params.RegisterTips,
-		GrantQuota:                        common.ConvQuotaUnit(params.GrantQuota),
-		InviteEnabled:                     params.InviteEnabled,
-		InviteCodeRequired:                params.InviteCodeRequired,
+		Domains:            trimDomains(params.Domains),
+		Title:              params.Title,
+		Logo:               params.Logo,
+		Favicon:            params.Favicon,
+		Avatar:             params.Avatar,
+		BgImg:              params.BgImg,
+		Copyright:          params.Copyright,
+		JumpUrl:            params.JumpUrl,
+		Keywords:           params.Keywords,
+		Description:        params.Description,
+		IcpBeian:           params.IcpBeian,
+		GaBeian:            params.GaBeian,
+		RegisterTips:       params.RegisterTips,
+		GrantQuota:         common.ConvQuotaUnit(params.GrantQuota),
+		InviteEnabled:      params.InviteEnabled,
+		InviteCodeRequired: params.InviteCodeRequired,
 		InviteConfig: mcommon.InviteConfig{
 			RewardQuota:                 common.ConvQuotaUnit(params.InviteConfig.RewardQuota),
 			GrantQuota:                  common.ConvQuotaUnit(params.InviteConfig.GrantQuota),
@@ -158,29 +158,29 @@ func (s *sSiteConfig) Update(ctx context.Context, params model.SiteConfigUpdateR
 			RechargeRebateSecondRate:    params.InviteConfig.RechargeRebateSecondRate,
 			RechargeRebateSecondQuota:   common.ConvQuotaUnit(params.InviteConfig.RechargeRebateSecondQuota),
 		},
-		QuotaExpiresAt:                    params.QuotaExpiresAt,
-		SupportEmailSuffix:                params.SupportEmailSuffix,
-		RegisterWelcome:                   params.RegisterWelcome,
-		DefaultLanguage:                   params.DefaultLanguage,
-		CurrencySymbol:                    params.CurrencySymbol,
-		Host:                              params.Host,
-		Port:                              params.Port,
-		UserName:                          params.UserName,
-		Password:                          params.Password,
-		FromName:                          params.FromName,
-		Carousel1Title:                    params.Carousel1Title,
-		Carousels1:                        params.Carousels1,
-		Carousel2Title:                    params.Carousel2Title,
-		Carousels2:                        params.Carousels2,
-		AnnouncementTitle:                 params.AnnouncementTitle,
-		AnnouncementMoreUrl:               params.AnnouncementMoreUrl,
-		Announcements:                     params.Announcements,
-		DocumentTitle:                     params.DocumentTitle,
-		DocumentMoreUrl:                   params.DocumentMoreUrl,
-		Documents:                         params.Documents,
-		RechargeTips:                      params.RechargeTips,
-		Remark:                            params.Remark,
-		Status:                            params.Status,
+		QuotaExpiresAt:      params.QuotaExpiresAt,
+		SupportEmailSuffix:  params.SupportEmailSuffix,
+		RegisterWelcome:     params.RegisterWelcome,
+		DefaultLanguage:     params.DefaultLanguage,
+		CurrencySymbol:      params.CurrencySymbol,
+		Host:                params.Host,
+		Port:                params.Port,
+		UserName:            params.UserName,
+		Password:            params.Password,
+		FromName:            params.FromName,
+		Carousel1Title:      params.Carousel1Title,
+		Carousels1:          params.Carousels1,
+		Carousel2Title:      params.Carousel2Title,
+		Carousels2:          params.Carousels2,
+		AnnouncementTitle:   params.AnnouncementTitle,
+		AnnouncementMoreUrl: params.AnnouncementMoreUrl,
+		Announcements:       params.Announcements,
+		DocumentTitle:       params.DocumentTitle,
+		DocumentMoreUrl:     params.DocumentMoreUrl,
+		Documents:           params.Documents,
+		RechargeTips:        params.RechargeTips,
+		Remark:              params.Remark,
+		Status:              params.Status,
 	}
 
 	if err := dao.SiteConfig.UpdateById(ctx, params.Id, siteConfig); err != nil {
@@ -255,23 +255,23 @@ func (s *sSiteConfig) Detail(ctx context.Context, params model.SiteConfigDetailR
 	}
 
 	return &model.SiteConfig{
-		Id:                                siteConfig.Id,
-		Domain:                            siteConfig.Domain,
-		Title:                             siteConfig.Title,
-		Logo:                              siteConfig.Logo,
-		Favicon:                           siteConfig.Favicon,
-		Avatar:                            siteConfig.Avatar,
-		BgImg:                             siteConfig.BgImg,
-		Copyright:                         siteConfig.Copyright,
-		JumpUrl:                           siteConfig.JumpUrl,
-		Keywords:                          siteConfig.Keywords,
-		Description:                       siteConfig.Description,
-		IcpBeian:                          siteConfig.IcpBeian,
-		GaBeian:                           siteConfig.GaBeian,
-		RegisterTips:                      siteConfig.RegisterTips,
-		GrantQuota:                        common.ConvQuotaUnitReverse(siteConfig.GrantQuota),
-		InviteEnabled:                     siteConfig.InviteEnabled,
-		InviteCodeRequired:                siteConfig.InviteCodeRequired,
+		Id:                 siteConfig.Id,
+		Domains:            siteConfig.Domains,
+		Title:              siteConfig.Title,
+		Logo:               siteConfig.Logo,
+		Favicon:            siteConfig.Favicon,
+		Avatar:             siteConfig.Avatar,
+		BgImg:              siteConfig.BgImg,
+		Copyright:          siteConfig.Copyright,
+		JumpUrl:            siteConfig.JumpUrl,
+		Keywords:           siteConfig.Keywords,
+		Description:        siteConfig.Description,
+		IcpBeian:           siteConfig.IcpBeian,
+		GaBeian:            siteConfig.GaBeian,
+		RegisterTips:       siteConfig.RegisterTips,
+		GrantQuota:         common.ConvQuotaUnitReverse(siteConfig.GrantQuota),
+		InviteEnabled:      siteConfig.InviteEnabled,
+		InviteCodeRequired: siteConfig.InviteCodeRequired,
 		InviteConfig: model.InviteConfig{
 			RewardQuota:                 common.ConvQuotaUnitReverse(siteConfig.InviteConfig.RewardQuota),
 			GrantQuota:                  common.ConvQuotaUnitReverse(siteConfig.InviteConfig.GrantQuota),
@@ -294,34 +294,34 @@ func (s *sSiteConfig) Detail(ctx context.Context, params model.SiteConfigDetailR
 			RechargeRebateSecondRate:    siteConfig.InviteConfig.RechargeRebateSecondRate,
 			RechargeRebateSecondQuota:   common.ConvQuotaUnitReverse(siteConfig.InviteConfig.RechargeRebateSecondQuota),
 		},
-		QuotaExpiresAt:                    siteConfig.QuotaExpiresAt,
-		SupportEmailSuffix:                siteConfig.SupportEmailSuffix,
-		RegisterWelcome:                   siteConfig.RegisterWelcome,
-		DefaultLanguage:                   siteConfig.DefaultLanguage,
-		CurrencySymbol:                    siteConfig.CurrencySymbol,
-		Host:                              siteConfig.Host,
-		Port:                              siteConfig.Port,
-		UserName:                          siteConfig.UserName,
-		Password:                          siteConfig.Password,
-		FromName:                          siteConfig.FromName,
-		Carousel1Title:                    siteConfig.Carousel1Title,
-		Carousels1:                        siteConfig.Carousels1,
-		Carousel2Title:                    siteConfig.Carousel2Title,
-		Carousels2:                        siteConfig.Carousels2,
-		AnnouncementTitle:                 siteConfig.AnnouncementTitle,
-		AnnouncementMoreUrl:               siteConfig.AnnouncementMoreUrl,
-		Announcements:                     siteConfig.Announcements,
-		DocumentTitle:                     siteConfig.DocumentTitle,
-		DocumentMoreUrl:                   siteConfig.DocumentMoreUrl,
-		Documents:                         siteConfig.Documents,
-		RechargeTips:                      siteConfig.RechargeTips,
-		Remark:                            siteConfig.Remark,
-		Status:                            siteConfig.Status,
-		UserId:                            siteConfig.UserId,
-		Creator:                           siteConfig.Creator,
-		Updater:                           siteConfig.Updater,
-		CreatedAt:                         util.FormatDateTime(siteConfig.CreatedAt),
-		UpdatedAt:                         util.FormatDateTime(siteConfig.UpdatedAt),
+		QuotaExpiresAt:      siteConfig.QuotaExpiresAt,
+		SupportEmailSuffix:  siteConfig.SupportEmailSuffix,
+		RegisterWelcome:     siteConfig.RegisterWelcome,
+		DefaultLanguage:     siteConfig.DefaultLanguage,
+		CurrencySymbol:      siteConfig.CurrencySymbol,
+		Host:                siteConfig.Host,
+		Port:                siteConfig.Port,
+		UserName:            siteConfig.UserName,
+		Password:            siteConfig.Password,
+		FromName:            siteConfig.FromName,
+		Carousel1Title:      siteConfig.Carousel1Title,
+		Carousels1:          siteConfig.Carousels1,
+		Carousel2Title:      siteConfig.Carousel2Title,
+		Carousels2:          siteConfig.Carousels2,
+		AnnouncementTitle:   siteConfig.AnnouncementTitle,
+		AnnouncementMoreUrl: siteConfig.AnnouncementMoreUrl,
+		Announcements:       siteConfig.Announcements,
+		DocumentTitle:       siteConfig.DocumentTitle,
+		DocumentMoreUrl:     siteConfig.DocumentMoreUrl,
+		Documents:           siteConfig.Documents,
+		RechargeTips:        siteConfig.RechargeTips,
+		Remark:              siteConfig.Remark,
+		Status:              siteConfig.Status,
+		UserId:              siteConfig.UserId,
+		Creator:             siteConfig.Creator,
+		Updater:             siteConfig.Updater,
+		CreatedAt:           util.FormatDateTime(siteConfig.CreatedAt),
+		UpdatedAt:           util.FormatDateTime(siteConfig.UpdatedAt),
 	}, nil
 }
 
@@ -344,7 +344,7 @@ func (s *sSiteConfig) Page(ctx context.Context, params model.SiteConfigPageReq) 
 	}
 
 	if params.Domain != "" {
-		filter["domain"] = bson.M{
+		filter["domains"] = bson.M{
 			"$regex": regexp.QuoteMeta(params.Domain),
 		}
 	}
@@ -381,7 +381,7 @@ func (s *sSiteConfig) Page(ctx context.Context, params model.SiteConfigPageReq) 
 	for _, result := range results {
 		items = append(items, &model.SiteConfig{
 			Id:           result.Id,
-			Domain:       result.Domain,
+			Domains:      result.Domains,
 			Title:        result.Title,
 			RegisterTips: result.RegisterTips,
 			Remark:       result.Remark,
@@ -437,30 +437,59 @@ func (s *sSiteConfig) GetSiteConfigByDomain(ctx context.Context, domain string) 
 		return nil
 	}
 
-	siteConfig, _ := dao.SiteConfig.FindOne(ctx, bson.M{"domain": domain, "status": 1})
+	siteConfig, _ := dao.SiteConfig.FindOne(ctx, bson.M{"domains": domain, "status": 1})
 	return siteConfig
 }
 
-// 站点域名是否存在
-func (s *sSiteConfig) IsDomainExist(ctx context.Context, domain string, id ...string) bool {
+// 获取已存在的域名
+func (s *sSiteConfig) GetExistDomains(ctx context.Context, domains []string, id ...string) []string {
 
-	siteConfig, err := dao.SiteConfig.FindOne(ctx, bson.M{"domain": gstr.Trim(domain)})
+	trimmed := trimDomains(domains)
+	if len(trimmed) == 0 {
+		return nil
+	}
+
+	filter := bson.M{"domains": bson.M{"$in": trimmed}}
+	if len(id) > 0 && id[0] != "" {
+		filter["_id"] = bson.M{"$ne": id[0]}
+	}
+
+	siteConfigs, err := dao.SiteConfig.Find(ctx, filter)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return false
+			return nil
 		}
 		logger.Error(ctx, err)
-		return true
+		return trimmed
 	}
 
-	if siteConfig != nil {
-		if len(id) > 0 && siteConfig.Id == id[0] {
-			return false
+	existMap := make(map[string]struct{})
+	for _, sc := range siteConfigs {
+		for _, d := range sc.Domains {
+			existMap[d] = struct{}{}
 		}
-		return true
 	}
 
-	return false
+	var exist []string
+	for _, d := range trimmed {
+		if _, ok := existMap[d]; ok {
+			exist = append(exist, d)
+		}
+	}
+
+	return exist
+}
+
+func trimDomains(domains []string) []string {
+
+	result := make([]string, 0, len(domains))
+	for _, d := range domains {
+		if t := gstr.Trim(d); t != "" {
+			result = append(result, t)
+		}
+	}
+
+	return result
 }
 
 // 根据代理商ID获取站点配置列表
