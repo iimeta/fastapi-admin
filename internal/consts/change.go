@@ -25,6 +25,7 @@ const (
 	ACTION_AGENT      = "agent"
 	ACTION_FORWARD    = "forward"
 	ACTION_FALLBACK   = "fallback"
+	ACTION_DATA_PASSTHROUGH = "data_passthrough"
 	ACTION_TIME       = "time"
 	ACTION_USER       = "user"
 	ACTION_APP        = "app"

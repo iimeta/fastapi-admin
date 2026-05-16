@@ -186,21 +186,28 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		}
 
 		if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, &do.ModelAgent{
-			ProviderId:           oldData.ProviderId,
-			Name:                 oldData.Name,
-			BaseUrl:              oldData.BaseUrl,
-			Path:                 oldData.Path,
-			Weight:               oldData.Weight,
-			Models:               append(oldData.Models, id),
-			IsEnableModelReplace: oldData.IsEnableModelReplace,
-			ReplaceModels:        oldData.ReplaceModels,
-			TargetModels:         oldData.TargetModels,
-			IsNeverDisable:       oldData.IsNeverDisable,
-			LbStrategy:           oldData.LbStrategy,
-			Remark:               oldData.Remark,
-			Status:               oldData.Status,
-			IsAutoDisabled:       oldData.IsAutoDisabled,
-			AutoDisabledReason:   oldData.AutoDisabledReason,
+			ProviderId:               oldData.ProviderId,
+			Name:                     oldData.Name,
+			BaseUrl:                  oldData.BaseUrl,
+			Path:                     oldData.Path,
+			Weight:                   oldData.Weight,
+			Models:                   append(oldData.Models, id),
+			IsEnableModelReplace:     oldData.IsEnableModelReplace,
+			ReplaceModels:            oldData.ReplaceModels,
+			TargetModels:             oldData.TargetModels,
+			IsNeverDisable:           oldData.IsNeverDisable,
+			LbStrategy:               oldData.LbStrategy,
+			IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
+			ReqPassthroughParams:     oldData.ReqPassthroughParams,
+			ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
+			ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
+			ResPassthroughParams:     oldData.ResPassthroughParams,
+			ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
+			ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
+			Remark:                   oldData.Remark,
+			Status:                   oldData.Status,
+			IsAutoDisabled:           oldData.IsAutoDisabled,
+			AutoDisabledReason:       oldData.AutoDisabledReason,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -373,21 +380,28 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		if !slices.Contains(params.ModelAgents, oldData.Id) {
 
 			modelAgent := &do.ModelAgent{
-				ProviderId:           oldData.ProviderId,
-				Name:                 oldData.Name,
-				BaseUrl:              oldData.BaseUrl,
-				Path:                 oldData.Path,
-				Weight:               oldData.Weight,
-				Models:               oldData.Models,
-				IsEnableModelReplace: oldData.IsEnableModelReplace,
-				ReplaceModels:        oldData.ReplaceModels,
-				TargetModels:         oldData.TargetModels,
-				IsNeverDisable:       oldData.IsNeverDisable,
-				LbStrategy:           oldData.LbStrategy,
-				Remark:               oldData.Remark,
-				Status:               oldData.Status,
-				IsAutoDisabled:       oldData.IsAutoDisabled,
-				AutoDisabledReason:   oldData.AutoDisabledReason,
+				ProviderId:               oldData.ProviderId,
+				Name:                     oldData.Name,
+				BaseUrl:                  oldData.BaseUrl,
+				Path:                     oldData.Path,
+				Weight:                   oldData.Weight,
+				Models:                   oldData.Models,
+				IsEnableModelReplace:     oldData.IsEnableModelReplace,
+				ReplaceModels:            oldData.ReplaceModels,
+				TargetModels:             oldData.TargetModels,
+				IsNeverDisable:           oldData.IsNeverDisable,
+				LbStrategy:               oldData.LbStrategy,
+				IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
+				ReqPassthroughParams:     oldData.ReqPassthroughParams,
+				ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
+				ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
+				ResPassthroughParams:     oldData.ResPassthroughParams,
+				ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
+				ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
+				Remark:                   oldData.Remark,
+				Status:                   oldData.Status,
+				IsAutoDisabled:           oldData.IsAutoDisabled,
+				AutoDisabledReason:       oldData.AutoDisabledReason,
 			}
 
 			for i, modelId := range modelAgent.Models {
@@ -430,21 +444,28 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 			}
 
 			if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, &do.ModelAgent{
-				ProviderId:           oldData.ProviderId,
-				Name:                 oldData.Name,
-				BaseUrl:              oldData.BaseUrl,
-				Path:                 oldData.Path,
-				Weight:               oldData.Weight,
-				Models:               append(oldData.Models, params.Id),
-				IsEnableModelReplace: oldData.IsEnableModelReplace,
-				ReplaceModels:        oldData.ReplaceModels,
-				TargetModels:         oldData.TargetModels,
-				IsNeverDisable:       oldData.IsNeverDisable,
-				LbStrategy:           oldData.LbStrategy,
-				Remark:               oldData.Remark,
-				Status:               oldData.Status,
-				IsAutoDisabled:       oldData.IsAutoDisabled,
-				AutoDisabledReason:   oldData.AutoDisabledReason,
+				ProviderId:               oldData.ProviderId,
+				Name:                     oldData.Name,
+				BaseUrl:                  oldData.BaseUrl,
+				Path:                     oldData.Path,
+				Weight:                   oldData.Weight,
+				Models:                   append(oldData.Models, params.Id),
+				IsEnableModelReplace:     oldData.IsEnableModelReplace,
+				ReplaceModels:            oldData.ReplaceModels,
+				TargetModels:             oldData.TargetModels,
+				IsNeverDisable:           oldData.IsNeverDisable,
+				LbStrategy:               oldData.LbStrategy,
+				IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
+				ReqPassthroughParams:     oldData.ReqPassthroughParams,
+				ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
+				ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
+				ResPassthroughParams:     oldData.ResPassthroughParams,
+				ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
+				ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
+				Remark:                   oldData.Remark,
+				Status:                   oldData.Status,
+				IsAutoDisabled:           oldData.IsAutoDisabled,
+				AutoDisabledReason:       oldData.AutoDisabledReason,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -637,21 +658,28 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 	for _, oldData := range modelAgents {
 
 		modelAgent := &do.ModelAgent{
-			ProviderId:           oldData.ProviderId,
-			Name:                 oldData.Name,
-			BaseUrl:              oldData.BaseUrl,
-			Path:                 oldData.Path,
-			Weight:               oldData.Weight,
-			Models:               oldData.Models,
-			IsEnableModelReplace: oldData.IsEnableModelReplace,
-			ReplaceModels:        oldData.ReplaceModels,
-			TargetModels:         oldData.TargetModels,
-			IsNeverDisable:       oldData.IsNeverDisable,
-			LbStrategy:           oldData.LbStrategy,
-			Remark:               oldData.Remark,
-			Status:               oldData.Status,
-			IsAutoDisabled:       oldData.IsAutoDisabled,
-			AutoDisabledReason:   oldData.AutoDisabledReason,
+			ProviderId:               oldData.ProviderId,
+			Name:                     oldData.Name,
+			BaseUrl:                  oldData.BaseUrl,
+			Path:                     oldData.Path,
+			Weight:                   oldData.Weight,
+			Models:                   oldData.Models,
+			IsEnableModelReplace:     oldData.IsEnableModelReplace,
+			ReplaceModels:            oldData.ReplaceModels,
+			TargetModels:             oldData.TargetModels,
+			IsNeverDisable:           oldData.IsNeverDisable,
+			LbStrategy:               oldData.LbStrategy,
+			IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
+			ReqPassthroughParams:     oldData.ReqPassthroughParams,
+			ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
+			ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
+			ResPassthroughParams:     oldData.ResPassthroughParams,
+			ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
+			ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
+			Remark:                   oldData.Remark,
+			Status:                   oldData.Status,
+			IsAutoDisabled:           oldData.IsAutoDisabled,
+			AutoDisabledReason:       oldData.AutoDisabledReason,
 		}
 
 		for i, modelId := range modelAgent.Models {
@@ -1455,6 +1483,96 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				m.IsEnableFallback = gconv.Bool(params.Value)
 				if m.IsEnableFallback && m.FallbackConfig == nil {
 					continue
+				}
+			}
+
+			if modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{result.Id}}}); err != nil {
+				logger.Error(ctx, err)
+			} else {
+				for _, modelAgent := range modelAgents {
+					m.ModelAgents = append(m.ModelAgents, modelAgent.Id)
+				}
+			}
+
+			if err = s.Update(ctx, m); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
+
+	case consts.ACTION_DATA_PASSTHROUGH:
+
+		results, err := dao.Model.Find(ctx, bson.M{
+			"_id": bson.M{
+				"$in": params.Ids,
+			},
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		groups, err := service.Group().List(ctx, model.GroupListReq{})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		for _, result := range results {
+
+			groupIds := make([]string, 0)
+			for _, group := range groups {
+				if slices.Contains(group.Models, result.Id) {
+					groupIds = append(groupIds, group.Id)
+				}
+			}
+
+			m := model.ModelUpdateReq{
+				Id:                       result.Id,
+				ProviderId:               result.ProviderId,
+				Name:                     result.Name,
+				Model:                    result.Model,
+				Type:                     result.Type,
+				BaseUrl:                  result.BaseUrl,
+				Path:                     result.Path,
+				IsEnablePresetConfig:     result.IsEnablePresetConfig,
+				PresetConfig:             result.PresetConfig,
+				TimeRules:                common.ConvTimeRulesToPercent(result.TimeRules),
+				Pricing:                  common.ConvModelPricingToPrice(result.Pricing),
+				IsEnableDataPassthrough:  result.IsEnableDataPassthrough,
+				ReqPassthroughParams:     result.ReqPassthroughParams,
+				ReqHeaderPassthroughMode: result.ReqHeaderPassthroughMode,
+				ReqHeaderPassthroughList: result.ReqHeaderPassthroughList,
+				ResPassthroughParams:     result.ResPassthroughParams,
+				ResHeaderPassthroughMode: result.ResHeaderPassthroughMode,
+				ResHeaderPassthroughList: result.ResHeaderPassthroughList,
+				IsPublic:                 result.IsPublic,
+				Groups:                   groupIds,
+				IsEnableModelAgent:       result.IsEnableModelAgent,
+				LbStrategy:               result.LbStrategy,
+				IsEnableForward:          result.IsEnableForward,
+				ForwardConfig:            result.ForwardConfig,
+				IsEnableFallback:         result.IsEnableFallback,
+				FallbackConfig:           result.FallbackConfig,
+				Remark:                   result.Remark,
+				Status:                   result.Status,
+			}
+
+			if params.Value == "all" {
+				m.IsEnableDataPassthrough = true
+				m.ReqPassthroughParams = params.ReqPassthroughParams
+				m.ReqHeaderPassthroughMode = params.ReqHeaderPassthroughMode
+				m.ReqHeaderPassthroughList = params.ReqHeaderPassthroughList
+				m.ResPassthroughParams = params.ResPassthroughParams
+				m.ResHeaderPassthroughMode = params.ResHeaderPassthroughMode
+				m.ResHeaderPassthroughList = params.ResHeaderPassthroughList
+			} else {
+				m.IsEnableDataPassthrough = gconv.Bool(params.Value)
+				if m.IsEnableDataPassthrough && len(m.ReqPassthroughParams) == 0 {
+					m.ReqPassthroughParams = []string{"req_header", "req_path", "req_data"}
+				}
+				if m.IsEnableDataPassthrough && len(m.ResPassthroughParams) == 0 {
+					m.ResPassthroughParams = []string{"res_header", "res_data"}
 				}
 			}
 

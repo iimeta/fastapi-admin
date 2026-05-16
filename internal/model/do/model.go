@@ -18,12 +18,12 @@ type Model struct {
 	TimeRules                []*common.TimeRule     `bson:"time_rules,omitempty"`                  // 时段规则
 	Pricing                  common.Pricing         `bson:"pricing"`                               // 定价
 	IsEnableDataPassthrough  bool                   `bson:"is_enable_data_passthrough"`            // 是否启用数据透传
-	ReqPassthroughParams     []string               `bson:"req_passthrough_params,omitempty"`      // 请求透传参数
+	ReqPassthroughParams     []string               `bson:"req_passthrough_params"`                // 请求透传参数
 	ReqHeaderPassthroughMode int                    `bson:"req_header_passthrough_mode,omitempty"` // 请求头透传模式[1:全量, 2:指定]
-	ReqHeaderPassthroughList []string               `bson:"req_header_passthrough_list,omitempty"` // 请求头透传白名单
-	ResPassthroughParams     []string               `bson:"res_passthrough_params,omitempty"`      // 响应透传参数
+	ReqHeaderPassthroughList []string               `bson:"req_header_passthrough_list"`           // 请求头透传白名单
+	ResPassthroughParams     []string               `bson:"res_passthrough_params"`                // 响应透传参数
 	ResHeaderPassthroughMode int                    `bson:"res_header_passthrough_mode,omitempty"` // 响应头透传模式[1:全量, 2:指定]
-	ResHeaderPassthroughList []string               `bson:"res_header_passthrough_list,omitempty"` // 响应头透传白名单
+	ResHeaderPassthroughList []string               `bson:"res_header_passthrough_list"`           // 响应头透传白名单
 	IsPublic                 bool                   `bson:"is_public"`                             // 是否公开
 	IsEnableModelAgent       bool                   `bson:"is_enable_model_agent"`                 // 是否启用模型代理
 	LbStrategy               int                    `bson:"lb_strategy,omitempty"`                 // 代理负载均衡策略[1:轮询, 2:权重]
