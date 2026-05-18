@@ -845,7 +845,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		},
 		ModelAgentSessionKeep: &common.ModelAgentSessionKeep{
 			Open:                   true,
-			Mode:                   "user",
+			Mode:                   "rule",
 			Ttl:                    300,
 			FailTtl:                180,
 			FailSwitchThreshold:    3,
@@ -858,6 +858,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					Name:       "claude_code_cli",
 					PathRegex:  []string{"/v1/messages"},
 					KeySources: []common.SessionKeepKeySource{{Type: "body", Key: "metadata.user_id"}},
+					Transform:  "none",
 				},
 				{
 					Name:       "codex_cli",
