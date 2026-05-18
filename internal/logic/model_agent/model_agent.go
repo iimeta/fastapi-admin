@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"regexp"
 	"slices"
+	"strings"
 	"text/template"
 	"time"
 
@@ -1169,7 +1170,7 @@ func (s *sModelAgent) SessionKeepCount(ctx context.Context, id string) (int64, e
 // 会话保持缓存清空
 func (s *sModelAgent) SessionKeepClear(ctx context.Context, id string) (int64, error) {
 
-	keys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:u:*"))
+	keys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:v:*"))
 	if err != nil {
 		return 0, err
 	}
@@ -1180,23 +1181,33 @@ func (s *sModelAgent) SessionKeepClear(ctx context.Context, id string) (int64, e
 		if getErr != nil {
 			return 0, getErr
 		}
-		if value == id {
+		agentId := value
+		if idx := strings.Index(value, ":"); idx > 0 {
+			agentId = value[:idx]
+		}
+		if agentId == id {
 			deleteKeys = append(deleteKeys, key)
 		}
 	}
 
-	if len(deleteKeys) == 0 {
-		return 0, nil
-	}
-
-	failKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:fail:u:*:a:%s", id))
+	failKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:fail:*:a:%s", id))
 	if err == nil && len(failKeys) > 0 {
 		deleteKeys = append(deleteKeys, failKeys...)
+	}
+
+	keyFailKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:key:fail:*:a:%s:k:*", id))
+	if err == nil && len(keyFailKeys) > 0 {
+		deleteKeys = append(deleteKeys, keyFailKeys...)
 	}
 
 	indexKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:set:%s", id))
 	if err == nil && len(indexKeys) > 0 {
 		deleteKeys = append(deleteKeys, indexKeys...)
+	}
+
+	userSetKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:user:set:*:a:%s", id))
+	if err == nil && len(userSetKeys) > 0 {
+		deleteKeys = append(deleteKeys, userSetKeys...)
 	}
 
 	if len(deleteKeys) == 0 {

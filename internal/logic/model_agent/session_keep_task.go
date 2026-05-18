@@ -240,6 +240,9 @@ func mergeSessionKeepConfig(base *common.ModelAgentSessionKeep, override *common
 
 	cfg.Open = true
 
+	if override.Mode != "" {
+		cfg.Mode = override.Mode
+	}
 	if override.Ttl > 0 {
 		cfg.Ttl = override.Ttl
 	}
@@ -257,6 +260,12 @@ func mergeSessionKeepConfig(base *common.ModelAgentSessionKeep, override *common
 	}
 	if override.GlobalLimit > 0 {
 		cfg.GlobalLimit = override.GlobalLimit
+	}
+	if len(override.Rules) > 0 {
+		cfg.Rules = override.Rules
+	}
+	if override.EnableSystemPromptHash {
+		cfg.EnableSystemPromptHash = true
 	}
 
 	return cfg
