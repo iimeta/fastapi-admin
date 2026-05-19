@@ -774,7 +774,7 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 
 	params.Quota = float64(common.ConvQuotaUnit(params.Quota))
 
-	if params.QuotaType == 2 {
+	if params.QuotaType == 2 || params.QuotaType == 8 {
 		params.Quota = -params.Quota
 	}
 

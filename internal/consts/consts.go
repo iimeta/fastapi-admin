@@ -149,6 +149,7 @@ var QUOTA_TYPE = map[int]string{
 	2: "扣除",
 	3: "赠送",
 	5: "邀请奖励",
+	8: "退款",
 }
 
 const (
