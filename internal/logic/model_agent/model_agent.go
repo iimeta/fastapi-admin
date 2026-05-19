@@ -1164,13 +1164,13 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 
 // 会话保持缓存数量
 func (s *sModelAgent) SessionKeepCount(ctx context.Context, id string) (int64, error) {
-	return redis.ZCard(ctx, fmt.Sprintf("session:agent:set:%s", id))
+	return redis.ZCard(ctx, fmt.Sprintf(consts.SESSION_KEEP_AGENT_SET_PREFIX, id))
 }
 
 // 会话保持缓存清空
 func (s *sModelAgent) SessionKeepClear(ctx context.Context, id string) (int64, error) {
 
-	keys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:v:*"))
+	keys, err := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_VALUE_PREFIX, "*"))
 	if err != nil {
 		return 0, err
 	}
@@ -1190,22 +1190,22 @@ func (s *sModelAgent) SessionKeepClear(ctx context.Context, id string) (int64, e
 		}
 	}
 
-	failKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:fail:*:a:%s", id))
+	failKeys, err := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_FAIL_SCAN_BY_AGENT, id))
 	if err == nil && len(failKeys) > 0 {
 		deleteKeys = append(deleteKeys, failKeys...)
 	}
 
-	keyFailKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:key:fail:*:a:%s:k:*", id))
+	keyFailKeys, err := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_KEY_FAIL_SCAN_BY_AGENT, id))
 	if err == nil && len(keyFailKeys) > 0 {
 		deleteKeys = append(deleteKeys, keyFailKeys...)
 	}
 
-	indexKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:set:%s", id))
+	indexKeys, err := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_AGENT_SET_PREFIX, id))
 	if err == nil && len(indexKeys) > 0 {
 		deleteKeys = append(deleteKeys, indexKeys...)
 	}
 
-	userSetKeys, err := redis.Keys(ctx, fmt.Sprintf("session:agent:user:set:*:a:%s", id))
+	userSetKeys, err := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_USER_SET_SCAN_BY_AGENT, id))
 	if err == nil && len(userSetKeys) > 0 {
 		deleteKeys = append(deleteKeys, userSetKeys...)
 	}
@@ -1220,7 +1220,7 @@ func (s *sModelAgent) SessionKeepClear(ctx context.Context, id string) (int64, e
 // 会话保持缓存清空全部
 func (s *sModelAgent) SessionKeepClearAll(ctx context.Context) (int64, error) {
 
-	keys, err := redis.Keys(ctx, "session:agent:*")
+	keys, err := redis.Keys(ctx, consts.SESSION_KEEP_ALL_PATTERN)
 	if err != nil {
 		return 0, err
 	}

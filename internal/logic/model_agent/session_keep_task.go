@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -42,7 +43,7 @@ func (s *sModelAgent) SessionKeepCleanupTask(ctx context.Context) {
 		logger.Debugf(ctx, "sModelAgent SessionKeepCleanupTask end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	agentSetKeys, err := redis.Keys(ctx, "session:agent:set:*")
+	agentSetKeys, err := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_AGENT_SET_PREFIX, "*"))
 	if err != nil {
 		logger.Error(ctx, err)
 		return
@@ -76,13 +77,13 @@ func (s *sModelAgent) SessionKeepCleanupTask(ctx context.Context) {
 		expireBefore := time.Now().Unix() - ttlSeconds
 		for _, item := range items {
 
-			userId, modelName, memberOk := parseSessionKeepMember(item.Member)
-			if !memberOk {
+			sk := recoverSessionKeepMember(item.Member)
+			if sk == nil {
 				if _, remErr := redis.ZRem(ctx, agentSetKey, item.Member); remErr != nil {
 					logger.Error(ctx, remErr)
 					continue
 				}
-				if _, remErr := redis.ZRem(ctx, "session:agent:global", item.Member); remErr != nil {
+				if _, remErr := redis.ZRem(ctx, consts.SESSION_KEEP_GLOBAL_SET, item.Member); remErr != nil {
 					logger.Error(ctx, remErr)
 				}
 				cleaned++
@@ -93,7 +94,7 @@ func (s *sModelAgent) SessionKeepCleanupTask(ctx context.Context) {
 				continue
 			}
 
-			removed, cleanErr := s.cleanupSessionKeepEntry(ctx, userId, modelName, agentId)
+			removed, cleanErr := s.cleanupSessionKeepEntry(ctx, sk, agentId)
 			if cleanErr != nil {
 				logger.Error(ctx, cleanErr)
 				continue
@@ -104,15 +105,15 @@ func (s *sModelAgent) SessionKeepCleanupTask(ctx context.Context) {
 		}
 	}
 
-	globalMembers, err := redis.ZRange(ctx, "session:agent:global", 0, -1)
+	globalMembers, err := redis.ZRange(ctx, consts.SESSION_KEEP_GLOBAL_SET, 0, -1)
 	if err != nil {
 		logger.Error(ctx, err)
 	} else {
 		for _, member := range globalMembers {
 
-			userId, modelName, ok := parseSessionKeepMember(member)
-			if !ok {
-				if _, remErr := redis.ZRem(ctx, "session:agent:global", member); remErr != nil {
+			sk := recoverSessionKeepMember(member)
+			if sk == nil {
+				if _, remErr := redis.ZRem(ctx, consts.SESSION_KEEP_GLOBAL_SET, member); remErr != nil {
 					logger.Error(ctx, remErr)
 					continue
 				}
@@ -120,30 +121,30 @@ func (s *sModelAgent) SessionKeepCleanupTask(ctx context.Context) {
 				continue
 			}
 
-			valueKey := fmt.Sprintf("session:agent:u:%d:m:%s", userId, modelName)
-			agentId, getErr := redis.GetStr(ctx, valueKey)
+			valueKey := fmt.Sprintf(consts.SESSION_KEEP_VALUE_PREFIX, sk.raw)
+			value, getErr := redis.GetStr(ctx, valueKey)
 			if getErr != nil {
 				logger.Error(ctx, getErr)
 				continue
 			}
 
-			if agentId != "" {
+			if value != "" {
 				continue
 			}
 
-			if _, remErr := redis.ZRem(ctx, "session:agent:global", member); remErr != nil {
+			if _, remErr := redis.ZRem(ctx, consts.SESSION_KEEP_GLOBAL_SET, member); remErr != nil {
 				logger.Error(ctx, remErr)
 				continue
 			}
 
-			userSetKeys, keyErr := redis.Keys(ctx, fmt.Sprintf("session:agent:user:set:%d:a:*", userId))
+			userSetKeys, keyErr := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_USER_SET_SCAN_BY_USER, sk.userId))
 			if keyErr != nil {
 				logger.Error(ctx, keyErr)
 				continue
 			}
 
 			for _, key := range userSetKeys {
-				if _, remErr := redis.ZRem(ctx, key, modelName); remErr != nil {
+				if _, remErr := redis.ZRem(ctx, key, member); remErr != nil {
 					logger.Error(ctx, remErr)
 				}
 			}
@@ -159,37 +160,47 @@ func (s *sModelAgent) SessionKeepCleanupTask(ctx context.Context) {
 	}
 }
 
-func (s *sModelAgent) cleanupSessionKeepEntry(ctx context.Context, userId int, modelName, agentId string) (bool, error) {
+func (s *sModelAgent) cleanupSessionKeepEntry(ctx context.Context, sk *sessionKeepMember, agentId string) (bool, error) {
 
-	member := fmt.Sprintf("%d:%s", userId, modelName)
-	valueKey := fmt.Sprintf("session:agent:u:%d:m:%s", userId, modelName)
-	userSetKey := fmt.Sprintf("session:agent:user:set:%d:a:%s", userId, agentId)
-	failKey := fmt.Sprintf("session:agent:fail:u:%d:m:%s:a:%s", userId, modelName, agentId)
+	member := sk.raw
+	valueKey := fmt.Sprintf(consts.SESSION_KEEP_VALUE_PREFIX, sk.raw)
+	userSetKey := fmt.Sprintf(consts.SESSION_KEEP_USER_AGENT_SET, sk.userId, agentId)
+	failKey := fmt.Sprintf(consts.SESSION_KEEP_FAIL_PREFIX, sk.raw, agentId)
 
-	currentAgentId, err := redis.GetStr(ctx, valueKey)
+	currentValue, err := redis.GetStr(ctx, valueKey)
 	if err != nil {
 		return false, err
 	}
 
-	if _, err = redis.ZRem(ctx, fmt.Sprintf("session:agent:set:%s", agentId), member); err != nil {
+	currentAgentId := currentValue
+	if idx := strings.Index(currentValue, ":"); idx > 0 {
+		currentAgentId = currentValue[:idx]
+	}
+
+	if _, err = redis.ZRem(ctx, fmt.Sprintf(consts.SESSION_KEEP_AGENT_SET_PREFIX, agentId), member); err != nil {
 		return false, err
 	}
 
-	if _, err = redis.ZRem(ctx, userSetKey, modelName); err != nil {
+	if _, err = redis.ZRem(ctx, userSetKey, member); err != nil {
 		return false, err
 	}
 
-	if currentAgentId == "" || currentAgentId == agentId {
-		if _, err = redis.ZRem(ctx, "session:agent:global", member); err != nil {
+	if currentValue == "" || currentAgentId == agentId {
+		if _, err = redis.ZRem(ctx, consts.SESSION_KEEP_GLOBAL_SET, member); err != nil {
 			return false, err
 		}
 	}
 
 	deleteKeys := make([]string, 0, 2)
-	if currentAgentId == "" || currentAgentId == agentId {
+	if currentValue == "" || currentAgentId == agentId {
 		deleteKeys = append(deleteKeys, valueKey)
 	}
 	deleteKeys = append(deleteKeys, failKey)
+
+	keyFailKeys, keyFailErr := redis.Keys(ctx, fmt.Sprintf(consts.SESSION_KEEP_KEY_FAIL_SCAN_BY_ENTRY, sk.raw, agentId))
+	if keyFailErr == nil && len(keyFailKeys) > 0 {
+		deleteKeys = append(deleteKeys, keyFailKeys...)
+	}
 
 	if len(deleteKeys) > 0 {
 		if _, err = redis.Del(ctx, deleteKeys...); err != nil {
@@ -280,6 +291,7 @@ func sessionKeepTTLSeconds(cfg *common.ModelAgentSessionKeep) int64 {
 
 func parseSessionKeepAgentSetKey(key string) (string, bool) {
 
+	// 对应 consts.SESSION_KEEP_AGENT_SET_PREFIX
 	const prefix = "session:agent:set:"
 	if !strings.HasPrefix(key, prefix) {
 		return "", false
@@ -293,17 +305,36 @@ func parseSessionKeepAgentSetKey(key string) (string, bool) {
 	return agentId, true
 }
 
-func parseSessionKeepMember(member string) (int, string, bool) {
+type sessionKeepMember struct {
+	raw    string
+	userId int
+}
 
-	parts := strings.SplitN(member, ":", 2)
-	if len(parts) != 2 {
-		return 0, "", false
+func recoverSessionKeepMember(raw string) *sessionKeepMember {
+
+	if strings.HasPrefix(raw, "u:") {
+		// user mode: "u:{userId}:m:{modelName}"
+		parts := strings.SplitN(raw, ":", 4)
+		if len(parts) >= 4 {
+			userId, _ := strconv.Atoi(parts[1])
+			if userId > 0 {
+				return &sessionKeepMember{raw: raw, userId: userId}
+			}
+		}
+		return nil
 	}
 
-	var userId int
-	if _, err := fmt.Sscanf(parts[0], "%d", &userId); err != nil || userId <= 0 {
-		return 0, "", false
+	if strings.HasPrefix(raw, "r:") {
+		// rule mode: "r:{userId}:{ruleName}:{modelName}:{value}"
+		parts := strings.SplitN(raw, ":", 3)
+		if len(parts) >= 3 {
+			userId, _ := strconv.Atoi(parts[1])
+			if userId > 0 {
+				return &sessionKeepMember{raw: raw, userId: userId}
+			}
+		}
+		return nil
 	}
 
-	return userId, parts[1], true
+	return nil
 }

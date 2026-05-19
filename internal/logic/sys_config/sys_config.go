@@ -846,9 +846,9 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		ModelAgentSessionKeep: &common.ModelAgentSessionKeep{
 			Open:                   true,
 			Mode:                   "rule",
-			Ttl:                    300,
-			FailTtl:                180,
-			FailSwitchThreshold:    3,
+			Ttl:                    3600,
+			FailTtl:                300,
+			FailSwitchThreshold:    5,
 			UserLimit:              100,
 			AgentLimit:             10000,
 			GlobalLimit:            100000,

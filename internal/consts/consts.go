@@ -68,6 +68,25 @@ const (
 	TASK_TICKET_END_TIME_KEY                         = "task:ticket:end_time"
 )
 
+// 会话保持Redis Key — 与 fastapi internal/consts/consts.go SESSION_KEEP_* 保持一致
+const (
+	SESSION_KEEP_VALUE_PREFIX     = "session:agent:v:%s"             // sk.Raw
+	SESSION_KEEP_FAIL_PREFIX      = "session:agent:fail:%s:a:%s"     // sk.Raw, agentId
+	SESSION_KEEP_AGENT_SET_PREFIX = "session:agent:set:%s"           // agentId
+	SESSION_KEEP_USER_AGENT_SET   = "session:agent:user:set:%d:a:%s" // sk.UserId, agentId
+	SESSION_KEEP_GLOBAL_SET       = "session:agent:global"
+	SESSION_KEEP_ALL_PATTERN      = "session:agent:*"
+)
+
+// 会话保持Redis Key扫描模式 — 用于Keys()查找, 与 fastapi internal/consts/consts.go SESSION_KEEP_* 对应
+const (
+	SESSION_KEEP_FAIL_SCAN_BY_AGENT     = "session:agent:fail:*:a:%s"          // agentId — 扫描指定代理的全部失败计数
+	SESSION_KEEP_KEY_FAIL_SCAN_BY_AGENT = "session:agent:key:fail:*:a:%s:k:*"  // agentId — 扫描指定代理的全部Key失败计数
+	SESSION_KEEP_KEY_FAIL_SCAN_BY_ENTRY = "session:agent:key:fail:%s:a:%s:k:*" // sk.Raw, agentId — 扫描指定会话的全部Key失败计数
+	SESSION_KEEP_USER_SET_SCAN_BY_AGENT = "session:agent:user:set:*:a:%s"      // agentId — 扫描指定代理的全部用户集合
+	SESSION_KEEP_USER_SET_SCAN_BY_USER  = "session:agent:user:set:%d:a:*"      // userId — 扫描指定用户的全部代理集合
+)
+
 const (
 	SMART_HEALTH_AGENT_SUCCESS_KEY = "smart:health:agent:%s:success"    // 代理成功计数
 	SMART_HEALTH_AGENT_FAIL_KEY    = "smart:health:agent:%s:fail"       // 代理失败计数
