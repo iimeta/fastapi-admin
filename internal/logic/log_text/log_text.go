@@ -330,23 +330,26 @@ func (s *sLogText) Export(ctx context.Context, params model.LogTextExportReq) (s
 	colFieldMap["模型"] = "Model"
 	colFieldMap["输入Token数"] = "InputTokens"
 	colFieldMap["输出Token数"] = "OutputTokens"
+	colFieldMap["缓存写入Token数"] = "CacheWriteTokens"
+	colFieldMap["缓存读取Token数"] = "CacheReadTokens"
+	colFieldMap["思考Token数"] = "ReasoningTokens"
 	colFieldMap["花费"] = "TotalTokens"
 
 	var titleCols []string
 
 	if service.Session().IsResellerRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费")
+		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "缓存写入Token数", "缓存读取Token数", "思考Token数", "花费")
 		colFieldMap["用户ID"] = "UserId"
 	}
 
 	if service.Session().IsUserRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "应用ID", "密钥", "模型", "输入Token数", "输出Token数", "花费")
+		titleCols = append(titleCols, "请求时间", "应用ID", "密钥", "模型", "输入Token数", "输出Token数", "缓存写入Token数", "缓存读取Token数", "思考Token数", "花费")
 		colFieldMap["应用ID"] = "AppId"
 		colFieldMap["密钥"] = "Creator"
 	}
 
 	if service.Session().IsAdminRole(ctx) {
-		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "花费", "密钥")
+		titleCols = append(titleCols, "请求时间", "用户ID", "模型", "输入Token数", "输出Token数", "缓存写入Token数", "缓存读取Token数", "思考Token数", "花费", "密钥")
 		colFieldMap["用户ID"] = "UserId"
 		colFieldMap["密钥"] = "Key"
 	}
@@ -369,9 +372,19 @@ func (s *sLogText) Export(ctx context.Context, params model.LogTextExportReq) (s
 		if result.Spend.Text != nil {
 			value.InputTokens = result.Spend.Text.InputTokens
 			value.OutputTokens = result.Spend.Text.OutputTokens
+			value.ReasoningTokens = result.Spend.Text.ReasoningTokens
 		} else if result.Spend.TieredText != nil {
 			value.InputTokens = result.Spend.TieredText.InputTokens
 			value.OutputTokens = result.Spend.TieredText.OutputTokens
+			value.ReasoningTokens = result.Spend.TieredText.ReasoningTokens
+		}
+
+		if result.Spend.TextCache != nil {
+			value.CacheWriteTokens = result.Spend.TextCache.WriteTokens
+			value.CacheReadTokens = result.Spend.TextCache.ReadTokens
+		} else if result.Spend.TieredTextCache != nil {
+			value.CacheWriteTokens = result.Spend.TieredTextCache.WriteTokens
+			value.CacheReadTokens = result.Spend.TieredTextCache.ReadTokens
 		}
 
 		values = append(values, value)
