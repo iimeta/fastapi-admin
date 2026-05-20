@@ -110,22 +110,24 @@ type LogText struct {
 }
 
 type LogTextExport struct {
-	UserId           int    `json:"user_id,omitempty"`            // 用户ID
-	AppId            int    `json:"app_id,omitempty"`             // 应用ID
-	Name             string `json:"name,omitempty"`               // 模型名称
-	Model            string `json:"model,omitempty"`              // 模型
-	Key              string `json:"key,omitempty"`                // 密钥
-	InputTokens      int    `json:"input_tokens,omitempty"`       // 输入Token数
-	OutputTokens     int    `json:"output_tokens,omitempty"`      // 输出Token数
-	CacheWriteTokens int    `json:"cache_write_tokens,omitempty"` // 缓存写入Token数
-	CacheReadTokens  int    `json:"cache_read_tokens,omitempty"`  // 缓存读取Token数
-	ReasoningTokens  int    `json:"reasoning_tokens,omitempty"`   // 思考Token数
-	TotalTokens      any    `json:"total_tokens,omitempty"`       // 总Token数
-	ConnTime         int64  `json:"conn_time,omitempty"`          // 连接时间
-	Duration         int64  `json:"duration,omitempty"`           // 持续时间
-	TotalTime        int64  `json:"total_time,omitempty"`         // 总时间
-	InternalTime     int64  `json:"internal_time,omitempty"`      // 内耗时间
-	ReqTime          string `json:"req_time,omitempty"`           // 请求时间
-	ReqDate          string `json:"req_date,omitempty"`           // 请求日期
-	Creator          string `json:"creator,omitempty"`            // 创建人
+	UserId             int    `json:"user_id,omitempty"`               // 用户ID
+	AppId              int    `json:"app_id,omitempty"`                // 应用ID
+	Name               string `json:"name,omitempty"`                  // 模型名称
+	Model              string `json:"model,omitempty"`                 // 模型
+	Key                string `json:"key,omitempty"`                   // 密钥
+	InputTokens        int    `json:"input_tokens,omitempty"`          // 输入Token数
+	OutputTokens       int    `json:"output_tokens,omitempty"`         // 输出Token数
+	CacheWriteTokens   int    `json:"cache_write_tokens,omitempty"`    // 缓存写入Token数
+	CacheWrite5MTokens int    `json:"cache_write_5m_tokens,omitempty"` // 5分钟缓存写入Token数
+	CacheWrite1HTokens int    `json:"cache_write_1h_tokens,omitempty"` // 1小时缓存写入Token数
+	CacheReadTokens    int    `json:"cache_read_tokens,omitempty"`     // 缓存读取Token数
+	ReasoningTokens    int    `json:"reasoning_tokens,omitempty"`      // 思考Token数
+	TotalTokens        any    `json:"total_tokens,omitempty"`          // 总Token数
+	ConnTime           int64  `json:"conn_time,omitempty"`             // 连接时间
+	Duration           int64  `json:"duration,omitempty"`              // 持续时间
+	TotalTime          int64  `json:"total_time,omitempty"`            // 总时间
+	InternalTime       int64  `json:"internal_time,omitempty"`         // 内耗时间
+	ReqTime            string `json:"req_time,omitempty"`              // 请求时间
+	ReqDate            string `json:"req_date,omitempty"`              // 请求日期
+	Creator            string `json:"creator,omitempty"`               // 创建人
 }

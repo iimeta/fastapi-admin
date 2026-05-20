@@ -115,6 +115,8 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 		for i, textCache := range pricing.TextCache {
 			pricing.TextCache[i].ReadRatio = ConvRatio(textCache.ReadRatio)
 			pricing.TextCache[i].WriteRatio = ConvRatio(textCache.WriteRatio)
+			pricing.TextCache[i].Write5MRatio = ConvRatio(textCache.Write5MRatio)
+			pricing.TextCache[i].Write1HRatio = ConvRatio(textCache.Write1HRatio)
 		}
 	}
 
@@ -136,6 +138,8 @@ func ConvModelPricingToRatio(pricing common.Pricing) common.Pricing {
 			pricing.TieredTextCache[i].Lte *= 1000
 			pricing.TieredTextCache[i].ReadRatio = ConvRatio(tieredTextCache.ReadRatio)
 			pricing.TieredTextCache[i].WriteRatio = ConvRatio(tieredTextCache.WriteRatio)
+			pricing.TieredTextCache[i].Write5MRatio = ConvRatio(tieredTextCache.Write5MRatio)
+			pricing.TieredTextCache[i].Write1HRatio = ConvRatio(tieredTextCache.Write1HRatio)
 		}
 	}
 
@@ -195,6 +199,8 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 		for i, textCache := range pricing.TextCache {
 			pricing.TextCache[i].ReadRatio = ConvPrice(textCache.ReadRatio)
 			pricing.TextCache[i].WriteRatio = ConvPrice(textCache.WriteRatio)
+			pricing.TextCache[i].Write5MRatio = ConvPrice(textCache.Write5MRatio)
+			pricing.TextCache[i].Write1HRatio = ConvPrice(textCache.Write1HRatio)
 		}
 	}
 
@@ -216,6 +222,8 @@ func ConvModelPricingToPrice(pricing common.Pricing) common.Pricing {
 			pricing.TieredTextCache[i].Lte /= 1000
 			pricing.TieredTextCache[i].ReadRatio = ConvPrice(tieredTextCache.ReadRatio)
 			pricing.TieredTextCache[i].WriteRatio = ConvPrice(tieredTextCache.WriteRatio)
+			pricing.TieredTextCache[i].Write5MRatio = ConvPrice(tieredTextCache.Write5MRatio)
+			pricing.TieredTextCache[i].Write1HRatio = ConvPrice(tieredTextCache.Write1HRatio)
 		}
 	}
 
@@ -279,6 +287,8 @@ func ConvSpend(spend common.Spend) common.Spend {
 		if spend.TextCache.Pricing != nil {
 			spend.TextCache.Pricing.ReadRatio = ConvPrice(spend.TextCache.Pricing.ReadRatio)
 			spend.TextCache.Pricing.WriteRatio = ConvPrice(spend.TextCache.Pricing.WriteRatio)
+			spend.TextCache.Pricing.Write5MRatio = ConvPrice(spend.TextCache.Pricing.Write5MRatio)
+			spend.TextCache.Pricing.Write1HRatio = ConvPrice(spend.TextCache.Pricing.Write1HRatio)
 		}
 
 		spend.TextCache.SpendTokens = ConvQuotaUnitReverse(int(spend.TextCache.SpendTokens))
@@ -306,6 +316,8 @@ func ConvSpend(spend common.Spend) common.Spend {
 			spend.TieredTextCache.Pricing.Lte /= 1000
 			spend.TieredTextCache.Pricing.ReadRatio = ConvPrice(spend.TieredTextCache.Pricing.ReadRatio)
 			spend.TieredTextCache.Pricing.WriteRatio = ConvPrice(spend.TieredTextCache.Pricing.WriteRatio)
+			spend.TieredTextCache.Pricing.Write5MRatio = ConvPrice(spend.TieredTextCache.Pricing.Write5MRatio)
+			spend.TieredTextCache.Pricing.Write1HRatio = ConvPrice(spend.TieredTextCache.Pricing.Write1HRatio)
 		}
 
 		spend.TieredTextCache.SpendTokens = ConvQuotaUnitReverse(int(spend.TieredTextCache.SpendTokens))
