@@ -278,7 +278,7 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		nextResetAt = common.GetNextResetAt(params.IsCycleResetQuota, params.CyclePeriod, params.PeriodUnit, params.ResetMode)
 	}
 
-	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
+	updateData := bson.M{
 		"name":                  params.Name,
 		"email":                 params.Email,
 		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
@@ -293,7 +293,14 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		"status":                params.Status,
 		"expire_warning_notice": false,
 		"expire_notice":         false,
-	})
+	}
+
+	if params.Privacy != nil {
+		params.Privacy.IsConfigured = true
+		updateData["privacy"] = common.NormalizeUserPrivacy(params.Privacy, config.Cfg.Log.Privacy)
+	}
+
+	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, updateData)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
