@@ -239,7 +239,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
 	}
 
 	results, err := dao.LogText.FindByPage(ctx, paging, filter, findOptions)
