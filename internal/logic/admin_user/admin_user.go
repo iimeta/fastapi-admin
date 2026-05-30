@@ -680,7 +680,12 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		}
 	}
 
-	results, err := dao.User.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"status", "-created_at", "-updated_at"}})
+	findOptions := &dao.FindOptions{
+		SortFields:    []string{"status", "-created_at"},
+		IncludeFields: []string{"_id", "user_id", "name", "quota", "used_quota", "quota_expires_at", "remark", "status", "rid", "created_at", "updated_at"},
+	}
+
+	results, err := dao.User.FindByPage(ctx, paging, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
@@ -689,7 +694,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 	accountMap := make(map[int]*entity.Account)
 	if len(results) > 0 {
 
-		accounts, err := dao.Account.Find(ctx, bson.M{})
+		accounts, err := dao.Account.Find(ctx, bson.M{}, &dao.FindOptions{IncludeFields: []string{"user_id", "account"}})
 		if err != nil {
 			logger.Error(ctx, err)
 			return nil, err
