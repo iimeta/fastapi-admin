@@ -231,7 +231,12 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 		}
 	}
 
-	results, err := dao.LogImage.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-req_time", "status", "-created_at"}})
+	findOptions := &dao.FindOptions{
+		SortFields:    []string{"-req_time", "status", "-created_at"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "prompt", "spend", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
+	}
+
+	results, err := dao.LogImage.FindByPage(ctx, paging, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, err)
 		return nil, err
