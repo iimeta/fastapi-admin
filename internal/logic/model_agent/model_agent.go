@@ -964,7 +964,6 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		Provider: provider.Code,
 		Model:    m.Model,
 		Key:      params.Key,
-		BaseUrl:  params.BaseUrl,
 		Path:     modelAgent.Path,
 		Header:   g.MapStrStr{consts.HEALTH_CHECK_HEADER: params.ModelAgentId},
 		Timeout:  config.Cfg.Base.ShortTimeout * time.Second,
@@ -996,6 +995,10 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		}
 
 		options.BaseUrl = modelAgent.BaseUrl
+
+	} else if params.TestMethod == 3 {
+
+		options.BaseUrl = params.BaseUrl
 
 	} else if options.BaseUrl == "" {
 
