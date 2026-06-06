@@ -8,8 +8,6 @@ type ModelCreateReq struct {
 	Name                     string                 `json:"name,omitempty"`                        // 模型名称
 	Model                    string                 `json:"model,omitempty"`                       // 模型
 	Type                     int                    `json:"type,omitempty"`                        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
-	BaseUrl                  string                 `json:"base_url,omitempty"`                    // 模型地址
-	Path                     string                 `json:"path,omitempty"`                        // 模型路径
 	IsEnablePresetConfig     bool                   `json:"is_enable_preset_config,omitempty"`     // 是否启用预设配置
 	PresetConfig             common.PresetConfig    `json:"preset_config,omitempty"`               // 预设配置
 	TimeRules                []*common.TimeRule     `json:"time_rules,omitempty"`                  // 时段规则
@@ -42,8 +40,6 @@ type ModelUpdateReq struct {
 	Name                     string                 `json:"name,omitempty"`                        // 模型名称
 	Model                    string                 `json:"model,omitempty"`                       // 模型
 	Type                     int                    `json:"type,omitempty"`                        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
-	BaseUrl                  string                 `json:"base_url,omitempty"`                    // 模型地址
-	Path                     string                 `json:"path,omitempty"`                        // 模型路径
 	IsEnablePresetConfig     bool                   `json:"is_enable_preset_config,omitempty"`     // 是否启用预设配置
 	PresetConfig             common.PresetConfig    `json:"preset_config,omitempty"`               // 预设配置
 	TimeRules                []*common.TimeRule     `json:"time_rules,omitempty"`                  // 时段规则
@@ -118,21 +114,21 @@ type ModelListRes struct {
 
 // 模型批量操作接口请求参数
 type ModelBatchOperateReq struct {
-	Action                   string                 `json:"action"`                                  // 动作
-	Ids                      []string               `json:"ids"`                                     // 主键Ids
-	Value                    any                    `json:"value"`                                   // 值
-	LbStrategy               int                    `json:"lb_strategy,omitempty" d:"1"`             // 代理负载均衡策略[1:轮询, 2:权重]
-	ModelAgents              []string               `json:"model_agents,omitempty"`                  // 模型代理
-	ForwardMode              int                    `json:"forward_mode,omitempty"`                  // 转发模式[1:固定, 2:轮询]
-	TargetModel              string                 `json:"target_model,omitempty"`                  // 目标模型
-	TargetModels             []string               `json:"target_models,omitempty"`                 // 目标模型
-	FallbackConfig           *common.FallbackConfig `json:"fallback_config,omitempty"`               // 后备配置
-	ReqPassthroughParams     []string               `json:"req_passthrough_params,omitempty"`        // 请求透传参数
-	ReqHeaderPassthroughMode int                    `json:"req_header_passthrough_mode,omitempty"`   // 请求头透传模式
-	ReqHeaderPassthroughList []string               `json:"req_header_passthrough_list,omitempty"`   // 请求头透传列表
-	ResPassthroughParams     []string               `json:"res_passthrough_params,omitempty"`        // 响应透传参数
-	ResHeaderPassthroughMode int                    `json:"res_header_passthrough_mode,omitempty"`   // 响应头透传模式
-	ResHeaderPassthroughList []string               `json:"res_header_passthrough_list,omitempty"`   // 响应头透传列表
+	Action                   string                 `json:"action"`                                // 动作
+	Ids                      []string               `json:"ids"`                                   // 主键Ids
+	Value                    any                    `json:"value"`                                 // 值
+	LbStrategy               int                    `json:"lb_strategy,omitempty" d:"1"`           // 代理负载均衡策略[1:轮询, 2:权重]
+	ModelAgents              []string               `json:"model_agents,omitempty"`                // 模型代理
+	ForwardMode              int                    `json:"forward_mode,omitempty"`                // 转发模式[1:固定, 2:轮询]
+	TargetModel              string                 `json:"target_model,omitempty"`                // 目标模型
+	TargetModels             []string               `json:"target_models,omitempty"`               // 目标模型
+	FallbackConfig           *common.FallbackConfig `json:"fallback_config,omitempty"`             // 后备配置
+	ReqPassthroughParams     []string               `json:"req_passthrough_params,omitempty"`      // 请求透传参数
+	ReqHeaderPassthroughMode int                    `json:"req_header_passthrough_mode,omitempty"` // 请求头透传模式
+	ReqHeaderPassthroughList []string               `json:"req_header_passthrough_list,omitempty"` // 请求头透传列表
+	ResPassthroughParams     []string               `json:"res_passthrough_params,omitempty"`      // 响应透传参数
+	ResHeaderPassthroughMode int                    `json:"res_header_passthrough_mode,omitempty"` // 响应头透传模式
+	ResHeaderPassthroughList []string               `json:"res_header_passthrough_list,omitempty"` // 响应头透传列表
 }
 
 // 模型树接口请求参数
@@ -206,8 +202,6 @@ type Model struct {
 	Name                     string                 `json:"name,omitempty"`                        // 模型名称
 	Model                    string                 `json:"model,omitempty"`                       // 模型
 	Type                     int                    `json:"type,omitempty"`                        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
-	BaseUrl                  string                 `json:"base_url,omitempty"`                    // 模型地址
-	Path                     string                 `json:"path,omitempty"`                        // 模型路径
 	Groups                   []string               `json:"groups,omitempty"`                      // 分组权限
 	GroupNames               []string               `json:"group_names,omitempty"`                 // 分组名称
 	IsEnablePresetConfig     bool                   `json:"is_enable_preset_config,omitempty"`     // 是否启用预设配置
