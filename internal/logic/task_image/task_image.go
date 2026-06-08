@@ -1,10 +1,18 @@
 package task_image
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"net/textproto"
 	"net/url"
+	"path"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
@@ -60,6 +68,7 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 		UserId:         taskImage.UserId,
 		AppId:          taskImage.AppId,
 		Model:          taskImage.Model,
+		Action:         taskImage.Action,
 		ImageId:        taskImage.ImageId,
 		Width:          taskImage.Width,
 		Height:         taskImage.Height,
@@ -174,6 +183,7 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 			UserId:    result.UserId,
 			AppId:     result.AppId,
 			Model:     result.Model,
+			Action:    result.Action,
 			ImageId:   result.ImageId,
 			Width:     result.Width,
 			Height:    result.Height,
@@ -266,7 +276,8 @@ func (s *sTaskImage) Task(ctx context.Context) {
 		return
 	}
 
-	providerMap := make(map[string]*entity.Provider)
+	var queuedTasks []*entity.TaskImage
+
 	for _, taskImage := range taskImages {
 
 		if taskImage.Status == "completed" {
@@ -290,147 +301,331 @@ func (s *sTaskImage) Task(ctx context.Context) {
 			continue
 		}
 
-		logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1, 2}}})
-		if err != nil {
-			logger.Error(ctx, err)
-			continue
-		}
-
-		provider := providerMap[logImage.ModelAgent.ProviderId]
-		if provider == nil {
-			provider, err = dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
-			if err != nil {
-				logger.Error(ctx, err)
-				continue
-			}
-			providerMap[logImage.ModelAgent.ProviderId] = provider
-		}
-
 		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "in_progress"}); err != nil {
 			logger.Error(ctx, err)
 			continue
 		}
 
-		adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-			Provider: provider.Code,
-			Model:    logImage.Model,
-			Key:      logImage.Key,
-			BaseUrl:  logImage.ModelAgent.BaseUrl,
-			Path:     logImage.ModelAgent.Path,
-			Timeout:  config.Cfg.Base.LongTimeout * time.Second,
-			ProxyUrl: config.Cfg.Http.ProxyUrl,
-		})
+		queuedTasks = append(queuedTasks, taskImage)
+	}
 
-		requestBytes, err := gjson.Encode(taskImage.RequestData)
-		if err != nil {
-			logger.Error(ctx, err)
-
-			if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
-				"status": "failed",
-				"error":  &smodel.ImageError{Code: "request_encode_error", Message: err.Error()},
-			}); err != nil {
-				logger.Error(ctx, err)
-			}
-
-			continue
-		}
-
-		response, err := adapter.ImageGenerations(ctx, requestBytes)
-		if err != nil {
-			logger.Error(ctx, err)
-
-			if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
-				"status": "failed",
-				"error":  &smodel.ImageError{Code: "generation_error", Message: err.Error()},
-			}); err != nil {
-				logger.Error(ctx, err)
-			}
-
-			continue
-		}
-
-		// 计算花费
-		common.Billing(ctx, response.Usage, &logImage.Spend)
-
-		// 记录花费
-		if err = common.RecordSpend(ctx, logImage.UserId, logImage.AppId, logImage.Creator, logImage.Rid, logImage.Key, logImage.Spend); err != nil {
-			logger.Error(ctx, err)
-			continue
-		}
-
-		if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{"spend": logImage.Spend}); err != nil {
-			logger.Error(ctx, err)
-			continue
-		}
+	if len(queuedTasks) > 0 {
 
 		var (
-			imageUrl string
-			fileName string
-			filePath string
+			wg          sync.WaitGroup
+			mu          sync.Mutex
+			providerMap = make(map[string]*entity.Provider)
 		)
 
-		completedAt := gtime.TimestampMilli() / 1000
-		var expiresAt int64
-
-		if config.Cfg.ImageTask.IsEnableStorage && len(response.Data) > 0 {
-
-			filePath = config.Cfg.ImageTask.StorageDir
-
-			if filePath == "" {
-				filePath = "./resource/public/image/"
-			} else if !gstr.HasSuffix(filePath, "/") {
-				filePath = filePath + "/"
-			}
-
-			fileName = taskImage.ImageId + "_image_0.png"
-
-			imageData := response.Data[0]
-			var imageBytes []byte
-
-			if len(imageData.B64Json) > 0 {
-				if decoded, err := base64.StdEncoding.DecodeString(imageData.B64Json); err == nil {
-					imageBytes = decoded
-				} else {
-					logger.Error(ctx, err)
-				}
-			}
-
-			if imageBytes != nil {
-				if err = gfile.PutBytes(filePath+fileName, imageBytes); err != nil {
-					logger.Error(ctx, err)
-				} else {
-
-					if gstr.HasPrefix(filePath, "./resource/public/") {
-						imageUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
-					} else if config.Cfg.ImageTask.StorageBaseUrl == "" {
-						imageUrl = "/open/image/" + fileName
-					} else {
-						imageUrl = fileName
-					}
-
-					if config.Cfg.ImageTask.StorageExpiresAt > 0 {
-						expiresAt = gtime.NewFromTimeStamp(completedAt).Add(config.Cfg.ImageTask.StorageExpiresAt * time.Minute).Unix()
-					}
-				}
-			}
+		timeout := config.Cfg.ImageTask.Timeout * time.Second
+		if timeout <= 0 {
+			timeout = config.Cfg.Base.LongTimeout * time.Second
 		}
 
-		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
-			"progress":      100,
-			"status":        "completed",
-			"completed_at":  completedAt,
-			"expires_at":    expiresAt,
-			"image_url":     imageUrl,
-			"file_name":     fileName,
-			"file_path":     filePath + fileName,
-			"response_data": util.ConvToMap(response),
-			"error":         nil,
-		}); err != nil {
-			logger.Error(ctx, err)
+		for _, taskImage := range queuedTasks {
+			wg.Add(1)
+			go func(task *entity.TaskImage) {
+				defer wg.Done()
+
+				taskCtx, cancel := context.WithTimeout(ctx, timeout)
+				defer cancel()
+
+				s.processImageTask(taskCtx, task, providerMap, &mu)
+			}(taskImage)
 		}
+
+		wg.Wait()
 	}
 
 	if _, err := redis.Set(ctx, consts.TASK_IMAGE_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
+}
+
+func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.TaskImage, providerMap map[string]*entity.Provider, mu *sync.Mutex) {
+
+	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1, 2}}})
+	if err != nil {
+		logger.Error(ctx, err)
+		s.failTask(ctx, taskImage.Id, "log_not_found", err.Error())
+		return
+	}
+
+	mu.Lock()
+	provider := providerMap[logImage.ModelAgent.ProviderId]
+	if provider == nil {
+		provider, err = dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
+		if err != nil {
+			mu.Unlock()
+			logger.Error(ctx, err)
+			s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error())
+			return
+		}
+		providerMap[logImage.ModelAgent.ProviderId] = provider
+	}
+	mu.Unlock()
+
+	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
+		Provider: provider.Code,
+		Model:    logImage.Model,
+		Key:      logImage.Key,
+		BaseUrl:  logImage.ModelAgent.BaseUrl,
+		Path:     logImage.ModelAgent.Path,
+		Timeout:  config.Cfg.Base.LongTimeout * time.Second,
+		ProxyUrl: config.Cfg.Http.ProxyUrl,
+	})
+
+	var response smodel.ImageResponse
+
+	if taskImage.Action == "edits" {
+
+		imageEditReq, err := buildImageEditRequest(ctx, taskImage)
+		if err != nil {
+			logger.Error(ctx, err)
+			s.failTask(ctx, taskImage.Id, "build_edit_request_error", err.Error())
+			return
+		}
+
+		response, err = adapter.ImageEdits(ctx, imageEditReq)
+		if err != nil {
+			logger.Error(ctx, err)
+			errCode := "edit_error"
+			if ctx.Err() != nil {
+				errCode = "timeout"
+			}
+			s.failTask(ctx, taskImage.Id, errCode, err.Error())
+			return
+		}
+
+	} else {
+
+		requestBytes, err := gjson.Encode(taskImage.RequestData)
+		if err != nil {
+			logger.Error(ctx, err)
+			s.failTask(ctx, taskImage.Id, "request_encode_error", err.Error())
+			return
+		}
+
+		response, err = adapter.ImageGenerations(ctx, requestBytes)
+		if err != nil {
+			logger.Error(ctx, err)
+			errCode := "generation_error"
+			if ctx.Err() != nil {
+				errCode = "timeout"
+			}
+			s.failTask(ctx, taskImage.Id, errCode, err.Error())
+			return
+		}
+	}
+
+	// 计算花费
+	common.Billing(ctx, response.Usage, &logImage.Spend)
+
+	// 记录花费
+	if err = common.RecordSpend(ctx, logImage.UserId, logImage.AppId, logImage.Creator, logImage.Rid, logImage.Key, logImage.Spend); err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{"spend": logImage.Spend}); err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	var (
+		imageUrl string
+		fileName string
+		filePath string
+	)
+
+	completedAt := gtime.TimestampMilli() / 1000
+	var expiresAt int64
+
+	if config.Cfg.ImageTask.IsEnableStorage && len(response.Data) > 0 {
+
+		filePath = config.Cfg.ImageTask.StorageDir
+
+		if filePath == "" {
+			filePath = "./resource/public/image/"
+		} else if !gstr.HasSuffix(filePath, "/") {
+			filePath = filePath + "/"
+		}
+
+		fileName = taskImage.ImageId + "_image_0.png"
+
+		imageData := response.Data[0]
+		var imageBytes []byte
+
+		if len(imageData.B64Json) > 0 {
+			if decoded, err := base64.StdEncoding.DecodeString(imageData.B64Json); err == nil {
+				imageBytes = decoded
+			} else {
+				logger.Error(ctx, err)
+			}
+		}
+
+		if imageBytes != nil {
+			if err = gfile.PutBytes(filePath+fileName, imageBytes); err != nil {
+				logger.Error(ctx, err)
+			} else {
+
+				if gstr.HasPrefix(filePath, "./resource/public/") {
+					imageUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
+				} else if config.Cfg.ImageTask.StorageBaseUrl == "" {
+					imageUrl = "/open/image/" + fileName
+				} else {
+					imageUrl = fileName
+				}
+
+				if config.Cfg.ImageTask.StorageExpiresAt > 0 {
+					expiresAt = gtime.NewFromTimeStamp(completedAt).Add(config.Cfg.ImageTask.StorageExpiresAt * time.Minute).Unix()
+				}
+			}
+		}
+	}
+
+	if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
+		"progress":      100,
+		"status":        "completed",
+		"completed_at":  completedAt,
+		"expires_at":    expiresAt,
+		"image_url":     imageUrl,
+		"file_name":     fileName,
+		"file_path":     filePath + fileName,
+		"response_data": util.ConvToMap(response),
+		"error":         nil,
+	}); err != nil {
+		logger.Error(ctx, err)
+	}
+}
+
+func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string) {
+	if err := dao.TaskImage.UpdateById(ctx, taskId, bson.M{
+		"status": "failed",
+		"error":  &smodel.ImageError{Code: code, Message: message},
+	}); err != nil {
+		logger.Error(ctx, err)
+	}
+}
+
+func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (smodel.ImageEditRequest, error) {
+
+	req := smodel.ImageEditRequest{
+		Model: taskImage.Model,
+	}
+
+	if v, ok := taskImage.RequestData["prompt"]; ok {
+		req.Prompt, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["n"]; ok {
+		if n, ok := v.(float64); ok {
+			req.N = int(n)
+		}
+	}
+	if v, ok := taskImage.RequestData["quality"]; ok {
+		req.Quality, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["size"]; ok {
+		req.Size, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["response_format"]; ok {
+		req.ResponseFormat, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["background"]; ok {
+		req.Background, _ = v.(string)
+	}
+
+	imageVal, ok := taskImage.RequestData["image"]
+	if !ok {
+		return req, errors.New("missing image parameter in request data")
+	}
+
+	var imageUrls []string
+	switch v := imageVal.(type) {
+	case string:
+		imageUrls = append(imageUrls, v)
+	case []interface{}:
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				imageUrls = append(imageUrls, s)
+			}
+		}
+	default:
+		return req, errors.New("invalid image parameter type")
+	}
+
+	if len(imageUrls) == 0 {
+		return req, errors.New("empty image urls")
+	}
+
+	client := &http.Client{Timeout: 60 * time.Second}
+
+	for _, imageUrl := range imageUrls {
+
+		resp, err := client.Get(imageUrl)
+		if err != nil {
+			return req, errors.Newf("download image failed: %s, error: %v", imageUrl, err)
+		}
+
+		imageBytes, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return req, errors.Newf("read image failed: %s, error: %v", imageUrl, err)
+		}
+
+		fileHeader, err := bytesToFileHeader(imageUrl, imageBytes, resp.Header.Get("Content-Type"))
+		if err != nil {
+			return req, err
+		}
+
+		req.Image = append(req.Image, fileHeader)
+	}
+
+	return req, nil
+}
+
+func bytesToFileHeader(fileUrl string, data []byte, contentType string) (*multipart.FileHeader, error) {
+
+	parsed, _ := url.Parse(fileUrl)
+	fileName := path.Base(parsed.Path)
+	if fileName == "" || fileName == "." || fileName == "/" {
+		fileName = "image.png"
+	}
+
+	if contentType == "" {
+		contentType = http.DetectContentType(data)
+	}
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="image"; filename="%s"`, fileName))
+	h.Set("Content-Type", contentType)
+
+	part, err := writer.CreatePart(h)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = part.Write(data); err != nil {
+		return nil, err
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, err
+	}
+
+	reader := multipart.NewReader(body, writer.Boundary())
+	form, err := reader.ReadForm(int64(len(data)) + 1024)
+	if err != nil {
+		return nil, err
+	}
+
+	files := form.File["image"]
+	if len(files) == 0 {
+		return nil, errors.Newf("failed to create file header for %s", fileUrl)
+	}
+
+	return files[0], nil
 }

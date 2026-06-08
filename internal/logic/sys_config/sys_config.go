@@ -822,6 +822,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Open:            true,
 			Cron:            "0/20 * * * * ?",
 			LockMinutes:     30,
+			Timeout:         600,
 			IsEnableStorage: true,
 		},
 		VideoTask: &common.VideoTask{
