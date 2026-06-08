@@ -28,6 +28,7 @@ type SysConfig struct {
 	Quota                     *common.Quota                     `bson:"quota,omitempty"`                         // 额度
 	Ticket                    *common.Ticket                    `bson:"ticket,omitempty"`                        // 工单
 	QuotaTask                 *common.QuotaTask                 `bson:"quota_task,omitempty"`                    // 额度任务
+	ImageTask                 *common.ImageTask                 `bson:"image_task,omitempty"`                    // 绘图任务
 	VideoTask                 *common.VideoTask                 `bson:"video_task,omitempty"`                    // 视频任务
 	FileTask                  *common.FileTask                  `bson:"file_task,omitempty"`                     // 文件任务
 	BatchTask                 *common.BatchTask                 `bson:"batch_task,omitempty"`                    // 批处理任务

@@ -51,6 +51,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/sys_config"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_batch"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_file"
+	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_image"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_video"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/ticket"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/user"
@@ -222,6 +223,12 @@ var (
 				v1.Group("/monitor", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						monitor.NewV1(),
+					)
+				})
+
+				v1.Group("/task/image", func(g *ghttp.RouterGroup) {
+					g.Bind(
+						task_image.NewV1(),
 					)
 				})
 

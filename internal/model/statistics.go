@@ -197,6 +197,7 @@ type StatisticsOverviewRes struct {
 	TodayApps       int64   `json:"today_apps"`        // 今日新增应用
 	TotalBatchTasks int64   `json:"total_batch_tasks"` // 总批处理任务数
 	TotalFileTasks  int64   `json:"total_file_tasks"`  // 总文件任务数
+	TotalImageTasks int64   `json:"total_image_tasks"` // 总绘图任务数
 	TotalVideoTasks int64   `json:"total_video_tasks"` // 总视频任务数
 }
 
@@ -302,9 +303,12 @@ type TaskStatusItem struct {
 type StatisticsTaskStatusRes struct {
 	Batch       []*TaskStatusItem `json:"batch"`        // 批处理任务状态
 	File        []*TaskStatusItem `json:"file"`         // 文件任务状态
+	Image       []*TaskStatusItem `json:"image"`        // 绘图任务状态
 	Video       []*TaskStatusItem `json:"video"`        // 视频任务状态
 	ActiveBatch int64             `json:"active_batch"` // 进行中批处理数
+	ActiveImage int64             `json:"active_image"` // 进行中绘图任务数
 	ActiveVideo int64             `json:"active_video"` // 进行中视频任务数
+	QueuedImage int64             `json:"queued_image"` // 排队中绘图任务数
 	QueuedVideo int64             `json:"queued_video"` // 排队中视频任务数
 	QueuedBatch int64             `json:"queued_batch"` // 排队中批处理数
 }

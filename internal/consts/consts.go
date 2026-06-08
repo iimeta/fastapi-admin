@@ -46,6 +46,8 @@ const (
 	TASK_QUOTA_NOTICE_END_TIME_KEY                   = "task:quota:notice:end_time"
 	TASK_QUOTA_CLEAR_LOCK_KEY                        = "task:quota:clear:lock"
 	TASK_QUOTA_CLEAR_END_TIME_KEY                    = "task:quota:clear:end_time"
+	TASK_IMAGE_LOCK_KEY                              = "task:image:lock"
+	TASK_IMAGE_END_TIME_KEY                          = "task:image:end_time"
 	TASK_VIDEO_LOCK_KEY                              = "task:video:lock"
 	TASK_VIDEO_END_TIME_KEY                          = "task:video:end_time"
 	TASK_FILE_LOCK_KEY                               = "task:file:lock"

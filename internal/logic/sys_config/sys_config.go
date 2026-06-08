@@ -150,6 +150,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Ticket: params.Ticket}
 	case "quota_task":
 		sysConfig = &do.SysConfig{QuotaTask: params.QuotaTask}
+	case "image_task":
+		sysConfig = &do.SysConfig{ImageTask: params.ImageTask}
 	case "video_task":
 		sysConfig = &do.SysConfig{VideoTask: params.VideoTask}
 	case "file_task":
@@ -260,6 +262,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Quota:                     sysConfig.Quota,
 		Ticket:                    sysConfig.Ticket,
 		QuotaTask:                 sysConfig.QuotaTask,
+		ImageTask:                 sysConfig.ImageTask,
 		VideoTask:                 sysConfig.VideoTask,
 		FileTask:                  sysConfig.FileTask,
 		BatchTask:                 sysConfig.BatchTask,
@@ -344,6 +347,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Ticket = s.Default().Ticket
 	case "quota_task":
 		sysConfigUpdateReq.QuotaTask = s.Default().QuotaTask
+	case "image_task":
+		sysConfigUpdateReq.ImageTask = s.Default().ImageTask
 	case "video_task":
 		sysConfigUpdateReq.VideoTask = s.Default().VideoTask
 	case "file_task":
@@ -452,6 +457,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.ServiceUnavailable == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "service_unavailable"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.ImageTask == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "image_task"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -805,6 +817,12 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Open:        true,
 			Cron:        "0 * * * * ?",
 			LockMinutes: 30,
+		},
+		ImageTask: &common.ImageTask{
+			Open:            true,
+			Cron:            "0/20 * * * * ?",
+			LockMinutes:     30,
+			IsEnableStorage: true,
 		},
 		VideoTask: &common.VideoTask{
 			Open:            true,

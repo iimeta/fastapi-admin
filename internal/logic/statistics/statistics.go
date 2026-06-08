@@ -1451,6 +1451,10 @@ func (s *sStatistics) DataOverview(ctx context.Context, params model.StatisticsO
 		if err != nil {
 			logger.Error(ctx, err)
 		}
+		res.TotalImageTasks, err = dao.TaskImage.EstimatedDocumentCount(ctx)
+		if err != nil {
+			logger.Error(ctx, err)
+		}
 		res.TotalVideoTasks, err = dao.TaskVideo.EstimatedDocumentCount(ctx)
 		if err != nil {
 			logger.Error(ctx, err)
@@ -1890,6 +1894,7 @@ func (s *sStatistics) DataTaskStatus(ctx context.Context, params model.Statistic
 	res := &model.StatisticsTaskStatusRes{
 		Batch: make([]*model.TaskStatusItem, 0),
 		File:  make([]*model.TaskStatusItem, 0),
+		Image: make([]*model.TaskStatusItem, 0),
 		Video: make([]*model.TaskStatusItem, 0),
 	}
 
@@ -1984,6 +1989,23 @@ func (s *sStatistics) DataTaskStatus(ctx context.Context, params model.Statistic
 			Status: gconv.String(r["_id"]),
 			Count:  gconv.Int64(r["count"]),
 		})
+	}
+
+	// 绘图任务按状态分组
+	imageResult := make([]map[string]any, 0)
+	if err := dao.TaskImage.Aggregate(ctx, buildPipeline(), &imageResult); err != nil {
+		logger.Error(ctx, err)
+	}
+	for _, r := range imageResult {
+		status := gconv.String(r["_id"])
+		count := gconv.Int64(r["count"])
+		res.Image = append(res.Image, &model.TaskStatusItem{Status: status, Count: count})
+		if status == "in_progress" {
+			res.ActiveImage += count
+		}
+		if status == "queued" {
+			res.QueuedImage += count
+		}
 	}
 
 	// 视频任务按状态分组

@@ -11,6 +11,9 @@ func Init(ctx context.Context) {
 	// 额度任务
 	quotaTask(ctx)
 
+	// 绘图任务
+	imageTask(ctx)
+
 	// 视频任务
 	videoTask(ctx)
 
