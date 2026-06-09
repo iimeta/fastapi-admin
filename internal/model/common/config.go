@@ -166,6 +166,7 @@ type ImageTask struct {
 	Cron                 string        `bson:"cron"                   json:"cron"`                         // CRON表达式
 	LockMinutes          time.Duration `bson:"lock_minutes"           json:"lock_minutes"`                 // 锁定时长, 单位: 分钟
 	Timeout              time.Duration `bson:"timeout"                json:"timeout"`                      // 生成超时, 单位: 秒
+	DataFormat           int           `bson:"data_format"            json:"data_format"`                  // 数据格式: 1-旧格式(form-data下载文件) 2-新格式(json传URL)
 	IsEnableStorage      bool          `bson:"is_enable_storage"      json:"is_enable_storage"`            // 是否启用存储
 	StorageDir           string        `bson:"storage_dir"            json:"storage_dir"`                  // 存储目录
 	StorageBaseUrl       string        `bson:"storage_base_url"       json:"storage_base_url"`             // 访问地址

@@ -365,7 +365,15 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 
 	if taskImage.Action == "edits" {
 
-		imageEditReq, err := buildImageEditRequest(ctx, taskImage)
+		var imageEditReq smodel.ImageEditRequest
+		var err error
+
+		if config.Cfg.ImageTask.DataFormat == 2 {
+			imageEditReq, err = buildImageEditRequestByURL(ctx, taskImage)
+		} else {
+			imageEditReq, err = buildImageEditRequest(ctx, taskImage)
+		}
+
 		if err != nil {
 			logger.Error(ctx, err)
 			s.failTask(ctx, taskImage.Id, "build_edit_request_error", err.Error())
@@ -590,6 +598,62 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 	}
 
 	req.Image = fileHeaders
+
+	return req, nil
+}
+
+func buildImageEditRequestByURL(ctx context.Context, taskImage *entity.TaskImage) (smodel.ImageEditRequest, error) {
+
+	var req smodel.ImageEditRequest
+
+	req.Model = taskImage.RequestData["model"].(string)
+
+	if v, ok := taskImage.RequestData["prompt"]; ok {
+		req.Prompt, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["n"]; ok {
+		req.N, _ = v.(int)
+	}
+	if v, ok := taskImage.RequestData["quality"]; ok {
+		req.Quality, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["size"]; ok {
+		req.Size, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["response_format"]; ok {
+		req.ResponseFormat, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["background"]; ok {
+		req.Background, _ = v.(string)
+	}
+
+	imageVal, ok := taskImage.RequestData["image"]
+	if !ok {
+		return req, errors.New("missing image parameter in request data")
+	}
+
+	var imageUrls []string
+	switch v := imageVal.(type) {
+	case string:
+		imageUrls = append(imageUrls, v)
+	case []interface{}:
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				imageUrls = append(imageUrls, s)
+			}
+		}
+	default:
+		return req, errors.New("invalid image parameter type")
+	}
+
+	if len(imageUrls) == 0 {
+		return req, errors.New("empty image urls")
+	}
+
+	req.Images = make([]smodel.ImageEditImage, 0, len(imageUrls))
+	for _, imageUrl := range imageUrls {
+		req.Images = append(req.Images, smodel.ImageEditImage{ImageUrl: imageUrl})
+	}
 
 	return req, nil
 }
