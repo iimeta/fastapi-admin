@@ -566,6 +566,8 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 
 	client := &http.Client{Timeout: 60 * time.Second}
 
+	fileHeaders := make([]*multipart.FileHeader, 0, len(imageUrls))
+
 	for _, imageUrl := range imageUrls {
 
 		resp, err := client.Get(imageUrl)
@@ -584,8 +586,10 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 			return req, err
 		}
 
-		req.Image = append(req.Image, fileHeader)
+		fileHeaders = append(fileHeaders, fileHeader)
 	}
+
+	req.Image = fileHeaders
 
 	return req, nil
 }
