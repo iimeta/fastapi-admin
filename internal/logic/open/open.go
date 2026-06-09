@@ -87,7 +87,7 @@ func (s *sOpen) Config(ctx context.Context, params model.SysConfigReq) (*model.S
 
 	if sysConfig.AdminLogin.Path == "" {
 		sysConfig.AdminLogin.Path = "admin"
-	} else if sysConfig.AdminLogin.Path != gstr.TrimLeft(params.Path, "/") {
+	} else if sysConfig.AdminLogin.Path != gstr.TrimLeftStr(params.Path, "/") {
 		sysConfig.AdminLogin = nil
 	}
 

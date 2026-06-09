@@ -22,5 +22,6 @@ bin/*.zip
 **/resource/export/*.xls
 **/resource/export/*.xlsx
 **/resource/public/avatar/*.*
+**/resource/public/image/*.*
 **/resource/public/video/*.*
 **/resource/public/file/*.*

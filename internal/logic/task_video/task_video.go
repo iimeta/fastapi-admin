@@ -79,7 +79,7 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 
 		if config.Cfg.VideoTask.StorageBaseUrl != "" {
 			if gstr.HasSuffix(config.Cfg.VideoTask.StorageBaseUrl, "/") {
-				taskVideo.VideoUrl = gstr.TrimLeft(taskVideo.VideoUrl, "/")
+				taskVideo.VideoUrl = gstr.TrimLeftStr(taskVideo.VideoUrl, "/")
 			} else if !gstr.HasPrefix(taskVideo.VideoUrl, "/") {
 				taskVideo.VideoUrl = "/" + taskVideo.VideoUrl
 			}
@@ -184,7 +184,7 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 
 			if config.Cfg.VideoTask.StorageBaseUrl != "" {
 				if gstr.HasSuffix(config.Cfg.VideoTask.StorageBaseUrl, "/") {
-					result.VideoUrl = gstr.TrimLeft(result.VideoUrl, "/")
+					result.VideoUrl = gstr.TrimLeftStr(result.VideoUrl, "/")
 				} else if !gstr.HasPrefix(result.VideoUrl, "/") {
 					result.VideoUrl = "/" + result.VideoUrl
 				}
@@ -381,7 +381,7 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 					} else {
 
 						if gstr.HasPrefix(filePath, "./resource/public/") {
-							videoUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
+							videoUrl = "/public/" + gstr.TrimLeftStr(filePath, "./resource/public/") + fileName
 						} else if config.Cfg.VideoTask.StorageBaseUrl == "" {
 							videoUrl = "/open/video/" + fileName
 						} else {

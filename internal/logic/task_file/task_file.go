@@ -74,7 +74,7 @@ func (s *sTaskFile) Detail(ctx context.Context, id string) (*model.TaskFile, err
 
 		if config.Cfg.FileTask.StorageBaseUrl != "" {
 			if gstr.HasSuffix(config.Cfg.FileTask.StorageBaseUrl, "/") {
-				taskFile.FileUrl = gstr.TrimLeft(taskFile.FileUrl, "/")
+				taskFile.FileUrl = gstr.TrimLeftStr(taskFile.FileUrl, "/")
 			} else if !gstr.HasPrefix(taskFile.FileUrl, "/") {
 				taskFile.FileUrl = "/" + taskFile.FileUrl
 			}
@@ -173,7 +173,7 @@ func (s *sTaskFile) Page(ctx context.Context, params model.TaskFilePageReq) (*mo
 
 			if config.Cfg.FileTask.StorageBaseUrl != "" {
 				if gstr.HasSuffix(config.Cfg.FileTask.StorageBaseUrl, "/") {
-					result.FileUrl = gstr.TrimLeft(result.FileUrl, "/")
+					result.FileUrl = gstr.TrimLeftStr(result.FileUrl, "/")
 				} else if !gstr.HasPrefix(result.FileUrl, "/") {
 					result.FileUrl = "/" + result.FileUrl
 				}
@@ -431,7 +431,7 @@ func (s *sTaskFile) Task(ctx context.Context) {
 				} else {
 
 					if gstr.HasPrefix(filePath, "./resource/public/") {
-						fileUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
+						fileUrl = "/public/" + gstr.TrimLeftStr(filePath, "./resource/public/") + fileName
 					} else if config.Cfg.FileTask.StorageBaseUrl == "" {
 						fileUrl = "/open/file/" + fileName
 					} else {

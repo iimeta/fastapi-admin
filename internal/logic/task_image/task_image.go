@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -75,6 +76,7 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 		N:              taskImage.N,
 		Quality:        taskImage.Quality,
 		Size:           taskImage.Size,
+		OutputFormat:   taskImage.OutputFormat,
 		ResponseFormat: taskImage.ResponseFormat,
 		Prompt:         taskImage.Prompt,
 		Progress:       taskImage.Progress,
@@ -91,7 +93,7 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 
 		if config.Cfg.ImageTask.StorageBaseUrl != "" {
 			if gstr.HasSuffix(config.Cfg.ImageTask.StorageBaseUrl, "/") {
-				taskImage.ImageUrl = gstr.TrimLeft(taskImage.ImageUrl, "/")
+				taskImage.ImageUrl = gstr.TrimLeftStr(taskImage.ImageUrl, "/")
 			} else if !gstr.HasPrefix(taskImage.ImageUrl, "/") {
 				taskImage.ImageUrl = "/" + taskImage.ImageUrl
 			}
@@ -199,7 +201,7 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 
 			if config.Cfg.ImageTask.StorageBaseUrl != "" {
 				if gstr.HasSuffix(config.Cfg.ImageTask.StorageBaseUrl, "/") {
-					result.ImageUrl = gstr.TrimLeft(result.ImageUrl, "/")
+					result.ImageUrl = gstr.TrimLeftStr(result.ImageUrl, "/")
 				} else if !gstr.HasPrefix(result.ImageUrl, "/") {
 					result.ImageUrl = "/" + result.ImageUrl
 				}
@@ -451,7 +453,12 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			filePath = filePath + "/"
 		}
 
-		fileName = taskImage.ImageId + "_image_0.png"
+		outputFormat := taskImage.OutputFormat
+		if outputFormat == "" {
+			outputFormat = "png"
+		}
+
+		fileName = taskImage.ImageId + "_image." + outputFormat
 
 		imageData := response.Data[0]
 		var imageBytes []byte
@@ -470,7 +477,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			} else {
 
 				if gstr.HasPrefix(filePath, "./resource/public/") {
-					imageUrl = "/public/" + gstr.TrimLeft(filePath, "./resource/public/") + fileName
+					imageUrl = "/public/" + gstr.TrimLeftStr(filePath, "./resource/public/") + fileName
 				} else if config.Cfg.ImageTask.StorageBaseUrl == "" {
 					imageUrl = "/open/image/" + fileName
 				} else {
@@ -484,6 +491,21 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 	}
 
+	responseData := make(map[string]any)
+	if response.ResponseBytes != nil {
+		if err := json.Unmarshal(response.ResponseBytes, &responseData); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			if data, ok := responseData["data"].([]any); ok {
+				for _, d := range data {
+					if v, ok := d.(map[string]any); ok {
+						v["b64_json"] = ""
+					}
+				}
+			}
+		}
+	}
+
 	if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
 		"progress":      100,
 		"status":        "completed",
@@ -492,7 +514,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		"image_url":     imageUrl,
 		"file_name":     fileName,
 		"file_path":     filePath + fileName,
-		"response_data": util.ConvToMap(response),
+		"response_data": responseData,
 		"error":         nil,
 	}); err != nil {
 		logger.Error(ctx, err)
