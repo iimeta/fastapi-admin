@@ -17,6 +17,8 @@ type (
 		Site(ctx context.Context, params model.SiteConfigDetailReq) *model.SiteConfig
 		// 系统配置
 		Config(ctx context.Context, params model.SysConfigReq) (*model.SysConfig, error)
+		// 图像文件
+		Image(ctx context.Context, fileName string) (string, error)
 		// 视频文件
 		Video(ctx context.Context, fileName string) (string, error)
 		// 文件

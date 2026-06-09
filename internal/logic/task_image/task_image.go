@@ -13,13 +13,14 @@ import (
 	"net/url"
 	"path"
 	"regexp"
-	"sync"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
@@ -311,32 +312,14 @@ func (s *sTaskImage) Task(ctx context.Context) {
 		queuedTasks = append(queuedTasks, taskImage)
 	}
 
-	if len(queuedTasks) > 0 {
+	for _, taskImage := range queuedTasks {
+		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-		var (
-			wg          sync.WaitGroup
-			mu          sync.Mutex
-			providerMap = make(map[string]*entity.Provider)
-		)
+			s.processImageTask(ctx, taskImage)
 
-		timeout := config.Cfg.ImageTask.Timeout * time.Second
-		if timeout <= 0 {
-			timeout = config.Cfg.Base.LongTimeout * time.Second
+		}, nil); err != nil {
+			logger.Error(ctx, err)
 		}
-
-		for _, taskImage := range queuedTasks {
-			wg.Add(1)
-			go func(task *entity.TaskImage) {
-				defer wg.Done()
-
-				taskCtx, cancel := context.WithTimeout(ctx, timeout)
-				defer cancel()
-
-				s.processImageTask(taskCtx, task, providerMap, &mu)
-			}(taskImage)
-		}
-
-		wg.Wait()
 	}
 
 	if _, err := redis.Set(ctx, consts.TASK_IMAGE_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
@@ -344,7 +327,7 @@ func (s *sTaskImage) Task(ctx context.Context) {
 	}
 }
 
-func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.TaskImage, providerMap map[string]*entity.Provider, mu *sync.Mutex) {
+func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.TaskImage) {
 
 	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 	if err != nil {
@@ -353,19 +336,20 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		return
 	}
 
-	mu.Lock()
-	provider := providerMap[logImage.ModelAgent.ProviderId]
-	if provider == nil {
-		provider, err = dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
-		if err != nil {
-			mu.Unlock()
-			logger.Error(ctx, err)
-			s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error())
-			return
-		}
-		providerMap[logImage.ModelAgent.ProviderId] = provider
+	provider, err := dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
+	if err != nil {
+		logger.Error(ctx, err)
+		s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error())
+		return
 	}
-	mu.Unlock()
+
+	timeout := config.Cfg.ImageTask.Timeout * time.Second
+	if timeout <= 0 {
+		timeout = config.Cfg.Base.LongTimeout * time.Second
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 
 	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
 		Provider: provider.Code,
@@ -373,7 +357,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		Key:      logImage.Key,
 		BaseUrl:  logImage.ModelAgent.BaseUrl,
 		Path:     logImage.ModelAgent.Path,
-		Timeout:  config.Cfg.Base.LongTimeout * time.Second,
+		Timeout:  timeout,
 		ProxyUrl: config.Cfg.Http.ProxyUrl,
 	})
 

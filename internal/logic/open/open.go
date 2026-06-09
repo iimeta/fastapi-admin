@@ -98,6 +98,22 @@ func (s *sOpen) Config(ctx context.Context, params model.SysConfigReq) (*model.S
 	}, nil
 }
 
+// 图像文件
+func (s *sOpen) Image(ctx context.Context, fileName string) (string, error) {
+
+	taskImage, err := dao.TaskImage.FindOne(ctx, bson.M{"file_name": fileName})
+	if err != nil {
+		logger.Error(ctx, err)
+		return "", errors.New("图像文件未找到")
+	}
+
+	if taskImage == nil || taskImage.FilePath == "" {
+		return "", errors.New("图像文件未找到")
+	}
+
+	return taskImage.FilePath, nil
+}
+
 // 视频文件
 func (s *sOpen) Video(ctx context.Context, fileName string) (string, error) {
 

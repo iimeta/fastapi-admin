@@ -15,6 +15,7 @@ import (
 	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
@@ -81,11 +82,22 @@ var (
 			s.SetServerRoot("./resource/fastapi-web/")
 
 			s.AddStaticPath("/", "./resource/index/")
-			s.BindHandler("/*any", func(r *ghttp.Request) {
-				r.Response.ServeFile("./resource/fastapi-web/index.html")
-			})
 
 			s.AddStaticPath("/public", "./resource/public")
+
+			s.BindHandler("/*any", func(r *ghttp.Request) {
+
+				if gstr.HasPrefix(r.URL.Path, "/public/") {
+					if path := gfile.Join("./resource/public", gstr.TrimLeftStr(r.URL.Path, "/public/")); gfile.Exists(path) && gfile.IsFile(path) {
+						r.Response.ServeFile(path)
+						return
+					}
+					r.Response.WriteStatus(http.StatusNotFound)
+					return
+				}
+
+				r.Response.ServeFile("./resource/fastapi-web/index.html")
+			})
 
 			// 自定义管理端登录路径
 			if config.Cfg.AdminLogin != nil && config.Cfg.AdminLogin.Path != "" {

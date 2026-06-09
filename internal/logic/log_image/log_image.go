@@ -236,7 +236,7 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
-		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "prompt", "size", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "prompt", "size", "action", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
 	}
 
 	results, err := dao.LogImage.FindByPage(ctx, paging, filter, findOptions)
@@ -255,6 +255,7 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 			ProviderName: result.ProviderName,
 			Model:        result.Model,
 			ModelType:    result.ModelType,
+			Action:       result.Action,
 			Stream:       result.Stream,
 			Prompt:       result.Prompt,
 			Size:         result.Size,

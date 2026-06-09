@@ -278,7 +278,7 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 		if retrieve.Status == "completed" {
 
 			// 计算花费
-			common.Billing(ctx, retrieve.Usage, &logBatch.Spend)
+			common.Billing(ctx, retrieve.Usage, &logBatch.Spend, true)
 
 			// 记录花费
 			if err = common.RecordSpend(ctx, logBatch.UserId, logBatch.AppId, logBatch.Creator, logBatch.Rid, logBatch.Key, logBatch.Spend); err != nil {

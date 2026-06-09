@@ -29,6 +29,17 @@ type SiteConfigRes struct {
 	*model.SiteConfigDetailRes
 }
 
+// 图像接口请求参数
+type ImageReq struct {
+	g.Meta   `path:"/image/{file_name}" method:"get" tags:"open" summary:"图像接口"`
+	FileName string `json:"file_name"`
+}
+
+// 图像接口响应参数
+type ImageRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 视频接口请求参数
 type VideoReq struct {
 	g.Meta   `path:"/video/{file_name}" method:"get" tags:"open" summary:"视频接口"`
