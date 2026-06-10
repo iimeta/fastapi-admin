@@ -366,7 +366,6 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	if taskImage.Action == "edits" {
 
 		var imageEditReq smodel.ImageEditRequest
-		var err error
 
 		if config.Cfg.ImageTask.DataFormat == 2 {
 			imageEditReq, err = buildImageEditRequestByURL(ctx, taskImage)

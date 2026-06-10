@@ -53,6 +53,7 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 		ProviderName: result.ProviderName,
 		Model:        result.Model,
 		ModelType:    result.ModelType,
+		Action:       result.Action,
 		Stream:       result.Stream,
 		Prompt:       result.Prompt,
 		Size:         result.Size,
