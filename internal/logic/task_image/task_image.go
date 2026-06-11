@@ -23,6 +23,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -460,6 +461,34 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			} else {
 				logger.Error(ctx, err)
 			}
+		} else if len(imageData.Url) > 0 {
+
+			if gstr.HasPrefix(imageData.Url, "data:image/png;base64,") {
+
+				if decoded, err := base64.StdEncoding.DecodeString(gstr.TrimLeftStr(imageData.Url, "data:image/png;base64,")); err == nil {
+					imageBytes = decoded
+				} else {
+					logger.Error(ctx, err)
+				}
+
+			} else if gstr.HasPrefix(imageData.Url, "http") {
+
+				client := &http.Client{Timeout: timeout}
+
+				resp, err := client.Get(imageData.Url)
+				if err != nil {
+					logger.Error(ctx, err)
+					if resp.Body != nil {
+						_ = resp.Body.Close()
+					}
+				} else {
+					imageBytes, err = io.ReadAll(resp.Body)
+					_ = resp.Body.Close()
+					if err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+			}
 		}
 
 		if imageBytes != nil {
@@ -491,6 +520,9 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 				for _, d := range data {
 					if v, ok := d.(map[string]any); ok {
 						v["b64_json"] = ""
+						if gstr.HasPrefix(gconv.String(v["url"]), "data:image/png;base64,") {
+							v["url"] = ""
+						}
 					}
 				}
 			}
@@ -589,7 +621,12 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 		return req, errors.New("empty image urls")
 	}
 
-	client := &http.Client{Timeout: 60 * time.Second}
+	timeout := config.Cfg.ImageTask.Timeout * time.Second
+	if timeout <= 0 {
+		timeout = config.Cfg.Base.LongTimeout * time.Second
+	}
+
+	client := &http.Client{Timeout: timeout}
 
 	fileHeaders := make([]*multipart.FileHeader, 0, len(imageUrls))
 
@@ -597,11 +634,14 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 
 		resp, err := client.Get(imageUrl)
 		if err != nil {
+			if resp.Body != nil {
+				_ = resp.Body.Close()
+			}
 			return req, errors.Newf("download image failed: %s, error: %v", imageUrl, err)
 		}
 
 		imageBytes, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		if err != nil {
 			return req, errors.Newf("read image failed: %s, error: %v", imageUrl, err)
 		}
