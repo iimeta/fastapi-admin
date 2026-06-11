@@ -557,11 +557,29 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 	switch v := imageVal.(type) {
 	case string:
 		imageUrls = append(imageUrls, v)
-	case []interface{}:
+	case []any:
 		for _, item := range v {
 			if s, ok := item.(string); ok {
 				imageUrls = append(imageUrls, s)
 			}
+		}
+	case bson.A:
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				imageUrls = append(imageUrls, s)
+			}
+		}
+	case any:
+		if url, ok := v.(string); ok {
+			imageUrls = append(imageUrls, url)
+		} else if urls, ok := v.([]any); ok {
+			for _, item := range urls {
+				if s, ok := item.(string); ok {
+					imageUrls = append(imageUrls, s)
+				}
+			}
+		} else {
+			return req, errors.New("invalid image parameter type")
 		}
 	default:
 		return req, errors.New("invalid image parameter type")
@@ -635,11 +653,29 @@ func buildImageEditRequestByURL(ctx context.Context, taskImage *entity.TaskImage
 	switch v := imageVal.(type) {
 	case string:
 		imageUrls = append(imageUrls, v)
-	case []interface{}:
+	case []any:
 		for _, item := range v {
 			if s, ok := item.(string); ok {
 				imageUrls = append(imageUrls, s)
 			}
+		}
+	case bson.A:
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				imageUrls = append(imageUrls, s)
+			}
+		}
+	case any:
+		if url, ok := v.(string); ok {
+			imageUrls = append(imageUrls, url)
+		} else if urls, ok := v.([]any); ok {
+			for _, item := range urls {
+				if s, ok := item.(string); ok {
+					imageUrls = append(imageUrls, s)
+				}
+			}
+		} else {
+			return req, errors.New("invalid image parameter type")
 		}
 	default:
 		return req, errors.New("invalid image parameter type")
