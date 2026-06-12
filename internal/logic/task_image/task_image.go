@@ -40,6 +40,7 @@ import (
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type sTaskImage struct {
@@ -250,6 +251,47 @@ func (s *sTaskImage) CopyField(ctx context.Context, params model.TaskImageCopyFi
 	return "", nil
 }
 
+// 绘图任务重新生成
+func (s *sTaskImage) Regenerate(ctx context.Context, id string) error {
+
+	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
+		"_id": id,
+		"status": bson.M{
+			"$in": []string{"in_progress", "failed"},
+		},
+	}, bson.M{
+		"status":   "queued",
+		"progress": 0,
+		"error":    nil,
+	}); err != nil {
+
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return errors.New("任务不在进行中或已失败状态, 无法重新生成")
+		}
+
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 绘图任务批量操作
+func (s *sTaskImage) BatchOperate(ctx context.Context, params model.TaskImageBatchOperateReq) error {
+
+	switch params.Action {
+	case consts.ACTION_REGENERATE:
+		for _, id := range params.Ids {
+			// 跳过不可重新生成的任务(如已完成、已过期等), 不中断整个批次
+			if err := s.Regenerate(ctx, id); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+	}
+
+	return nil
+}
+
 // 绘图任务
 func (s *sTaskImage) Task(ctx context.Context) {
 
@@ -349,80 +391,48 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		timeout = config.Cfg.Base.LongTimeout * time.Second
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
+	retryCount := config.Cfg.ImageTask.RetryCount
+	if retryCount < 0 {
+		retryCount = 0
+	}
 
-	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-		Provider: provider.Code,
-		Model:    logImage.Model,
-		Key:      logImage.Key,
-		BaseUrl:  logImage.ModelAgent.BaseUrl,
-		Path:     logImage.ModelAgent.Path,
-		Timeout:  timeout,
-		ProxyUrl: config.Cfg.Http.ProxyUrl,
-	})
+	var (
+		response smodel.ImageResponse
+		errCode  string
+	)
 
-	var response smodel.ImageResponse
+	for attempt := 0; ; attempt++ {
 
-	if taskImage.Action == "edits" {
+		taskCtx, cancel := context.WithTimeout(ctx, timeout)
 
-		var imageEditReq smodel.ImageEditRequest
-
-		if config.Cfg.ImageTask.DataFormat == 2 {
-			imageEditReq, err = buildImageEditRequestByURL(ctx, taskImage)
+		if config.Cfg.ImageTask.SubmitMode == 2 {
+			response, errCode, err = s.requestImageAsync(taskCtx, taskImage, logImage, provider, timeout)
 		} else {
-			imageEditReq, err = buildImageEditRequest(ctx, taskImage)
+			response, errCode, err = s.requestImageSync(taskCtx, taskImage, logImage, provider, timeout)
 		}
 
-		if err != nil {
-			logger.Error(ctx, err)
-			s.failTask(ctx, taskImage.Id, "build_edit_request_error", err.Error())
-			return
+		cancel()
+
+		if err == nil {
+			break
 		}
 
-		response, err = adapter.ImageEdits(ctx, imageEditReq)
-		if err != nil {
-			logger.Error(ctx, err)
-			errCode := "edit_error"
-			if ctx.Err() != nil {
-				errCode = "timeout"
+		if errCode == "timeout" && attempt < retryCount {
+
+			// 重试前回查任务状态, 若已不在进行中(已被其它进程完成、被管理员重置或删除等), 则无需重试, 直接退出
+			if latest, e := dao.TaskImage.FindById(ctx, taskImage.Id); e != nil {
+				logger.Error(ctx, e)
+			} else if latest.Status != "in_progress" {
+				logger.Infof(ctx, "sTaskImage processImageTask task: %s status is %s, no need to retry, skip", taskImage.Id, latest.Status)
+				return
 			}
-			s.failTask(ctx, taskImage.Id, errCode, err.Error())
-			return
+
+			logger.Errorf(ctx, "sTaskImage processImageTask task: %s timeout, retry: %d/%d", taskImage.Id, attempt+1, retryCount)
+			continue
 		}
 
-	} else {
-
-		requestBytes, err := gjson.Encode(taskImage.RequestData)
-		if err != nil {
-			logger.Error(ctx, err)
-			s.failTask(ctx, taskImage.Id, "request_encode_error", err.Error())
-			return
-		}
-
-		response, err = adapter.ImageGenerations(ctx, requestBytes)
-		if err != nil {
-			logger.Error(ctx, err)
-			errCode := "generation_error"
-			if ctx.Err() != nil {
-				errCode = "timeout"
-			}
-			s.failTask(ctx, taskImage.Id, errCode, err.Error())
-			return
-		}
-	}
-
-	// 计算花费
-	common.Billing(ctx, response.Usage, &logImage.Spend)
-
-	// 记录花费
-	if err = common.RecordSpend(ctx, logImage.UserId, logImage.AppId, logImage.Creator, logImage.Rid, logImage.Key, logImage.Spend); err != nil {
 		logger.Error(ctx, err)
-		return
-	}
-
-	if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{"spend": logImage.Spend}); err != nil {
-		logger.Error(ctx, err)
+		s.failTask(ctx, taskImage.Id, errCode, err.Error())
 		return
 	}
 
@@ -529,7 +539,11 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 	}
 
-	if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
+	// 通过CAS抢占任务完成: 仅当任务仍为进行中时才落库, 避免被管理员重新生成后多个进程重复完成、重复覆盖、重复计费
+	if _, err = dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
+		"_id":    taskImage.Id,
+		"status": "in_progress",
+	}, bson.M{
 		"progress":      100,
 		"status":        "completed",
 		"completed_at":  completedAt,
@@ -540,17 +554,356 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		"response_data": responseData,
 		"error":         nil,
 	}); err != nil {
+
+		// 任务已不在进行中, 说明已被其它进程完成或被重置/删除, 跳过且不计费
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			logger.Infof(ctx, "sTaskImage processImageTask task: %s already handled by another worker, skip", taskImage.Id)
+			// 抢占失败(任务已被删除/重置), 清理本次已落盘的孤儿文件, 避免无人回收
+			if fileName != "" {
+				if e := gfile.RemoveFile(filePath + fileName); e != nil {
+					logger.Error(ctx, e)
+				}
+			}
+			return
+		}
+
 		logger.Error(ctx, err)
+		return
+	}
+
+	// 抢占成功, 计算并记录花费
+	common.Billing(ctx, response.Usage, &logImage.Spend)
+
+	if err = common.RecordSpend(ctx, logImage.UserId, logImage.AppId, logImage.Creator, logImage.Rid, logImage.Key, logImage.Spend); err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{"spend": logImage.Spend}); err != nil {
+		logger.Error(ctx, err)
+		return
 	}
 }
 
 func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string) {
-	if err := dao.TaskImage.UpdateById(ctx, taskId, bson.M{
+	// 仅当任务仍为进行中时才置为失败, 避免旧任务的失败覆盖已被重新生成并完成的新结果
+	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
+		"_id":    taskId,
+		"status": "in_progress",
+	}, bson.M{
 		"status": "failed",
 		"error":  &smodel.ImageError{Code: code, Message: message},
 	}); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return
+		}
 		logger.Error(ctx, err)
 	}
+}
+
+// requestImageSync 同步提交绘图任务, 阻塞等待上游返回结果
+func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.TaskImage, logImage *entity.LogImage, provider *entity.Provider, timeout time.Duration) (smodel.ImageResponse, string, error) {
+
+	var response smodel.ImageResponse
+
+	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
+		Provider: provider.Code,
+		Model:    logImage.Model,
+		Key:      logImage.Key,
+		BaseUrl:  logImage.ModelAgent.BaseUrl,
+		Path:     logImage.ModelAgent.Path,
+		Timeout:  timeout,
+		ProxyUrl: config.Cfg.Http.ProxyUrl,
+	})
+
+	if taskImage.Action == "edits" {
+
+		var (
+			imageEditReq smodel.ImageEditRequest
+			err          error
+		)
+
+		if config.Cfg.ImageTask.DataFormat == 2 {
+			imageEditReq, err = buildImageEditRequestByURL(ctx, taskImage)
+		} else {
+			imageEditReq, err = buildImageEditRequest(ctx, taskImage)
+		}
+
+		if err != nil {
+			return response, "build_edit_request_error", err
+		}
+
+		if response, err = adapter.ImageEdits(ctx, imageEditReq); err != nil {
+			errCode := "edit_error"
+			if ctx.Err() != nil {
+				errCode = "timeout"
+			}
+			return response, errCode, err
+		}
+
+	} else {
+
+		requestBytes, err := gjson.Encode(taskImage.RequestData)
+		if err != nil {
+			return response, "request_encode_error", err
+		}
+
+		if response, err = adapter.ImageGenerations(ctx, requestBytes); err != nil {
+			errCode := "generation_error"
+			if ctx.Err() != nil {
+				errCode = "timeout"
+			}
+			return response, errCode, err
+		}
+	}
+
+	return response, "", nil
+}
+
+// requestImageAsync 异步提交绘图任务, 复用适配器提交后轮询上游任务状态
+func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.TaskImage, logImage *entity.LogImage, provider *entity.Provider, timeout time.Duration) (smodel.ImageResponse, string, error) {
+
+	var response smodel.ImageResponse
+
+	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
+		Provider: provider.Code,
+		Model:    logImage.Model,
+		Key:      logImage.Key,
+		BaseUrl:  logImage.ModelAgent.BaseUrl,
+		Path:     logImage.ModelAgent.Path,
+		Timeout:  timeout,
+		ProxyUrl: config.Cfg.Http.ProxyUrl,
+	})
+
+	var submitResponse smodel.ImageResponse
+
+	if taskImage.Action == "edits" {
+
+		// 异步编辑仅支持图像URL或file_id, 统一走URL方式提交
+		imageEditReq, err := buildImageEditRequestByURL(ctx, taskImage)
+		if err != nil {
+			return response, "build_edit_request_error", err
+		}
+
+		imageEditReq.Async = true
+
+		if submitResponse, err = adapter.ImageEdits(ctx, imageEditReq); err != nil {
+			errCode := "edit_error"
+			if ctx.Err() != nil {
+				errCode = "timeout"
+			}
+			return response, errCode, err
+		}
+
+	} else {
+
+		taskImage.RequestData["async"] = true
+
+		requestBytes, err := gjson.Encode(taskImage.RequestData)
+		if err != nil {
+			return response, "request_encode_error", err
+		}
+
+		if submitResponse, err = adapter.ImageGenerations(ctx, requestBytes); err != nil {
+			errCode := "generation_error"
+			if ctx.Err() != nil {
+				errCode = "timeout"
+			}
+			return response, errCode, err
+		}
+	}
+
+	var jobResponse smodel.ImageJobResponse
+	if submitResponse.ResponseBytes != nil {
+		if err := json.Unmarshal(submitResponse.ResponseBytes, &jobResponse); err != nil {
+			return response, "submit_response_parse_error", err
+		}
+	}
+
+	if jobResponse.Id == "" {
+		return response, "submit_response_invalid", errors.New("missing image id in async submit response")
+	}
+
+	// 轮询上游任务状态, 直到完成或超时
+	job, errCode, err := s.pollImageJob(ctx, logImage, jobResponse.Id, timeout)
+	if err != nil {
+		return response, errCode, err
+	}
+
+	if job.Usage != nil {
+		response.Usage = *job.Usage
+	}
+
+	// 获取图像数据: 优先通过URL下载, 失败则调用content接口兜底
+	if config.Cfg.ImageTask.IsEnableStorage {
+
+		var imageBytes []byte
+
+		if job.ImageUrl != "" {
+			if imageBytes, err = s.downloadImage(ctx, job.ImageUrl, timeout); err != nil {
+				logger.Errorf(ctx, "sTaskImage requestImageAsync download imageUrl: %s, error: %v", job.ImageUrl, err)
+				imageBytes = nil
+			}
+		}
+
+		if imageBytes == nil {
+			if imageBytes, err = s.fetchImageContent(ctx, logImage, jobResponse.Id, timeout); err != nil {
+				logger.Errorf(ctx, "sTaskImage requestImageAsync fetchImageContent imageId: %s, error: %v", jobResponse.Id, err)
+				imageBytes = nil
+			}
+		}
+
+		if len(imageBytes) > 0 {
+			response.Data = []smodel.ImageResponseData{{B64Json: base64.StdEncoding.EncodeToString(imageBytes)}}
+		}
+	}
+
+	if responseBytes, err := json.Marshal(job); err == nil {
+		response.ResponseBytes = responseBytes
+	}
+
+	return response, "", nil
+}
+
+// pollImageJob 每5秒轮询一次上游任务状态, 直到任务完成、失败或超时
+func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage, imageId string, timeout time.Duration) (smodel.ImageJobResponse, string, error) {
+
+	var jobResponse smodel.ImageJobResponse
+
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for {
+
+		job, err := s.retrieveImageJob(ctx, logImage, imageId, timeout)
+		if err != nil {
+			if ctx.Err() != nil {
+				return jobResponse, "timeout", ctx.Err()
+			}
+			logger.Errorf(ctx, "sTaskImage pollImageJob retrieve imageId: %s, error: %v", imageId, err)
+		} else {
+			switch job.Status {
+			case "completed":
+				return job, "", nil
+			case "failed", "expired", "deleted":
+				message := job.Status
+				if job.Error != nil {
+					message = job.Error.Message
+				}
+				return job, "async_" + job.Status, errors.New(message)
+			}
+		}
+
+		select {
+		case <-ctx.Done():
+			return jobResponse, "timeout", ctx.Err()
+		case <-ticker.C:
+		}
+	}
+}
+
+// retrieveImageJob 查询上游绘图任务状态
+func (s *sTaskImage) retrieveImageJob(ctx context.Context, logImage *entity.LogImage, imageId string, timeout time.Duration) (smodel.ImageJobResponse, error) {
+
+	var jobResponse smodel.ImageJobResponse
+
+	reqUrl := gstr.TrimRight(logImage.ModelAgent.BaseUrl, "/") + "/images/" + imageId
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	if err != nil {
+		return jobResponse, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+logImage.Key)
+
+	client := &http.Client{Timeout: timeout}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return jobResponse, err
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return jobResponse, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return jobResponse, errors.Newf("retrieve image job failed, status: %d, body: %s", resp.StatusCode, body)
+	}
+
+	if err = json.Unmarshal(body, &jobResponse); err != nil {
+		return jobResponse, err
+	}
+
+	return jobResponse, nil
+}
+
+// fetchImageContent 调用上游content接口下载图像字节数据
+func (s *sTaskImage) fetchImageContent(ctx context.Context, logImage *entity.LogImage, imageId string, timeout time.Duration) ([]byte, error) {
+
+	reqUrl := gstr.TrimRight(logImage.ModelAgent.BaseUrl, "/") + "/images/" + imageId + "/content"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+logImage.Key)
+
+	client := &http.Client{Timeout: timeout}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.Newf("fetch image content failed, status: %d, body: %s", resp.StatusCode, body)
+	}
+
+	return body, nil
+}
+
+// downloadImage 通过URL下载图像字节数据
+func (s *sTaskImage) downloadImage(ctx context.Context, imageUrl string, timeout time.Duration) ([]byte, error) {
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, imageUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{Timeout: timeout}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.Newf("download image failed, status: %d", resp.StatusCode)
+	}
+
+	return body, nil
 }
 
 func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (smodel.ImageEditRequest, error) {

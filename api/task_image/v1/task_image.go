@@ -40,3 +40,25 @@ type CopyFieldRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 	*model.TaskImageCopyFieldRes
 }
+
+// 绘图任务重新生成接口请求参数
+type RegenerateReq struct {
+	g.Meta `path:"/regenerate" method:"post" auth:"true" role:"admin" tags:"task_image" summary:"绘图任务重新生成接口"`
+	Id     string `json:"id"`
+}
+
+// 绘图任务重新生成接口响应参数
+type RegenerateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
+// 绘图任务批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"task_image" summary:"绘图任务批量操作接口"`
+	model.TaskImageBatchOperateReq
+}
+
+// 绘图任务批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}

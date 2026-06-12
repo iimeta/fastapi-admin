@@ -25,6 +25,13 @@ type TaskImagePageRes struct {
 	Paging *Paging      `json:"paging"`
 }
 
+// 绘图任务批量操作接口请求参数
+type TaskImageBatchOperateReq struct {
+	Action string   `json:"action"` // 动作
+	Ids    []string `json:"ids"`    // 主键Ids
+	Value  any      `json:"value"`  // 值
+}
+
 // 绘图任务详情复制字段值接口请求参数
 type TaskImageCopyFieldReq struct {
 	Id    string `json:"id"`

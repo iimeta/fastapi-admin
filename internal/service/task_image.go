@@ -19,6 +19,10 @@ type (
 		Page(ctx context.Context, params model.TaskImagePageReq) (*model.TaskImagePageRes, error)
 		// 绘图任务详情复制字段值
 		CopyField(ctx context.Context, params model.TaskImageCopyFieldReq) (string, error)
+		// 绘图任务重新生成
+		Regenerate(ctx context.Context, id string) error
+		// 绘图任务批量操作
+		BatchOperate(ctx context.Context, params model.TaskImageBatchOperateReq) error
 		// 绘图任务
 		Task(ctx context.Context)
 	}
