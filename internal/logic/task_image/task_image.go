@@ -18,6 +18,7 @@ import (
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -357,6 +358,8 @@ func (s *sTaskImage) Task(ctx context.Context) {
 
 	for _, taskImage := range queuedTasks {
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+			ctx, err = gtrace.WithTraceID(ctx, taskImage.TraceId)
 
 			s.processImageTask(ctx, taskImage)
 
@@ -933,9 +936,12 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 		req.Background, _ = v.(string)
 	}
 
-	imageVal, ok := taskImage.RequestData["image"]
+	imageVal, ok := taskImage.RequestData["images"]
 	if !ok {
-		return req, errors.New("missing image parameter in request data")
+		imageVal, ok = taskImage.RequestData["image"]
+		if !ok {
+			return req, errors.New("missing image parameter in request data")
+		}
 	}
 
 	var imageUrls []string
@@ -952,6 +958,10 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 		for _, item := range v {
 			if s, ok := item.(string); ok {
 				imageUrls = append(imageUrls, s)
+			} else if urls, ok := item.(bson.D); ok {
+				for _, u := range urls {
+					imageUrls = append(imageUrls, u.Value.(string))
+				}
 			}
 		}
 	case any:
@@ -1037,9 +1047,12 @@ func buildImageEditRequestByURL(ctx context.Context, taskImage *entity.TaskImage
 		req.Background, _ = v.(string)
 	}
 
-	imageVal, ok := taskImage.RequestData["image"]
+	imageVal, ok := taskImage.RequestData["images"]
 	if !ok {
-		return req, errors.New("missing image parameter in request data")
+		imageVal, ok = taskImage.RequestData["image"]
+		if !ok {
+			return req, errors.New("missing image parameter in request data")
+		}
 	}
 
 	var imageUrls []string
@@ -1056,6 +1069,10 @@ func buildImageEditRequestByURL(ctx context.Context, taskImage *entity.TaskImage
 		for _, item := range v {
 			if s, ok := item.(string); ok {
 				imageUrls = append(imageUrls, s)
+			} else if urls, ok := item.(bson.D); ok {
+				for _, u := range urls {
+					imageUrls = append(imageUrls, u.Value.(string))
+				}
 			}
 		}
 	case any:
