@@ -420,7 +420,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			break
 		}
 
-		if errCode == "timeout" && attempt < retryCount {
+		if attempt < retryCount {
 
 			// 重试前回查任务状态, 若已不在进行中(已被其它进程完成、被管理员重置或删除等), 则无需重试, 直接退出
 			if latest, e := dao.TaskImage.FindById(ctx, taskImage.Id); e != nil {
@@ -430,7 +430,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 				return
 			}
 
-			logger.Errorf(ctx, "sTaskImage processImageTask task: %s timeout, retry: %d/%d", taskImage.Id, attempt+1, retryCount)
+			logger.Errorf(ctx, "sTaskImage processImageTask task: %s failed: %s, retry: %d/%d", taskImage.Id, errCode, attempt+1, retryCount)
 			continue
 		}
 

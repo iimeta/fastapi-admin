@@ -823,7 +823,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Cron:             "0/20 * * * * ?",
 			LockMinutes:      30,
 			Timeout:          500,
-			RetryCount:       1,
+			RetryCount:       2,
 			SubmitMode:       1,
 			DataFormat:       2,
 			IsEnableStorage:  true,
