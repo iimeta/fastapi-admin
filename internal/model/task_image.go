@@ -51,6 +51,7 @@ type TaskImage struct {
 	Model          string             `json:"model,omitempty"`           // 模型
 	Action         string             `json:"action,omitempty"`          // 接口
 	ImageId        string             `json:"image_id,omitempty"`        // 图像ID
+	JobId          string             `json:"job_id,omitempty"`          // 上游任务ID
 	Width          int                `json:"width,omitempty"`           // 宽度
 	Height         int                `json:"height,omitempty"`          // 高度
 	N              int                `json:"n,omitempty"`               // 生成数量

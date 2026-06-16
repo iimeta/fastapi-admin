@@ -168,6 +168,7 @@ type ImageTask struct {
 	Timeout              time.Duration `bson:"timeout"                json:"timeout"`                      // 生成超时, 单位: 秒
 	RetryCount           int           `bson:"retry_count"            json:"retry_count"`                  // 重试次数
 	ConcurrencyLimit     int           `bson:"concurrency_limit"      json:"concurrency_limit"`            // 进行中数量限制, 0为不限制
+	Reclaim              time.Duration `bson:"reclaim"                json:"reclaim"`                      // 进行中超时回收时长, 单位: 秒, 0为自动按超时×(重试+1)推算
 	SubmitMode           int           `bson:"submit_mode"            json:"submit_mode"`                  // 提交模式: 1-同步 2-异步
 	DataFormat           int           `bson:"data_format"            json:"data_format"`                  // 数据格式: 1-旧格式(form-data下载文件) 2-新格式(json传URL)
 	IsEnableStorage      bool          `bson:"is_enable_storage"      json:"is_enable_storage"`            // 是否启用存储

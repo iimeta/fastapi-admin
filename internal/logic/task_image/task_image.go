@@ -107,6 +107,7 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 	}
 
 	if service.Session().IsAdminRole(ctx) {
+		detail.JobId = taskImage.JobId
 		detail.FileName = taskImage.FileName
 		detail.FilePath = taskImage.FilePath
 	}
@@ -317,22 +318,46 @@ func (s *sTaskImage) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sTaskImage Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	taskImages, err := dao.TaskImage.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "completed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
+	// 计算僵死判定阈值: 服务重启或worker协程异常退出会导致任务一直停留在in_progress, 既不重试也不过期
+	// 这里不单独写库, 而是把in_progress一并查出, 在内存里判断: updated_at超过最大处理时长仍未变化的视为僵死, 重新提升处理; 否则视为正在运行
+	reclaimMillis := (config.Cfg.ImageTask.Reclaim * time.Second).Milliseconds()
+	if reclaimMillis <= 0 {
+		// 自动按单次超时 ×(重试次数+1)推算最大处理时长
+		timeout := config.Cfg.ImageTask.Timeout
+		if timeout <= 0 {
+			timeout = config.Cfg.Base.LongTimeout
+		}
+		retryCount := config.Cfg.ImageTask.RetryCount
+		if retryCount < 0 {
+			retryCount = 0
+		}
+		reclaimMillis = (timeout * time.Duration(retryCount+1) * time.Second).Milliseconds()
+	}
+
+	// updated_at早于staleBefore的in_progress任务视为僵死; reclaimMillis<=0时不回收(staleBefore为0, 不会有任务命中)
+	var staleBefore int64
+	if reclaimMillis > 0 {
+		staleBefore = now - reclaimMillis
+	}
+
+	taskImages, err := dao.TaskImage.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress", "completed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return
 	}
 
 	// 进行中数量限制: 0为不限制, 大于0则限制同时进行中的任务数量
-	// availableSlots为本轮还可提升为进行中的排队任务数量, 小于0表示不限制
+	// availableSlots为本轮还可(重新)提升为进行中的任务数量, 小于0表示不限制
 	availableSlots := -1
 	if config.Cfg.ImageTask.ConcurrencyLimit > 0 {
-		inProgressCount, err := dao.TaskImage.CountDocuments(ctx, bson.M{"status": "in_progress"})
-		if err != nil {
-			logger.Error(ctx, err)
-			return
+		// 统计真正在运行(未僵死)的in_progress数量, 僵死的不计入(本轮会被重新提升)
+		liveInProgress := 0
+		for _, taskImage := range taskImages {
+			if taskImage.Status == "in_progress" && taskImage.UpdatedAt >= staleBefore {
+				liveInProgress++
+			}
 		}
-		if availableSlots = config.Cfg.ImageTask.ConcurrencyLimit - int(inProgressCount); availableSlots < 0 {
+		if availableSlots = config.Cfg.ImageTask.ConcurrencyLimit - liveInProgress; availableSlots < 0 {
 			availableSlots = 0
 		}
 	}
@@ -362,12 +387,17 @@ func (s *sTaskImage) Task(ctx context.Context) {
 			continue
 		}
 
-		// 已达到进行中数量上限, 本轮不再提升排队任务为进行中
+		// 正在运行(未僵死)的in_progress任务跳过; 僵死的往下走重新提升处理
+		if taskImage.Status == "in_progress" && taskImage.UpdatedAt >= staleBefore {
+			continue
+		}
+
+		// 已达到进行中数量上限, 本轮不再(重新)提升任务为进行中
 		if availableSlots == 0 {
 			continue
 		}
 
-		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "in_progress"}); err != nil {
+		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "in_progress", "progress": 0, "error": nil}); err != nil {
 			logger.Error(ctx, err)
 			continue
 		}
@@ -441,6 +471,13 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 
 		if err == nil {
 			break
+		}
+
+		// 仅异步: 轮询时钟到点, 上游任务可能仍在进行, 置回queued并保留job_id, 交由下一轮cron凭job_id续轮询, 避免重新提交导致上游重复出图
+		if config.Cfg.ImageTask.SubmitMode == 2 && errCode == "timeout" {
+			logger.Infof(ctx, "sTaskImage processImageTask task: %s async poll timeout, requeue to resume next round", taskImage.Id)
+			s.requeueTask(ctx, taskImage.Id)
+			return
 		}
 
 		if attempt < retryCount {
@@ -611,6 +648,22 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	}
 }
 
+func (s *sTaskImage) requeueTask(ctx context.Context, taskId string) {
+
+	// 仅当任务仍为进行中时才置回排队中, 避免覆盖已被重新生成、重置或删除的任务; 保留job_id以便下一轮续轮询
+	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
+		"_id":    taskId,
+		"status": "in_progress",
+	}, bson.M{
+		"status": "queued",
+	}); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return
+		}
+		logger.Error(ctx, err)
+	}
+}
+
 func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string) {
 	// 仅当任务仍为进行中时才置为失败, 避免旧任务的失败覆盖已被重新生成并完成的新结果
 	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
@@ -686,73 +739,91 @@ func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.Tas
 	return response, "", nil
 }
 
-// requestImageAsync 异步提交绘图任务, 复用适配器提交后轮询上游任务状态
+// 异步提交绘图任务, 复用适配器提交后轮询上游任务状态
 func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.TaskImage, logImage *entity.LogImage, provider *entity.Provider, timeout time.Duration) (smodel.ImageResponse, string, error) {
 
 	var response smodel.ImageResponse
 
-	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-		Provider: provider.Code,
-		Model:    logImage.Model,
-		Key:      logImage.Key,
-		BaseUrl:  logImage.ModelAgent.BaseUrl,
-		Path:     logImage.ModelAgent.Path,
-		Timeout:  timeout,
-		ProxyUrl: config.Cfg.Http.ProxyUrl,
-	})
+	jobId := taskImage.JobId
 
-	var submitResponse smodel.ImageResponse
+	// 已有上游句柄(进程内重试或重启后reclaim恢复)直接续轮询, 跳过提交, 避免上游重复出图与重复计费
+	if jobId == "" {
 
-	if taskImage.Action == "edits" {
+		adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
+			Provider: provider.Code,
+			Model:    logImage.Model,
+			Key:      logImage.Key,
+			BaseUrl:  logImage.ModelAgent.BaseUrl,
+			Path:     logImage.ModelAgent.Path,
+			Timeout:  timeout,
+			ProxyUrl: config.Cfg.Http.ProxyUrl,
+		})
 
-		// 异步编辑仅支持图像URL或file_id, 统一走URL方式提交
-		imageEditReq, err := buildImageEditRequestByURL(ctx, taskImage)
-		if err != nil {
-			return response, "build_edit_request_error", err
-		}
+		var submitResponse smodel.ImageResponse
 
-		imageEditReq.Async = true
+		if taskImage.Action == "edits" {
 
-		if submitResponse, err = adapter.ImageEdits(ctx, imageEditReq); err != nil {
-			errCode := "edit_error"
-			if ctx.Err() != nil {
-				errCode = "timeout"
+			// 异步编辑仅支持图像URL或file_id, 统一走URL方式提交
+			imageEditReq, err := buildImageEditRequestByURL(ctx, taskImage)
+			if err != nil {
+				return response, "build_edit_request_error", err
 			}
-			return response, errCode, err
-		}
 
-	} else {
+			imageEditReq.Async = true
 
-		taskImage.RequestData["async"] = true
-
-		requestBytes, err := gjson.Encode(taskImage.RequestData)
-		if err != nil {
-			return response, "request_encode_error", err
-		}
-
-		if submitResponse, err = adapter.ImageGenerations(ctx, requestBytes); err != nil {
-			errCode := "generation_error"
-			if ctx.Err() != nil {
-				errCode = "timeout"
+			if submitResponse, err = adapter.ImageEdits(ctx, imageEditReq); err != nil {
+				errCode := "edit_error"
+				if ctx.Err() != nil {
+					errCode = "timeout"
+				}
+				return response, errCode, err
 			}
-			return response, errCode, err
-		}
-	}
 
-	var jobResponse smodel.ImageJobResponse
-	if submitResponse.ResponseBytes != nil {
-		if err := json.Unmarshal(submitResponse.ResponseBytes, &jobResponse); err != nil {
-			return response, "submit_response_parse_error", err
-		}
-	}
+		} else {
 
-	if jobResponse.Id == "" {
-		return response, "submit_response_invalid", errors.New("missing image id in async submit response")
+			taskImage.RequestData["async"] = true
+
+			requestBytes, err := gjson.Encode(taskImage.RequestData)
+			if err != nil {
+				return response, "request_encode_error", err
+			}
+
+			if submitResponse, err = adapter.ImageGenerations(ctx, requestBytes); err != nil {
+				errCode := "generation_error"
+				if ctx.Err() != nil {
+					errCode = "timeout"
+				}
+				return response, errCode, err
+			}
+		}
+
+		var jobResponse smodel.ImageJobResponse
+		if submitResponse.ResponseBytes != nil {
+			if err := json.Unmarshal(submitResponse.ResponseBytes, &jobResponse); err != nil {
+				return response, "submit_response_parse_error", err
+			}
+		}
+
+		if jobResponse.Id == "" {
+			return response, "submit_response_invalid", errors.New("missing image id in async submit response")
+		}
+
+		jobId = jobResponse.Id
+
+		// 立刻落库上游句柄, 必须先于轮询: 重启后reclaim可凭此续轮询而非重新提交
+		if err := dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"job_id": jobId}); err != nil {
+			logger.Error(ctx, err)
+		}
+		taskImage.JobId = jobId
 	}
 
 	// 轮询上游任务状态, 直到完成或超时
-	job, errCode, err := s.pollImageJob(ctx, logImage, jobResponse.Id, timeout)
+	job, errCode, err := s.pollImageJob(ctx, logImage, jobId, timeout)
 	if err != nil {
+		// timeout时上游任务可能仍在进行, 保留句柄交由上层置回queued续轮询; 其余(上游已失败/过期/删除)清空句柄, 由重试重新提交
+		if errCode != "timeout" {
+			taskImage.JobId = ""
+		}
 		return response, errCode, err
 	}
 
@@ -773,8 +844,8 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 		}
 
 		if imageBytes == nil {
-			if imageBytes, err = s.fetchImageContent(ctx, logImage, jobResponse.Id, timeout); err != nil {
-				logger.Errorf(ctx, "sTaskImage requestImageAsync fetchImageContent imageId: %s, error: %v", jobResponse.Id, err)
+			if imageBytes, err = s.fetchImageContent(ctx, logImage, jobId, timeout); err != nil {
+				logger.Errorf(ctx, "sTaskImage requestImageAsync fetchImageContent imageId: %s, error: %v", jobId, err)
 				imageBytes = nil
 			}
 		}

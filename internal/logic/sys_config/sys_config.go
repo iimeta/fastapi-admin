@@ -825,6 +825,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Timeout:          500,
 			RetryCount:       2,
 			ConcurrencyLimit: 30,
+			Reclaim:          1500,
 			SubmitMode:       1,
 			DataFormat:       2,
 			IsEnableStorage:  true,
