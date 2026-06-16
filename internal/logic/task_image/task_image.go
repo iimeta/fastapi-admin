@@ -323,6 +323,20 @@ func (s *sTaskImage) Task(ctx context.Context) {
 		return
 	}
 
+	// 进行中数量限制: 0为不限制, 大于0则限制同时进行中的任务数量
+	// availableSlots为本轮还可提升为进行中的排队任务数量, 小于0表示不限制
+	availableSlots := -1
+	if config.Cfg.ImageTask.ConcurrencyLimit > 0 {
+		inProgressCount, err := dao.TaskImage.CountDocuments(ctx, bson.M{"status": "in_progress"})
+		if err != nil {
+			logger.Error(ctx, err)
+			return
+		}
+		if availableSlots = config.Cfg.ImageTask.ConcurrencyLimit - int(inProgressCount); availableSlots < 0 {
+			availableSlots = 0
+		}
+	}
+
 	var queuedTasks []*entity.TaskImage
 
 	for _, taskImage := range taskImages {
@@ -348,12 +362,21 @@ func (s *sTaskImage) Task(ctx context.Context) {
 			continue
 		}
 
+		// 已达到进行中数量上限, 本轮不再提升排队任务为进行中
+		if availableSlots == 0 {
+			continue
+		}
+
 		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "in_progress"}); err != nil {
 			logger.Error(ctx, err)
 			continue
 		}
 
 		queuedTasks = append(queuedTasks, taskImage)
+
+		if availableSlots > 0 {
+			availableSlots--
+		}
 	}
 
 	for _, taskImage := range queuedTasks {
