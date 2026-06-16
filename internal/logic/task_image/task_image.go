@@ -367,7 +367,9 @@ func (s *sTaskImage) Task(ctx context.Context) {
 	for _, taskImage := range taskImages {
 
 		if taskImage.Status == "completed" {
-			if taskImage.ExpiresAt <= now/1000 {
+
+			// expires_at为0表示永不过期(未开存储、永不过期配置或本地存储失败), 仅在已设置过期时间且已到期时才回收
+			if taskImage.ExpiresAt > 0 && taskImage.ExpiresAt <= now/1000 {
 
 				update := bson.M{"status": "expired"}
 
@@ -680,7 +682,7 @@ func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string)
 	}
 }
 
-// requestImageSync 同步提交绘图任务, 阻塞等待上游返回结果
+// 同步提交绘图任务, 阻塞等待上游返回结果
 func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.TaskImage, logImage *entity.LogImage, provider *entity.Provider, timeout time.Duration) (smodel.ImageResponse, string, error) {
 
 	var response smodel.ImageResponse
@@ -734,6 +736,11 @@ func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.Tas
 			}
 			return response, errCode, err
 		}
+	}
+
+	// 上游返回成功但无图像数据视为失败, 不能落库为已完成更不能计费
+	if len(response.Data) == 0 {
+		return response, "no_image", errors.New("no image in response")
 	}
 
 	return response, "", nil
@@ -831,6 +838,12 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 		response.Usage = *job.Usage
 	}
 
+	// 上游标记已完成但无图像(无data且无image_url)视为失败, 清空句柄交由重试重新提交, 不能落库为已完成更不能计费
+	if len(job.Data) == 0 && job.ImageUrl == "" {
+		taskImage.JobId = ""
+		return response, "no_image", errors.New("no image in completed job")
+	}
+
 	// 获取图像数据: 优先通过URL下载, 失败则调用content接口兜底
 	if config.Cfg.ImageTask.IsEnableStorage {
 
@@ -862,7 +875,7 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 	return response, "", nil
 }
 
-// pollImageJob 每5秒轮询一次上游任务状态, 直到任务完成、失败或超时
+// 每5秒轮询一次上游任务状态, 直到任务完成、失败或超时
 func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage, imageId string, timeout time.Duration) (smodel.ImageJobResponse, string, error) {
 
 	var jobResponse smodel.ImageJobResponse
@@ -899,7 +912,7 @@ func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage
 	}
 }
 
-// retrieveImageJob 查询上游绘图任务状态
+// 查询上游绘图任务状态
 func (s *sTaskImage) retrieveImageJob(ctx context.Context, logImage *entity.LogImage, imageId string, timeout time.Duration) (smodel.ImageJobResponse, error) {
 
 	var jobResponse smodel.ImageJobResponse
@@ -939,7 +952,7 @@ func (s *sTaskImage) retrieveImageJob(ctx context.Context, logImage *entity.LogI
 	return jobResponse, nil
 }
 
-// fetchImageContent 调用上游content接口下载图像字节数据
+// 调用上游content接口下载图像字节数据
 func (s *sTaskImage) fetchImageContent(ctx context.Context, logImage *entity.LogImage, imageId string, timeout time.Duration) ([]byte, error) {
 
 	reqUrl := gstr.TrimRight(logImage.ModelAgent.BaseUrl, "/") + "/images/" + imageId + "/content"
@@ -973,7 +986,7 @@ func (s *sTaskImage) fetchImageContent(ctx context.Context, logImage *entity.Log
 	return body, nil
 }
 
-// downloadImage 通过URL下载图像字节数据
+// 通过URL下载图像字节数据
 func (s *sTaskImage) downloadImage(ctx context.Context, imageUrl string, timeout time.Duration) ([]byte, error) {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, imageUrl, nil)

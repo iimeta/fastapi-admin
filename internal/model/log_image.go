@@ -17,6 +17,7 @@ type LogImagePageReq struct {
 	Models      []string `json:"models,omitempty"`       // 模型
 	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
 	TotalTime   int64    `json:"total_time,omitempty"`   // 总时间
+	Action      string   `json:"action,omitempty"`       // 接口
 	Status      int      `json:"status,omitempty"`       // 状态[1:成功, -1:失败]
 	ReqTime     []string `json:"req_time,omitempty"`     // 请求时间
 }

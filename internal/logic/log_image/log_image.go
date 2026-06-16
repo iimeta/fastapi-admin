@@ -218,6 +218,10 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 		}
 	}
 
+	if params.Action != "" {
+		filter["action"] = params.Action
+	}
+
 	if params.Status != 0 {
 		filter["status"] = params.Status
 	}
