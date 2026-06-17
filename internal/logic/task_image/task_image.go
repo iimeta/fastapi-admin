@@ -198,6 +198,7 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 			Quality:   result.Quality,
 			Size:      result.Size,
 			Prompt:    result.Prompt,
+			Progress:  result.Progress,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
 		}
@@ -391,6 +392,8 @@ func (s *sTaskImage) Task(ctx context.Context) {
 
 		// 正在运行(未僵死)的in_progress任务跳过; 僵死的往下走重新提升处理
 		if taskImage.Status == "in_progress" && taskImage.UpdatedAt >= staleBefore {
+			// 巡检顺带推进伪进度(画图无真实进度), 由Task每轮按已耗时驱动, 重启后仍能续推, 无需常驻协程
+			s.advanceFakeProgress(ctx, now, taskImage)
 			continue
 		}
 
@@ -399,7 +402,8 @@ func (s *sTaskImage) Task(ctx context.Context) {
 			continue
 		}
 
-		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "in_progress", "progress": 0, "error": nil}); err != nil {
+		// 提升为进行中时不重置progress: queued任务创建时progress已为0, 超时续轮询/回收的任务保留已有进度避免进度条倒退, 仅Regenerate(全新生图)才显式归零
+		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "in_progress", "error": nil}); err != nil {
 			logger.Error(ctx, err)
 			continue
 		}
@@ -647,6 +651,53 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{"spend": logImage.Spend}); err != nil {
 		logger.Error(ctx, err)
 		return
+	}
+}
+
+// 按进行中已耗时(秒)计算伪进度档位: 30s→20, 60s→40, 90s→60, 120s→80, 150s→90, 180s→95, 210s→99, 此后维持99, 不足30s为0
+func progressForElapsed(elapsedSec int64) int {
+	switch {
+	case elapsedSec >= 210:
+		return 99
+	case elapsedSec >= 180:
+		return 95
+	case elapsedSec >= 150:
+		return 90
+	case elapsedSec >= 120:
+		return 80
+	case elapsedSec >= 90:
+		return 60
+	case elapsedSec >= 60:
+		return 40
+	case elapsedSec >= 30:
+		return 20
+	default:
+		return 0
+	}
+}
+
+// 在Task()巡检中推进伪进度: 依据进行中已耗时(now-updated_at)计算应达档位, 仅在更高时CAS推进
+// 进度写库时显式保留updated_at, 既不影响僵死回收判定, 也不会因写进度而刷新存活时间
+func (s *sTaskImage) advanceFakeProgress(ctx context.Context, now int64, taskImage *entity.TaskImage) {
+
+	target := progressForElapsed((now - taskImage.UpdatedAt) / 1000)
+	if target <= taskImage.Progress {
+		return
+	}
+
+	// CAS: 仍为进行中且进度未被更高值(如完成的100)覆盖时才更新; 用$not兼容progress字段缺失($lt不匹配缺失字段)
+	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
+		"_id":      taskImage.Id,
+		"status":   "in_progress",
+		"progress": bson.M{"$not": bson.M{"$gte": target}},
+	}, bson.M{
+		"progress":   target,
+		"updated_at": taskImage.UpdatedAt,
+	}); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return
+		}
+		logger.Error(ctx, err)
 	}
 }
 
