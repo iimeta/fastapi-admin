@@ -91,8 +91,7 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 		}
 
 		if !service.Session().IsAdminRole(ctx) {
-			imageData.FilePath = ""
-			result.ImageData[i] = imageData
+			result.ImageData[i].FilePath = ""
 		}
 	}
 
