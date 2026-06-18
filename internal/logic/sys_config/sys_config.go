@@ -152,6 +152,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{QuotaTask: params.QuotaTask}
 	case "image_task":
 		sysConfig = &do.SysConfig{ImageTask: params.ImageTask}
+	case "image_storage":
+		sysConfig = &do.SysConfig{ImageStorage: params.ImageStorage}
 	case "video_task":
 		sysConfig = &do.SysConfig{VideoTask: params.VideoTask}
 	case "file_task":
@@ -263,6 +265,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		Ticket:                    sysConfig.Ticket,
 		QuotaTask:                 sysConfig.QuotaTask,
 		ImageTask:                 sysConfig.ImageTask,
+		ImageStorage:              sysConfig.ImageStorage,
 		VideoTask:                 sysConfig.VideoTask,
 		FileTask:                  sysConfig.FileTask,
 		BatchTask:                 sysConfig.BatchTask,
@@ -349,6 +352,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.QuotaTask = s.Default().QuotaTask
 	case "image_task":
 		sysConfigUpdateReq.ImageTask = s.Default().ImageTask
+	case "image_storage":
+		sysConfigUpdateReq.ImageStorage = s.Default().ImageStorage
 	case "video_task":
 		sysConfigUpdateReq.VideoTask = s.Default().VideoTask
 	case "file_task":
@@ -464,6 +469,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.ImageTask == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "image_task"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.ImageStorage == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "image_storage"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -830,6 +842,14 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			DataFormat:       2,
 			IsEnableStorage:  true,
 			StorageExpiresAt: 1440,
+		},
+		ImageStorage: &common.ImageStorage{
+			Open:                 false,
+			Cron:                 "0 0/20 * * * ?",
+			LockMinutes:          30,
+			DownloadTimeout:      60,
+			StorageExpiresAt:     1440,
+			StorageExpiredDelete: true,
 		},
 		VideoTask: &common.VideoTask{
 			Open:            true,

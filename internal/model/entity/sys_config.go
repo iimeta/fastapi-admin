@@ -30,6 +30,7 @@ type SysConfig struct {
 	Ticket                    *common.Ticket                    `bson:"ticket,omitempty"`                        // 工单
 	QuotaTask                 *common.QuotaTask                 `bson:"quota_task,omitempty"`                    // 额度任务
 	ImageTask                 *common.ImageTask                 `bson:"image_task,omitempty"`                    // 绘图任务
+	ImageStorage              *common.ImageStorage              `bson:"image_storage,omitempty"`                 // 绘图转储
 	VideoTask                 *common.VideoTask                 `bson:"video_task,omitempty"`                    // 视频任务
 	FileTask                  *common.FileTask                  `bson:"file_task,omitempty"`                     // 文件任务
 	BatchTask                 *common.BatchTask                 `bson:"batch_task,omitempty"`                    // 批处理任务

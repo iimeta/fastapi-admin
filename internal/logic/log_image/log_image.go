@@ -4,28 +4,38 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
 	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	mcommon "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/db"
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
+	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type sLogImage struct{}
+type sLogImage struct {
+	imageStorageRedsync *redsync.Redsync
+}
 
 func init() {
 	service.RegisterLogImage(New())
 }
 
 func New() service.ILogImage {
-	return &sLogImage{}
+	return &sLogImage{
+		imageStorageRedsync: redsync.New(goredis.NewPool(redis.UniversalClient)),
+	}
 }
 
 // 绘图日志详情
@@ -74,9 +84,15 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	for _, imageData := range result.ImageData {
+	for i, imageData := range result.ImageData {
+
 		if imageData.URL != "" {
 			image.Images = append(image.Images, imageData.URL)
+		}
+
+		if !service.Session().IsAdminRole(ctx) {
+			imageData.FilePath = ""
+			result.ImageData[i] = imageData
 		}
 	}
 
@@ -241,7 +257,7 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
-		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "prompt", "size", "action", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "prompt", "size", "action", "stream", "image_data.url", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
 	}
 
 	results, err := dao.LogImage.FindByPage(ctx, paging, filter, findOptions)
@@ -322,4 +338,66 @@ func (s *sLogImage) CopyField(ctx context.Context, params model.LogImageCopyFiel
 	}
 
 	return "", nil
+}
+
+// 转储过期文件清理任务
+func (s *sLogImage) StorageCleanTask(ctx context.Context) {
+
+	logger.Info(ctx, "sLogImage StorageCleanTask start")
+
+	now := gtime.TimestampMilli()
+
+	mutex := s.imageStorageRedsync.NewMutex(consts.TASK_IMAGE_STORAGE_LOCK_KEY, redsync.WithExpiry(config.Cfg.ImageStorage.LockMinutes*time.Minute))
+	if err := mutex.LockContext(ctx); err != nil {
+		logger.Info(ctx, "sLogImage StorageCleanTask", err)
+		logger.Debugf(ctx, "sLogImage StorageCleanTask end time: %d", gtime.TimestampMilli()-now)
+		return
+	}
+	logger.Debug(ctx, "sLogImage StorageCleanTask lock")
+
+	defer func() {
+		if ok, err := mutex.UnlockContext(ctx); !ok || err != nil {
+			logger.Error(ctx, err)
+		} else {
+			logger.Debug(ctx, "sLogImage StorageCleanTask unlock")
+		}
+		logger.Debugf(ctx, "sLogImage StorageCleanTask end time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	// expires_at为0表示永不过期(未开转储、永不过期配置或本地存储失败), 仅清理已设置过期时间且已到期的记录
+	logImages, err := dao.LogImage.Find(ctx, bson.M{
+		"expires_at": bson.M{"$gt": 0, "$lte": now / 1000},
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	for _, logImage := range logImages {
+
+		update := bson.M{"expires_at": 0}
+
+		if config.Cfg.ImageStorage.StorageExpiredDelete {
+
+			imageData := make([]mcommon.ImageData, 0, len(logImage.ImageData))
+			for _, data := range logImage.ImageData {
+				if data.FilePath != "" {
+					if err := gfile.RemoveFile(data.FilePath); err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+				imageData = append(imageData, mcommon.ImageData{RevisedPrompt: data.RevisedPrompt})
+			}
+
+			update["image_data"] = imageData
+		}
+
+		if err := dao.LogImage.UpdateById(ctx, logImage.Id, update); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	if _, err := redis.Set(ctx, consts.TASK_IMAGE_STORAGE_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
+		logger.Error(ctx, err)
+	}
 }

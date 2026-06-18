@@ -14,6 +14,9 @@ func Init(ctx context.Context) {
 	// 绘图任务
 	imageTask(ctx)
 
+	// 绘图转储过期清理任务
+	imageStorageTask(ctx)
+
 	// 视频任务
 	videoTask(ctx)
 
