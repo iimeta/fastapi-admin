@@ -1177,6 +1177,32 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 
 	req.Image = fileHeaders
 
+	// 处理mask: 下载URL转为文件方式
+	if maskVal, ok := taskImage.RequestData["mask"]; ok {
+		if maskUrl, ok := maskVal.(string); ok && maskUrl != "" && !gstr.HasPrefix(maskUrl, "data:") {
+			resp, err := client.Get(maskUrl)
+			if err != nil {
+				if resp != nil && resp.Body != nil {
+					_ = resp.Body.Close()
+				}
+				return req, errors.Newf("download mask failed: %s, error: %v", maskUrl, err)
+			}
+
+			maskBytes, err := io.ReadAll(resp.Body)
+			_ = resp.Body.Close()
+			if err != nil {
+				return req, errors.Newf("read mask failed: %s, error: %v", maskUrl, err)
+			}
+
+			maskFileHeader, err := bytesToFileHeader(maskUrl, maskBytes, resp.Header.Get("Content-Type"))
+			if err != nil {
+				return req, err
+			}
+
+			req.Mask = maskFileHeader
+		}
+	}
+
 	return req, nil
 }
 
@@ -1256,6 +1282,13 @@ func buildImageEditRequestByURL(ctx context.Context, taskImage *entity.TaskImage
 	req.Images = make([]smodel.ImageEditImage, 0, len(imageUrls))
 	for _, imageUrl := range imageUrls {
 		req.Images = append(req.Images, smodel.ImageEditImage{ImageUrl: imageUrl})
+	}
+
+	// 处理mask: 传递URL
+	if maskVal, ok := taskImage.RequestData["mask"]; ok {
+		if maskUrl, ok := maskVal.(string); ok && maskUrl != "" {
+			req.Mask = maskUrl
+		}
 	}
 
 	return req, nil
