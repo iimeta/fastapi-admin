@@ -1093,6 +1093,14 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 	if v, ok := taskImage.RequestData["background"]; ok {
 		req.Background, _ = v.(string)
 	}
+	if v, ok := taskImage.RequestData["output_format"]; ok {
+		req.OutputFormat, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["output_compression"]; ok {
+		if n, ok := v.(float64); ok {
+			req.OutputCompression = int(n)
+		}
+	}
 
 	imageVal, ok := taskImage.RequestData["images"]
 	if !ok {
@@ -1245,6 +1253,14 @@ func buildImageEditRequestByURL(ctx context.Context, taskImage *entity.TaskImage
 	}
 	if v, ok := taskImage.RequestData["background"]; ok {
 		req.Background, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["output_format"]; ok {
+		req.OutputFormat, _ = v.(string)
+	}
+	if v, ok := taskImage.RequestData["output_compression"]; ok {
+		if n, ok := v.(float64); ok {
+			req.OutputCompression = int(n)
+		}
 	}
 
 	imageVal, ok := taskImage.RequestData["images"]
