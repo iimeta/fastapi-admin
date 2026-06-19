@@ -1177,9 +1177,25 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 
 	req.Image = fileHeaders
 
-	// 处理mask: 下载URL转为文件方式
-	if maskVal, ok := taskImage.RequestData["mask"]; ok {
-		if maskUrl, ok := maskVal.(string); ok && maskUrl != "" && !gstr.HasPrefix(maskUrl, "data:") {
+	// 处理mask: 从URL或对象中提取URL, 下载转为文件方式
+	if maskVal, ok := taskImage.RequestData["mask"]; ok && maskVal != nil {
+
+		var maskUrl string
+
+		switch v := maskVal.(type) {
+		case string:
+			maskUrl = v
+		case map[string]any:
+			maskUrl, _ = v["image_url"].(string)
+		case bson.D:
+			for _, elem := range v {
+				if elem.Key == "image_url" {
+					maskUrl, _ = elem.Value.(string)
+				}
+			}
+		}
+
+		if maskUrl != "" && !gstr.HasPrefix(maskUrl, "data:") {
 			resp, err := client.Get(maskUrl)
 			if err != nil {
 				if resp != nil && resp.Body != nil {
@@ -1284,10 +1300,33 @@ func buildImageEditRequestByURL(ctx context.Context, taskImage *entity.TaskImage
 		req.Images = append(req.Images, smodel.ImageEditImage{ImageUrl: imageUrl})
 	}
 
-	// 处理mask: 传递URL
-	if maskVal, ok := taskImage.RequestData["mask"]; ok {
-		if maskUrl, ok := maskVal.(string); ok && maskUrl != "" {
-			req.Mask = maskUrl
+	// 处理mask: 转为ImageEditImage对象
+	if maskVal, ok := taskImage.RequestData["mask"]; ok && maskVal != nil {
+		switch v := maskVal.(type) {
+		case string:
+			if v != "" {
+				req.Mask = smodel.ImageEditImage{ImageUrl: v}
+			}
+		case map[string]any:
+			maskImage := smodel.ImageEditImage{}
+			if imageUrl, ok := v["image_url"].(string); ok {
+				maskImage.ImageUrl = imageUrl
+			}
+			if fileId, ok := v["file_id"].(string); ok {
+				maskImage.FileId = fileId
+			}
+			req.Mask = maskImage
+		case bson.D:
+			maskImage := smodel.ImageEditImage{}
+			for _, elem := range v {
+				switch elem.Key {
+				case "image_url":
+					maskImage.ImageUrl, _ = elem.Value.(string)
+				case "file_id":
+					maskImage.FileId, _ = elem.Value.(string)
+				}
+			}
+			req.Mask = maskImage
 		}
 	}
 
