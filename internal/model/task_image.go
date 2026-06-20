@@ -65,8 +65,11 @@ type TaskImage struct {
 	CompletedAt    string             `json:"completed_at,omitempty"`    // 完成时间
 	ExpiresAt      string             `json:"expires_at,omitempty"`      // 过期时间
 	ImageUrl       string             `json:"image_url,omitempty"`       // 图像地址
+	ImageUrls      []string           `json:"image_urls,omitempty"`      // 图像地址列表
 	FileName       string             `json:"file_name,omitempty"`       // 文件名
+	FileNames      []string           `json:"file_names,omitempty"`      // 文件名列表
 	FilePath       string             `json:"file_path,omitempty"`       // 文件路径
+	FilePaths      []string           `json:"file_paths,omitempty"`      // 文件路径列表
 	ResponseData   map[string]any     `json:"response_data,omitempty"`   // 响应数据
 	Error          *smodel.ImageError `json:"error,omitempty"`           // 错误信息
 	Creator        string             `json:"creator,omitempty"`         // 创建人

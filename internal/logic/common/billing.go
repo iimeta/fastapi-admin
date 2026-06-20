@@ -47,6 +47,10 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 		spend.TotalSpendTokens += spend.Image.SpendTokens
 	}
 
+	if spend.ImageGeneration != nil {
+		spend.TotalSpendTokens += spend.ImageGeneration.SpendTokens
+	}
+
 	if spend.VideoGeneration != nil {
 		spend.TotalSpendTokens += spend.VideoGeneration.SpendTokens
 	}

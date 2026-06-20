@@ -31,6 +31,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
 	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
+	mcommon "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/db"
@@ -94,22 +95,21 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 	}
 
 	if config.Cfg.ImageTask.IsEnableStorage && taskImage.ImageUrl != "" {
+		detail.ImageUrl = buildStorageUrl(taskImage.ImageUrl)
+	}
 
-		if config.Cfg.ImageTask.StorageBaseUrl != "" {
-			if gstr.HasSuffix(config.Cfg.ImageTask.StorageBaseUrl, "/") {
-				taskImage.ImageUrl = gstr.TrimLeftStr(taskImage.ImageUrl, "/")
-			} else if !gstr.HasPrefix(taskImage.ImageUrl, "/") {
-				taskImage.ImageUrl = "/" + taskImage.ImageUrl
-			}
+	if config.Cfg.ImageTask.IsEnableStorage && len(taskImage.ImageUrls) > 0 {
+		for _, u := range taskImage.ImageUrls {
+			detail.ImageUrls = append(detail.ImageUrls, buildStorageUrl(u))
 		}
-
-		detail.ImageUrl = config.Cfg.ImageTask.StorageBaseUrl + taskImage.ImageUrl
 	}
 
 	if service.Session().IsAdminRole(ctx) {
 		detail.JobId = taskImage.JobId
 		detail.FileName = taskImage.FileName
 		detail.FilePath = taskImage.FilePath
+		detail.FileNames = taskImage.FileNames
+		detail.FilePaths = taskImage.FilePaths
 	}
 
 	return detail, nil
@@ -204,16 +204,13 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 		}
 
 		if config.Cfg.ImageTask.IsEnableStorage && result.ImageUrl != "" {
+			image.ImageUrl = buildStorageUrl(result.ImageUrl)
+		}
 
-			if config.Cfg.ImageTask.StorageBaseUrl != "" {
-				if gstr.HasSuffix(config.Cfg.ImageTask.StorageBaseUrl, "/") {
-					result.ImageUrl = gstr.TrimLeftStr(result.ImageUrl, "/")
-				} else if !gstr.HasPrefix(result.ImageUrl, "/") {
-					result.ImageUrl = "/" + result.ImageUrl
-				}
+		if config.Cfg.ImageTask.IsEnableStorage && len(result.ImageUrls) > 0 {
+			for _, u := range result.ImageUrls {
+				image.ImageUrls = append(image.ImageUrls, buildStorageUrl(u))
 			}
-
-			image.ImageUrl = config.Cfg.ImageTask.StorageBaseUrl + result.ImageUrl
 		}
 
 		items = append(items, image)
@@ -506,9 +503,12 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	}
 
 	var (
-		imageUrl string
-		fileName string
-		filePath string
+		imageUrl  string
+		fileName  string
+		filePath  string
+		imageUrls []string
+		fileNames []string
+		filePaths []string
 	)
 
 	completedAt := gtime.TimestampMilli() / 1000
@@ -516,12 +516,12 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 
 	if config.Cfg.ImageTask.IsEnableStorage && len(response.Data) > 0 {
 
-		filePath = config.Cfg.ImageTask.StorageDir
+		storageDir := config.Cfg.ImageTask.StorageDir
 
-		if filePath == "" {
-			filePath = "./resource/public/image/"
-		} else if !gstr.HasSuffix(filePath, "/") {
-			filePath = filePath + "/"
+		if storageDir == "" {
+			storageDir = "./resource/public/image/"
+		} else if !gstr.HasSuffix(storageDir, "/") {
+			storageDir = storageDir + "/"
 		}
 
 		outputFormat := taskImage.OutputFormat
@@ -529,64 +529,80 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			outputFormat = "png"
 		}
 
-		fileName = taskImage.ImageId + "_image." + outputFormat
+		for i, imageData := range response.Data {
 
-		imageData := response.Data[0]
-		var imageBytes []byte
+			curFileName := fmt.Sprintf("%s%d_image.%s", taskImage.ImageId, i, outputFormat)
 
-		if len(imageData.B64Json) > 0 {
-			if decoded, err := base64.StdEncoding.DecodeString(imageData.B64Json); err == nil {
-				imageBytes = decoded
-			} else {
-				logger.Error(ctx, err)
-			}
-		} else if len(imageData.Url) > 0 {
+			var imageBytes []byte
 
-			if gstr.HasPrefix(imageData.Url, "data:image/png;base64,") {
-
-				if decoded, err := base64.StdEncoding.DecodeString(gstr.TrimLeftStr(imageData.Url, "data:image/png;base64,")); err == nil {
+			if len(imageData.B64Json) > 0 {
+				if decoded, err := base64.StdEncoding.DecodeString(imageData.B64Json); err == nil {
 					imageBytes = decoded
 				} else {
 					logger.Error(ctx, err)
 				}
+			} else if len(imageData.Url) > 0 {
 
-			} else if gstr.HasPrefix(imageData.Url, "http") {
+				if gstr.HasPrefix(imageData.Url, "data:image/png;base64,") {
 
-				client := &http.Client{Timeout: timeout}
-
-				resp, err := client.Get(imageData.Url)
-				if err != nil {
-					logger.Error(ctx, err)
-					if resp.Body != nil {
-						_ = resp.Body.Close()
-					}
-				} else {
-					imageBytes, err = io.ReadAll(resp.Body)
-					_ = resp.Body.Close()
-					if err != nil {
+					if decoded, err := base64.StdEncoding.DecodeString(gstr.TrimLeftStr(imageData.Url, "data:image/png;base64,")); err == nil {
+						imageBytes = decoded
+					} else {
 						logger.Error(ctx, err)
 					}
+
+				} else if gstr.HasPrefix(imageData.Url, "http") {
+
+					client := &http.Client{Timeout: timeout}
+
+					resp, err := client.Get(imageData.Url)
+					if err != nil {
+						logger.Error(ctx, err)
+						if resp.Body != nil {
+							_ = resp.Body.Close()
+						}
+					} else {
+						imageBytes, err = io.ReadAll(resp.Body)
+						_ = resp.Body.Close()
+						if err != nil {
+							logger.Error(ctx, err)
+						}
+					}
 				}
 			}
+
+			if imageBytes == nil {
+				continue
+			}
+
+			if err = gfile.PutBytes(storageDir+curFileName, imageBytes); err != nil {
+				logger.Error(ctx, err)
+				continue
+			}
+
+			var curImageUrl string
+			if gstr.HasPrefix(storageDir, "./resource/public/") {
+				curImageUrl = "/public/" + gstr.TrimLeftStr(storageDir, "./resource/public/") + curFileName
+			} else if config.Cfg.ImageTask.StorageBaseUrl == "" {
+				curImageUrl = "/open/image/" + curFileName
+			} else {
+				curImageUrl = curFileName
+			}
+
+			// 第一张保持向后兼容
+			if i == 0 {
+				imageUrl = curImageUrl
+				fileName = curFileName
+				filePath = storageDir + curFileName
+			}
+
+			imageUrls = append(imageUrls, curImageUrl)
+			fileNames = append(fileNames, curFileName)
+			filePaths = append(filePaths, storageDir+curFileName)
 		}
 
-		if imageBytes != nil {
-			if err = gfile.PutBytes(filePath+fileName, imageBytes); err != nil {
-				logger.Error(ctx, err)
-			} else {
-
-				if gstr.HasPrefix(filePath, "./resource/public/") {
-					imageUrl = "/public/" + gstr.TrimLeftStr(filePath, "./resource/public/") + fileName
-				} else if config.Cfg.ImageTask.StorageBaseUrl == "" {
-					imageUrl = "/open/image/" + fileName
-				} else {
-					imageUrl = fileName
-				}
-
-				if config.Cfg.ImageTask.StorageExpiresAt > 0 {
-					expiresAt = gtime.NewFromTimeStamp(completedAt).Add(config.Cfg.ImageTask.StorageExpiresAt * time.Minute).Unix()
-				}
-			}
+		if len(imageUrls) > 0 && config.Cfg.ImageTask.StorageExpiresAt > 0 {
+			expiresAt = gtime.NewFromTimeStamp(completedAt).Add(config.Cfg.ImageTask.StorageExpiresAt * time.Minute).Unix()
 		}
 	}
 
@@ -618,8 +634,11 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		"completed_at":  completedAt,
 		"expires_at":    expiresAt,
 		"image_url":     imageUrl,
+		"image_urls":    imageUrls,
 		"file_name":     fileName,
-		"file_path":     filePath + fileName,
+		"file_names":    fileNames,
+		"file_path":     filePath,
+		"file_paths":    filePaths,
 		"response_data": responseData,
 		"error":         nil,
 	}); err != nil {
@@ -628,8 +647,8 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			logger.Infof(ctx, "sTaskImage processImageTask task: %s already handled by another worker, skip", taskImage.Id)
 			// 抢占失败(任务已被删除/重置), 清理本次已落盘的孤儿文件, 避免无人回收
-			if fileName != "" {
-				if e := gfile.RemoveFile(filePath + fileName); e != nil {
+			for _, fp := range filePaths {
+				if e := gfile.RemoveFile(fp); e != nil {
 					logger.Error(ctx, e)
 				}
 			}
@@ -651,6 +670,31 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{"spend": logImage.Spend}); err != nil {
 		logger.Error(ctx, err)
 		return
+	}
+
+	// 将转储文件信息同步更新到LogImage, 以支持日志查询和定时清理
+	if len(imageUrls) > 0 {
+
+		logImageData := make([]mcommon.ImageData, 0, len(imageUrls))
+		for i, u := range imageUrls {
+			data := mcommon.ImageData{
+				URL:      buildStorageUrl(u),
+				FilePath: filePaths[i],
+			}
+			if i < len(response.Data) {
+				data.RevisedPrompt = response.Data[i].RevisedPrompt
+			}
+			logImageData = append(logImageData, data)
+		}
+
+		logUpdate := bson.M{"image_data": logImageData}
+		if expiresAt > 0 {
+			logUpdate["expires_at"] = expiresAt
+		}
+
+		if err = dao.LogImage.UpdateById(ctx, logImage.Id, logUpdate); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 }
 
@@ -815,6 +859,7 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 			Path:     logImage.ModelAgent.Path,
 			Timeout:  timeout,
 			ProxyUrl: config.Cfg.Http.ProxyUrl,
+			Async:    true,
 		})
 
 		var submitResponse smodel.ImageResponse
@@ -827,8 +872,6 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 				return response, "build_edit_request_error", err
 			}
 
-			imageEditReq.Async = true
-
 			if submitResponse, err = adapter.ImageEdits(ctx, imageEditReq); err != nil {
 				errCode := "edit_error"
 				if ctx.Err() != nil {
@@ -838,8 +881,6 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 			}
 
 		} else {
-
-			taskImage.RequestData["async"] = true
 
 			requestBytes, err := gjson.Encode(taskImage.RequestData)
 			if err != nil {
@@ -872,6 +913,7 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 		if err := dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"job_id": jobId}); err != nil {
 			logger.Error(ctx, err)
 		}
+
 		taskImage.JobId = jobId
 	}
 
@@ -895,27 +937,63 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 		return response, "no_image", errors.New("no image in completed job")
 	}
 
-	// 获取图像数据: 优先通过URL下载, 失败则调用content接口兜底
+	// 获取图像数据: 优先从job.Data获取所有图, 回退到job.ImageUrl单张, 再兜底content接口
 	if config.Cfg.ImageTask.IsEnableStorage {
 
-		var imageBytes []byte
+		var allData []smodel.ImageResponseData
 
-		if job.ImageUrl != "" {
+		if len(job.Data) > 0 {
+			// 上游返回了Data数组, 逐张下载
+			for i, d := range job.Data {
+				var imageBytes []byte
+
+				if len(d.B64Json) > 0 {
+					allData = append(allData, d)
+					continue
+				}
+
+				imgUrl := d.Url
+				if imgUrl == "" && i == 0 && job.ImageUrl != "" {
+					imgUrl = job.ImageUrl
+				}
+
+				if imgUrl != "" {
+					if imageBytes, err = s.downloadImage(ctx, imgUrl, timeout); err != nil {
+						logger.Errorf(ctx, "sTaskImage requestImageAsync download data[%d] url: %s, error: %v", i, imgUrl, err)
+						imageBytes = nil
+					}
+				}
+
+				if len(imageBytes) > 0 {
+					allData = append(allData, smodel.ImageResponseData{B64Json: base64.StdEncoding.EncodeToString(imageBytes)})
+				}
+			}
+		} else if job.ImageUrl != "" {
+			// Data为空, 回退到单张ImageUrl
+			var imageBytes []byte
 			if imageBytes, err = s.downloadImage(ctx, job.ImageUrl, timeout); err != nil {
 				logger.Errorf(ctx, "sTaskImage requestImageAsync download imageUrl: %s, error: %v", job.ImageUrl, err)
 				imageBytes = nil
 			}
+			if len(imageBytes) > 0 {
+				allData = append(allData, smodel.ImageResponseData{B64Json: base64.StdEncoding.EncodeToString(imageBytes)})
+			}
 		}
 
-		if imageBytes == nil {
+		// 如果一张都没拿到, 兜底content接口(只能取一张)
+		if len(allData) == 0 {
+			var imageBytes []byte
 			if imageBytes, err = s.fetchImageContent(ctx, logImage, jobId, timeout); err != nil {
 				logger.Errorf(ctx, "sTaskImage requestImageAsync fetchImageContent imageId: %s, error: %v", jobId, err)
 				imageBytes = nil
 			}
+			if len(imageBytes) > 0 {
+				allData = append(allData, smodel.ImageResponseData{B64Json: base64.StdEncoding.EncodeToString(imageBytes)})
+			}
 		}
 
-		if len(imageBytes) > 0 {
-			response.Data = []smodel.ImageResponseData{{B64Json: base64.StdEncoding.EncodeToString(imageBytes)}}
+		if len(allData) > 0 {
+			response.Data = allData
 		}
 	}
 
@@ -1393,4 +1471,22 @@ func bytesToFileHeader(fileUrl string, data []byte, contentType string) (*multip
 	}
 
 	return files[0], nil
+}
+
+// 为存储的图片路径拼接 StorageBaseUrl 前缀
+func buildStorageUrl(imageUrl string) string {
+
+	if imageUrl == "" {
+		return ""
+	}
+
+	if config.Cfg.ImageTask.StorageBaseUrl != "" {
+		if gstr.HasSuffix(config.Cfg.ImageTask.StorageBaseUrl, "/") {
+			imageUrl = gstr.TrimLeftStr(imageUrl, "/")
+		} else if !gstr.HasPrefix(imageUrl, "/") {
+			imageUrl = "/" + imageUrl
+		}
+	}
+
+	return config.Cfg.ImageTask.StorageBaseUrl + imageUrl
 }
