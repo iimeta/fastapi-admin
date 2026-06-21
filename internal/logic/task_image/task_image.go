@@ -630,6 +630,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 										if inlineData, ok := p["inlineData"].(map[string]any); ok {
 											inlineData["data"] = ""
 										}
+										p["thoughtSignature"] = ""
 									}
 								}
 							}
