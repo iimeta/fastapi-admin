@@ -620,6 +620,22 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 						}
 					}
 				}
+			} else if candidates, ok := responseData["candidates"].([]any); ok {
+				for _, c := range candidates {
+					if v, ok := c.(map[string]any); ok {
+						if content, ok := v["content"].(map[string]any); ok {
+							if parts, ok := content["parts"].([]any); ok {
+								for _, part := range parts {
+									if p, ok := part.(map[string]any); ok {
+										if inlineData, ok := p["inlineData"].(map[string]any); ok {
+											inlineData["data"] = ""
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
