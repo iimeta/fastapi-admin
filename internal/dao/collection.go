@@ -30,6 +30,7 @@ const (
 	SITE_CONFIG         = "site_config"
 	SYS_ADMIN           = "sys_admin"
 	SYS_CONFIG          = "sys_config"
+	STATISTICS_CURSOR   = "statistics_cursor"
 	STATISTICS_USER     = "statistics_user"
 	STATISTICS_APP      = "statistics_app"
 	STATISTICS_APP_KEY  = "statistics_app_key"

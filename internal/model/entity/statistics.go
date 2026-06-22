@@ -76,3 +76,13 @@ type StatisticsData struct {
 	Creator    string       `bson:"creator,omitempty"`    // 创建人
 	UpdatedAt  int64        `bson:"updated_at,omitempty"` // 更新时间
 }
+
+type StatisticsCursor struct {
+	gmeta.Meta `role:"*" bson:"-"`
+	Id         string `bson:"_id,omitempty"`        // ID
+	Collection string `bson:"collection,omitempty"` // 日志集合名
+	LastId     string `bson:"last_id,omitempty"`    // 上次处理到的最后一条记录ID
+	LastTime   int64  `bson:"last_time,omitempty"`  // 上次处理到的 updated_at(毫秒)
+	CreatedAt  int64  `bson:"created_at,omitempty"` // 创建时间
+	UpdatedAt  int64  `bson:"updated_at,omitempty"` // 更新时间
+}

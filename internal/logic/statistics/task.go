@@ -73,16 +73,34 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		logger.Debugf(ctx, "sStatistics StatisticsData collection: %s end time: %d", collection, gtime.TimestampMilli()-now)
 	}()
 
-	lastTime, err := redis.GetInt64(ctx, lastTimeKey)
-	if err != nil {
-		logger.Error(ctx, err)
-		return
+	// 增量游标: 优先数据库(真相源), 数据库没有再回退Redis; 防御性取较大的 last_time(只进不退)
+	var (
+		lastTime  int64
+		lastId    string
+		cursorId  string
+		hasCursor bool
+	)
+
+	if cursor, err := dao.StatisticsCursor.FindOne(ctx, bson.M{"collection": collection}); err == nil && cursor != nil {
+		cursorId = cursor.Id
+		lastTime = cursor.LastTime
+		lastId = cursor.LastId
+		hasCursor = true
 	}
 
-	lastId, err := redis.GetStr(ctx, lastIdKey)
-	if err != nil {
+	if redisLastTime, err := redis.GetInt64(ctx, lastTimeKey); err != nil {
 		logger.Error(ctx, err)
-		return
+		if !hasCursor {
+			// 数据库、Redis 都拿不到游标, 放弃本轮, 避免从0全量重扫导致统计翻倍
+			return
+		}
+	} else if redisLastTime > lastTime {
+		lastTime = redisLastTime
+		if redisLastId, err := redis.GetStr(ctx, lastIdKey); err != nil {
+			logger.Error(ctx, err)
+		} else {
+			lastId = redisLastId
+		}
 	}
 
 	filter := bson.M{
@@ -377,14 +395,30 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		}
 	}
 
+	// 写入数据库游标(真相源, 统一雪花ID: 有则更新, 无则插入)
+	statisticsCursor := &do.StatisticsCursor{
+		Collection: collection,
+		LastId:     lastId,
+		LastTime:   lastTime,
+	}
+
+	if cursorId != "" {
+		if err = dao.StatisticsCursor.UpdateById(ctx, cursorId, statisticsCursor); err != nil {
+			logger.Error(ctx, err)
+		}
+	} else {
+		if _, err = dao.StatisticsCursor.Insert(ctx, statisticsCursor); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	// 同步写入Redis(保留兼容)
 	if _, err = redis.Set(ctx, lastTimeKey, lastTime); err != nil {
 		logger.Error(ctx, err)
-		return
 	}
 
 	if _, err = redis.Set(ctx, lastIdKey, lastId); err != nil {
 		logger.Error(ctx, err)
-		return
 	}
 
 	if int64(len(results)) == config.Cfg.Statistics.Limit {
