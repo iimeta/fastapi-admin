@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -41,6 +40,7 @@ import (
 	sdk "github.com/iimeta/fastapi-sdk/v2"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
+	sutil "github.com/iimeta/fastapi-sdk/v2/util"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -553,20 +553,10 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 
 				} else if gstr.HasPrefix(imageData.Url, "http") {
 
-					client := &http.Client{Timeout: timeout}
-
-					resp, err := client.Get(imageData.Url)
-					if err != nil {
+					if body, _, err := sutil.HttpGet(ctx, imageData.Url, nil, nil, nil, timeout, config.Cfg.Http.ProxyUrl, nil); err != nil {
 						logger.Error(ctx, err)
-						if resp.Body != nil {
-							_ = resp.Body.Close()
-						}
 					} else {
-						imageBytes, err = io.ReadAll(resp.Body)
-						_ = resp.Body.Close()
-						if err != nil {
-							logger.Error(ctx, err)
-						}
+						imageBytes = body
 					}
 				}
 			}
@@ -1065,33 +1055,12 @@ func (s *sTaskImage) retrieveImageJob(ctx context.Context, logImage *entity.LogI
 
 	reqUrl := gstr.TrimRight(logImage.ModelAgent.BaseUrl, "/") + "/images/" + imageId
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
-	if err != nil {
-		return jobResponse, err
+	header := map[string]string{
+		"Authorization": "Bearer " + logImage.Key,
 	}
 
-	req.Header.Set("Authorization", "Bearer "+logImage.Key)
-
-	client := &http.Client{Timeout: timeout}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return jobResponse, err
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return jobResponse, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return jobResponse, errors.Newf("retrieve image job failed, status: %d, body: %s", resp.StatusCode, body)
-	}
-
-	if err = json.Unmarshal(body, &jobResponse); err != nil {
+	if _, _, err := sutil.HttpGet(ctx, reqUrl, header, nil, &jobResponse, timeout, config.Cfg.Http.ProxyUrl, nil); err != nil {
+		logger.Errorf(ctx, "sTaskImage retrieveImageJob request url: %s, error: %v", reqUrl, err)
 		return jobResponse, err
 	}
 
@@ -1103,30 +1072,14 @@ func (s *sTaskImage) fetchImageContent(ctx context.Context, logImage *entity.Log
 
 	reqUrl := gstr.TrimRight(logImage.ModelAgent.BaseUrl, "/") + "/images/" + imageId + "/content"
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
-	if err != nil {
-		return nil, err
+	header := map[string]string{
+		"Authorization": "Bearer " + logImage.Key,
 	}
 
-	req.Header.Set("Authorization", "Bearer "+logImage.Key)
-
-	client := &http.Client{Timeout: timeout}
-
-	resp, err := client.Do(req)
+	body, _, err := sutil.HttpGet(ctx, reqUrl, header, nil, nil, timeout, config.Cfg.Http.ProxyUrl, nil)
 	if err != nil {
+		logger.Errorf(ctx, "sTaskImage fetchImageContent request url: %s, error: %v", reqUrl, err)
 		return nil, err
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("fetch image content failed, status: %d, body: %s", resp.StatusCode, body)
 	}
 
 	return body, nil
@@ -1135,28 +1088,10 @@ func (s *sTaskImage) fetchImageContent(ctx context.Context, logImage *entity.Log
 // 通过URL下载图像字节数据
 func (s *sTaskImage) downloadImage(ctx context.Context, imageUrl string, timeout time.Duration) ([]byte, error) {
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, imageUrl, nil)
+	body, _, err := sutil.HttpGet(ctx, imageUrl, nil, nil, nil, timeout, config.Cfg.Http.ProxyUrl, nil)
 	if err != nil {
+		logger.Error(ctx, err)
 		return nil, err
-	}
-
-	client := &http.Client{Timeout: timeout}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("download image failed, status: %d", resp.StatusCode)
 	}
 
 	return body, nil
@@ -1250,27 +1185,16 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 		timeout = config.Cfg.Base.LongTimeout * time.Second
 	}
 
-	client := &http.Client{Timeout: timeout}
-
 	fileHeaders := make([]*multipart.FileHeader, 0, len(imageUrls))
 
 	for _, imageUrl := range imageUrls {
 
-		resp, err := client.Get(imageUrl)
+		imageBytes, respHeader, err := sutil.HttpGet(ctx, imageUrl, nil, nil, nil, timeout, config.Cfg.Http.ProxyUrl, nil)
 		if err != nil {
-			if resp.Body != nil {
-				_ = resp.Body.Close()
-			}
 			return req, errors.Newf("download image failed: %s, error: %v", imageUrl, err)
 		}
 
-		imageBytes, err := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-		if err != nil {
-			return req, errors.Newf("read image failed: %s, error: %v", imageUrl, err)
-		}
-
-		fileHeader, err := bytesToFileHeader(imageUrl, imageBytes, resp.Header.Get("Content-Type"))
+		fileHeader, err := bytesToFileHeader(imageUrl, imageBytes, respHeader.Get("Content-Type"))
 		if err != nil {
 			return req, err
 		}
@@ -1299,21 +1223,13 @@ func buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (sm
 		}
 
 		if maskUrl != "" && !gstr.HasPrefix(maskUrl, "data:") {
-			resp, err := client.Get(maskUrl)
+
+			maskBytes, respHeader, err := sutil.HttpGet(ctx, maskUrl, nil, nil, nil, timeout, config.Cfg.Http.ProxyUrl, nil)
 			if err != nil {
-				if resp != nil && resp.Body != nil {
-					_ = resp.Body.Close()
-				}
 				return req, errors.Newf("download mask failed: %s, error: %v", maskUrl, err)
 			}
 
-			maskBytes, err := io.ReadAll(resp.Body)
-			_ = resp.Body.Close()
-			if err != nil {
-				return req, errors.Newf("read mask failed: %s, error: %v", maskUrl, err)
-			}
-
-			maskFileHeader, err := bytesToFileHeader(maskUrl, maskBytes, resp.Header.Get("Content-Type"))
+			maskFileHeader, err := bytesToFileHeader(maskUrl, maskBytes, respHeader.Get("Content-Type"))
 			if err != nil {
 				return req, err
 			}
