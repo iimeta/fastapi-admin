@@ -848,6 +848,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			Cron:                 "0 0/20 * * * ?",
 			LockMinutes:          30,
 			DownloadTimeout:      60,
+			RetryCount:           2,
 			StorageExpiresAt:     1440,
 			StorageExpiredDelete: true,
 		},
