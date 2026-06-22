@@ -999,11 +999,14 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 
 		// 如果一张都没拿到, 兜底content接口(只能取一张)
 		if len(allData) == 0 {
+
 			var imageBytes []byte
+
 			if imageBytes, err = s.fetchImageContent(ctx, logImage, jobId, timeout); err != nil {
 				logger.Errorf(ctx, "sTaskImage requestImageAsync fetchImageContent imageId: %s, error: %v", jobId, err)
 				imageBytes = nil
 			}
+
 			if len(imageBytes) > 0 {
 				allData = append(allData, smodel.ImageResponseData{B64Json: base64.StdEncoding.EncodeToString(imageBytes)})
 			}
@@ -1011,6 +1014,10 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 
 		if len(allData) > 0 {
 			response.Data = allData
+		} else {
+			// 开启了存储但一张图都没下载到, 清空句柄交由重试重新提交
+			taskImage.JobId = ""
+			return response, "download_failed", errors.New("all image downloads failed in async mode")
 		}
 	}
 
