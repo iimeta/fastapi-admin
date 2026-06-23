@@ -110,6 +110,7 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 		detail.FilePath = taskImage.FilePath
 		detail.FileNames = taskImage.FileNames
 		detail.FilePaths = taskImage.FilePaths
+		detail.InputFilePaths = taskImage.InputFilePaths
 	}
 
 	return detail, nil
@@ -338,7 +339,7 @@ func (s *sTaskImage) Task(ctx context.Context) {
 		staleBefore = now - reclaimMillis
 	}
 
-	taskImages, err := dao.TaskImage.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress", "completed"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
+	taskImages, err := dao.TaskImage.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
 		return
@@ -363,29 +364,6 @@ func (s *sTaskImage) Task(ctx context.Context) {
 	var queuedTasks []*entity.TaskImage
 
 	for _, taskImage := range taskImages {
-
-		if taskImage.Status == "completed" {
-
-			// expires_at为0表示永不过期(未开存储、永不过期配置或本地存储失败), 仅在已设置过期时间且已到期时才回收
-			if taskImage.ExpiresAt > 0 && taskImage.ExpiresAt <= now/1000 {
-
-				update := bson.M{"status": "expired"}
-
-				if config.Cfg.ImageTask.StorageExpiredDelete && taskImage.FilePath != "" {
-					update["image_url"] = ""
-					update["file_name"] = ""
-					update["file_path"] = ""
-					if err := gfile.RemoveFile(taskImage.FilePath); err != nil {
-						logger.Error(ctx, err)
-					}
-				}
-
-				if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, update); err != nil {
-					logger.Error(ctx, err)
-				}
-			}
-			continue
-		}
 
 		// 正在运行(未僵死)的in_progress任务跳过; 僵死的往下走重新提升处理
 		if taskImage.Status == "in_progress" && taskImage.UpdatedAt >= staleBefore {
@@ -423,6 +401,9 @@ func (s *sTaskImage) Task(ctx context.Context) {
 			logger.Error(ctx, err)
 		}
 	}
+
+	// 任务调度完成后, 统一清理过期任务和残留文件
+	s.cleanExpiredAndFiles(ctx, now)
 
 	if _, err := redis.Set(ctx, consts.TASK_IMAGE_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
@@ -710,6 +691,131 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 
 		if err = dao.LogImage.UpdateById(ctx, logImage.Id, logUpdate); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+}
+
+// 统一清理过期任务和残留文件
+// 1. 已完成且已过期的任务: 标记为expired, 删除输出文件和输入转储文件
+// 2. 已失败/已删除但仍残留文件的任务: 删除输入转储文件
+func (s *sTaskImage) cleanExpiredAndFiles(ctx context.Context, now int64) {
+
+	// 第一批: 已完成且已过期 → 标记expired + 清理所有文件
+	expiredTasks, err := dao.TaskImage.Find(ctx, bson.M{
+		"status":     "completed",
+		"expires_at": bson.M{"$gt": 0, "$lte": now / 1000},
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+	}
+
+	for _, taskImage := range expiredTasks {
+
+		update := bson.M{"status": "expired"}
+
+		// 清理输出文件
+		if config.Cfg.ImageTask.StorageExpiredDelete {
+
+			if taskImage.FilePath != "" {
+				if err := gfile.RemoveFile(taskImage.FilePath); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+
+			for _, fp := range taskImage.FilePaths {
+				if fp != "" && fp != taskImage.FilePath {
+					if err := gfile.RemoveFile(fp); err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+			}
+
+			if taskImage.FilePath != "" || len(taskImage.FilePaths) > 0 {
+				update["image_url"] = ""
+				update["image_urls"] = nil
+				update["file_name"] = ""
+				update["file_names"] = nil
+				update["file_path"] = ""
+				update["file_paths"] = nil
+			}
+		}
+
+		// 清理输入转储文件
+		if len(taskImage.InputFilePaths) > 0 {
+			for _, fp := range taskImage.InputFilePaths {
+				if fp != "" {
+					if err := gfile.RemoveFile(fp); err != nil {
+						logger.Error(ctx, err)
+					}
+				}
+			}
+			update["input_file_paths"] = nil
+		}
+
+		if err := dao.TaskImage.UpdateById(ctx, taskImage.Id, update); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	// 第二批: 已失败/已删除且仍残留文件 → 清理所有文件
+	staleTasks, err := dao.TaskImage.Find(ctx, bson.M{
+		"status": bson.M{"$in": []string{"failed", "deleted"}},
+		"$or": bson.A{
+			bson.M{"file_path": bson.M{"$exists": true, "$ne": ""}},
+			bson.M{"file_paths": bson.M{"$exists": true, "$not": bson.M{"$size": 0}, "$ne": nil}},
+			bson.M{"input_file_paths": bson.M{"$exists": true, "$not": bson.M{"$size": 0}, "$ne": nil}},
+		},
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+	}
+
+	for _, taskImage := range staleTasks {
+
+		// 未配置过期时间或创建时间未超过过期期限, 暂不清理
+		if config.Cfg.ImageTask.StorageExpiresAt <= 0 {
+			continue
+		}
+
+		expiresAtMillis := taskImage.CreatedAt + (config.Cfg.ImageTask.StorageExpiresAt * time.Minute).Milliseconds()
+		if expiresAtMillis > now {
+			continue
+		}
+
+		// 清理输出文件
+		if taskImage.FilePath != "" {
+			if err := gfile.RemoveFile(taskImage.FilePath); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+
+		for _, fp := range taskImage.FilePaths {
+			if fp != "" && fp != taskImage.FilePath {
+				if err := gfile.RemoveFile(fp); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+
+		// 清理输入转储文件
+		for _, fp := range taskImage.InputFilePaths {
+			if fp != "" {
+				if err := gfile.RemoveFile(fp); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+
+		if err := dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
+			"image_url":        "",
+			"image_urls":       nil,
+			"file_name":        "",
+			"file_names":       nil,
+			"file_path":        "",
+			"file_paths":       nil,
+			"input_file_paths": nil,
+		}); err != nil {
 			logger.Error(ctx, err)
 		}
 	}
@@ -1225,14 +1331,41 @@ func (s *sTaskImage) buildImageEditRequest(ctx context.Context, taskImage *entit
 
 	fileHeaders := make([]*multipart.FileHeader, 0, len(imageUrls))
 
+	// 构建文件名→本地路径的映射, 用于优先读取本地转储文件
+	inputFileMap := make(map[string]string, len(taskImage.InputFilePaths))
+	for _, fp := range taskImage.InputFilePaths {
+		if fp != "" {
+			inputFileMap[path.Base(fp)] = fp
+		}
+	}
+
 	for _, imageUrl := range imageUrls {
 
-		imageBytes, respHeader, err := s.downloadImage(ctx, imageUrl, timeout)
-		if err != nil {
-			return req, errors.Newf("download image failed: %s, error: %v", imageUrl, err)
+		var imageBytes []byte
+		var respHeader http.Header
+
+		// 优先尝试本地读取(转储文件), 根据URL中的文件名匹配InputFilePaths
+		if parsed, err := url.Parse(imageUrl); err == nil {
+			if localPath, ok := inputFileMap[path.Base(parsed.Path)]; ok {
+				imageBytes = gfile.GetBytes(localPath)
+			}
 		}
 
-		fileHeader, err := bytesToFileHeader(imageUrl, imageBytes, respHeader.Get("Content-Type"))
+		// 本地读取失败, 通过URL下载
+		if imageBytes == nil {
+			var err error
+			imageBytes, respHeader, err = s.downloadImage(ctx, imageUrl, timeout)
+			if err != nil {
+				return req, errors.Newf("download image failed: %s, error: %v", imageUrl, err)
+			}
+		}
+
+		contentType := ""
+		if respHeader != nil {
+			contentType = respHeader.Get("Content-Type")
+		}
+
+		fileHeader, err := bytesToFileHeader(imageUrl, imageBytes, contentType)
 		if err != nil {
 			return req, err
 		}
@@ -1262,12 +1395,30 @@ func (s *sTaskImage) buildImageEditRequest(ctx context.Context, taskImage *entit
 
 		if maskUrl != "" && !gstr.HasPrefix(maskUrl, "data:") {
 
-			maskBytes, respHeader, err := s.downloadImage(ctx, maskUrl, timeout)
-			if err != nil {
-				return req, errors.Newf("download mask failed: %s, error: %v", maskUrl, err)
+			var maskBytes []byte
+			var respHeader http.Header
+
+			// 优先尝试本地读取
+			if parsed, err := url.Parse(maskUrl); err == nil {
+				if localPath, ok := inputFileMap[path.Base(parsed.Path)]; ok {
+					maskBytes = gfile.GetBytes(localPath)
+				}
 			}
 
-			maskFileHeader, err := bytesToFileHeader(maskUrl, maskBytes, respHeader.Get("Content-Type"))
+			if maskBytes == nil {
+				var err error
+				maskBytes, respHeader, err = s.downloadImage(ctx, maskUrl, timeout)
+				if err != nil {
+					return req, errors.Newf("download mask failed: %s, error: %v", maskUrl, err)
+				}
+			}
+
+			contentType := ""
+			if respHeader != nil {
+				contentType = respHeader.Get("Content-Type")
+			}
+
+			maskFileHeader, err := bytesToFileHeader(maskUrl, maskBytes, contentType)
 			if err != nil {
 				return req, err
 			}
