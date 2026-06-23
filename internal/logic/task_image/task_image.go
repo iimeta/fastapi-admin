@@ -513,9 +513,9 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 					}
 				} else if len(imageData.Url) > 0 {
 
-					if gstr.HasPrefix(imageData.Url, "data:image/png;base64,") {
+					if gstr.HasPrefix(imageData.Url, "data:") {
 
-						if decoded, err := base64.StdEncoding.DecodeString(gstr.TrimLeftStr(imageData.Url, "data:image/png;base64,")); err == nil {
+						if decoded, err := decodeDataURI(imageData.Url); err == nil {
 							imageBytes = decoded
 						} else {
 							logger.Error(ctx, err)
@@ -615,7 +615,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 				for _, d := range data {
 					if v, ok := d.(map[string]any); ok {
 						v["b64_json"] = ""
-						if gstr.HasPrefix(gconv.String(v["url"]), "data:image/png;base64,") {
+						if gstr.HasPrefix(gconv.String(v["url"]), "data:") {
 							v["url"] = ""
 						}
 					}
@@ -1460,4 +1460,35 @@ func buildStorageUrl(imageUrl string) string {
 	}
 
 	return config.Cfg.ImageTask.StorageBaseUrl + imageUrl
+}
+
+// 解析 data URI(形如 data:[<mediatype>][;base64],<data>), 返回解码后的字节数据
+// 兼容任意图片格式(png/jpeg/webp/gif等)及可选的 charset、base64 标记, 不再硬编码具体 MIME 类型
+func decodeDataURI(dataURI string) ([]byte, error) {
+
+	// 必须以 data: 开头, 且包含分隔数据的逗号
+	if !gstr.HasPrefix(dataURI, "data:") {
+		return nil, errors.New("invalid data uri: missing data: prefix")
+	}
+
+	idx := gstr.Pos(dataURI, ",")
+	if idx < 0 {
+		return nil, errors.New("invalid data uri: missing comma separator")
+	}
+
+	meta := dataURI[len("data:"):idx]
+	payload := dataURI[idx+1:]
+
+	// meta 形如 image/png;base64 或 image/jpeg 或 ;base64, 末段为 base64 时按 base64 解码, 否则按 URL 编码解码
+	if gstr.HasSuffix(gstr.ToLower(meta), "base64") {
+		return base64.StdEncoding.DecodeString(payload)
+	}
+
+	// 非 base64 的 data URI 为百分号编码的原始数据
+	decoded, err := url.QueryUnescape(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(decoded), nil
 }
