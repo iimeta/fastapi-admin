@@ -13,7 +13,7 @@ type SysConfig struct {
 	Email                     *common.Email                     `bson:"email,omitempty"`                         // 邮箱
 	Statistics                *common.Statistics                `bson:"statistics,omitempty"`                    // 统计
 	Base                      *common.Base                      `bson:"base,omitempty"`                          // 基础
-	Midjourney                *common.Midjourney                `bson:"midjourney,omitempty"`                    // Midjourney
+	Api                       *common.Api                       `bson:"api,omitempty"`                           // API接口
 	Log                       *common.Log                       `bson:"log,omitempty"`                           // 日志
 	UserLoginRegister         *common.UserLoginRegister         `bson:"user_login_register,omitempty"`           // 用户登录注册
 	UserShieldError           *common.UserShieldError           `bson:"user_shield_error,omitempty"`             // 用户屏蔽错误

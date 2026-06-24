@@ -10,7 +10,7 @@ type SysConfigUpdateReq struct {
 	Email                     *common.Email                     `json:"email,omitempty"`                         // 邮箱
 	Statistics                *common.Statistics                `json:"statistics,omitempty"`                    // 统计
 	Base                      *common.Base                      `json:"base,omitempty"`                          // 基础
-	Midjourney                *common.Midjourney                `json:"midjourney,omitempty"`                    // Midjourney
+	Api                       *common.Api                       `json:"api,omitempty"`                           // API接口
 	Log                       *common.Log                       `json:"log,omitempty"`                           // 日志
 	UserLoginRegister         *common.UserLoginRegister         `json:"user_login_register,omitempty"`           // 用户登录注册
 	UserShieldError           *common.UserShieldError           `json:"user_shield_error,omitempty"`             // 用户屏蔽错误
@@ -69,7 +69,7 @@ type SysConfig struct {
 	Email                     *common.Email                     `json:"email,omitempty"`                         // 邮箱
 	Statistics                *common.Statistics                `json:"statistics,omitempty"`                    // 统计
 	Base                      *common.Base                      `json:"base,omitempty"`                          // 基础
-	Midjourney                *common.Midjourney                `json:"midjourney,omitempty"`                    // Midjourney
+	Api                       *common.Api                       `json:"api,omitempty"`                           // API接口
 	Log                       *common.Log                       `json:"log,omitempty"`                           // 日志
 	UserLoginRegister         *common.UserLoginRegister         `json:"user_login_register,omitempty"`           // 用户登录注册
 	UserShieldError           *common.UserShieldError           `json:"user_shield_error,omitempty"`             // 用户屏蔽错误

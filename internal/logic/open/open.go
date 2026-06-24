@@ -95,6 +95,7 @@ func (s *sOpen) Config(ctx context.Context, params model.SysConfigReq) (*model.S
 		UserLoginRegister:     sysConfig.UserLoginRegister,
 		ResellerLoginRegister: sysConfig.ResellerLoginRegister,
 		AdminLogin:            sysConfig.AdminLogin,
+		Api:                   sysConfig.Api,
 	}, nil
 }
 

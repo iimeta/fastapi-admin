@@ -41,13 +41,14 @@ type Base struct {
 	AllowRequestAbort       bool          `bson:"allow_request_abort"         json:"allow_request_abort"`         // 允许请求中止
 }
 
-type Midjourney struct {
-	Open            bool   `bson:"open"              json:"open"` // 开关
-	CdnUrl          string `bson:"cdn_url"           json:"cdn_url"`
-	ApiBaseUrl      string `bson:"api_base_url"      json:"api_base_url"`
-	ApiSecret       string `bson:"api_secret"        json:"api_secret"`
-	ApiSecretHeader string `bson:"api_secret_header" json:"api_secret_header"`
-	CdnOriginalUrl  string `bson:"cdn_original_url"  json:"cdn_original_url"`
+type Api struct {
+	Apis []ApiItem `bson:"apis" json:"apis"` // API接口列表
+}
+
+type ApiItem struct {
+	Name   string `bson:"name"   json:"name"`   // 名称
+	Url    string `bson:"url"    json:"url"`    // API地址
+	Remark string `bson:"remark" json:"remark"` // 说明
 }
 
 type Log struct {

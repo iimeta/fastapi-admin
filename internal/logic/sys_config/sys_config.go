@@ -111,8 +111,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Statistics: params.Statistics}
 	case "base":
 		sysConfig = &do.SysConfig{Base: params.Base}
-	//case "midjourney":
-	//	sysConfig = &do.SysConfig{Midjourney: params.Midjourney}
+	case "api":
+		sysConfig = &do.SysConfig{Api: params.Api}
 	case "log":
 		sysConfig = &do.SysConfig{Log: params.Log}
 	case "user_login_register":
@@ -242,13 +242,13 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 	}
 
 	return &model.SysConfig{
-		Id:         sysConfig.Id,
-		Core:       sysConfig.Core,
-		Http:       sysConfig.Http,
-		Email:      sysConfig.Email,
-		Statistics: sysConfig.Statistics,
-		Base:       sysConfig.Base,
-		//Midjourney:            sysConfig.Midjourney,
+		Id:                        sysConfig.Id,
+		Core:                      sysConfig.Core,
+		Http:                      sysConfig.Http,
+		Email:                     sysConfig.Email,
+		Statistics:                sysConfig.Statistics,
+		Base:                      sysConfig.Base,
+		Api:                       sysConfig.Api,
 		Log:                       sysConfig.Log,
 		UserLoginRegister:         sysConfig.UserLoginRegister,
 		UserShieldError:           sysConfig.UserShieldError,
@@ -302,8 +302,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.Statistics = s.Default().Statistics
 	case "base":
 		sysConfigUpdateReq.Base = s.Default().Base
-	//case "midjourney":
-	//	sysConfigUpdateReq.Midjourney = s.Default().Midjourney
+	case "api":
+		sysConfigUpdateReq.Api = s.Default().Api
 	case "log":
 		sysConfigUpdateReq.Log = s.Default().Log
 	case "user_login_register":
@@ -558,6 +558,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 		}
 	}
 
+	if sysConfig.Api == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "api"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
 	return sysConfig, nil
 }
 
@@ -594,13 +601,13 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			LongTimeout:             600,
 			AllowRequestAbort:       false,
 		},
-		//Midjourney: &common.Midjourney{
-		//	CdnUrl:          "https://cdn.xxx.com",
-		//	ApiBaseUrl:      "https://xxx/mj",
-		//	ApiSecret:       "xxx",
-		//	ApiSecretHeader: "mj-api-secret",
-		//	CdnOriginalUrl:  "https://cdn.discordapp.com",
-		//},
+		Api: &common.Api{
+			Apis: []common.ApiItem{{
+				Name:   "默认",
+				Url:    "https://api.fastapi.ai",
+				Remark: "示例数据, 请根据实际情况修改",
+			}},
+		},
 		Log: &common.Log{
 			Open: true,
 			TextRecords: []string{
