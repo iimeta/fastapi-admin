@@ -239,7 +239,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "creator", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
 	}
 
 	results, err := dao.LogText.FindByPage(ctx, paging, filter, findOptions)
@@ -274,6 +274,24 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 		}
 
 		items = append(items, text)
+	}
+
+	if service.Session().IsUserRole(ctx) {
+
+		appIds := make([]int, 0)
+		keys := make([]string, 0)
+		for _, result := range results {
+			appIds = append(appIds, result.AppId)
+			keys = append(keys, result.Creator)
+		}
+
+		appNames := common.GetAppNames(ctx, appIds)
+		keyNames := common.GetKeyNames(ctx, keys)
+
+		for i, result := range results {
+			items[i].AppName = appNames[result.AppId]
+			items[i].KeyName = keyNames[result.Creator]
+		}
 	}
 
 	return &model.LogTextPageRes{

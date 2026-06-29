@@ -44,6 +44,8 @@ type LogImage struct {
 	TraceId              string                 `json:"trace_id,omitempty"`                // 日志ID
 	UserId               int                    `json:"user_id,omitempty"`                 // 用户ID
 	AppId                int                    `json:"app_id,omitempty"`                  // 应用ID
+	AppName              string                 `json:"app_name,omitempty"`                // 应用名称
+	KeyName              string                 `json:"key_name,omitempty"`                // 密钥名称
 	ProviderId           string                 `json:"provider_id,omitempty"`             // 提供商ID
 	ProviderCode         string                 `json:"provider_code,omitempty"`           // 提供商代码
 	ProviderName         string                 `json:"provider_name,omitempty"`           // 提供商名称

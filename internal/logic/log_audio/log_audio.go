@@ -251,6 +251,24 @@ func (s *sLogAudio) Page(ctx context.Context, params model.LogAudioPageReq) (*mo
 		items = append(items, audio)
 	}
 
+	if service.Session().IsUserRole(ctx) {
+
+		appIds := make([]int, 0)
+		keys := make([]string, 0)
+		for _, result := range results {
+			appIds = append(appIds, result.AppId)
+			keys = append(keys, result.Creator)
+		}
+
+		appNames := common.GetAppNames(ctx, appIds)
+		keyNames := common.GetKeyNames(ctx, keys)
+
+		for i, result := range results {
+			items[i].AppName = appNames[result.AppId]
+			items[i].KeyName = keyNames[result.Creator]
+		}
+	}
+
 	return &model.LogAudioPageRes{
 		Items: items,
 		Paging: &model.Paging{
