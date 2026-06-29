@@ -414,6 +414,14 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 
 	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1, 2}}})
 	if err != nil {
+
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "queued", "error": nil}); err != nil {
+				logger.Error(ctx, err)
+			}
+			return
+		}
+
 		logger.Error(ctx, err)
 		s.failTask(ctx, taskImage.Id, "log_not_found", err.Error())
 		return
