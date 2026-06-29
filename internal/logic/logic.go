@@ -22,7 +22,6 @@ import (
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_file"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_general"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_image"
-	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_midjourney"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_text"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/log_video"
 	_ "github.com/iimeta/fastapi-admin/v2/internal/logic/model"

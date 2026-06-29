@@ -631,7 +631,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 				IsDefaultEnableRequest: false,
 				RequestPrivacyFields: []common.PrivacyLogFieldOption{
 					{Key: "messages", Label: "完整消息上下文", Description: "保存文本对话的完整 messages", LogTypes: []string{"log_text"}, Enabled: true, Sort: 10},
-					{Key: "prompt", Label: "提示词", Description: "保存文本、绘图、Midjourney 等提示词", LogTypes: []string{"log_text", "log_image", "log_midjourney"}, Enabled: true, Sort: 20},
+					{Key: "prompt", Label: "提示词", Description: "保存文本、绘图等提示词", LogTypes: []string{"log_text", "log_image"}, Enabled: true, Sort: 20},
 					{Key: "request_data", Label: "请求参数", Description: "保存视频、文件、批处理、通用接口请求参数", LogTypes: []string{"log_video", "log_file", "log_batch", "log_general"}, Enabled: true, Sort: 30},
 					{Key: "input", Label: "音频输入文本", Description: "保存音频接口输入文本", LogTypes: []string{"log_audio"}, Enabled: true, Sort: 40},
 				},
@@ -642,7 +642,6 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					{Key: "response_data", Label: "响应数据", Description: "保存视频、文件、批处理、通用接口响应数据", LogTypes: []string{"log_video", "log_file", "log_batch", "log_general"}, Enabled: true, Sort: 20},
 					{Key: "text", Label: "音频输出文本", Description: "保存音频接口输出或转写文本", LogTypes: []string{"log_audio"}, Enabled: true, Sort: 30},
 					{Key: "revised_prompt", Label: "改写提示词", Description: "保存绘图接口返回的改写提示词", LogTypes: []string{"log_image"}, Enabled: true, Sort: 40},
-					{Key: "upstream_response", Label: "完整响应", Description: "保存 Midjourney 等完整响应", LogTypes: []string{"log_midjourney"}, Enabled: true, Sort: 50},
 				},
 				IsEnableResource:        true,
 				IsDefaultEnableResource: false,

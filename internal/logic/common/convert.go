@@ -409,11 +409,6 @@ func ConvSpend(spend common.Spend) common.Spend {
 		spend.Search.SpendTokens = ConvQuotaUnitReverse(int(spend.Search.SpendTokens))
 	}
 
-	// Midjourney
-	if spend.Midjourney != nil {
-		spend.Midjourney.SpendTokens = ConvQuotaUnitReverse(int(spend.Midjourney.SpendTokens))
-	}
-
 	// 一次
 	if spend.Once != nil {
 		spend.Once.SpendTokens = ConvQuotaUnitReverse(int(spend.Once.SpendTokens))

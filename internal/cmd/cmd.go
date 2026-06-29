@@ -36,7 +36,6 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_file"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_general"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_image"
-	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_midjourney"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_text"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/log_video"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/model"
@@ -295,12 +294,6 @@ var (
 				v1.Group("/log/batch", func(g *ghttp.RouterGroup) {
 					g.Bind(
 						log_batch.NewV1(),
-					)
-				})
-
-				v1.Group("/log/midjourney", func(g *ghttp.RouterGroup) {
-					g.Bind(
-						log_midjourney.NewV1(),
 					)
 				})
 

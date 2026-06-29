@@ -25,7 +25,6 @@ const (
 	LOG_VIDEO           = "log_video"
 	LOG_FILE            = "log_file"
 	LOG_BATCH           = "log_batch"
-	LOG_MIDJOURNEY      = "log_midjourney"
 	LOG_GENERAL         = "log_general"
 	SITE_CONFIG         = "site_config"
 	SYS_ADMIN           = "sys_admin"
