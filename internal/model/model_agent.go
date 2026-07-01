@@ -29,7 +29,6 @@ type ModelAgentCreateReq struct {
 	ResHeaderPassthroughMode int                           `json:"res_header_passthrough_mode,omitempty"` // 响应头透传模式[1:全量, 2:指定]
 	ResHeaderPassthroughList []string                      `json:"res_header_passthrough_list,omitempty"` // 响应头透传白名单
 	Key                      string                        `json:"key,omitempty"`                         // 密钥
-	IsAgentsOnly             bool                          `json:"is_agents_only,omitempty"`              // 是否代理专用
 	IsNeverDisableKey        bool                          `json:"is_never_disable_key,omitempty"`        // 是否永不禁用密钥
 	Remark                   string                        `json:"remark,omitempty"`                      // 备注
 	Status                   int                           `json:"status,omitempty" d:"1"`                // 状态[1:正常, 2:禁用, -1:删除]
@@ -63,7 +62,6 @@ type ModelAgentUpdateReq struct {
 	ResHeaderPassthroughMode int                           `json:"res_header_passthrough_mode,omitempty"` // 响应头透传模式[1:全量, 2:指定]
 	ResHeaderPassthroughList []string                      `json:"res_header_passthrough_list,omitempty"` // 响应头透传白名单
 	Key                      string                        `json:"key,omitempty"`                         // 密钥
-	IsAgentsOnly             bool                          `json:"is_agents_only,omitempty"`              // 是否代理专用
 	IsNeverDisableKey        bool                          `json:"is_never_disable_key,omitempty"`        // 是否永不禁用密钥
 	Remark                   string                        `json:"remark,omitempty"`                      // 备注
 	Status                   int                           `json:"status,omitempty" d:"1"`                // 状态[1:正常, 2:禁用, -1:删除]

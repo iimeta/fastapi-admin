@@ -94,7 +94,15 @@ func (s *sApp) Create(ctx context.Context, params model.AppCreateReq) (string, e
 			return "", err
 		}
 
-		if _, err = service.AppKey().Config(ctx, model.AppKeyConfigReq{UserId: userId, AppId: appId, Key: key, BillingMethods: []int{1}, Status: 1}); err != nil {
+		if _, err = service.AppKey().Config(ctx, model.AppKeyConfigReq{
+			UserId:         userId,
+			AppId:          appId,
+			Key:            key,
+			BillingMethods: []int{1},
+			IpWhitelist:    params.IpWhitelist,
+			IpBlacklist:    params.IpBlacklist,
+			Status:         1,
+		}); err != nil {
 			logger.Error(ctx, err)
 			return "", err
 		}

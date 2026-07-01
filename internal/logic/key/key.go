@@ -76,9 +76,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 					ProviderId:     params.ProviderId,
 					Key:            gstr.Trim(k),
 					Weight:         params.Weight,
-					Models:         params.Models,
 					ModelAgents:    params.ModelAgents,
-					IsAgentsOnly:   params.IsAgentsOnly,
 					IsNeverDisable: params.IsNeverDisable,
 					Remark:         params.Remark,
 					Status:         params.Status,
@@ -102,10 +100,6 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 
 			} else {
 
-				modelSet := gset.NewStrSet()
-				modelSet.Add(key.Models...)
-				modelSet.Add(params.Models...)
-
 				modelAgentSet := gset.NewStrSet()
 				modelAgentSet.Add(key.ModelAgents...)
 				modelAgentSet.Add(params.ModelAgents...)
@@ -115,9 +109,7 @@ func (s *sKey) Create(ctx context.Context, params model.KeyCreateReq, isModelAge
 					ProviderId:     params.ProviderId,
 					Key:            key.Key,
 					Weight:         key.Weight,
-					Models:         modelSet.Slice(),
 					ModelAgents:    modelAgentSet.Slice(),
-					IsAgentsOnly:   params.IsAgentsOnly,
 					IsNeverDisable: params.IsNeverDisable,
 				}, isModelAgent); err != nil {
 					logger.Error(ctx, err)
@@ -150,9 +142,7 @@ func (s *sKey) Update(ctx context.Context, params model.KeyUpdateReq, isModelAge
 		ProviderId:         params.ProviderId,
 		Key:                gstr.Trim(params.Key),
 		Weight:             params.Weight,
-		Models:             params.Models,
 		ModelAgents:        params.ModelAgents,
-		IsAgentsOnly:       params.IsAgentsOnly,
 		IsNeverDisable:     params.IsNeverDisable,
 		Remark:             params.Remark,
 		Status:             params.Status,
@@ -236,12 +226,6 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		}
 	}
 
-	modelNames, err := service.Model().ModelNames(ctx, key.Models)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
-
 	modelAgentNames := make([]string, 0)
 	if len(key.ModelAgents) > 0 {
 
@@ -262,11 +246,8 @@ func (s *sKey) Detail(ctx context.Context, id string) (*model.Key, error) {
 		ProviderName:       providerName,
 		Key:                key.Key,
 		Weight:             key.Weight,
-		Models:             key.Models,
-		ModelNames:         modelNames,
 		ModelAgents:        key.ModelAgents,
 		ModelAgentNames:    modelAgentNames,
-		IsAgentsOnly:       key.IsAgentsOnly,
 		IsNeverDisable:     key.IsNeverDisable,
 		UsedQuota:          common.ConvQuotaUnitReverse(key.UsedQuota),
 		Remark:             key.Remark,
@@ -300,9 +281,9 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 		}
 	}
 
-	if len(params.Models) > 0 {
-		filter["models"] = bson.M{
-			"$in": params.Models,
+	if params.AutoDisabledReason != "" {
+		filter["auto_disabled_reason"] = bson.M{
+			"$regex": regexp.QuoteMeta(params.AutoDisabledReason),
 		}
 	}
 
@@ -317,13 +298,8 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	}
 
 	if params.Remark != "" {
-		filter["$or"] = bson.A{
-			bson.M{"remark": bson.M{
-				"$regex": regexp.QuoteMeta(params.Remark),
-			}},
-			bson.M{"auto_disabled_reason": bson.M{
-				"$regex": regexp.QuoteMeta(params.Remark),
-			}},
+		filter["remark"] = bson.M{
+			"$regex": regexp.QuoteMeta(params.Remark),
 		}
 	}
 
@@ -360,18 +336,16 @@ func (s *sKey) Page(ctx context.Context, params model.KeyPageReq) (*model.KeyPag
 	for _, result := range results {
 
 		key := &model.Key{
-			Id:           result.Id,
-			ProviderId:   result.ProviderId,
-			Key:          util.Desensitize(result.Key),
-			Weight:       result.Weight,
-			Models:       result.Models,
-			ModelAgents:  result.ModelAgents,
-			IsAgentsOnly: result.IsAgentsOnly,
-			UsedQuota:    common.ConvQuotaUnitReverse(result.UsedQuota),
-			Remark:       result.Remark,
-			Status:       result.Status,
-			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
-			UpdatedAt:    util.FormatDateTimeMonth(result.UpdatedAt),
+			Id:          result.Id,
+			ProviderId:  result.ProviderId,
+			Key:         util.Desensitize(result.Key),
+			Weight:      result.Weight,
+			ModelAgents: result.ModelAgents,
+			UsedQuota:   common.ConvQuotaUnitReverse(result.UsedQuota),
+			Remark:      result.Remark,
+			Status:      result.Status,
+			CreatedAt:   util.FormatDateTimeMonth(result.CreatedAt),
+			UpdatedAt:   util.FormatDateTimeMonth(result.UpdatedAt),
 		}
 
 		providerName := result.ProviderId
@@ -466,9 +440,9 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 				}
 			}
 
-			if len(params.Models) > 0 {
-				filter["models"] = bson.M{
-					"$in": params.Models,
+			if params.AutoDisabledReason != "" {
+				filter["auto_disabled_reason"] = bson.M{
+					"$regex": regexp.QuoteMeta(params.AutoDisabledReason),
 				}
 			}
 
@@ -517,9 +491,9 @@ func (s *sKey) BatchOperate(ctx context.Context, params model.KeyBatchOperateReq
 				}
 			}
 
-			if len(params.Models) > 0 {
-				filter["models"] = bson.M{
-					"$in": params.Models,
+			if params.AutoDisabledReason != "" {
+				filter["auto_disabled_reason"] = bson.M{
+					"$regex": regexp.QuoteMeta(params.AutoDisabledReason),
 				}
 			}
 
@@ -577,35 +551,6 @@ func (s *sKey) DetailListByKey(ctx context.Context, keys []string) ([]*entity.Ke
 	}
 
 	return results, nil
-}
-
-// 密钥模型权限
-func (s *sKey) Models(ctx context.Context, params model.KeyModelsReq) error {
-
-	oldData, err := dao.Key.FindById(ctx, params.Id)
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	newData, err := dao.Key.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"models": params.Models,
-	})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
-		Action:  consts.ACTION_UPDATE,
-		OldData: oldData,
-		NewData: newData,
-	}); err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	return nil
 }
 
 // 检查任务
