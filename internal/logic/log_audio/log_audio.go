@@ -107,7 +107,6 @@ func (s *sLogAudio) Detail(ctx context.Context, id string) (*model.LogAudio, err
 		audio.ModelName = result.ModelName
 		audio.Key = util.Desensitize(result.Key)
 		audio.IsEnablePresetConfig = result.IsEnablePresetConfig
-		audio.IsEnableModelAgent = result.IsEnableModelAgent
 		audio.ModelAgentId = result.ModelAgentId
 		audio.IsEnableForward = result.IsEnableForward
 		audio.ForwardConfig = result.ForwardConfig

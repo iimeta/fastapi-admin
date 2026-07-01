@@ -115,7 +115,6 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		text.ModelName = result.ModelName
 		text.Key = util.Desensitize(result.Key)
 		text.IsEnablePresetConfig = result.IsEnablePresetConfig
-		text.IsEnableModelAgent = result.IsEnableModelAgent
 		text.ModelAgentId = result.ModelAgentId
 		text.IsEnableForward = result.IsEnableForward
 		text.ForwardConfig = result.ForwardConfig

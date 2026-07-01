@@ -134,7 +134,6 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 		image.ModelName = result.ModelName
 		image.Key = util.Desensitize(result.Key)
 		image.IsEnablePresetConfig = result.IsEnablePresetConfig
-		image.IsEnableModelAgent = result.IsEnableModelAgent
 		image.ModelAgentId = result.ModelAgentId
 		image.IsEnableForward = result.IsEnableForward
 		image.ForwardConfig = result.ForwardConfig

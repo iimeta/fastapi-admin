@@ -88,7 +88,6 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		ResHeaderPassthroughMode: params.ResHeaderPassthroughMode,
 		ResHeaderPassthroughList: params.ResHeaderPassthroughList,
 		IsPublic:                 params.IsPublic,
-		IsEnableModelAgent:       params.IsEnableModelAgent,
 		LbStrategy:               params.LbStrategy,
 		IsEnableForward:          params.IsEnableForward,
 		ForwardConfig:            params.ForwardConfig,
@@ -268,7 +267,6 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		ResHeaderPassthroughMode: params.ResHeaderPassthroughMode,
 		ResHeaderPassthroughList: params.ResHeaderPassthroughList,
 		IsPublic:                 params.IsPublic,
-		IsEnableModelAgent:       params.IsEnableModelAgent,
 		LbStrategy:               params.LbStrategy,
 		IsEnableForward:          params.IsEnableForward,
 		ForwardConfig:            params.ForwardConfig,
@@ -750,7 +748,6 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		ResHeaderPassthroughMode: m.ResHeaderPassthroughMode,
 		ResHeaderPassthroughList: m.ResHeaderPassthroughList,
 		IsPublic:                 m.IsPublic,
-		IsEnableModelAgent:       m.IsEnableModelAgent,
 		LbStrategy:               m.LbStrategy,
 		ModelAgents:              modelAgents,
 		ModelAgentNames:          modelAgentNames,
@@ -1044,8 +1041,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			UpdatedAt:                util.FormatDateTimeMonth(result.UpdatedAt),
 		}
 
-		if result.IsEnableModelAgent && service.Session().IsAdminRole(ctx) {
-			model.IsEnableModelAgent = result.IsEnableModelAgent
+		if service.Session().IsAdminRole(ctx) {
 			model.LbStrategy = result.LbStrategy
 		}
 
@@ -1255,37 +1251,14 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				ResHeaderPassthroughList: result.ResHeaderPassthroughList,
 				IsPublic:                 result.IsPublic,
 				Groups:                   groupIds,
-				LbStrategy:               result.LbStrategy,
+				LbStrategy:               params.LbStrategy,
+				ModelAgents:              params.ModelAgents,
 				IsEnableForward:          result.IsEnableForward,
 				ForwardConfig:            result.ForwardConfig,
 				IsEnableFallback:         result.IsEnableFallback,
 				FallbackConfig:           result.FallbackConfig,
 				Remark:                   result.Remark,
 				Status:                   result.Status,
-			}
-
-			if params.Value == "all" {
-				m.IsEnableModelAgent = true
-				m.LbStrategy = params.LbStrategy
-				m.ModelAgents = params.ModelAgents
-			} else {
-				m.IsEnableModelAgent = gconv.Bool(params.Value)
-				if m.IsEnableModelAgent {
-
-					modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": []string{result.Id}}})
-					if err != nil {
-						logger.Error(ctx, err)
-						continue
-					}
-
-					if len(modelAgents) == 0 {
-						continue
-					}
-
-					for _, modelAgent := range modelAgents {
-						m.ModelAgents = append(m.ModelAgents, modelAgent.Id)
-					}
-				}
 			}
 
 			if err = s.Update(ctx, m); err != nil {
@@ -1340,7 +1313,6 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				ResHeaderPassthroughList: result.ResHeaderPassthroughList,
 				IsPublic:                 result.IsPublic,
 				Groups:                   groupIds,
-				IsEnableModelAgent:       result.IsEnableModelAgent,
 				LbStrategy:               result.LbStrategy,
 				ForwardConfig:            result.ForwardConfig,
 				IsEnableFallback:         result.IsEnableFallback,
@@ -1430,7 +1402,6 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				ResHeaderPassthroughList: result.ResHeaderPassthroughList,
 				IsPublic:                 result.IsPublic,
 				Groups:                   groupIds,
-				IsEnableModelAgent:       result.IsEnableModelAgent,
 				LbStrategy:               result.LbStrategy,
 				IsEnableForward:          result.IsEnableForward,
 				ForwardConfig:            result.ForwardConfig,
@@ -1509,7 +1480,6 @@ func (s *sModel) BatchOperate(ctx context.Context, params model.ModelBatchOperat
 				ResHeaderPassthroughList: result.ResHeaderPassthroughList,
 				IsPublic:                 result.IsPublic,
 				Groups:                   groupIds,
-				IsEnableModelAgent:       result.IsEnableModelAgent,
 				LbStrategy:               result.LbStrategy,
 				IsEnableForward:          result.IsEnableForward,
 				ForwardConfig:            result.ForwardConfig,
@@ -1945,7 +1915,6 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 			}
 
 			if params.IsConfigModelAgent && modelAgentId != "" {
-				modelCreateReq.IsEnableModelAgent = true
 				modelCreateReq.LbStrategy = 1
 				modelCreateReq.ModelAgents = append(modelCreateReq.ModelAgents, modelAgentId)
 			}
@@ -1983,7 +1952,6 @@ func (s *sModel) InitSync(ctx context.Context, params model.ModelInitSyncReq) er
 				ResHeaderPassthroughList: detail.ResHeaderPassthroughList,
 				IsPublic:                 detail.IsPublic,
 				Groups:                   detail.Groups,
-				IsEnableModelAgent:       detail.IsEnableModelAgent,
 				LbStrategy:               detail.LbStrategy,
 				ModelAgents:              detail.ModelAgents,
 				IsEnableForward:          detail.IsEnableForward,

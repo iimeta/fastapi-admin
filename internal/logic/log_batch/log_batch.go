@@ -109,7 +109,6 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		batch.ModelName = result.ModelName
 		batch.Key = util.Desensitize(result.Key)
 		batch.IsEnablePresetConfig = result.IsEnablePresetConfig
-		batch.IsEnableModelAgent = result.IsEnableModelAgent
 		batch.ModelAgentId = result.ModelAgentId
 		batch.IsEnableForward = result.IsEnableForward
 		batch.ForwardConfig = result.ForwardConfig

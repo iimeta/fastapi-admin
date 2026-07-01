@@ -111,7 +111,6 @@ func (s *sLogGeneral) Detail(ctx context.Context, id string) (*model.LogGeneral,
 		general.ModelName = result.ModelName
 		general.Key = util.Desensitize(result.Key)
 		general.IsEnablePresetConfig = result.IsEnablePresetConfig
-		general.IsEnableModelAgent = result.IsEnableModelAgent
 		general.ModelAgentId = result.ModelAgentId
 		general.IsEnableForward = result.IsEnableForward
 		general.ForwardConfig = result.ForwardConfig

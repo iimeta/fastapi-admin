@@ -55,7 +55,6 @@ type LogAudio struct {
 	Key                  string                 `json:"key,omitempty"`                     // 密钥
 	IsEnablePresetConfig bool                   `json:"is_enable_preset_config,omitempty"` // 是否启用预设配置
 	PresetConfig         common.PresetConfig    `json:"preset_config,omitempty"`           // 预设配置
-	IsEnableModelAgent   bool                   `json:"is_enable_model_agent,omitempty"`   // 是否启用模型代理
 	ModelAgentId         string                 `json:"model_agent_id,omitempty"`          // 模型代理ID
 	ModelAgent           *ModelAgent            `json:"model_agent,omitempty"`             // 模型代理信息
 	IsEnableForward      bool                   `json:"is_enable_forward,omitempty"`       // 是否启用模型转发

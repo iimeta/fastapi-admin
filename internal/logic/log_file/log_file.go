@@ -109,7 +109,6 @@ func (s *sLogFile) Detail(ctx context.Context, id string) (*model.LogFile, error
 		file.ModelName = result.ModelName
 		file.Key = util.Desensitize(result.Key)
 		file.IsEnablePresetConfig = result.IsEnablePresetConfig
-		file.IsEnableModelAgent = result.IsEnableModelAgent
 		file.ModelAgentId = result.ModelAgentId
 		file.IsEnableForward = result.IsEnableForward
 		file.ForwardConfig = result.ForwardConfig

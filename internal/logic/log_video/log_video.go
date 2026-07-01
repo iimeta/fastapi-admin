@@ -109,7 +109,6 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		video.ModelName = result.ModelName
 		video.Key = util.Desensitize(result.Key)
 		video.IsEnablePresetConfig = result.IsEnablePresetConfig
-		video.IsEnableModelAgent = result.IsEnableModelAgent
 		video.ModelAgentId = result.ModelAgentId
 		video.IsEnableForward = result.IsEnableForward
 		video.ForwardConfig = result.ForwardConfig
