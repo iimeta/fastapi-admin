@@ -1143,9 +1143,20 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 }
 
 // 每5秒轮询一次上游任务状态, 直到任务完成、失败或超时
+// retrieve持续报错或上游返回未知状态时累计连续失败次数(复用RetryCount, 与同步提交同一套阈值语义):
+// 超过阈值即判定上游异常, 返回可失败的errCode(而非timeout), 交由上层清空job_id并按重试逻辑重新提交,
+// 避免把上游异常误当成"仍在进行"而无限requeue续轮询导致死循环
 func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage, imageId string, timeout time.Duration) (smodel.ImageJobResponse, string, error) {
 
 	var jobResponse smodel.ImageJobResponse
+
+	retryCount := config.Cfg.ImageTask.RetryCount
+	if retryCount < 0 {
+		retryCount = 0
+	}
+
+	// 连续失败(retrieve报错或未知状态)计数; 一旦识别到明确的运行中状态即清零, 仅"连续"异常才判死
+	consecutiveFailures := 0
 
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -1154,11 +1165,20 @@ func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage
 
 		job, err := s.retrieveImageJob(ctx, logImage, imageId, timeout)
 		if err != nil {
+
+			// ctx到点属于轮询窗口正常耗尽, 上游可能仍在进行, 返回timeout交由上层保留job_id续轮询
 			if ctx.Err() != nil {
 				return jobResponse, "timeout", ctx.Err()
 			}
+
+			// 非ctx原因的retrieve报错(上游5xx/网络不通/404等)累计连续失败, 超阈值判定上游不可用
 			logger.Errorf(ctx, "sTaskImage pollImageJob retrieve imageId: %s, error: %v", imageId, err)
+			if consecutiveFailures++; consecutiveFailures > retryCount {
+				return jobResponse, "retrieve_error", err
+			}
+
 		} else {
+			// 上游为同款系统, 状态取值固定为[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
 			switch job.Status {
 			case "completed":
 				return job, "", nil
@@ -1168,6 +1188,19 @@ func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage
 					message = job.Error.Message
 				}
 				return job, "async_" + job.Status, errors.New(message)
+			case "queued", "in_progress":
+				// 明确的运行中状态, 继续轮询并清零连续失败计数
+				consecutiveFailures = 0
+			default:
+				// 未知状态: 既非运行中也非已知终态, 累计连续失败, 超阈值判定上游异常
+				logger.Errorf(ctx, "sTaskImage pollImageJob imageId: %s, unknown status: %s", imageId, job.Status)
+				if consecutiveFailures++; consecutiveFailures > retryCount {
+					message := "unknown status: " + job.Status
+					if job.Error != nil {
+						message = job.Error.Message
+					}
+					return job, "async_unknown_status", errors.New(message)
+				}
 			}
 		}
 
