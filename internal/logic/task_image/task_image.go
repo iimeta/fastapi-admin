@@ -569,6 +569,14 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			return
 		}
 
+		// 依据配置判断该错误是否需要重试: 命中不重试错误、未命中自动重试白名单或自动重试关闭时, 直接置为失败, 不再重试
+		// 超时(errCode=="timeout")属处理窗口耗尽而非上游明确报错, 保留原有重试语义, 不受配置白名单限制
+		if errCode != "timeout" && !common.IsNeedRetry(err) {
+			logger.Errorf(ctx, "sTaskImage processImageTask task: %s failed: %s, error: %v, no need to retry by config", taskImage.Id, errCode, err)
+			s.failTask(ctx, taskImage.Id, errCode, err.Error())
+			return
+		}
+
 		if attempt < retryCount {
 
 			// 重试前回查任务状态, 若已不在进行中(已被其它进程完成、被管理员重置或删除等), 则无需重试, 直接退出

@@ -201,9 +201,9 @@ func (s *sLogFile) Page(ctx context.Context, params model.LogFilePageReq) (*mode
 		}
 	}
 
-	if params.TotalTime != 0 {
-		filter["total_time"] = bson.M{
-			"$gte": params.TotalTime,
+	if len(params.Actions) > 0 {
+		filter["action"] = bson.M{
+			"$in": params.Actions,
 		}
 	}
 

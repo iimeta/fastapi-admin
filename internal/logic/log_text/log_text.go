@@ -58,6 +58,7 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		ProviderName: result.ProviderName,
 		Model:        result.Model,
 		ModelType:    result.ModelType,
+		Action:       result.Action,
 		Stream:       result.Stream,
 		Messages:     result.Messages,
 		Prompt:       result.Prompt,
@@ -229,16 +230,16 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 		}
 	}
 
-	if params.TotalTime != 0 {
-		filter["total_time"] = bson.M{
-			"$gte": params.TotalTime,
+	if len(params.Actions) > 0 {
+		filter["action"] = bson.M{
+			"$in": params.Actions,
 		}
 	}
 
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "creator", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "action", "creator", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
 	}
 
 	results, err := dao.LogText.FindByPage(ctx, paging, filter, findOptions)
@@ -257,6 +258,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 			ProviderName: result.ProviderName,
 			Model:        result.Model,
 			ModelType:    result.ModelType,
+			Action:       result.Action,
 			Stream:       result.Stream,
 			Spend:        common.ConvSpend(result.Spend),
 			ConnTime:     result.ConnTime,

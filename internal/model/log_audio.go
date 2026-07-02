@@ -16,7 +16,7 @@ type LogAudioPageReq struct {
 	Key         string   `json:"key,omitempty"`          // 密钥
 	Models      []string `json:"models,omitempty"`       // 模型
 	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
-	TotalTime   int64    `json:"total_time,omitempty"`   // 总时间
+	Actions     []string `json:"actions,omitempty"`      // 接口
 	Status      int      `json:"status,omitempty"`       // 状态[1:成功, -1:失败]
 	ReqTime     []string `json:"req_time,omitempty"`     // 请求时间
 }
@@ -65,6 +65,7 @@ type LogAudio struct {
 	RealModelId          string                 `json:"real_model_id,omitempty"`           // 真实模型ID
 	RealModelName        string                 `json:"real_model_name,omitempty"`         // 真实模型名称
 	RealModel            string                 `json:"real_model,omitempty"`              // 真实模型
+	Action               string                 `json:"action,omitempty"`                  // 接口
 	Input                string                 `json:"input,omitempty"`                   // 输入文本
 	Text                 string                 `json:"text,omitempty"`                    // 输出文本
 	Spend                common.Spend           `json:"spend,omitempty"`                   // 花费

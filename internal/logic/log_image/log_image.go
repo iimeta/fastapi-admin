@@ -232,8 +232,10 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 		}
 	}
 
-	if params.Action != "" {
-		filter["action"] = params.Action
+	if len(params.Actions) > 0 {
+		filter["action"] = bson.M{
+			"$in": params.Actions,
+		}
 	}
 
 	if params.Status != 0 {

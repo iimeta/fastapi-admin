@@ -53,6 +53,7 @@ func (s *sLogGeneral) Detail(ctx context.Context, id string) (*model.LogGeneral,
 		ProviderName: result.ProviderName,
 		Model:        result.Model,
 		ModelType:    result.ModelType,
+		Action:       result.Action,
 		RequestData:  result.RequestData,
 		ResponseData: result.ResponseData,
 		Stream:       result.Stream,
@@ -203,9 +204,9 @@ func (s *sLogGeneral) Page(ctx context.Context, params model.LogGeneralPageReq) 
 		}
 	}
 
-	if params.TotalTime != 0 {
-		filter["total_time"] = bson.M{
-			"$gte": params.TotalTime,
+	if len(params.Actions) > 0 {
+		filter["action"] = bson.M{
+			"$in": params.Actions,
 		}
 	}
 
@@ -239,6 +240,7 @@ func (s *sLogGeneral) Page(ctx context.Context, params model.LogGeneralPageReq) 
 			Id:           result.Id,
 			UserId:       result.UserId,
 			AppId:        result.AppId,
+			Action:       result.Action,
 			ProviderName: result.ProviderName,
 			Model:        result.Model,
 			ModelType:    result.ModelType,

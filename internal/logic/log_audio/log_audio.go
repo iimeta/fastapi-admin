@@ -53,6 +53,7 @@ func (s *sLogAudio) Detail(ctx context.Context, id string) (*model.LogAudio, err
 		ProviderName: result.ProviderName,
 		Model:        result.Model,
 		ModelType:    result.ModelType,
+		Action:       result.Action,
 		Input:        result.Input,
 		Text:         result.Text,
 		Spend:        common.ConvSpend(result.Spend),
@@ -196,9 +197,9 @@ func (s *sLogAudio) Page(ctx context.Context, params model.LogAudioPageReq) (*mo
 		}
 	}
 
-	if params.TotalTime != 0 {
-		filter["total_time"] = bson.M{
-			"$gte": params.TotalTime,
+	if len(params.Actions) > 0 {
+		filter["action"] = bson.M{
+			"$in": params.Actions,
 		}
 	}
 
@@ -235,6 +236,7 @@ func (s *sLogAudio) Page(ctx context.Context, params model.LogAudioPageReq) (*mo
 			ProviderName: result.ProviderName,
 			Model:        result.Model,
 			ModelType:    result.ModelType,
+			Action:       result.Action,
 			Spend:        common.ConvSpend(result.Spend),
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),

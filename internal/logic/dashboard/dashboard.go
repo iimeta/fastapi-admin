@@ -732,6 +732,12 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 		}
 	}
 
+	if len(params.Actions) > 0 {
+		match["action"] = bson.M{
+			"$in": params.Actions,
+		}
+	}
+
 	result := make([]map[string]any, 0)
 	if err := dao.LogText.Aggregate(ctx, pipeline, &result); err != nil {
 		logger.Error(ctx, err)
