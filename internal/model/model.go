@@ -21,6 +21,7 @@ type ModelCreateReq struct {
 	ResHeaderPassthroughList []string               `json:"res_header_passthrough_list,omitempty"` // 响应头透传白名单
 	IsPublic                 bool                   `json:"is_public,omitempty"`                   // 是否公开
 	Groups                   []string               `json:"groups,omitempty"`                      // 分组权限
+	Endpoints                []string               `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	LbStrategy               int                    `json:"lb_strategy,omitempty" d:"1"`           // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents              []string               `json:"model_agents,omitempty" d:"[]"`         // 模型代理
 	IsEnableForward          bool                   `json:"is_enable_forward,omitempty"`           // 是否启用模型转发
@@ -52,6 +53,7 @@ type ModelUpdateReq struct {
 	ResHeaderPassthroughList []string               `json:"res_header_passthrough_list,omitempty"` // 响应头透传白名单
 	IsPublic                 bool                   `json:"is_public,omitempty"`                   // 是否公开
 	Groups                   []string               `json:"groups,omitempty"`                      // 分组权限
+	Endpoints                []string               `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	LbStrategy               int                    `json:"lb_strategy,omitempty" d:"1"`           // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents              []string               `json:"model_agents,omitempty" d:"[]"`         // 模型代理
 	IsEnableForward          bool                   `json:"is_enable_forward,omitempty"`           // 是否启用模型转发
@@ -214,6 +216,7 @@ type Model struct {
 	ResHeaderPassthroughMode int                    `json:"res_header_passthrough_mode,omitempty"` // 响应头透传模式[1:全量, 2:指定]
 	ResHeaderPassthroughList []string               `json:"res_header_passthrough_list,omitempty"` // 响应头透传白名单
 	IsPublic                 bool                   `json:"is_public,omitempty"`                   // 是否公开
+	Endpoints                []string               `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	LbStrategy               int                    `json:"lb_strategy,omitempty"`                 // 代理负载均衡策略[1:轮询, 2:权重]
 	ModelAgents              []string               `json:"model_agents,omitempty"`                // 模型代理
 	ModelAgentNames          []string               `json:"model_agent_names,omitempty"`           // 模型代理名称

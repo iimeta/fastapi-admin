@@ -8,6 +8,7 @@ type ModelAgentCreateReq struct {
 	Name                     string                        `json:"name,omitempty"`                        // 模型代理名称
 	BaseUrl                  string                        `json:"base_url,omitempty"`                    // 模型代理地址
 	Path                     string                        `json:"path,omitempty"`                        // 模型代理地址路径
+	Endpoints                []string                      `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	Weight                   int                           `json:"weight,omitempty"`                      // 权重
 	BillingMethods           []int                         `json:"billing_methods,omitempty"`             // 计费方式[1:按Tokens, 2:按次]
 	Groups                   []string                      `json:"groups,omitempty"`                      // 绑定分组
@@ -41,6 +42,7 @@ type ModelAgentUpdateReq struct {
 	Name                     string                        `json:"name,omitempty"`                        // 模型代理名称
 	BaseUrl                  string                        `json:"base_url,omitempty"`                    // 模型代理地址
 	Path                     string                        `json:"path,omitempty"`                        // 模型代理地址路径
+	Endpoints                []string                      `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	Weight                   int                           `json:"weight,omitempty"`                      // 权重
 	BillingMethods           []int                         `json:"billing_methods,omitempty"`             // 计费方式[1:按Tokens, 2:按次]
 	Groups                   []string                      `json:"groups,omitempty"`                      // 绑定分组
@@ -158,6 +160,7 @@ type ModelAgent struct {
 	Name                     string                        `json:"name,omitempty"`                        // 模型代理名称
 	BaseUrl                  string                        `json:"base_url,omitempty"`                    // 模型代理地址
 	Path                     string                        `json:"path,omitempty"`                        // 模型代理地址路径
+	Endpoints                []string                      `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	Weight                   int                           `json:"weight,omitempty"`                      // 权重
 	BillingMethods           []int                         `json:"billing_methods,omitempty"`             // 计费方式[1:按Tokens, 2:按次]
 	Groups                   []string                      `json:"groups,omitempty"`                      // 绑定分组
