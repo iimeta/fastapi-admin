@@ -525,13 +525,22 @@ func CalcNextRelativeResetAt(baseTime time.Time, cyclePeriod int, periodUnit str
 	}
 }
 
-func IsNeedRetry(err error) bool {
+func IsNeedRetry(err error) (isRetry bool, isDisabled bool) {
+
+	// 自动禁用错误
+	if config.Cfg.AutoDisabledError.Open && len(config.Cfg.AutoDisabledError.Errors) > 0 {
+		for _, autoDisabledError := range config.Cfg.AutoDisabledError.Errors {
+			if gstr.Contains(err.Error(), autoDisabledError) {
+				return config.Cfg.AutoRetryError.Open, true
+			}
+		}
+	}
 
 	// 不重试错误
 	if config.Cfg.NotRetryError.Open && len(config.Cfg.NotRetryError.Errors) > 0 {
 		for _, notRetryError := range config.Cfg.NotRetryError.Errors {
 			if gstr.Contains(err.Error(), notRetryError) {
-				return false
+				return false, false
 			}
 		}
 	}
@@ -540,11 +549,11 @@ func IsNeedRetry(err error) bool {
 	if config.Cfg.AutoRetryError.Open && len(config.Cfg.AutoRetryError.Errors) > 0 {
 		for _, autoRetryError := range config.Cfg.AutoRetryError.Errors {
 			if gstr.Contains(err.Error(), autoRetryError) {
-				return true
+				return true, false
 			}
 		}
-		return false
+		return false, false
 	}
 
-	return config.Cfg.AutoRetryError.Open
+	return config.Cfg.AutoRetryError.Open, false
 }

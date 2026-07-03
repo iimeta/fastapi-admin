@@ -628,3 +628,40 @@ func (s *sKey) CheckTask(ctx context.Context, enableError mcommon.EnableError) {
 		logger.Error(ctx, err)
 	}
 }
+
+// 自动禁用密钥
+func (s *sKey) AutoDisabled(ctx context.Context, secretKey, disabledReason string) {
+
+	key, err := dao.Key.FindOne(ctx, bson.M{"key": secretKey})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	// 永不禁用
+	if key.IsNeverDisable {
+		return
+	}
+
+	// 已是禁用状态无需重复处理
+	if key.Status == 2 {
+		return
+	}
+
+	key, err = dao.Key.FindOneAndUpdateById(ctx, key.Id, bson.M{
+		"status":               2,
+		"is_auto_disabled":     true,
+		"auto_disabled_reason": disabledReason,
+	})
+	if err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+		Action:  consts.ACTION_STATUS,
+		NewData: key,
+	}); err != nil {
+		logger.Error(ctx, err)
+	}
+}

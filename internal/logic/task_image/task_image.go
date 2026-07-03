@@ -569,9 +569,23 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			return
 		}
 
-		// 依据配置判断该错误是否需要重试: 命中不重试错误、未命中自动重试白名单或自动重试关闭时, 直接置为失败, 不再重试
-		// 超时(errCode=="timeout")属处理窗口耗尽而非上游明确报错, 保留原有重试语义, 不受配置白名单限制
-		if errCode != "timeout" && !common.IsNeedRetry(err) {
+		// 依据配置判断该错误是否需要重试及是否需要自动禁用密钥
+		isRetry, isDisabled := common.IsNeedRetry(err)
+
+		// 命中自动禁用错误: 异步禁用本次使用的密钥, 与fastapi运行时行为保持一致
+		if isDisabled {
+			if e := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+				service.Key().AutoDisabled(ctx, logImage.Key, err.Error())
+
+			}, nil); e != nil {
+				logger.Error(ctx, e)
+			}
+		}
+
+		// 超时(errCode=="timeout")属处理窗口耗尽而非上游明确报错, 保留原有重试语义, 不受配置白名单限制;
+		// 其余错误命中不重试错误、未命中自动重试白名单或自动重试关闭时, 直接置为失败, 不再重试
+		if errCode != "timeout" && !isRetry {
 			logger.Errorf(ctx, "sTaskImage processImageTask task: %s failed: %s, error: %v, no need to retry by config", taskImage.Id, errCode, err)
 			s.failTask(ctx, taskImage.Id, errCode, err.Error())
 			return

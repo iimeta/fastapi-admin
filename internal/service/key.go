@@ -35,6 +35,8 @@ type (
 		DetailListByKey(ctx context.Context, keys []string) ([]*entity.Key, error)
 		// 检查任务
 		CheckTask(ctx context.Context, enableError mcommon.EnableError)
+		// 自动禁用密钥
+		AutoDisabled(ctx context.Context, secretKey string, disabledReason string)
 	}
 )
 
