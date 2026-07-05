@@ -412,7 +412,7 @@ func (s *sTaskImage) Task(ctx context.Context) {
 
 func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.TaskImage) {
 
-	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1, 2}}})
+	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1}}})
 	if err != nil {
 
 		if errors.Is(err, mongo.ErrNoDocuments) {
