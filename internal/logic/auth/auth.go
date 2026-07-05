@@ -905,6 +905,7 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 	}
 
 	_ = service.Common().DelCode(ctx, consts.SCENE_FORGET_PASSWORD, params.Account)
+	_, _ = redis.Del(ctx, fmt.Sprintf(consts.LOCK_LOGIN, params.Account))
 
 	return nil
 }
