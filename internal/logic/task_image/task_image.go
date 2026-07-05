@@ -1090,7 +1090,7 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 		return response, "no_image", errors.New("no image in completed job")
 	}
 
-	// 获取图像数据: 优先从job.Data获取所有图, 回退到job.ImageUrl单张, 再兜底content接口
+	// 获取图像数据: 优先从job.Data获取所有图, 其次job.ImageUrls数组(N>1时上游查询接口只返回image_urls而非data), 再回退job.ImageUrl单张, 最后兜底content接口
 	if config.Cfg.ImageTask.IsEnableStorage {
 
 		var allData []smodel.ImageResponseData
@@ -1121,8 +1121,23 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 					allData = append(allData, smodel.ImageResponseData{B64Json: base64.StdEncoding.EncodeToString(imageBytes)})
 				}
 			}
+		} else if len(job.ImageUrls) > 0 {
+			// Data为空但上游返回了image_urls数组(N>1时上游查询接口返回全部图片地址于此字段), 逐张下载, 避免只取到第一张
+			for i, imgUrl := range job.ImageUrls {
+				if imgUrl == "" {
+					continue
+				}
+				var imageBytes []byte
+				if imageBytes, _, err = s.downloadImage(ctx, imgUrl, timeout); err != nil {
+					logger.Errorf(ctx, "sTaskImage requestImageAsync download image_urls[%d] url: %s, error: %v", i, imgUrl, err)
+					imageBytes = nil
+				}
+				if len(imageBytes) > 0 {
+					allData = append(allData, smodel.ImageResponseData{B64Json: base64.StdEncoding.EncodeToString(imageBytes)})
+				}
+			}
 		} else if job.ImageUrl != "" {
-			// Data为空, 回退到单张ImageUrl
+			// Data和ImageUrls均为空, 回退到单张ImageUrl
 			var imageBytes []byte
 			if imageBytes, _, err = s.downloadImage(ctx, job.ImageUrl, timeout); err != nil {
 				logger.Errorf(ctx, "sTaskImage requestImageAsync download imageUrl: %s, error: %v", job.ImageUrl, err)
