@@ -161,13 +161,23 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 		}
 	}
 
+	if params.Prompt != "" {
+		filter["prompt"] = bson.M{
+			"$regex": regexp.QuoteMeta(gstr.Trim(params.Prompt)),
+		}
+	}
+
+	if params.Quality != "" {
+		filter["quality"] = gstr.Trim(params.Quality)
+	}
+
 	if params.Status != "" {
 		filter["status"] = params.Status
 	} else if !service.Session().IsAdminRole(ctx) {
 		filter["status"] = bson.M{"$ne": "deleted"}
 	}
 
-	if len(params.CreatedAt) > 0 {
+	if len(params.CreatedAt) > 0 && params.TraceId == "" {
 		gte := gtime.NewFromStrFormat(params.CreatedAt[0], time.DateTime).TimestampMilli()
 		lte := gtime.NewFromStrLayout(params.CreatedAt[1], time.DateTime).TimestampMilli() + 999
 		filter["created_at"] = bson.M{

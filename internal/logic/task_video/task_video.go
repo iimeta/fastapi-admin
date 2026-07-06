@@ -147,7 +147,7 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 		filter["status"] = bson.M{"$ne": "deleted"}
 	}
 
-	if len(params.CreatedAt) > 0 {
+	if len(params.CreatedAt) > 0 && params.TraceId == "" {
 		gte := gtime.NewFromStrFormat(params.CreatedAt[0], time.DateTime).TimestampMilli()
 		lte := gtime.NewFromStrLayout(params.CreatedAt[1], time.DateTime).TimestampMilli() + 999
 		filter["created_at"] = bson.M{
