@@ -22,6 +22,8 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 			image(ctx, usage, spend)
 		case "image_generation":
 			imageGeneration(ctx, usage, spend)
+		case "image_cache":
+			imageCache(ctx, usage, spend)
 		case "video_generation":
 			videoGeneration(ctx, usage, spend)
 		case "once":
@@ -47,8 +49,12 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 		spend.TotalSpendTokens += spend.Image.SpendTokens
 	}
 
+	if spend.ImageCache != nil {
+		spend.TotalSpendTokens += spend.ImageCache.SpendTokens
+	}
+
 	if spend.ImageGeneration != nil {
-		spend.TotalSpendTokens += spend.ImageGeneration.SpendTokens
+		spend.TotalSpendTokens = spend.ImageGeneration.SpendTokens
 	}
 
 	if spend.VideoGeneration != nil {
@@ -107,6 +113,12 @@ func image(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 // 图像生成
 func imageGeneration(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 	spend.ImageGeneration.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.ImageGeneration.Pricing.OnceRatio) * float64(spend.ImageGeneration.N)
+}
+
+// 图像缓存
+func imageCache(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
+	spend.ImageCache.ReadTokens = usage.InputTokensDetails.CachedTokens
+	spend.ImageCache.SpendTokens = math.Ceil(float64(spend.ImageCache.ReadTokens) * spend.ImageCache.Pricing.ReadRatio)
 }
 
 // 视频生成
