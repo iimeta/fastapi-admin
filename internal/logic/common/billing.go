@@ -67,12 +67,12 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 
 	// 模型时段折扣
 	if spend.ModelTimeRule != nil {
-		spend.TotalSpendTokens = math.Ceil(spend.TotalSpendTokens * spend.ModelTimeRule.Discount)
+		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.ModelTimeRule.Discount)
 	}
 
 	// 分组时段折扣
 	if spend.GroupId != "" && spend.GroupTimeRule != nil {
-		spend.TotalSpendTokens = math.Ceil(spend.TotalSpendTokens * spend.GroupTimeRule.Discount)
+		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.GroupTimeRule.Discount)
 	}
 }
 
@@ -130,4 +130,16 @@ func videoGeneration(ctx context.Context, usage smodel.Usage, spend *common.Spen
 // 一次
 func once(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 	spend.Once.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT * spend.Once.Pricing.OnceRatio)
+}
+
+// 按折扣计算消费 token, 全程使用整数运算, 避免浮点精度误差
+func discountTokens(tokens, discount float64) float64 {
+
+	const scale = 1_000_000 // 折扣精度: 保留 6 位小数
+
+	// 折扣先四舍五入成整数基数, 消除小数本身的表示误差
+	basis := int64(math.Round(discount * scale))
+
+	// 整数向上取整除法: ceil(a/b) = (a + b - 1) / b (a, b 均非负)
+	return float64((int64(tokens)*basis + scale - 1) / scale)
 }
