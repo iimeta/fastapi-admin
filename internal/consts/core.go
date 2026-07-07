@@ -16,4 +16,5 @@ const (
 	KEY_IS_LIMIT_QUOTA_FIELD = "key.%d.%s.is_limit_quota"
 
 	QUOTA_DEFAULT_UNIT = 1000000.0 // $1 = 1M Tokens
+	MAX_SPEND_TOKENS   = 1_000_000_000_000
 )

@@ -25,8 +25,9 @@ func RecordSpend(ctx context.Context, userId, appId int, appKey string, rid int,
 
 	totalSpendTokens := int(spend.TotalSpendTokens)
 
-	if totalSpendTokens == 0 {
-		return nil
+	if totalSpendTokens < 0 || totalSpendTokens > consts.MAX_SPEND_TOKENS {
+		logger.Errorf(ctx, "RecordSpend abnormal totalSpendTokens: %d, userId: %d, appId: %d, appKey: %s, force clamp to %d", totalSpendTokens, userId, appId, appKey, consts.MAX_SPEND_TOKENS)
+		totalSpendTokens = consts.MAX_SPEND_TOKENS
 	}
 
 	logger.Infof(ctx, "RecordSpend rid: %d, userId: %d, appId: %d, appKey: %s, totalSpendTokens: %d, key: %s", rid, userId, appId, appKey, totalSpendTokens, key)
