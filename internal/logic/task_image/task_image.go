@@ -111,6 +111,25 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 		detail.FileNames = taskImage.FileNames
 		detail.FilePaths = taskImage.FilePaths
 		detail.InputFilePaths = taskImage.InputFilePaths
+		detail.ModelAgentId = taskImage.ModelAgentId
+
+		if taskImage.ModelAgent != nil {
+
+			providerName := taskImage.ModelAgent.ProviderId
+			if provider, err := dao.Provider.FindById(ctx, taskImage.ModelAgent.ProviderId); err == nil && provider != nil {
+				providerName = provider.Name
+			}
+
+			detail.ModelAgent = &model.ModelAgent{
+				ProviderId:   taskImage.ModelAgent.ProviderId,
+				ProviderName: providerName,
+				Name:         taskImage.ModelAgent.Name,
+				BaseUrl:      taskImage.ModelAgent.BaseUrl,
+				Path:         taskImage.ModelAgent.Path,
+				Weight:       taskImage.ModelAgent.Weight,
+				Remark:       taskImage.ModelAgent.Remark,
+			}
+		}
 	}
 
 	return detail, nil
@@ -440,7 +459,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	provider, err := dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
 	if err != nil {
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error())
+		s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error(), logImage.Id)
 		return
 	}
 
@@ -597,7 +616,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		// 其余错误命中不重试错误、未命中自动重试白名单或自动重试关闭时, 直接置为失败, 不再重试
 		if errCode != "timeout" && !isRetry {
 			logger.Errorf(ctx, "sTaskImage processImageTask task: %s failed: %s, error: %v, no need to retry by config", taskImage.Id, errCode, err)
-			s.failTask(ctx, taskImage.Id, errCode, err.Error())
+			s.failTask(ctx, taskImage.Id, errCode, err.Error(), logImage.Id)
 			return
 		}
 
@@ -616,7 +635,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskImage.Id, errCode, err.Error())
+		s.failTask(ctx, taskImage.Id, errCode, err.Error(), logImage.Id)
 		return
 	}
 
@@ -924,7 +943,8 @@ func (s *sTaskImage) requeueTask(ctx context.Context, taskId string) {
 	}
 }
 
-func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string) {
+func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string, logImageId ...string) {
+
 	// 仅当任务仍为进行中时才置为失败, 避免旧任务的失败覆盖已被重新生成并完成的新结果
 	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
 		"_id":    taskId,
@@ -933,10 +953,20 @@ func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string)
 		"status": "failed",
 		"error":  &smodel.ImageError{Code: code, Message: message},
 	}); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return
+		if !errors.Is(err, mongo.ErrNoDocuments) {
+			logger.Error(ctx, err)
 		}
-		logger.Error(ctx, err)
+		return
+	}
+
+	// 任务确实被置为失败(CAS成功), 同步更新对应绘图日志的状态与错误信息
+	if len(logImageId) > 0 && logImageId[0] != "" {
+		if err := dao.LogImage.UpdateById(ctx, logImageId[0], bson.M{
+			"status":  -1,
+			"err_msg": message,
+		}); err != nil {
+			logger.Error(ctx, err)
+		}
 	}
 }
 
