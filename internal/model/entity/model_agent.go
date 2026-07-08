@@ -12,6 +12,7 @@ type ModelAgent struct {
 	Name                     string                        `bson:"name,omitempty"`                        // 模型代理名称
 	BaseUrl                  string                        `bson:"base_url,omitempty"`                    // 模型代理地址
 	Path                     string                        `bson:"path,omitempty"`                        // 模型代理地址路径
+	Tags                     []string                      `bson:"tags,omitempty"`                        // 标签
 	Endpoints                []string                      `bson:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	Weight                   int                           `bson:"weight,omitempty"`                      // 权重
 	BillingMethods           []int                         `bson:"billing_methods,omitempty"`             // 计费方式[1:按Tokens, 2:按次]

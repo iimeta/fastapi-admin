@@ -71,6 +71,7 @@ func (s *sModelAgent) Create(ctx context.Context, params model.ModelAgentCreateR
 		Path:                     gstr.Trim(params.Path),
 		Endpoints:                params.Endpoints,
 		Weight:                   params.Weight,
+		Tags:                     params.Tags,
 		BillingMethods:           params.BillingMethods,
 		Models:                   params.Models,
 		IsEnableModelReplace:     params.IsEnableModelReplace,
@@ -203,6 +204,7 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 		Path:                     gstr.Trim(params.Path),
 		Endpoints:                params.Endpoints,
 		Weight:                   params.Weight,
+		Tags:                     params.Tags,
 		BillingMethods:           params.BillingMethods,
 		Models:                   params.Models,
 		IsEnableModelReplace:     params.IsEnableModelReplace,
@@ -653,6 +655,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		Path:                     modelAgent.Path,
 		Endpoints:                modelAgent.Endpoints,
 		Weight:                   modelAgent.Weight,
+		Tags:                     modelAgent.Tags,
 		BillingMethods:           modelAgent.BillingMethods,
 		Groups:                   groupIds,
 		GroupNames:               groupNames,
@@ -717,6 +720,31 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 		}
 	}
 
+	if len(params.Tags) > 0 {
+		filter["tags"] = bson.M{
+			"$in": params.Tags,
+		}
+	}
+
+	// 绑定分组和绑定模型均按代理ID过滤, 多条件时取交集
+	var idSet *gset.StrSet
+
+	if len(params.Groups) > 0 {
+
+		groups, err := dao.Group.Find(ctx, bson.M{"_id": bson.M{"$in": params.Groups}})
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		groupAgentIds := gset.NewStrSet()
+		for _, group := range groups {
+			groupAgentIds.Add(group.ModelAgents...)
+		}
+
+		idSet = groupAgentIds
+	}
+
 	if len(params.Models) > 0 {
 
 		modelAgents, err := dao.ModelAgent.Find(ctx, bson.M{"models": bson.M{"$in": params.Models}})
@@ -725,17 +753,26 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			return nil, err
 		}
 
-		if len(modelAgents) == 0 {
+		modelAgentIds := gset.NewStrSet()
+		for _, modelAgent := range modelAgents {
+			modelAgentIds.Add(modelAgent.Id)
+		}
+
+		if idSet != nil {
+			idSet = idSet.Intersect(modelAgentIds)
+		} else {
+			idSet = modelAgentIds
+		}
+	}
+
+	if idSet != nil {
+
+		if idSet.Size() == 0 {
 			return nil, nil
 		}
 
-		modelAgentIds := make([]string, 0)
-		for _, modelAgent := range modelAgents {
-			modelAgentIds = append(modelAgentIds, modelAgent.Id)
-		}
-
 		filter["_id"] = bson.M{
-			"$in": modelAgentIds,
+			"$in": idSet.Slice(),
 		}
 	}
 
@@ -797,6 +834,7 @@ func (s *sModelAgent) Page(ctx context.Context, params model.ModelAgentPageReq) 
 			ProviderName:   providerName,
 			Name:           result.Name,
 			Weight:         result.Weight,
+			Tags:           result.Tags,
 			BillingMethods: result.BillingMethods,
 			LbStrategy:     result.LbStrategy,
 			Groups:         groupIds,
@@ -841,6 +879,30 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 	}
 
 	return items, nil
+}
+
+// 模型代理标签列表
+func (s *sModelAgent) TagList(ctx context.Context) ([]string, error) {
+
+	results, err := dao.ModelAgent.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	tagSet := gset.NewStrSet()
+	for _, result := range results {
+		for _, tag := range result.Tags {
+			if tag = gstr.Trim(tag); tag != "" {
+				tagSet.Add(tag)
+			}
+		}
+	}
+
+	tags := tagSet.Slice()
+	slices.Sort(tags)
+
+	return tags, nil
 }
 
 // 模型代理批量操作

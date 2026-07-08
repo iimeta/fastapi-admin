@@ -85,6 +85,17 @@ type ListRes struct {
 	*model.ModelAgentListRes
 }
 
+// 模型代理标签列表接口请求参数
+type TagListReq struct {
+	g.Meta `path:"/tags" method:"get" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理标签列表接口"`
+}
+
+// 模型代理标签列表接口响应参数
+type TagListRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+	*model.ModelAgentTagListRes
+}
+
 // 模型代理批量操作接口请求参数
 type BatchOperateReq struct {
 	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"模型代理批量操作接口"`

@@ -10,6 +10,7 @@ type ModelAgentCreateReq struct {
 	Path                     string                        `json:"path,omitempty"`                        // 模型代理地址路径
 	Endpoints                []string                      `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	Weight                   int                           `json:"weight,omitempty"`                      // 权重
+	Tags                     []string                      `json:"tags,omitempty"`                        // 标签
 	BillingMethods           []int                         `json:"billing_methods,omitempty"`             // 计费方式[1:按Tokens, 2:按次]
 	Groups                   []string                      `json:"groups,omitempty"`                      // 绑定分组
 	Models                   []string                      `json:"models,omitempty" d:"[]"`               // 绑定模型
@@ -44,6 +45,7 @@ type ModelAgentUpdateReq struct {
 	Path                     string                        `json:"path,omitempty"`                        // 模型代理地址路径
 	Endpoints                []string                      `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	Weight                   int                           `json:"weight,omitempty"`                      // 权重
+	Tags                     []string                      `json:"tags,omitempty"`                        // 标签
 	BillingMethods           []int                         `json:"billing_methods,omitempty"`             // 计费方式[1:按Tokens, 2:按次]
 	Groups                   []string                      `json:"groups,omitempty"`                      // 绑定分组
 	Models                   []string                      `json:"models,omitempty" d:"[]"`               // 绑定模型
@@ -87,6 +89,8 @@ type ModelAgentPageReq struct {
 	Name       string   `json:"name,omitempty"`        // 模型代理名称
 	BaseUrl    string   `json:"base_url,omitempty"`    // 模型代理地址
 	Path       string   `json:"path,omitempty"`        // 模型代理地址路径
+	Tags       []string `json:"tags,omitempty"`        // 标签
+	Groups     []string `json:"groups,omitempty"`      // 绑定分组
 	Models     []string `json:"models,omitempty"`      // 绑定模型
 	Remark     string   `json:"remark,omitempty"`      // 备注
 	Status     int      `json:"status,omitempty"`      // 状态[1:正常, 2:禁用, -1:删除]
@@ -109,6 +113,11 @@ type ModelAgentListReq struct {
 // 模型代理列表接口响应参数
 type ModelAgentListRes struct {
 	Items []*ModelAgent `json:"items"`
+}
+
+// 模型代理标签列表接口响应参数
+type ModelAgentTagListRes struct {
+	Tags []string `json:"tags"` // 标签
 }
 
 // 模型代理批量操作接口请求参数
@@ -162,6 +171,7 @@ type ModelAgent struct {
 	Path                     string                        `json:"path,omitempty"`                        // 模型代理地址路径
 	Endpoints                []string                      `json:"endpoints,omitempty"`                   // 支持的端点, 空表示不限制
 	Weight                   int                           `json:"weight,omitempty"`                      // 权重
+	Tags                     []string                      `json:"tags,omitempty"`                        // 标签
 	BillingMethods           []int                         `json:"billing_methods,omitempty"`             // 计费方式[1:按Tokens, 2:按次]
 	Groups                   []string                      `json:"groups,omitempty"`                      // 绑定分组
 	GroupNames               []string                      `json:"group_names,omitempty"`                 // 分组名称

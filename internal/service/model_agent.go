@@ -27,6 +27,8 @@ type (
 		Page(ctx context.Context, params model.ModelAgentPageReq) (*model.ModelAgentPageRes, error)
 		// 模型代理列表
 		List(ctx context.Context, params model.ModelAgentListReq) ([]*model.ModelAgent, error)
+		// 模型代理标签列表
+		TagList(ctx context.Context) ([]string, error)
 		// 模型代理批量操作
 		BatchOperate(ctx context.Context, params model.ModelAgentBatchOperateReq) error
 		// 模型代理名称是否存在

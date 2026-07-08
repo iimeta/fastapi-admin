@@ -18,6 +18,7 @@ type IModelAgentV1 interface {
 	Detail(ctx context.Context, req *v1.DetailReq) (res *v1.DetailRes, err error)
 	Page(ctx context.Context, req *v1.PageReq) (res *v1.PageRes, err error)
 	List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error)
+	TagList(ctx context.Context, req *v1.TagListReq) (res *v1.TagListRes, err error)
 	BatchOperate(ctx context.Context, req *v1.BatchOperateReq) (res *v1.BatchOperateRes, err error)
 	QuickFillModel(ctx context.Context, req *v1.QuickFillModelReq) (res *v1.QuickFillModelRes, err error)
 	TestModel(ctx context.Context, req *v1.TestModelReq) (res *v1.TestModelRes, err error)
