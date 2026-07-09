@@ -591,9 +591,11 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			break
 		}
 
-		// 仅异步: 轮询时钟到点, 上游任务可能仍在进行, 置回queued并保留job_id, 交由下一轮cron凭job_id续轮询, 避免重新提交导致上游重复出图
-		if config.Cfg.ImageTask.SubmitMode == 2 && errCode == "timeout" {
-			logger.Infof(ctx, "sTaskImage processImageTask task: %s async poll timeout, requeue to resume next round", taskImage.Id)
+		// 仅异步 & 接口异常型超时(retrieve_error, B类): 上游接口异常但任务大概率仍在进行, 置回queued并保留job_id,
+		// 交由下一轮cron凭job_id续轮询, 避免重新提交导致上游重复出图与重复计费
+		// 注意: 上游任务一直进行直到超过配置窗口的正常超时(errCode=="timeout", A类)不在此拦截, 继续往下走原有的"清job_id重新提交"重试逻辑
+		if config.Cfg.ImageTask.SubmitMode == 2 && errCode == "retrieve_error" {
+			logger.Infof(ctx, "sTaskImage processImageTask task: %s async upstream api abnormal, requeue to resume next round", taskImage.Id)
 			s.requeueTask(ctx, taskImage.Id)
 			return
 		}
@@ -1113,8 +1115,11 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 	// 轮询上游任务状态, 直到完成或超时
 	job, errCode, err := s.pollImageJob(ctx, logImage, jobId, timeout)
 	if err != nil {
-		// timeout时上游任务可能仍在进行, 保留句柄交由上层置回queued续轮询; 其余(上游已失败/过期/删除)清空句柄, 由重试重新提交
-		if errCode != "timeout" {
+		// 区分两类超时:
+		//   retrieve_error(B类): 上游接口异常型超时(网络波动/请求被截断), 上游任务大概率仍在进行 → 保留job_id, 由上层置回queued续轮询, 不重新提交
+		//   timeout(A类): 上游任务一直在进行直到超过配置窗口 → 清空job_id, 放弃旧任务, 由重试逻辑重新提交(原有语义)
+		//   其余(async_failed/expired/deleted/unknown 等明确终态或异常): 清空job_id, 由重试重新提交
+		if errCode != "retrieve_error" {
 			taskImage.JobId = ""
 		}
 		return response, errCode, err
@@ -1235,6 +1240,11 @@ func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage
 	// 连续失败(retrieve报错或未知状态)计数; 一旦识别到明确的运行中状态即清零, 仅"连续"异常才判死
 	consecutiveFailures := 0
 
+	// 记录最近一次轮询是否为"上游成功返回且仍在进行中", 用于在轮询窗口耗尽(ctx到点)时区分两类超时:
+	//   true  → 上游任务确实一直在进行, 只是超过了配置窗口 → 返回timeout, 由上层放弃旧任务重新提交(原有语义)
+	//   false → 最近一次是retrieve报错/未知状态(接口异常) → 返回retrieve_error, 由上层保留job_id续轮询, 避免误伤仍在进行的任务
+	lastPollInProgress := false
+
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
@@ -1243,9 +1253,11 @@ func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage
 		job, err := s.retrieveImageJob(ctx, logImage, imageId, timeout)
 		if err != nil {
 
-			// ctx到点属于轮询窗口正常耗尽, 上游可能仍在进行, 返回timeout交由上层保留job_id续轮询
+			lastPollInProgress = false
+
+			// retrieve报错且ctx已到点: 属于"接口异常型超时"(请求被窗口截断/网络不通), 上游任务可能仍在进行, 返回retrieve_error保留job_id续轮询
 			if ctx.Err() != nil {
-				return jobResponse, "timeout", ctx.Err()
+				return jobResponse, "retrieve_error", err
 			}
 
 			// 非ctx原因的retrieve报错(上游5xx/网络不通/404等)累计连续失败, 超阈值判定上游不可用
@@ -1266,10 +1278,12 @@ func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage
 				}
 				return job, "async_" + job.Status, errors.New(message)
 			case "queued", "in_progress":
-				// 明确的运行中状态, 继续轮询并清零连续失败计数
+				// 明确的运行中状态, 继续轮询并清零连续失败计数; 标记本次为"进行中", 供窗口耗尽时判定为A类正常超时
 				consecutiveFailures = 0
+				lastPollInProgress = true
 			default:
 				// 未知状态: 既非运行中也非已知终态, 累计连续失败, 超阈值判定上游异常
+				lastPollInProgress = false
 				logger.Errorf(ctx, "sTaskImage pollImageJob imageId: %s, unknown status: %s", imageId, job.Status)
 				if consecutiveFailures++; consecutiveFailures > retryCount {
 					message := "unknown status: " + job.Status
@@ -1283,7 +1297,13 @@ func (s *sTaskImage) pollImageJob(ctx context.Context, logImage *entity.LogImage
 
 		select {
 		case <-ctx.Done():
-			return jobResponse, "timeout", ctx.Err()
+			// 轮询窗口耗尽: 依据最近一次轮询性质区分超时类型
+			//   上游确实仍在进行 → timeout(A类: 任务进行中的正常超时, 上层放弃旧任务重新提交)
+			//   最近一次是接口异常 → retrieve_error(B类: 保留job_id续轮询)
+			if lastPollInProgress {
+				return jobResponse, "timeout", ctx.Err()
+			}
+			return jobResponse, "retrieve_error", ctx.Err()
 		case <-ticker.C:
 		}
 	}
