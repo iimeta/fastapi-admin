@@ -59,12 +59,17 @@ type ImageData struct {
 }
 
 type ModelStat struct {
-	ModelId        string  `bson:"model_id,omitempty"        json:"model_id,omitempty"`        // 模型ID
-	Model          string  `bson:"model,omitempty"           json:"model,omitempty"`           // 模型
-	Total          int     `bson:"total,omitempty"           json:"total,omitempty"`           // 总数
-	Tokens         float64 `bson:"tokens,omitempty"          json:"tokens,omitempty"`          // 令牌数
-	Abnormal       int     `bson:"abnormal,omitempty"        json:"abnormal,omitempty"`        // 异常数
-	AbnormalTokens float64 `bson:"abnormal_tokens,omitempty" json:"abnormal_tokens,omitempty"` // 异常令牌数
+	ModelId          string  `bson:"model_id,omitempty"           json:"model_id,omitempty"`           // 模型ID
+	Model            string  `bson:"model,omitempty"              json:"model,omitempty"`              // 模型
+	Total            int     `bson:"total,omitempty"              json:"total,omitempty"`              // 总数
+	Tokens           float64 `bson:"tokens,omitempty"             json:"tokens,omitempty"`             // 令牌数
+	Abnormal         int     `bson:"abnormal,omitempty"           json:"abnormal,omitempty"`           // 异常数
+	AbnormalTokens   float64 `bson:"abnormal_tokens,omitempty"    json:"abnormal_tokens,omitempty"`    // 异常令牌数
+	InputTokens      int64   `bson:"input_tokens,omitempty"       json:"input_tokens,omitempty"`       // 输入Token数
+	OutputTokens     int64   `bson:"output_tokens,omitempty"      json:"output_tokens,omitempty"`      // 输出Token数
+	ReasoningTokens  int64   `bson:"reasoning_tokens,omitempty"   json:"reasoning_tokens,omitempty"`   // 思考Token数
+	CacheReadTokens  int64   `bson:"cache_read_tokens,omitempty"  json:"cache_read_tokens,omitempty"`  // 缓存读取Token数
+	CacheWriteTokens int64   `bson:"cache_write_tokens,omitempty" json:"cache_write_tokens,omitempty"` // 缓存写入Token数
 }
 
 type Carousel struct {

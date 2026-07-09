@@ -78,7 +78,7 @@ func RecordSpend(ctx context.Context, userId, appId int, appKey string, rid int,
 
 		if err = mongoSpendQuota(ctx, func() error {
 
-			if err := dao.Reseller.UpdateOne(ctx, bson.M{"user_id": userId}, bson.M{
+			if err := dao.Reseller.UpdateOne(ctx, bson.M{"user_id": rid}, bson.M{
 				"$inc": bson.M{
 					"quota":      -totalSpendTokens,
 					"used_quota": totalSpendTokens,

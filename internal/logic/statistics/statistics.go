@@ -152,11 +152,16 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 	pipeline := []bson.M{
 		{"$match": match},
 		{"$group": bson.M{
-			"_id":      nil,
-			"total":    bson.M{"$sum": "$total"},
-			"tokens":   bson.M{"$sum": "$tokens"},
-			"abnormal": bson.M{"$sum": "$abnormal"},
-			"users":    bson.M{"$addToSet": "$user_id"},
+			"_id":                nil,
+			"total":              bson.M{"$sum": "$total"},
+			"tokens":             bson.M{"$sum": "$tokens"},
+			"abnormal":           bson.M{"$sum": "$abnormal"},
+			"input_tokens":       bson.M{"$sum": "$input_tokens"},
+			"output_tokens":      bson.M{"$sum": "$output_tokens"},
+			"reasoning_tokens":   bson.M{"$sum": "$reasoning_tokens"},
+			"cache_read_tokens":  bson.M{"$sum": "$cache_read_tokens"},
+			"cache_write_tokens": bson.M{"$sum": "$cache_write_tokens"},
+			"users":              bson.M{"$addToSet": "$user_id"},
 		}},
 	}
 
@@ -167,11 +172,16 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 			{"$unwind": "$model_stats"},
 			{"$match": bson.M{"model_stats.model": bson.M{"$in": resolvedModels}}},
 			{"$group": bson.M{
-				"_id":      nil,
-				"total":    bson.M{"$sum": "$model_stats.total"},
-				"tokens":   bson.M{"$sum": "$model_stats.tokens"},
-				"abnormal": bson.M{"$sum": "$model_stats.abnormal"},
-				"users":    bson.M{"$addToSet": "$user_id"},
+				"_id":                nil,
+				"total":              bson.M{"$sum": "$model_stats.total"},
+				"tokens":             bson.M{"$sum": "$model_stats.tokens"},
+				"abnormal":           bson.M{"$sum": "$model_stats.abnormal"},
+				"input_tokens":       bson.M{"$sum": "$model_stats.input_tokens"},
+				"output_tokens":      bson.M{"$sum": "$model_stats.output_tokens"},
+				"reasoning_tokens":   bson.M{"$sum": "$model_stats.reasoning_tokens"},
+				"cache_read_tokens":  bson.M{"$sum": "$model_stats.cache_read_tokens"},
+				"cache_write_tokens": bson.M{"$sum": "$model_stats.cache_write_tokens"},
+				"users":              bson.M{"$addToSet": "$user_id"},
 			}},
 		}
 	}
@@ -195,6 +205,11 @@ func (s *sStatistics) DataSummary(ctx context.Context, params model.StatisticsSu
 		res.Tokens = common.ConvQuotaUnitReverse(gconv.Int(result[0]["tokens"]))
 		res.Abnormal = gconv.Int(result[0]["abnormal"])
 		res.ActiveUsers = len(gconv.SliceAny(result[0]["users"]))
+		res.InputTokens = gconv.Int64(result[0]["input_tokens"])
+		res.OutputTokens = gconv.Int64(result[0]["output_tokens"])
+		res.ReasoningTokens = gconv.Int64(result[0]["reasoning_tokens"])
+		res.CacheReadTokens = gconv.Int64(result[0]["cache_read_tokens"])
+		res.CacheWriteTokens = gconv.Int64(result[0]["cache_write_tokens"])
 		if res.Total > 0 {
 			res.AbnormalRate = float64(res.Abnormal) / float64(res.Total) * 100
 		}

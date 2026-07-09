@@ -114,7 +114,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"updated_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "model_id", "model", "spend.total_spend_tokens", "req_date", "status", "rid", "creator", "updated_at"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "model_id", "model", "spend", "req_date", "status", "rid", "creator", "updated_at"},
 	}
 
 	results, err := dao.NewMongoDB[entity.StatisticsData](db.DefaultDatabase, collection).FindByPage(ctx, &db.Paging{Page: 1, PageSize: config.Cfg.Statistics.Limit}, filter, findOptions)
@@ -138,6 +138,8 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 
 		lastTime = result.UpdatedAt
 		lastId = result.Id
+
+		tokenStat := spendTokenStat(result.Spend)
 
 		if userMap[result.ReqDate] == nil {
 			userMap[result.ReqDate] = make(map[int]*entity.StatisticsUser)
@@ -178,8 +180,18 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 
 		user.Total += 1
 		user.Tokens += int(result.Spend.TotalSpendTokens)
+		user.InputTokens += tokenStat.InputTokens
+		user.OutputTokens += tokenStat.OutputTokens
+		user.ReasoningTokens += tokenStat.ReasoningTokens
+		user.CacheReadTokens += tokenStat.CacheReadTokens
+		user.CacheWriteTokens += tokenStat.CacheWriteTokens
 		userModelStat.Total += 1
 		userModelStat.Tokens += result.Spend.TotalSpendTokens
+		userModelStat.InputTokens += tokenStat.InputTokens
+		userModelStat.OutputTokens += tokenStat.OutputTokens
+		userModelStat.ReasoningTokens += tokenStat.ReasoningTokens
+		userModelStat.CacheReadTokens += tokenStat.CacheReadTokens
+		userModelStat.CacheWriteTokens += tokenStat.CacheWriteTokens
 
 		if result.Status != 1 {
 			user.Abnormal += 1
@@ -228,8 +240,18 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 
 		app.Total += 1
 		app.Tokens += int(result.Spend.TotalSpendTokens)
+		app.InputTokens += tokenStat.InputTokens
+		app.OutputTokens += tokenStat.OutputTokens
+		app.ReasoningTokens += tokenStat.ReasoningTokens
+		app.CacheReadTokens += tokenStat.CacheReadTokens
+		app.CacheWriteTokens += tokenStat.CacheWriteTokens
 		appModelStat.Total += 1
 		appModelStat.Tokens += result.Spend.TotalSpendTokens
+		appModelStat.InputTokens += tokenStat.InputTokens
+		appModelStat.OutputTokens += tokenStat.OutputTokens
+		appModelStat.ReasoningTokens += tokenStat.ReasoningTokens
+		appModelStat.CacheReadTokens += tokenStat.CacheReadTokens
+		appModelStat.CacheWriteTokens += tokenStat.CacheWriteTokens
 
 		if result.Status != 1 {
 			app.Abnormal += 1
@@ -279,8 +301,18 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 
 		appKey.Total += 1
 		appKey.Tokens += int(result.Spend.TotalSpendTokens)
+		appKey.InputTokens += tokenStat.InputTokens
+		appKey.OutputTokens += tokenStat.OutputTokens
+		appKey.ReasoningTokens += tokenStat.ReasoningTokens
+		appKey.CacheReadTokens += tokenStat.CacheReadTokens
+		appKey.CacheWriteTokens += tokenStat.CacheWriteTokens
 		appKeyModelStat.Total += 1
 		appKeyModelStat.Tokens += result.Spend.TotalSpendTokens
+		appKeyModelStat.InputTokens += tokenStat.InputTokens
+		appKeyModelStat.OutputTokens += tokenStat.OutputTokens
+		appKeyModelStat.ReasoningTokens += tokenStat.ReasoningTokens
+		appKeyModelStat.CacheReadTokens += tokenStat.CacheReadTokens
+		appKeyModelStat.CacheWriteTokens += tokenStat.CacheWriteTokens
 
 		if result.Status != 1 {
 			appKey.Abnormal += 1
@@ -299,17 +331,22 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			}
 
 			statisticsUser := &do.StatisticsUser{
-				UserId:         user.UserId,
-				StatDate:       user.StatDate,
-				StatTime:       user.StatTime,
-				Total:          user.Total,
-				Tokens:         user.Tokens,
-				Abnormal:       user.Abnormal,
-				AbnormalTokens: user.AbnormalTokens,
-				ModelStats:     modelStats,
-				Rid:            user.Rid,
-				Creator:        user.Creator,
-				CreatedAt:      user.CreatedAt,
+				UserId:           user.UserId,
+				StatDate:         user.StatDate,
+				StatTime:         user.StatTime,
+				Total:            user.Total,
+				Tokens:           user.Tokens,
+				Abnormal:         user.Abnormal,
+				AbnormalTokens:   user.AbnormalTokens,
+				InputTokens:      user.InputTokens,
+				OutputTokens:     user.OutputTokens,
+				ReasoningTokens:  user.ReasoningTokens,
+				CacheReadTokens:  user.CacheReadTokens,
+				CacheWriteTokens: user.CacheWriteTokens,
+				ModelStats:       modelStats,
+				Rid:              user.Rid,
+				Creator:          user.Creator,
+				CreatedAt:        user.CreatedAt,
 			}
 
 			if user.Id != "" {
@@ -333,18 +370,23 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			}
 
 			statisticsApp := &do.StatisticsApp{
-				UserId:         app.UserId,
-				AppId:          app.AppId,
-				StatDate:       app.StatDate,
-				StatTime:       app.StatTime,
-				Total:          app.Total,
-				Tokens:         app.Tokens,
-				Abnormal:       app.Abnormal,
-				AbnormalTokens: app.AbnormalTokens,
-				ModelStats:     modelStats,
-				Rid:            app.Rid,
-				Creator:        app.Creator,
-				CreatedAt:      app.CreatedAt,
+				UserId:           app.UserId,
+				AppId:            app.AppId,
+				StatDate:         app.StatDate,
+				StatTime:         app.StatTime,
+				Total:            app.Total,
+				Tokens:           app.Tokens,
+				Abnormal:         app.Abnormal,
+				AbnormalTokens:   app.AbnormalTokens,
+				InputTokens:      app.InputTokens,
+				OutputTokens:     app.OutputTokens,
+				ReasoningTokens:  app.ReasoningTokens,
+				CacheReadTokens:  app.CacheReadTokens,
+				CacheWriteTokens: app.CacheWriteTokens,
+				ModelStats:       modelStats,
+				Rid:              app.Rid,
+				Creator:          app.Creator,
+				CreatedAt:        app.CreatedAt,
 			}
 
 			if app.Id != "" {
@@ -368,19 +410,24 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			}
 
 			statisticsAppKey := &do.StatisticsAppKey{
-				UserId:         appKey.UserId,
-				AppId:          appKey.AppId,
-				AppKey:         appKey.AppKey,
-				StatDate:       appKey.StatDate,
-				StatTime:       appKey.StatTime,
-				Total:          appKey.Total,
-				Tokens:         appKey.Tokens,
-				Abnormal:       appKey.Abnormal,
-				AbnormalTokens: appKey.AbnormalTokens,
-				ModelStats:     modelStats,
-				Rid:            appKey.Rid,
-				Creator:        appKey.Creator,
-				CreatedAt:      appKey.CreatedAt,
+				UserId:           appKey.UserId,
+				AppId:            appKey.AppId,
+				AppKey:           appKey.AppKey,
+				StatDate:         appKey.StatDate,
+				StatTime:         appKey.StatTime,
+				Total:            appKey.Total,
+				Tokens:           appKey.Tokens,
+				Abnormal:         appKey.Abnormal,
+				AbnormalTokens:   appKey.AbnormalTokens,
+				InputTokens:      appKey.InputTokens,
+				OutputTokens:     appKey.OutputTokens,
+				ReasoningTokens:  appKey.ReasoningTokens,
+				CacheReadTokens:  appKey.CacheReadTokens,
+				CacheWriteTokens: appKey.CacheWriteTokens,
+				ModelStats:       modelStats,
+				Rid:              appKey.Rid,
+				Creator:          appKey.Creator,
+				CreatedAt:        appKey.CreatedAt,
 			}
 
 			if appKey.Id != "" {
@@ -424,4 +471,83 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 	if int64(len(results)) == config.Cfg.Statistics.Limit {
 		s.StatisticsData(ctx, collection, index, lastTimeKey, lastIdKey)
 	}
+}
+
+// 计费项 token 用量分类汇总
+type tokenStat struct {
+	InputTokens      int64 // 输入Token数
+	OutputTokens     int64 // 输出Token数
+	ReasoningTokens  int64 // 思考Token数
+	CacheReadTokens  int64 // 缓存读取Token数
+	CacheWriteTokens int64 // 缓存写入Token数
+}
+
+// 将各计费项的 token 用量按同类合并归集
+func spendTokenStat(spend common.Spend) tokenStat {
+
+	var stat tokenStat
+
+	if spend.Text != nil {
+		stat.InputTokens += int64(spend.Text.InputTokens)
+		stat.OutputTokens += int64(spend.Text.OutputTokens)
+		stat.ReasoningTokens += int64(spend.Text.ReasoningTokens)
+	}
+
+	if spend.TieredText != nil {
+		stat.InputTokens += int64(spend.TieredText.InputTokens)
+		stat.OutputTokens += int64(spend.TieredText.OutputTokens)
+		stat.ReasoningTokens += int64(spend.TieredText.ReasoningTokens)
+	}
+
+	if spend.Image != nil {
+		stat.InputTokens += int64(spend.Image.InputTokens)
+		stat.OutputTokens += int64(spend.Image.OutputTokens)
+	}
+
+	if spend.Audio != nil {
+		stat.InputTokens += int64(spend.Audio.InputTokens)
+		stat.OutputTokens += int64(spend.Audio.OutputTokens)
+	}
+
+	if spend.Video != nil {
+		stat.InputTokens += int64(spend.Video.InputTokens)
+		stat.OutputTokens += int64(spend.Video.OutputTokens)
+	}
+
+	if spend.VideoGeneration != nil {
+		stat.InputTokens += int64(spend.VideoGeneration.InputTokens)
+	}
+
+	if spend.Once != nil {
+		stat.InputTokens += int64(spend.Once.InputTokens)
+		stat.OutputTokens += int64(spend.Once.OutputTokens)
+	}
+
+	stat.CacheReadTokens += cacheReadTokens(spend.TextCache)
+	stat.CacheWriteTokens += cacheWriteTokens(spend.TextCache)
+
+	stat.CacheReadTokens += cacheReadTokens(spend.TieredTextCache)
+	stat.CacheWriteTokens += cacheWriteTokens(spend.TieredTextCache)
+
+	stat.CacheReadTokens += cacheReadTokens(spend.ImageCache)
+
+	stat.CacheReadTokens += cacheReadTokens(spend.AudioCache)
+
+	return stat
+}
+
+// 取缓存读取Token数
+func cacheReadTokens(cache *common.CacheSpend) int64 {
+	if cache == nil {
+		return 0
+	}
+	return int64(cache.ReadTokens)
+}
+
+// 取缓存写入Token数(普通写入 + 5分钟写入 + 1小时写入)
+func cacheWriteTokens(cache *common.CacheSpend) int64 {
+	if cache == nil {
+		return 0
+	}
+	return int64(cache.WriteTokens) + int64(cache.Write5MTokens) + int64(cache.Write1HTokens)
 }

@@ -57,6 +57,11 @@ type StatisticsSummaryRes struct {
 	AbnormalRate     float64 `json:"abnormal_rate"`      // 异常率
 	ActiveUsers      int     `json:"active_users"`       // 活跃用户数
 	ActiveApps       int     `json:"active_apps"`        // 活跃应用数
+	InputTokens      int64   `json:"input_tokens"`       // 输入Token数
+	OutputTokens     int64   `json:"output_tokens"`      // 输出Token数
+	ReasoningTokens  int64   `json:"reasoning_tokens"`   // 思考Token数
+	CacheReadTokens  int64   `json:"cache_read_tokens"`  // 缓存读取Token数
+	CacheWriteTokens int64   `json:"cache_write_tokens"` // 缓存写入Token数
 	PrevTotal        int     `json:"prev_total"`         // 上一周期总调用数
 	PrevTokens       float64 `json:"prev_tokens"`        // 上一周期总令牌数
 	PrevAbnormal     int     `json:"prev_abnormal"`      // 上一周期异常数
