@@ -284,7 +284,7 @@ func (s *sTaskImage) CopyField(ctx context.Context, params model.TaskImageCopyFi
 // 绘图任务重新生成
 func (s *sTaskImage) Regenerate(ctx context.Context, id string) error {
 
-	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
+	taskImage, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
 		"_id": id,
 		"status": bson.M{
 			"$in": []string{"in_progress", "failed"},
@@ -293,7 +293,8 @@ func (s *sTaskImage) Regenerate(ctx context.Context, id string) error {
 		"status":   "queued",
 		"progress": 0,
 		"error":    nil,
-	}); err != nil {
+	})
+	if err != nil {
 
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return errors.New("任务不在进行中或已失败状态, 无法重新生成")
@@ -301,6 +302,16 @@ func (s *sTaskImage) Regenerate(ctx context.Context, id string) error {
 
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if taskImage != nil && taskImage.TraceId != "" {
+		if err = dao.LogImage.UpdateOne(ctx, bson.M{"trace_id": taskImage.TraceId}, bson.M{
+			"status":  1,
+			"err_msg": "",
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
 	}
 
 	return nil
@@ -441,7 +452,7 @@ func (s *sTaskImage) Task(ctx context.Context) {
 
 func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.TaskImage) {
 
-	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1}}})
+	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1, -1}}})
 	if err != nil {
 
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -453,6 +464,12 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 
 		logger.Error(ctx, err)
 		s.failTask(ctx, taskImage.Id, "log_not_found", err.Error())
+		return
+	}
+
+	if logImage.Status == -1 {
+		logger.Infof(ctx, "sTaskImage processImageTask task: %s log_image status is failed, mark task failed directly", taskImage.Id)
+		s.failTask(ctx, taskImage.Id, "log_failed", logImage.ErrMsg, logImage.Id)
 		return
 	}
 
