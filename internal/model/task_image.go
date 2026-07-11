@@ -64,6 +64,7 @@ type TaskImage struct {
 	Prompt         string             `json:"prompt,omitempty"`           // 提示
 	Progress       int                `json:"progress,omitempty"`         // 进度
 	Status         string             `json:"status,omitempty"`           // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
+	TotalTime      int64              `json:"total_time,omitempty"`       // 总耗时
 	CompletedAt    string             `json:"completed_at,omitempty"`     // 完成时间
 	ExpiresAt      string             `json:"expires_at,omitempty"`       // 过期时间
 	ImageUrl       string             `json:"image_url,omitempty"`        // 图像地址

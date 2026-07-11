@@ -243,6 +243,10 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 			}
 		}
 
+		if service.Session().IsAdminRole(ctx) {
+			image.TotalTime = taskImageTotalTime(result)
+		}
+
 		items = append(items, image)
 	}
 
@@ -1797,4 +1801,27 @@ func decodeDataURI(dataURI string) ([]byte, error) {
 	}
 
 	return []byte(decoded), nil
+}
+
+func taskImageTotalTime(result *entity.TaskImage) int64 {
+
+	if result.CreatedAt <= 0 {
+		return 0
+	}
+
+	var end int64
+	switch result.Status {
+	case "completed", "expired", "deleted":
+		end = result.CompletedAt * 1000
+	case "failed":
+		end = result.UpdatedAt
+	default: // queued, in_progress
+		return 0
+	}
+
+	if end <= 0 {
+		return 0
+	}
+
+	return end - result.CreatedAt
 }
