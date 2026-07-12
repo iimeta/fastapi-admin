@@ -10,15 +10,16 @@ type TaskImageDetailRes struct {
 // 绘图任务分页列表接口请求参数
 type TaskImagePageReq struct {
 	Paging
-	UserId    int      `json:"user_id,omitempty"`    // 用户ID
-	AppId     int      `json:"app_id,omitempty"`     // 应用ID
-	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
-	ImageId   string   `json:"image_id,omitempty"`   // 图像ID
-	ImageUrl  string   `json:"image_url,omitempty"`  // 图像地址
-	Prompt    string   `json:"prompt,omitempty"`     // 提示词
-	Quality   string   `json:"quality,omitempty"`    // 质量
-	Status    string   `json:"status,omitempty"`     // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
-	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
+	UserId      int      `json:"user_id,omitempty"`      // 用户ID
+	AppId       int      `json:"app_id,omitempty"`       // 应用ID
+	TraceId     string   `json:"trace_id,omitempty"`     // 日志ID
+	ImageId     string   `json:"image_id,omitempty"`     // 图像ID
+	ImageUrl    string   `json:"image_url,omitempty"`    // 图像地址
+	Prompt      string   `json:"prompt,omitempty"`       // 提示词
+	Quality     string   `json:"quality,omitempty"`      // 质量
+	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
+	Status      string   `json:"status,omitempty"`       // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
+	CreatedAt   []string `json:"created_at,omitempty"`   // 创建时间
 }
 
 // 绘图任务分页列表接口响应参数

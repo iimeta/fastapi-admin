@@ -190,6 +190,10 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 		filter["quality"] = gstr.Trim(params.Quality)
 	}
 
+	if service.Session().IsAdminRole(ctx) && len(params.ModelAgents) > 0 {
+		filter["model_agent_id"] = bson.M{"$in": params.ModelAgents}
+	}
+
 	if params.Status != "" {
 		filter["status"] = params.Status
 	} else if !service.Session().IsAdminRole(ctx) {
