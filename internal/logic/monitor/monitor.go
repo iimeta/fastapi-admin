@@ -64,9 +64,22 @@ func (s *sMonitor) Global(ctx context.Context, params model.MonitorGlobalReq) (*
 	secPipeline := []bson.M{
 		{"$match": secMatch},
 		{"$group": bson.M{
-			"_id":          nil,
-			"count":        bson.M{"$sum": 1},
-			"total_tokens": bson.M{"$sum": bson.M{"$add": bson.A{"$spend.text.input_tokens", "$spend.text.output_tokens"}}},
+			"_id":   nil,
+			"count": bson.M{"$sum": 1},
+			"total_tokens": bson.M{"$sum": bson.M{
+				"$add": bson.A{
+					bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
+				},
+			}},
 		}},
 	}
 
@@ -88,9 +101,22 @@ func (s *sMonitor) Global(ctx context.Context, params model.MonitorGlobalReq) (*
 	minPipeline := []bson.M{
 		{"$match": minMatch},
 		{"$group": bson.M{
-			"_id":          nil,
-			"count":        bson.M{"$sum": 1},
-			"total_tokens": bson.M{"$sum": bson.M{"$add": bson.A{"$spend.text.input_tokens", "$spend.text.output_tokens"}}},
+			"_id":   nil,
+			"count": bson.M{"$sum": 1},
+			"total_tokens": bson.M{"$sum": bson.M{
+				"$add": bson.A{
+					bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
+				},
+			}},
 		}},
 	}
 
@@ -141,9 +167,22 @@ func (s *sMonitor) PerfBreakdown(ctx context.Context, params model.MonitorPerfBr
 	secPipeline := []bson.M{
 		{"$match": secMatch},
 		{"$group": bson.M{
-			"_id":            dimField,
-			"count":          bson.M{"$sum": 1},
-			"total_tokens":   bson.M{"$sum": bson.M{"$add": bson.A{"$spend.text.input_tokens", "$spend.text.output_tokens"}}},
+			"_id":   dimField,
+			"count": bson.M{"$sum": 1},
+			"total_tokens": bson.M{"$sum": bson.M{
+				"$add": bson.A{
+					bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
+				},
+			}},
 			"avg_total_time": bson.M{"$avg": "$total_time"},
 			"avg_conn_time":  bson.M{"$avg": "$conn_time"},
 			"avg_duration":   bson.M{"$avg": "$duration"},
@@ -367,8 +406,21 @@ func (s *sMonitor) PerfHistory(ctx context.Context, params model.MonitorPerfHist
 				"bucket": bucketExpr,
 				"dim":    dimField,
 			},
-			"count":          bson.M{"$sum": 1},
-			"total_tokens":   bson.M{"$sum": bson.M{"$add": bson.A{"$spend.text.input_tokens", "$spend.text.output_tokens"}}},
+			"count": bson.M{"$sum": 1},
+			"total_tokens": bson.M{"$sum": bson.M{
+				"$add": bson.A{
+					bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
+					bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
+				},
+			}},
 			"avg_total_time": bson.M{"$avg": "$total_time"},
 			"avg_conn_time":  bson.M{"$avg": "$conn_time"},
 			"avg_duration":   bson.M{"$avg": "$duration"},
