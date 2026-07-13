@@ -274,7 +274,7 @@ func (s *sProvider) List(ctx context.Context, params model.ProviderListReq) ([]*
 		"status": 1,
 	}
 
-	if service.Session().IsUserRole(ctx) {
+	if !service.Session().IsAdminRole(ctx) {
 		filter["is_public"] = true
 	}
 
