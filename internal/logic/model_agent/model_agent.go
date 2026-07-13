@@ -874,6 +874,8 @@ func (s *sModelAgent) List(ctx context.Context, params model.ModelAgentListReq) 
 			Id:         result.Id,
 			ProviderId: result.ProviderId,
 			Name:       result.Name,
+			Tags:       result.Tags,
+			Remark:     result.Remark,
 			Status:     result.Status,
 		})
 	}
