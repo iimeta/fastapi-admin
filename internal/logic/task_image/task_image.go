@@ -460,24 +460,39 @@ func (s *sTaskImage) Task(ctx context.Context) {
 
 func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.TaskImage) {
 
-	logImage, err := dao.LogImage.FindOne(ctx, bson.M{"trace_id": taskImage.TraceId, "status": bson.M{"$in": []int{1, -1}}})
+	logImages, err := dao.LogImage.Find(ctx, bson.M{
+		"trace_id": taskImage.TraceId,
+		"action":   bson.M{"$in": []string{"generations", "edits"}},
+		"status":   bson.M{"$in": []int{1, -1}},
+	}, &dao.FindOptions{SortFields: []string{"-created_at"}})
 	if err != nil {
-
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "queued", "error": nil}); err != nil {
-				logger.Error(ctx, err)
-			}
-			return
-		}
-
 		logger.Error(ctx, err)
 		s.failTask(ctx, taskImage.Id, "log_not_found", err.Error())
 		return
 	}
 
+	// 择优: 有成功日志则优先取最新的成功日志(即下游重试后最新可用代理), 一条成功都没有才取最新的失败日志
+	logImage := pickBestLogImage(logImages)
+
+	// 暂无可用日志(提交日志尚未落库, 与 TaskImage 插入存在极短时间窗)则置回排队, 下一轮再处理
+	if logImage == nil {
+		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "queued", "error": nil}); err != nil {
+			logger.Error(ctx, err)
+		}
+		return
+	}
+
+	// 没有任何成功日志, 全是失败: 直接判失败
 	if logImage.Status == -1 {
-		logger.Infof(ctx, "sTaskImage processImageTask task: %s log_image status is failed, mark task failed directly", taskImage.Id)
+		logger.Infof(ctx, "sTaskImage processImageTask task: %s all log_image failed, mark task failed directly", taskImage.Id)
 		s.failTask(ctx, taskImage.Id, "log_failed", logImage.ErrMsg, logImage.Id)
+		return
+	}
+
+	// 成功日志理论上必带代理, 兜底防空指针
+	if logImage.ModelAgent == nil {
+		logger.Errorf(ctx, "sTaskImage processImageTask task: %s log_image: %s has no model_agent", taskImage.Id, logImage.Id)
+		s.failTask(ctx, taskImage.Id, "model_agent_not_found", "log_image has no model_agent", logImage.Id)
 		return
 	}
 
@@ -1828,4 +1843,39 @@ func taskImageTotalTime(result *entity.TaskImage) int64 {
 	}
 
 	return end - result.CreatedAt
+}
+
+// 从同一 trace_id 的多条绘图日志中择优选出一条
+// 优先级: 成功(1) > 失败(-1); 同状态取 created_at 最新的一条
+// 语义: 有成功日志就用最新的成功日志(下游重试后最新可用代理), 一条成功都没有才退而取最新的失败日志; 无记录返回 nil
+func pickBestLogImage(logImages []*entity.LogImage) *entity.LogImage {
+
+	var best *entity.LogImage
+
+	for _, l := range logImages {
+
+		if best == nil {
+			best = l
+			continue
+		}
+
+		pl, pb := logImageStatusPriority(l.Status), logImageStatusPriority(best.Status)
+		if pl < pb || (pl == pb && l.CreatedAt > best.CreatedAt) {
+			best = l
+		}
+	}
+
+	return best
+}
+
+// 绘图日志状态排序权重, 数值越小优先级越高: 成功 > 失败 > 其它
+func logImageStatusPriority(status int) int {
+	switch status {
+	case 1:
+		return 0
+	case -1:
+		return 1
+	default:
+		return 2
+	}
 }
