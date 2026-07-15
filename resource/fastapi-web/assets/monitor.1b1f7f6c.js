@@ -1,0 +1,1 @@
+import{c as r}from"./index.f82717e2.js";function n(o){return r.post("/api/v1/monitor/perf/breakdown",o)}function i(o){return r.post("/api/v1/monitor/perf/history",o)}function a(){return r.post("/api/v1/monitor/global")}export{n as a,i as b,a as q};
