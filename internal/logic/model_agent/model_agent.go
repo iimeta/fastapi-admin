@@ -498,16 +498,10 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	groups, err := dao.Group.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
-	if err != nil {
-		logger.Error(ctx, err)
-		return err
-	}
-
-	if len(groups) > 0 {
+	if len(modelAgent.Groups) > 0 {
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 
-			for _, group := range groups {
+			for _, group := range modelAgent.Groups {
 
 				oldData, err := dao.Group.FindById(ctx, group)
 				if err != nil {
