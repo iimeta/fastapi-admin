@@ -26,7 +26,7 @@ type RegisterReq struct {
 	Password   string `json:"password,omitempty" v:"required|min-length:6"`              // 密码
 	Terminal   string `json:"terminal,omitempty" v:"required|in:web,h5,ios,windows,mac"` // 终端
 	Channel    string `json:"channel,omitempty" v:"required|in:user,reseller,admin"`     // 渠道
-	Code       string `json:"code,omitempty" v:"required"`                               // 验证码
+	Code       string `json:"code,omitempty"`                                            // 验证码
 	Domain     string `json:"domain,omitempty"`                                          // 域名
 	Path       string `json:"path,omitempty"`                                            // 路径
 	InviteCode string `json:"invite_code,omitempty"`                                     // 邀请码

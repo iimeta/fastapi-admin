@@ -54,9 +54,24 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		channel = []string{consts.SCENE_REGISTER}
 	}
 
-	// 验证验证码是否正确
-	if !service.Common().VerifyCode(ctx, channel[0], params.Account, params.Code) {
-		return errors.New("验证码填写错误")
+	// 是否验证邮箱
+	verifyEmail := true
+	if params.Channel == consts.USER_CHANNEL {
+		verifyEmail = config.Cfg.UserLoginRegister.VerifyEmail
+	} else if params.Channel == consts.RESELLER_CHANNEL {
+		verifyEmail = config.Cfg.ResellerLoginRegister.VerifyEmail
+	}
+
+	if channel[0] == consts.SCENE_REGISTER && !verifyEmail {
+		// 未开启验证邮箱, 仅正则校验邮箱格式
+		if err := email.Verify(params.Account); err != nil {
+			return errors.New(params.Account + " 邮箱格式不正确")
+		}
+	} else {
+		// 验证验证码是否正确
+		if !service.Common().VerifyCode(ctx, channel[0], params.Account, params.Code) {
+			return errors.New("验证码填写错误")
+		}
 	}
 
 	if params.Channel == consts.USER_CHANNEL && !config.Cfg.UserLoginRegister.EmailRegister {

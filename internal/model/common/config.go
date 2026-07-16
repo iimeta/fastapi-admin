@@ -70,6 +70,7 @@ type UserLoginRegister struct {
 	AccountLogin  bool `bson:"account_login"  json:"account_login"`  // 账密登录
 	EmailLogin    bool `bson:"email_login"    json:"email_login"`    // 邮箱登录
 	EmailRegister bool `bson:"email_register" json:"email_register"` // 邮箱注册
+	VerifyEmail   bool `bson:"verify_email"   json:"verify_email"`   // 验证邮箱
 	EmailRetrieve bool `bson:"email_retrieve" json:"email_retrieve"` // 找回密码
 	SessionExpire int  `bson:"session_expire" json:"session_expire"` // 会话过期, 单位: 秒
 }
@@ -83,6 +84,7 @@ type ResellerLoginRegister struct {
 	AccountLogin  bool `bson:"account_login"  json:"account_login"`  // 账密登录
 	EmailLogin    bool `bson:"email_login"    json:"email_login"`    // 邮箱登录
 	EmailRegister bool `bson:"email_register" json:"email_register"` // 邮箱注册
+	VerifyEmail   bool `bson:"verify_email"   json:"verify_email"`   // 验证邮箱
 	EmailRetrieve bool `bson:"email_retrieve" json:"email_retrieve"` // 找回密码
 	SessionExpire int  `bson:"session_expire" json:"session_expire"` // 会话过期, 单位: 秒
 }
