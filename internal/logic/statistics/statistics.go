@@ -1917,13 +1917,13 @@ func (s *sStatistics) DataTaskStatus(ctx context.Context, params model.Statistic
 	match := bson.M{}
 	if params.StatStartTime > 0 && params.StatEndTime > 0 {
 		match["created_at"] = bson.M{
-			"$gte": gtime.NewFromTimeStamp(params.StatStartTime),
-			"$lte": gtime.NewFromTimeStamp(params.StatEndTime),
+			"$gte": params.StatStartTime,
+			"$lte": params.StatEndTime,
 		}
 	} else if params.StatStartTime > 0 {
-		match["created_at"] = bson.M{"$gte": gtime.NewFromTimeStamp(params.StatStartTime)}
+		match["created_at"] = bson.M{"$gte": params.StatStartTime}
 	} else if params.StatEndTime > 0 {
-		match["created_at"] = bson.M{"$lte": gtime.NewFromTimeStamp(params.StatEndTime)}
+		match["created_at"] = bson.M{"$lte": params.StatEndTime}
 	}
 
 	// 角色过滤
@@ -2052,13 +2052,13 @@ func (s *sStatistics) DataAgentStatus(ctx context.Context, params model.Statisti
 	timeFilter := bson.M{}
 	if params.StatStartTime > 0 && params.StatEndTime > 0 {
 		timeFilter["updated_at"] = bson.M{
-			"$gte": gtime.NewFromTimeStamp(params.StatStartTime),
-			"$lte": gtime.NewFromTimeStamp(params.StatEndTime),
+			"$gte": params.StatStartTime,
+			"$lte": params.StatEndTime,
 		}
 	} else if params.StatStartTime > 0 {
-		timeFilter["updated_at"] = bson.M{"$gte": gtime.NewFromTimeStamp(params.StatStartTime)}
+		timeFilter["updated_at"] = bson.M{"$gte": params.StatStartTime}
 	} else if params.StatEndTime > 0 {
-		timeFilter["updated_at"] = bson.M{"$lte": gtime.NewFromTimeStamp(params.StatEndTime)}
+		timeFilter["updated_at"] = bson.M{"$lte": params.StatEndTime}
 	}
 
 	activeFilter := bson.M{"status": 1}
@@ -2195,13 +2195,13 @@ func (s *sStatistics) DataKeyStatus(ctx context.Context, params model.Statistics
 	timeFilter := bson.M{}
 	if params.StatStartTime > 0 && params.StatEndTime > 0 {
 		timeFilter["updated_at"] = bson.M{
-			"$gte": gtime.NewFromTimeStamp(params.StatStartTime),
-			"$lte": gtime.NewFromTimeStamp(params.StatEndTime),
+			"$gte": params.StatStartTime,
+			"$lte": params.StatEndTime,
 		}
 	} else if params.StatStartTime > 0 {
-		timeFilter["updated_at"] = bson.M{"$gte": gtime.NewFromTimeStamp(params.StatStartTime)}
+		timeFilter["updated_at"] = bson.M{"$gte": params.StatStartTime}
 	} else if params.StatEndTime > 0 {
-		timeFilter["updated_at"] = bson.M{"$lte": gtime.NewFromTimeStamp(params.StatEndTime)}
+		timeFilter["updated_at"] = bson.M{"$lte": params.StatEndTime}
 	}
 
 	// 应用密钥筛选(用户和代理商使用)
