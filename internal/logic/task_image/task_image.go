@@ -94,13 +94,13 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 		UpdatedAt:      util.FormatDateTime(taskImage.UpdatedAt),
 	}
 
-	if config.Cfg.ImageTask.IsEnableStorage && taskImage.ImageUrl != "" {
-		detail.ImageUrl = buildStorageUrl(taskImage.ImageUrl)
+	if taskImage.ImageUrl != "" {
+		detail.ImageUrl = resolveImageUrl(taskImage.ImageUrl)
 	}
 
-	if config.Cfg.ImageTask.IsEnableStorage && len(taskImage.ImageUrls) > 0 {
+	if len(taskImage.ImageUrls) > 0 {
 		for _, u := range taskImage.ImageUrls {
-			detail.ImageUrls = append(detail.ImageUrls, buildStorageUrl(u))
+			detail.ImageUrls = append(detail.ImageUrls, resolveImageUrl(u))
 		}
 	}
 
@@ -237,13 +237,13 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
 		}
 
-		if config.Cfg.ImageTask.IsEnableStorage && result.ImageUrl != "" {
-			image.ImageUrl = buildStorageUrl(result.ImageUrl)
+		if result.ImageUrl != "" {
+			image.ImageUrl = resolveImageUrl(result.ImageUrl)
 		}
 
-		if config.Cfg.ImageTask.IsEnableStorage && len(result.ImageUrls) > 0 {
+		if len(result.ImageUrls) > 0 {
 			for _, u := range result.ImageUrls {
-				image.ImageUrls = append(image.ImageUrls, buildStorageUrl(u))
+				image.ImageUrls = append(image.ImageUrls, resolveImageUrl(u))
 			}
 		}
 
@@ -684,8 +684,46 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	completedAt := gtime.TimestampMilli() / 1000
 	var expiresAt int64
 
-	if len(imageUrls) > 0 && config.Cfg.ImageTask.StorageExpiresAt > 0 {
-		expiresAt = gtime.NewFromTimeStamp(completedAt).Add(config.Cfg.ImageTask.StorageExpiresAt * time.Minute).Unix()
+	if config.Cfg.ImageTask.IsEnableStorage {
+		// 开启转储: 图片已落本地, 过期时间按本地配置(StorageExpiresAt)计算
+		if len(imageUrls) > 0 && config.Cfg.ImageTask.StorageExpiresAt > 0 {
+			expiresAt = gtime.NewFromTimeStamp(completedAt).Add(config.Cfg.ImageTask.StorageExpiresAt * time.Minute).Unix()
+		}
+	} else if config.Cfg.ImageTask.SubmitMode == 2 {
+		// 未开启转储 + 异步: 上游(同款系统)已托管图片, 直接透传上游返回的地址与过期时间, 不再本地下载与落盘
+		var job smodel.ImageJobResponse
+		if response.ResponseBytes != nil {
+			if err := json.Unmarshal(response.ResponseBytes, &job); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+
+		imageUrl = job.ImageUrl
+		imageUrls = job.ImageUrls
+
+		// 兜底补齐: 上游只给单值、只给列表、或仅在 data 里给地址时, 统一对齐单值与列表
+		if imageUrl == "" && len(imageUrls) > 0 {
+			imageUrl = imageUrls[0]
+		}
+		if len(imageUrls) == 0 {
+			if imageUrl != "" {
+				imageUrls = []string{imageUrl}
+			} else {
+				for _, d := range job.Data {
+					if d.Url != "" {
+						imageUrls = append(imageUrls, d.Url)
+					}
+				}
+				if len(imageUrls) > 0 {
+					imageUrl = imageUrls[0]
+				}
+			}
+		}
+
+		// 过期时间以上游为准; 上游未返回则为0(不过期, 也不参与本地过期清理)
+		if job.ExpiresAt != nil {
+			expiresAt = *job.ExpiresAt
+		}
 	}
 
 	responseData := make(map[string]any)
@@ -777,8 +815,12 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		logImageData := make([]mcommon.ImageData, 0, len(imageUrls))
 		for i, u := range imageUrls {
 			data := mcommon.ImageData{
-				URL:      buildStorageUrl(u),
-				FilePath: filePaths[i],
+				// 开启转储时拼本地前缀; 未开启转储时上游地址已完整, 原样使用
+				URL: resolveImageUrl(u),
+			}
+			// 仅开启转储时才有本地文件路径, 未开启转储时 filePaths 为空
+			if i < len(filePaths) {
+				data.FilePath = filePaths[i]
 			}
 			if i < len(response.Data) {
 				data.RevisedPrompt = response.Data[i].RevisedPrompt
@@ -818,6 +860,7 @@ func (s *sTaskImage) cleanExpiredAndFiles(ctx context.Context, now int64) {
 		// 清理输出文件
 		if config.Cfg.ImageTask.StorageExpiredDelete {
 
+			// 删除本地输出文件(仅开启转储时存在)
 			if taskImage.FilePath != "" {
 				if err := gfile.RemoveFile(taskImage.FilePath); err != nil {
 					logger.Error(ctx, err)
@@ -832,7 +875,11 @@ func (s *sTaskImage) cleanExpiredAndFiles(ctx context.Context, now int64) {
 				}
 			}
 
-			if taskImage.FilePath != "" || len(taskImage.FilePaths) > 0 {
+			// 过期后清空图片地址与文件信息:
+			//   开启转储 → 本地文件已删
+			//   未开启转储 → 上游到期已删图, 记录里的上游地址已失效
+			// 只要记录里还挂着地址或文件信息, 就一并清空, 不再依赖是否存在本地文件
+			if taskImage.ImageUrl != "" || len(taskImage.ImageUrls) > 0 || taskImage.FilePath != "" || len(taskImage.FilePaths) > 0 {
 				update["image_url"] = ""
 				update["image_urls"] = nil
 				update["file_name"] = ""
@@ -1771,6 +1818,22 @@ func bytesToFileHeader(fileUrl string, data []byte, contentType string) (*multip
 	}
 
 	return files[0], nil
+}
+
+// 根据是否开启转储决定图片对外地址
+// 开启转储: 图片落在本地, 拼接 StorageBaseUrl 前缀
+// 未开启转储: 图片由上游托管, image_url 存的即上游完整地址, 原样返回, 不再拼本地前缀
+func resolveImageUrl(imageUrl string) string {
+
+	if imageUrl == "" {
+		return ""
+	}
+
+	if config.Cfg.ImageTask.IsEnableStorage {
+		return buildStorageUrl(imageUrl)
+	}
+
+	return imageUrl
 }
 
 // 为存储的图片路径拼接 StorageBaseUrl 前缀
