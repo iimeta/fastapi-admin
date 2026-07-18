@@ -169,6 +169,10 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 			return "", errors.New("Unauthorized")
 		}
 
+		if key.Rid == 0 && service.Session().IsUserRole(ctx) {
+			key.Rid = service.Session().GetRid(ctx)
+		}
+
 		id, err := dao.AppKey.Insert(ctx, key)
 		if err != nil {
 			logger.Error(ctx, err)
