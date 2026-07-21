@@ -65,6 +65,7 @@ type SiteConfigCreateReq struct {
 	DocumentTitle       string                `json:"document_title,omitempty"`        // 文档标题
 	DocumentMoreUrl     string                `json:"document_more_url,omitempty"`     // 文档更多URL
 	Documents           []common.Document     `json:"documents,omitempty"`             // 文档
+	Apis                []common.ApiItem      `json:"apis,omitempty"`                  // API接口
 	RechargeTips        string                `json:"recharge_tips,omitempty"`         // 充值提示
 	Remark              string                `json:"remark,omitempty"`                // 备注
 	Status              int                   `json:"status,omitempty" d:"1"`          // 状态[1:正常, 2:禁用, -1:删除]
@@ -110,6 +111,7 @@ type SiteConfigUpdateReq struct {
 	DocumentTitle       string                `json:"document_title,omitempty"`        // 文档标题
 	DocumentMoreUrl     string                `json:"document_more_url,omitempty"`     // 文档更多URL
 	Documents           []common.Document     `json:"documents,omitempty"`             // 文档
+	Apis                []common.ApiItem      `json:"apis,omitempty"`                  // API接口
 	RechargeTips        string                `json:"recharge_tips,omitempty"`         // 充值提示
 	Remark              string                `json:"remark,omitempty"`                // 备注
 	Status              int                   `json:"status,omitempty" d:"1"`          // 状态[1:正常, 2:禁用, -1:删除]
@@ -195,6 +197,7 @@ type SiteConfig struct {
 	DocumentTitle       string                `json:"document_title,omitempty"`        // 文档标题
 	DocumentMoreUrl     string                `json:"document_more_url,omitempty"`     // 文档更多URL
 	Documents           []common.Document     `json:"documents,omitempty"`             // 文档
+	Apis                []common.ApiItem      `json:"apis,omitempty"`                  // API接口
 	RechargeTips        string                `json:"recharge_tips,omitempty"`         // 充值提示
 	Remark              string                `json:"remark,omitempty"`                // 备注
 	Status              int                   `json:"status,omitempty"`                // 状态[1:正常, 2:禁用, -1:删除]

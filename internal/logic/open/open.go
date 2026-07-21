@@ -72,6 +72,7 @@ func (s *sOpen) Site(ctx context.Context, params model.SiteConfigDetailReq) *mod
 		DocumentTitle:       siteConfig.DocumentTitle,
 		DocumentMoreUrl:     siteConfig.DocumentMoreUrl,
 		Documents:           siteConfig.Documents,
+		Apis:                siteConfig.Apis,
 		RechargeTips:        siteConfig.RechargeTips,
 	}
 }
