@@ -20,7 +20,7 @@ type (
 		// 更新密钥
 		Update(ctx context.Context, params model.KeyUpdateReq, isModelAgent bool) error
 		// 更改密钥状态
-		ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) error
+		ChangeStatus(ctx context.Context, params model.KeyChangeStatusReq) (err error)
 		// 删除密钥
 		Delete(ctx context.Context, id string) error
 		// 密钥详情

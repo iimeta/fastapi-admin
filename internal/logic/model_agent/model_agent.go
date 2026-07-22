@@ -439,9 +439,18 @@ func (s *sModelAgent) Update(ctx context.Context, params model.ModelAgentUpdateR
 }
 
 // 更改模型代理状态
-func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) error {
+func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) (err error) {
 
-	if err := dao.ModelAgent.UpdateById(ctx, params.Id, bson.M{
+	var oldData *entity.ModelAgent
+
+	if params.Status == 1 {
+		if oldData, err = dao.ModelAgent.FindById(ctx, params.Id); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if err = dao.ModelAgent.UpdateById(ctx, params.Id, bson.M{
 		"status":               params.Status,
 		"is_auto_disabled":     false,
 		"auto_disabled_reason": "",
@@ -456,12 +465,48 @@ func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentC
 		return err
 	}
 
-	if _, err := redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
 		Action:  consts.ACTION_STATUS,
 		NewData: modelAgent,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if oldData != nil && oldData.IsAutoDisabled {
+
+		keys, err := dao.Key.Find(ctx, bson.M{
+			"status":           2,
+			"is_auto_disabled": true,
+			"model_agents": bson.M{
+				"$in": []string{oldData.Id},
+			},
+		})
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if len(keys) == 1 {
+
+			key, err := dao.Key.FindOneAndUpdateById(ctx, keys[0].Id, bson.M{
+				"status":               1,
+				"is_auto_disabled":     false,
+				"auto_disabled_reason": "",
+			})
+			if err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+
+			if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_KEY, model.PubMessage{
+				Action:  consts.ACTION_STATUS,
+				NewData: key,
+			}); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
 	}
 
 	return nil
