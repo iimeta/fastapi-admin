@@ -393,7 +393,12 @@ func (s *sLogImage) StorageCleanTask(ctx context.Context) {
 
 	for _, logImage := range logImages {
 
-		update := bson.M{"expires_at": 0}
+		// 过期清理只修改存储信息, 不应改变日志的业务更新时间。
+		// 统计任务以 updated_at 作为增量游标, 若这里刷新时间会导致历史日志被重复统计。
+		update := bson.M{
+			"expires_at": 0,
+			"updated_at": logImage.UpdatedAt,
+		}
 
 		if config.Cfg.ImageStorage.StorageExpiredDelete {
 
