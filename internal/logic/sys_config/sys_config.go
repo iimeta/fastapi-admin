@@ -860,6 +860,7 @@ func (s *sSysConfig) Default() *do.SysConfig {
 			RetryCount:           2,
 			StorageExpiresAt:     1440,
 			StorageExpiredDelete: true,
+			IsReturnBase64:       true,
 		},
 		VideoTask: &common.VideoTask{
 			Open:                 true,
