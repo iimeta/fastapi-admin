@@ -75,17 +75,8 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 		UpdatedAt:          util.FormatDateTime(taskVideo.UpdatedAt),
 	}
 
-	if config.Cfg.VideoTask.IsEnableStorage && taskVideo.VideoUrl != "" {
-
-		if config.Cfg.VideoTask.StorageBaseUrl != "" {
-			if gstr.HasSuffix(config.Cfg.VideoTask.StorageBaseUrl, "/") {
-				taskVideo.VideoUrl = gstr.TrimLeftStr(taskVideo.VideoUrl, "/")
-			} else if !gstr.HasPrefix(taskVideo.VideoUrl, "/") {
-				taskVideo.VideoUrl = "/" + taskVideo.VideoUrl
-			}
-		}
-
-		detail.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + taskVideo.VideoUrl
+	if taskVideo.VideoUrl != "" {
+		detail.VideoUrl = resolveVideoUrl(detail.VideoUrl)
 	}
 
 	if service.Session().IsAdminRole(ctx) {
@@ -180,17 +171,8 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
 		}
 
-		if config.Cfg.VideoTask.IsEnableStorage && result.VideoUrl != "" {
-
-			if config.Cfg.VideoTask.StorageBaseUrl != "" {
-				if gstr.HasSuffix(config.Cfg.VideoTask.StorageBaseUrl, "/") {
-					result.VideoUrl = gstr.TrimLeftStr(result.VideoUrl, "/")
-				} else if !gstr.HasPrefix(result.VideoUrl, "/") {
-					result.VideoUrl = "/" + result.VideoUrl
-				}
-			}
-
-			video.VideoUrl = config.Cfg.VideoTask.StorageBaseUrl + result.VideoUrl
+		if result.VideoUrl != "" {
+			video.VideoUrl = resolveVideoUrl(result.VideoUrl)
 		}
 
 		items = append(items, video)
@@ -420,4 +402,38 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 	if _, err := redis.Set(ctx, consts.TASK_VIDEO_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
+}
+
+// 根据是否开启转储决定适配对外地址
+// 开启转储: 适配落在本地, 拼接 StorageBaseUrl 前缀
+// 未开启转储: 适配由上游托管, video_url 存的即上游完整地址, 原样返回, 不再拼本地前缀
+func resolveVideoUrl(videoUrl string) string {
+
+	if videoUrl == "" {
+		return ""
+	}
+
+	if config.Cfg.VideoTask.IsEnableStorage {
+		return buildStorageUrl(videoUrl)
+	}
+
+	return videoUrl
+}
+
+// 为存储的适配路径拼接 StorageBaseUrl 前缀
+func buildStorageUrl(videoUrl string) string {
+
+	if videoUrl == "" {
+		return ""
+	}
+
+	if config.Cfg.VideoTask.StorageBaseUrl != "" {
+		if gstr.HasSuffix(config.Cfg.VideoTask.StorageBaseUrl, "/") {
+			videoUrl = gstr.TrimLeftStr(videoUrl, "/")
+		} else if !gstr.HasPrefix(videoUrl, "/") {
+			videoUrl = "/" + videoUrl
+		}
+	}
+
+	return config.Cfg.VideoTask.StorageBaseUrl + videoUrl
 }
