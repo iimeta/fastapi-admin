@@ -614,6 +614,7 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		InviterUserId:          user.InviterUserId,
 		InviteCode:             user.InviteCode,
 		Privacy:                user.Privacy,
+		LogPrivacy:             config.Cfg.Log.Privacy,
 		Status:                 user.Status,
 		Rid:                    user.Rid,
 		LoginIP:                account.LoginIP,
