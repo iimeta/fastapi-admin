@@ -400,7 +400,16 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	newUser, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": apply.UserId}, bson.M{"$inc": bson.M{"quota": apply.TotalQuota}, "warning_notice": false, "exhaustion_notice": false, "expire_warning_notice": false, "expire_notice": false})
+
+	baseTime := oldUser.QuotaExpiresAt
+
+	if baseTime < now {
+		baseTime = now
+	}
+
+	newExpiresAt := baseTime + 30*24*60*60*1000
+
+	newUser, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": apply.UserId}, bson.M{"$inc": bson.M{"quota": apply.TotalQuota}, "quota_expires_at": newExpiresAt, "warning_notice": false, "exhaustion_notice": false, "expire_warning_notice": false, "expire_notice": false})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
