@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/big"
 	mrand "math/rand"
+	"regexp"
 	"strings"
 	"unicode"
 
@@ -535,6 +536,12 @@ func (s *sInvite) relationsPage(ctx context.Context, params model.InviteRelation
 	if params.Rid != 0 {
 		filter["rid"] = params.Rid
 	}
+	if params.Account != "" {
+		filter["account"] = params.Account
+	}
+	if params.Ip != "" {
+		filter["ip"] = bson.M{"$regex": regexp.QuoteMeta(params.Ip)}
+	}
 	if params.Status != 0 {
 		filter["status"] = params.Status
 	}
@@ -569,6 +576,15 @@ func (s *sInvite) rewardsPage(ctx context.Context, params model.InviteRewardPage
 	if params.Status != 0 {
 		filter["status"] = params.Status
 	}
+	if params.TriggerType != "" {
+		filter["trigger_type"] = params.TriggerType
+	}
+	if params.ApplyOrderId != "" {
+		filter["apply_order_id"] = params.ApplyOrderId
+	}
+	if params.QuotaGt > 0 {
+		filter["quota"] = bson.M{"$gt": common.ConvQuotaUnit(params.QuotaGt)}
+	}
 	if len(params.CreatedAt) > 0 {
 		filter["created_at"] = bson.M{"$gte": gtime.NewFromStrFormat(params.CreatedAt[0], "2006-01-02").TimestampMilli(), "$lte": gtime.NewFromStrLayout(params.CreatedAt[1], "2006-01-02").EndOfDay(true).TimestampMilli()}
 	}
@@ -594,11 +610,20 @@ func (s *sInvite) applyPage(ctx context.Context, params model.InviteRewardApplyP
 	if params.Rid != 0 {
 		filter["rid"] = params.Rid
 	}
+	if params.OrderNo != "" {
+		filter["order_no"] = params.OrderNo
+	}
+	if params.QuotaGt > 0 {
+		filter["total_quota"] = bson.M{"$gt": common.ConvQuotaUnit(params.QuotaGt)}
+	}
 	if params.Status != 0 {
 		filter["status"] = params.Status
 	}
 	if len(params.AppliedAt) > 0 {
 		filter["applied_at"] = bson.M{"$gte": gtime.NewFromStrFormat(params.AppliedAt[0], "2006-01-02").TimestampMilli(), "$lte": gtime.NewFromStrLayout(params.AppliedAt[1], "2006-01-02").EndOfDay(true).TimestampMilli()}
+	}
+	if len(params.AuditedAt) > 0 {
+		filter["audited_at"] = bson.M{"$gte": gtime.NewFromStrFormat(params.AuditedAt[0], "2006-01-02").TimestampMilli(), "$lte": gtime.NewFromStrLayout(params.AuditedAt[1], "2006-01-02").EndOfDay(true).TimestampMilli()}
 	}
 	results, err := dao.InviteRewardApply.FindByPage(ctx, paging, filter, &dao.FindOptions{SortFields: []string{"-applied_at"}})
 	if err != nil {

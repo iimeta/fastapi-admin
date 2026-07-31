@@ -30,6 +30,8 @@ type InviteRelationPageReq struct {
 	InviteeUserId int      `json:"invitee_user_id,omitempty"` // 被邀请人用户ID
 	InviterUserId int      `json:"inviter_user_id,omitempty"` // 邀请人用户ID
 	Rid           int      `json:"rid,omitempty"`             // 代理商ID, 0表示平台主管用户
+	Account       string   `json:"account,omitempty"`         // 注册账号
+	Ip            string   `json:"ip,omitempty"`              // 注册IP
 	Status        int      `json:"status,omitempty"`          // 邀请关系状态[1:已注册, 2:有效, 3:无效, 4:已取消]
 	CreatedAt     []string `json:"created_at,omitempty"`      // 创建时间范围
 }
@@ -47,6 +49,9 @@ type InviteRewardPageReq struct {
 	InviterUserId int      `json:"inviter_user_id,omitempty"` // 邀请人用户ID
 	Rid           int      `json:"rid,omitempty"`             // 代理商ID, 0表示平台主管用户
 	Status        int      `json:"status,omitempty"`          // 邀请收益状态[1:待申请, 2:审核中, 3:已入账, 4:已驳回, 5:已取消]
+	TriggerType   string   `json:"trigger_type,omitempty"`    // 收益类型[register:注册奖励, recharge:充值返利]
+	ApplyOrderId  string   `json:"apply_order_id,omitempty"`  // 入账申请单号
+	QuotaGt       float64  `json:"quota_gt,omitempty"`        // 收益额度大于
 	CreatedAt     []string `json:"created_at,omitempty"`      // 创建时间范围
 }
 
@@ -66,8 +71,11 @@ type InviteRewardApplyPageReq struct {
 	Paging
 	UserId    int      `json:"user_id,omitempty"`    // 申请入账的用户ID
 	Rid       int      `json:"rid,omitempty"`        // 代理商ID, 0表示平台主管用户
+	OrderNo   string   `json:"order_no,omitempty"`   // 入账申请单号
+	QuotaGt   float64  `json:"quota_gt,omitempty"`   // 入账额度大于
 	Status    int      `json:"status,omitempty"`     // 入账申请状态[1:待审核, 2:已通过, 3:已入账, 4:已驳回, 5:已取消]
 	AppliedAt []string `json:"applied_at,omitempty"` // 申请时间范围
+	AuditedAt []string `json:"audited_at,omitempty"` // 审核时间范围
 }
 
 // 我的邀请收益入账申请分页接口响应参数
