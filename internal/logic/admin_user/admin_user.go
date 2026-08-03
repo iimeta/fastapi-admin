@@ -853,7 +853,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		return err
 	}
 
-	if params.QuotaType == 1 && params.Quota > 0 {
+	if params.IsRechargeRebate && params.QuotaType == 1 && params.Quota > 0 {
 		if err = service.Invite().CreateRechargeRebate(ctx, params.UserId, dealRecordId, int(params.Quota)); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -1041,11 +1041,12 @@ func (s *sAdminUser) BatchOperate(ctx context.Context, params model.UserBatchOpe
 			}
 
 			if err := s.Recharge(ctx, model.UserRechargeReq{
-				UserId:         user.UserId,
-				Quota:          gconv.Float64(params.Value),
-				QuotaType:      params.QuotaType,
-				QuotaExpiresAt: quotaExpiresAt,
-				IsSendNotice:   params.IsSendNotice,
+				UserId:           user.UserId,
+				Quota:            gconv.Float64(params.Value),
+				QuotaType:        params.QuotaType,
+				QuotaExpiresAt:   quotaExpiresAt,
+				IsSendNotice:     params.IsSendNotice,
+				IsRechargeRebate: params.IsRechargeRebate,
 			}); err != nil {
 				logger.Error(ctx, err)
 				return err

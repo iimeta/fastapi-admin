@@ -144,22 +144,24 @@ type UserListRes struct {
 
 // 用户批量操作接口请求参数
 type UserBatchOperateReq struct {
-	Action         string   `json:"action"`                     // 动作
-	Ids            []string `json:"ids"`                        // 主键Ids
-	Value          any      `json:"value"`                      // 值
-	QuotaType      int      `json:"quota_type"`                 // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
-	QuotaExpiresAt string   `json:"quota_expires_at,omitempty"` // 额度过期时间
-	IsSendNotice   bool     `json:"is_send_notice,omitempty"`   // 是否发送通知
-	Data           []int    `json:"data,omitempty"`             // 删除数据[2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据]
+	Action           string   `json:"action"`                       // 动作
+	Ids              []string `json:"ids"`                          // 主键Ids
+	Value            any      `json:"value"`                        // 值
+	QuotaType        int      `json:"quota_type"`                   // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
+	QuotaExpiresAt   string   `json:"quota_expires_at,omitempty"`   // 额度过期时间
+	IsSendNotice     bool     `json:"is_send_notice,omitempty"`     // 是否发送通知
+	IsRechargeRebate bool     `json:"is_recharge_rebate,omitempty"` // 是否充值返利
+	Data             []int    `json:"data,omitempty"`               // 删除数据[2:应用数据, 3:交易记录, 4:账单明细, 5:日志数据]
 }
 
 // 用户充值接口请求参数
 type UserRechargeReq struct {
-	UserId         int     `json:"user_id,omitempty"`            // 用户ID
-	Quota          float64 `json:"quota,omitempty" v:"required"` // 额度
-	QuotaType      int     `json:"quota_type,omitempty"`         // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
-	QuotaExpiresAt string  `json:"quota_expires_at,omitempty"`   // 额度过期时间
-	IsSendNotice   bool    `json:"is_send_notice,omitempty"`     // 是否发送通知
+	UserId           int     `json:"user_id,omitempty"`            // 用户ID
+	Quota            float64 `json:"quota,omitempty" v:"required"` // 额度
+	QuotaType        int     `json:"quota_type,omitempty"`         // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
+	QuotaExpiresAt   string  `json:"quota_expires_at,omitempty"`   // 额度过期时间
+	IsSendNotice     bool    `json:"is_send_notice,omitempty"`     // 是否发送通知
+	IsRechargeRebate bool    `json:"is_recharge_rebate,omitempty"` // 是否充值返利
 }
 
 type User struct {
