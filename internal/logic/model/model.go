@@ -183,31 +183,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 			return err
 		}
 
-		if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, &do.ModelAgent{
-			ProviderId:               oldData.ProviderId,
-			Name:                     oldData.Name,
-			BaseUrl:                  oldData.BaseUrl,
-			Path:                     oldData.Path,
-			Weight:                   oldData.Weight,
-			Models:                   append(oldData.Models, id),
-			IsEnableModelReplace:     oldData.IsEnableModelReplace,
-			ReplaceModels:            oldData.ReplaceModels,
-			TargetModels:             oldData.TargetModels,
-			IsNeverDisable:           oldData.IsNeverDisable,
-			Endpoints:                oldData.Endpoints,
-			LbStrategy:               oldData.LbStrategy,
-			IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
-			ReqPassthroughParams:     oldData.ReqPassthroughParams,
-			ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
-			ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
-			ResPassthroughParams:     oldData.ResPassthroughParams,
-			ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
-			ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
-			Remark:                   oldData.Remark,
-			Status:                   oldData.Status,
-			IsAutoDisabled:           oldData.IsAutoDisabled,
-			AutoDisabledReason:       oldData.AutoDisabledReason,
-		}); err != nil {
+		if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, bson.M{"models": append(oldData.Models, id)}); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
@@ -376,40 +352,15 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 
 		if !slices.Contains(params.ModelAgents, oldData.Id) {
 
-			modelAgent := &do.ModelAgent{
-				ProviderId:               oldData.ProviderId,
-				Name:                     oldData.Name,
-				BaseUrl:                  oldData.BaseUrl,
-				Path:                     oldData.Path,
-				Weight:                   oldData.Weight,
-				Models:                   oldData.Models,
-				IsEnableModelReplace:     oldData.IsEnableModelReplace,
-				ReplaceModels:            oldData.ReplaceModels,
-				TargetModels:             oldData.TargetModels,
-				IsNeverDisable:           oldData.IsNeverDisable,
-				Endpoints:                oldData.Endpoints,
-				LbStrategy:               oldData.LbStrategy,
-				IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
-				ReqPassthroughParams:     oldData.ReqPassthroughParams,
-				ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
-				ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
-				ResPassthroughParams:     oldData.ResPassthroughParams,
-				ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
-				ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
-				Remark:                   oldData.Remark,
-				Status:                   oldData.Status,
-				IsAutoDisabled:           oldData.IsAutoDisabled,
-				AutoDisabledReason:       oldData.AutoDisabledReason,
-			}
-
-			for i, modelId := range modelAgent.Models {
+			models := oldData.Models
+			for i, modelId := range models {
 				if modelId == params.Id {
-					modelAgent.Models = util.Delete(modelAgent.Models, i)
+					models = util.Delete(models, i)
 					break
 				}
 			}
 
-			if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, modelAgent); err != nil {
+			if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, bson.M{"models": models}); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
@@ -441,31 +392,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 				return err
 			}
 
-			if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, &do.ModelAgent{
-				ProviderId:               oldData.ProviderId,
-				Name:                     oldData.Name,
-				BaseUrl:                  oldData.BaseUrl,
-				Path:                     oldData.Path,
-				Weight:                   oldData.Weight,
-				Models:                   append(oldData.Models, params.Id),
-				IsEnableModelReplace:     oldData.IsEnableModelReplace,
-				ReplaceModels:            oldData.ReplaceModels,
-				TargetModels:             oldData.TargetModels,
-				IsNeverDisable:           oldData.IsNeverDisable,
-				Endpoints:                oldData.Endpoints,
-				LbStrategy:               oldData.LbStrategy,
-				IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
-				ReqPassthroughParams:     oldData.ReqPassthroughParams,
-				ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
-				ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
-				ResPassthroughParams:     oldData.ResPassthroughParams,
-				ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
-				ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
-				Remark:                   oldData.Remark,
-				Status:                   oldData.Status,
-				IsAutoDisabled:           oldData.IsAutoDisabled,
-				AutoDisabledReason:       oldData.AutoDisabledReason,
-			}); err != nil {
+			if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, bson.M{"models": append(oldData.Models, params.Id)}); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
@@ -631,40 +558,15 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 
 	for _, oldData := range modelAgents {
 
-		modelAgent := &do.ModelAgent{
-			ProviderId:               oldData.ProviderId,
-			Name:                     oldData.Name,
-			BaseUrl:                  oldData.BaseUrl,
-			Path:                     oldData.Path,
-			Weight:                   oldData.Weight,
-			Models:                   oldData.Models,
-			IsEnableModelReplace:     oldData.IsEnableModelReplace,
-			ReplaceModels:            oldData.ReplaceModels,
-			TargetModels:             oldData.TargetModels,
-			IsNeverDisable:           oldData.IsNeverDisable,
-			Endpoints:                oldData.Endpoints,
-			LbStrategy:               oldData.LbStrategy,
-			IsEnableDataPassthrough:  oldData.IsEnableDataPassthrough,
-			ReqPassthroughParams:     oldData.ReqPassthroughParams,
-			ReqHeaderPassthroughMode: oldData.ReqHeaderPassthroughMode,
-			ReqHeaderPassthroughList: oldData.ReqHeaderPassthroughList,
-			ResPassthroughParams:     oldData.ResPassthroughParams,
-			ResHeaderPassthroughMode: oldData.ResHeaderPassthroughMode,
-			ResHeaderPassthroughList: oldData.ResHeaderPassthroughList,
-			Remark:                   oldData.Remark,
-			Status:                   oldData.Status,
-			IsAutoDisabled:           oldData.IsAutoDisabled,
-			AutoDisabledReason:       oldData.AutoDisabledReason,
-		}
-
-		for i, modelId := range modelAgent.Models {
+		models := oldData.Models
+		for i, modelId := range models {
 			if modelId == id {
-				modelAgent.Models = util.Delete(modelAgent.Models, i)
+				models = util.Delete(models, i)
 				break
 			}
 		}
 
-		if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, modelAgent); err != nil {
+		if err = dao.ModelAgent.UpdateById(ctx, oldData.Id, bson.M{"models": models}); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
