@@ -27,6 +27,15 @@ type LogFilePageRes struct {
 	Paging *Paging    `json:"paging"`
 }
 
+// 文件日志批量操作接口请求参数
+type LogFileBatchOperateReq struct {
+	Action string   `json:"action"`  // 动作
+	Ids    []string `json:"ids"`     // 主键Ids
+	Value  any      `json:"value"`   // 值
+	UserId int      `json:"user_id"` // 用户ID
+	Status []int    `json:"status"`  // 状态
+}
+
 // 文件日志详情复制字段值接口请求参数
 type LogFileCopyFieldReq struct {
 	Id    string `json:"id"`

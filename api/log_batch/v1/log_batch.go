@@ -29,6 +29,17 @@ type PageRes struct {
 	*model.LogBatchPageRes
 }
 
+// 批处理日志批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"log_batch" summary:"批处理日志批量操作接口"`
+	model.LogBatchBatchOperateReq
+}
+
+// 批处理日志批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 批处理日志详情复制字段值接口请求参数
 type CopyFieldReq struct {
 	g.Meta `path:"/copy/field" method:"post" auth:"true" role:"user,reseller,admin" tags:"log_batch" summary:"批处理日志详情复制字段值详情接口"`

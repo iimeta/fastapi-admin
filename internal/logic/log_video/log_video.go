@@ -4,9 +4,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
 	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
@@ -283,6 +287,48 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 			Total:    paging.Total,
 		},
 	}, nil
+}
+
+// 视频日志批量操作
+func (s *sLogVideo) BatchOperate(ctx context.Context, params model.LogVideoBatchOperateReq) error {
+
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+		switch params.Action {
+		case consts.ACTION_TIME:
+
+			reqTime := params.Value.([]any)
+			filter := bson.M{
+				"req_time": bson.M{
+					"$gte": gtime.NewFromStrFormat(gconv.String(reqTime[0]), time.DateTime).TimestampMilli(),
+					"$lte": gtime.NewFromStrLayout(gconv.String(reqTime[1]), time.DateTime).TimestampMilli() + 999,
+				},
+			}
+
+			if params.UserId != 0 {
+				filter["user_id"] = params.UserId
+			}
+
+			if len(params.Status) != 4 {
+				filter["status"] = bson.M{"$in": params.Status}
+			}
+
+			if _, err := dao.LogVideo.DeleteMany(ctx, filter); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		case consts.ACTION_DELETE:
+			if _, err := dao.LogVideo.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": params.Ids}}); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
 }
 
 // 视频日志详情复制字段值

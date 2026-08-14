@@ -28,6 +28,15 @@ type LogImagePageRes struct {
 	Paging *Paging     `json:"paging"`
 }
 
+// 绘图日志批量操作接口请求参数
+type LogImageBatchOperateReq struct {
+	Action string   `json:"action"`  // 动作
+	Ids    []string `json:"ids"`     // 主键Ids
+	Value  any      `json:"value"`   // 值
+	UserId int      `json:"user_id"` // 用户ID
+	Status []int    `json:"status"`  // 状态
+}
+
 // 绘图日志详情复制字段值接口请求参数
 type LogImageCopyFieldReq struct {
 	Id    string `json:"id"`

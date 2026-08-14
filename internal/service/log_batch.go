@@ -17,6 +17,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.LogBatch, error)
 		// 批处理日志分页列表
 		Page(ctx context.Context, params model.LogBatchPageReq) (*model.LogBatchPageRes, error)
+		// 批处理日志批量操作
+		BatchOperate(ctx context.Context, params model.LogBatchBatchOperateReq) error
 		// 批处理日志详情复制字段值
 		CopyField(ctx context.Context, params model.LogBatchCopyFieldReq) (string, error)
 	}

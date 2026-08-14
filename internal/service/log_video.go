@@ -17,6 +17,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.LogVideo, error)
 		// 视频日志分页列表
 		Page(ctx context.Context, params model.LogVideoPageReq) (*model.LogVideoPageRes, error)
+		// 视频日志批量操作
+		BatchOperate(ctx context.Context, params model.LogVideoBatchOperateReq) error
 		// 视频日志详情复制字段值
 		CopyField(ctx context.Context, params model.LogVideoCopyFieldReq) (string, error)
 	}

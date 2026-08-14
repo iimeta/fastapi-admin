@@ -17,6 +17,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.LogImage, error)
 		// 绘图日志分页列表
 		Page(ctx context.Context, params model.LogImagePageReq) (*model.LogImagePageRes, error)
+		// 绘图日志批量操作
+		BatchOperate(ctx context.Context, params model.LogImageBatchOperateReq) error
 		// 绘图日志详情复制字段值
 		CopyField(ctx context.Context, params model.LogImageCopyFieldReq) (string, error)
 		// 转储过期文件清理任务

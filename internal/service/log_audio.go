@@ -17,6 +17,8 @@ type (
 		Detail(ctx context.Context, id string) (*model.LogAudio, error)
 		// 音频日志分页列表
 		Page(ctx context.Context, params model.LogAudioPageReq) (*model.LogAudioPageRes, error)
+		// 音频日志批量操作
+		BatchOperate(ctx context.Context, params model.LogAudioBatchOperateReq) error
 		// 音频日志详情复制字段值
 		CopyField(ctx context.Context, params model.LogAudioCopyFieldReq) (string, error)
 	}

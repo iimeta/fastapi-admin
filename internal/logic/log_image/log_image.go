@@ -6,9 +6,12 @@ import (
 
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -329,6 +332,48 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 			Total:    paging.Total,
 		},
 	}, nil
+}
+
+// 绘图日志批量操作
+func (s *sLogImage) BatchOperate(ctx context.Context, params model.LogImageBatchOperateReq) error {
+
+	if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
+
+		switch params.Action {
+		case consts.ACTION_TIME:
+
+			reqTime := params.Value.([]any)
+			filter := bson.M{
+				"req_time": bson.M{
+					"$gte": gtime.NewFromStrFormat(gconv.String(reqTime[0]), time.DateTime).TimestampMilli(),
+					"$lte": gtime.NewFromStrLayout(gconv.String(reqTime[1]), time.DateTime).TimestampMilli() + 999,
+				},
+			}
+
+			if params.UserId != 0 {
+				filter["user_id"] = params.UserId
+			}
+
+			if len(params.Status) != 4 {
+				filter["status"] = bson.M{"$in": params.Status}
+			}
+
+			if _, err := dao.LogImage.DeleteMany(ctx, filter); err != nil {
+				logger.Error(ctx, err)
+			}
+
+		case consts.ACTION_DELETE:
+			if _, err := dao.LogImage.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": params.Ids}}); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
 }
 
 // 绘图日志详情复制字段值

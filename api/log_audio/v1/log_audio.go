@@ -29,6 +29,17 @@ type PageRes struct {
 	*model.LogAudioPageRes
 }
 
+// 音频日志批量操作接口请求参数
+type BatchOperateReq struct {
+	g.Meta `path:"/batch/operate" method:"post" auth:"true" role:"admin" tags:"log_audio" summary:"音频日志批量操作接口"`
+	model.LogAudioBatchOperateReq
+}
+
+// 音频日志批量操作接口响应参数
+type BatchOperateRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 音频日志详情复制字段值接口请求参数
 type CopyFieldReq struct {
 	g.Meta `path:"/copy/field" method:"post" auth:"true" role:"user,reseller,admin" tags:"log_audio" summary:"音频日志详情复制字段值详情接口"`
