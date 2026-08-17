@@ -88,6 +88,9 @@ type LogText struct {
 	Messages             []common.Message       `json:"messages,omitempty"`                // 完整提示(提问)
 	Prompt               string                 `json:"prompt,omitempty"`                  // 提示(提问)
 	Completion           string                 `json:"completion,omitempty"`              // 补全(回答)
+	ServiceTier          string                 `json:"service_tier,omitempty"`            // 服务层
+	Mode                 string                 `json:"mode,omitempty"`                    // 模式
+	Reasoning            string                 `json:"reasoning,omitempty"`               // 推理
 	Spend                common.Spend           `json:"spend,omitempty"`                   // 花费
 	ConnTime             int64                  `json:"conn_time,omitempty"`               // 连接时间
 	Duration             int64                  `json:"duration,omitempty"`                // 持续时间

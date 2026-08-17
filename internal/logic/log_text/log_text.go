@@ -63,6 +63,9 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		Messages:     result.Messages,
 		Prompt:       result.Prompt,
 		Completion:   result.Completion,
+		ServiceTier:  result.ServiceTier,
+		Mode:         result.Mode,
+		Reasoning:    result.Reasoning,
 		Spend:        common.ConvSpend(result.Spend),
 		ConnTime:     result.ConnTime,
 		Duration:     result.Duration,
@@ -239,7 +242,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "action", "creator", "model", "model_type", "stream", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "action", "creator", "model", "model_type", "stream", "reasoning", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
 	}
 
 	results, err := dao.LogText.FindByPage(ctx, paging, filter, findOptions)
@@ -260,6 +263,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 			ModelType:    result.ModelType,
 			Action:       result.Action,
 			Stream:       result.Stream,
+			Reasoning:    result.Reasoning,
 			Spend:        common.ConvSpend(result.Spend),
 			ConnTime:     result.ConnTime,
 			Duration:     result.Duration,
