@@ -10,7 +10,6 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
@@ -80,37 +79,7 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	if text.Status == -1 {
-
-		text.ErrMsg = result.ErrMsg
-
-		// 代理商屏蔽错误
-		if service.Session().IsResellerRole(ctx) {
-			if config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
-				for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
-					if gstr.Contains(text.ErrMsg, shieldError) {
-						text.ErrMsg = "详细错误信息请联系管理员..."
-						break
-					}
-				}
-			}
-		}
-
-		// 用户屏蔽错误
-		if service.Session().IsUserRole(ctx) {
-			if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
-				for _, shieldError := range config.Cfg.UserShieldError.Errors {
-					if gstr.Contains(text.ErrMsg, shieldError) {
-						text.ErrMsg = "详细错误信息请联系管理员..."
-						break
-					}
-				}
-			}
-		}
-
-		text.ErrMsg = gstr.Split(text.ErrMsg, " TraceId")[0]
-		text.ErrMsg = gstr.Split(text.ErrMsg, " (request id:")[0]
-	}
+	text.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
 
 	if service.Session().IsAdminRole(ctx) {
 		text.ProviderId = result.ProviderId
@@ -131,7 +100,6 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		text.RemoteIp = result.RemoteIp
 		text.LocalIp = result.LocalIp
 		text.InternalTime = result.InternalTime
-		text.ErrMsg = result.ErrMsg
 		text.IsRetry = result.IsRetry
 		text.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		text.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -242,7 +210,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "action", "creator", "model", "model_type", "stream", "reasoning", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "action", "creator", "model", "model_type", "stream", "reasoning", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code", "err_msg"},
 	}
 
 	results, err := dao.LogText.FindByPage(ctx, paging, filter, findOptions)
@@ -270,6 +238,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

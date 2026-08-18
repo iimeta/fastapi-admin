@@ -9,7 +9,6 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
@@ -73,37 +72,7 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	if batch.Status == -1 {
-
-		batch.ErrMsg = result.ErrMsg
-
-		// 代理商屏蔽错误
-		if service.Session().IsResellerRole(ctx) {
-			if config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
-				for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
-					if gstr.Contains(batch.ErrMsg, shieldError) {
-						batch.ErrMsg = "详细错误信息请联系管理员..."
-						break
-					}
-				}
-			}
-		}
-
-		// 用户屏蔽错误
-		if service.Session().IsUserRole(ctx) {
-			if config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
-				for _, shieldError := range config.Cfg.UserShieldError.Errors {
-					if gstr.Contains(batch.ErrMsg, shieldError) {
-						batch.ErrMsg = "详细错误信息请联系管理员..."
-						break
-					}
-				}
-			}
-		}
-
-		batch.ErrMsg = gstr.Split(batch.ErrMsg, " TraceId")[0]
-		batch.ErrMsg = gstr.Split(batch.ErrMsg, " (request id:")[0]
-	}
+	batch.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
 
 	if service.Session().IsAdminRole(ctx) {
 
@@ -125,7 +94,6 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		batch.RemoteIp = result.RemoteIp
 		batch.LocalIp = result.LocalIp
 		batch.InternalTime = result.InternalTime
-		batch.ErrMsg = result.ErrMsg
 		batch.IsRetry = result.IsRetry
 		batch.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		batch.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -247,6 +215,7 @@ func (s *sLogBatch) Page(ctx context.Context, params model.LogBatchPageReq) (*mo
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

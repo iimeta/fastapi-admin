@@ -4,9 +4,50 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
+	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
+// 按角色转换日志错误信息: 管理员返回原文; 代理商/用户按配置屏蔽, 并去掉 TraceId / request id
+func ConvErrMsg(ctx context.Context, errMsg string, status int) string {
+
+	if service.Session().IsAdminRole(ctx) {
+		return errMsg
+	}
+
+	if status != -1 || errMsg == "" {
+		return ""
+	}
+
+	if service.Session().IsResellerRole(ctx) {
+		if config.Cfg.ResellerShieldError != nil && config.Cfg.ResellerShieldError.Open && len(config.Cfg.ResellerShieldError.Errors) > 0 {
+			for _, shieldError := range config.Cfg.ResellerShieldError.Errors {
+				if gstr.Contains(errMsg, shieldError) {
+					errMsg = "详细错误信息请联系管理员..."
+					break
+				}
+			}
+		}
+	}
+
+	if service.Session().IsUserRole(ctx) {
+		if config.Cfg.UserShieldError != nil && config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
+			for _, shieldError := range config.Cfg.UserShieldError.Errors {
+				if gstr.Contains(errMsg, shieldError) {
+					errMsg = "详细错误信息请联系管理员..."
+					break
+				}
+			}
+		}
+	}
+
+	errMsg = gstr.Split(errMsg, " TraceId")[0]
+	errMsg = gstr.Split(errMsg, " (request id:")[0]
+
+	return errMsg
+}
 
 // 批量查询应用名称, 返回 appId -> 应用名称
 func GetAppNames(ctx context.Context, appIds []int) map[int]string {
