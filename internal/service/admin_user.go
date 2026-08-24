@@ -35,6 +35,8 @@ type (
 		Permissions(ctx context.Context, userId int, groups []string) error
 		// 用户批量操作
 		BatchOperate(ctx context.Context, params model.UserBatchOperateReq) error
+		// 用户过期任务
+		ExpireTask(ctx context.Context)
 	}
 )
 

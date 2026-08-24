@@ -34,6 +34,7 @@ type SysConfig struct {
 	FileTask                  *common.FileTask                  `bson:"file_task,omitempty"`                     // 文件任务
 	BatchTask                 *common.BatchTask                 `bson:"batch_task,omitempty"`                    // 批处理任务
 	ResetTask                 *common.ResetTask                 `bson:"reset_task,omitempty"`                    // 重置任务
+	UserExpireTask            *common.UserExpireTask            `bson:"user_expire_task,omitempty"`              // 用户过期任务
 	ModelAgentHealthCheckTask *common.ModelAgentHealthCheckTask `bson:"model_agent_health_check_task,omitempty"` // 模型代理健康检查任务
 	ModelAgentSessionKeep     *common.ModelAgentSessionKeep     `bson:"model_agent_session_keep,omitempty"`      // 会话保持
 	ModelAgentSessionKeepTask *common.ModelAgentSessionKeepTask `bson:"model_agent_session_keep_task,omitempty"` // 会话保持清理任务

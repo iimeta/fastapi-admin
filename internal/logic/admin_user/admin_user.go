@@ -8,6 +8,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -33,14 +35,18 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type sAdminUser struct{}
+type sAdminUser struct {
+	expireRedsync *redsync.Redsync
+}
 
 func init() {
 	service.RegisterAdminUser(New())
 }
 
 func New() service.IAdminUser {
-	return &sAdminUser{}
+	return &sAdminUser{
+		expireRedsync: redsync.New(goredis.NewPool(redis.UniversalClient)),
+	}
 }
 
 // 新建用户
@@ -74,6 +80,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 			Email:             params.Email,
 			Quota:             common.ConvQuotaUnit(params.Quota),
 			QuotaExpiresAt:    util.ConvTimestampMilli(params.QuotaExpiresAt),
+			ExpiresAt:         util.ConvTimestampMilli(params.ExpiresAt),
 			IsCycleResetQuota: params.IsCycleResetQuota,
 			ResetQuota:        common.ConvQuotaUnit(params.ResetQuota),
 			CyclePeriod:       params.CyclePeriod,
@@ -282,6 +289,7 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		"name":                  params.Name,
 		"email":                 params.Email,
 		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"expires_at":            util.ConvTimestampMilli(params.ExpiresAt),
 		"is_cycle_reset_quota":  params.IsCycleResetQuota,
 		"reset_quota":           resetQuota,
 		"cycle_period":          params.CyclePeriod,
@@ -621,6 +629,7 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		LoginTime:              util.FormatDateTime(account.LoginTime),
 		LoginDomain:            account.LoginDomain,
 		CreatedAt:              util.FormatDateTime(user.CreatedAt),
+		ExpiresAt:              util.FormatDateTime(user.ExpiresAt),
 		UpdatedAt:              util.FormatDateTime(user.UpdatedAt),
 	}, nil
 }
@@ -643,15 +652,19 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		filter["user_id"] = params.UserId
 	}
 
+	andFilters := bson.A{}
+
 	if params.Name != "" {
-		filter["$or"] = bson.A{
-			bson.M{"name": bson.M{
-				"$regex": regexp.QuoteMeta(params.Name),
-			}},
-			bson.M{"email": bson.M{
-				"$regex": regexp.QuoteMeta(params.Name),
-			}},
-		}
+		andFilters = append(andFilters, bson.M{
+			"$or": bson.A{
+				bson.M{"name": bson.M{
+					"$regex": regexp.QuoteMeta(params.Name),
+				}},
+				bson.M{"email": bson.M{
+					"$regex": regexp.QuoteMeta(params.Name),
+				}},
+			},
+		})
 	}
 
 	if params.Account != "" && params.UserId == 0 {
@@ -668,22 +681,44 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 		}
 	}
 
-	if params.Status != 0 {
+	if params.Status == 3 {
+		andFilters = append(andFilters, bson.M{
+			"expires_at": bson.M{
+				"$gt":  0,
+				"$lte": gtime.TimestampMilli(),
+			},
+		})
+	} else if params.Status != 0 {
 		filter["status"] = params.Status
 	}
 
-	if len(params.QuotaExpiresAt) > 0 {
-		gte := gtime.NewFromStrFormat(params.QuotaExpiresAt[0], time.DateOnly).StartOfDay().TimestampMilli()
-		lte := gtime.NewFromStrLayout(params.QuotaExpiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli()
-		filter["quota_expires_at"] = bson.M{
-			"$gte": gte,
-			"$lte": lte,
+	expiresAt := params.ExpiresAt
+	if len(expiresAt) == 0 {
+		expiresAt = params.QuotaExpiresAt
+	}
+
+	if len(expiresAt) > 0 {
+
+		timeRange := bson.M{
+			"$gte": gtime.NewFromStrFormat(expiresAt[0], time.DateOnly).StartOfDay().TimestampMilli(),
+			"$lte": gtime.NewFromStrLayout(expiresAt[1], time.DateOnly).EndOfDay(true).TimestampMilli(),
 		}
+
+		andFilters = append(andFilters, bson.M{
+			"$or": bson.A{
+				bson.M{"quota_expires_at": timeRange},
+				bson.M{"expires_at": timeRange},
+			},
+		})
+	}
+
+	if len(andFilters) > 0 {
+		filter["$and"] = andFilters
 	}
 
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"status", "-created_at"},
-		IncludeFields: []string{"_id", "user_id", "name", "quota", "used_quota", "quota_expires_at", "remark", "status", "rid", "created_at", "updated_at"},
+		IncludeFields: []string{"_id", "user_id", "name", "quota", "used_quota", "quota_expires_at", "expires_at", "remark", "status", "rid", "created_at", "updated_at"},
 	}
 
 	results, err := dao.User.FindByPage(ctx, paging, filter, findOptions)
@@ -718,6 +753,7 @@ func (s *sAdminUser) Page(ctx context.Context, params model.UserPageReq) (*model
 			Quota:          common.ConvQuotaUnitReverse(result.Quota),
 			UsedQuota:      common.ConvQuotaUnitReverse(result.UsedQuota),
 			QuotaExpiresAt: util.FormatDateTime(result.QuotaExpiresAt),
+			ExpiresAt:      util.FormatDateTime(result.ExpiresAt),
 			Groups:         result.Groups,
 			Account:        accountMap[result.UserId].Account,
 			Remark:         result.Remark,

@@ -50,6 +50,7 @@ func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoR
 				Account:   user.Account,
 				Role:      consts.USER_CHANNEL,
 				CreatedAt: user.CreatedAt,
+				ExpiresAt: user.ExpiresAt,
 				Rid:       user.Rid,
 			},
 		}

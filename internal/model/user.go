@@ -15,8 +15,9 @@ type UserInfoRes struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Role      string `json:"role"`
-	CreatedAt string `json:"created_at"`    // 注册时间
-	Rid       int    `json:"rid,omitempty"` // 代理商ID
+	CreatedAt string `json:"created_at"`           // 注册时间
+	ExpiresAt string `json:"expires_at,omitempty"` // 过期时间
+	Rid       int    `json:"rid,omitempty"`        // 代理商ID
 }
 
 // 用户修改密码接口请求参数
@@ -54,6 +55,7 @@ type UserCreateReq struct {
 	Email             string   `json:"email,omitempty" v:"required"`                 // 邮箱
 	Account           string   `json:"account,omitempty" v:"required"`               // 账号
 	Password          string   `json:"password,omitempty" v:"required|min-length:6"` // 密码
+	ExpiresAt         string   `json:"expires_at,omitempty"`                         // 过期时间
 	Quota             float64  `json:"quota,omitempty"`                              // 额度
 	QuotaType         int      `json:"quota_type,omitempty"`                         // 额度类型[1:充值, 2:扣除, 3:赠送, 4:过期]
 	QuotaExpiresAt    string   `json:"quota_expires_at,omitempty"`                   // 额度过期时间
@@ -73,6 +75,7 @@ type UserUpdateReq struct {
 	Email             string              `json:"email,omitempty" v:"required"`        // 邮箱
 	Account           string              `json:"account,omitempty" v:"required"`      // 账号
 	Password          string              `json:"password,omitempty" v:"min-length:6"` // 密码
+	ExpiresAt         string              `json:"expires_at,omitempty"`                // 过期时间
 	QuotaExpiresAt    string              `json:"quota_expires_at,omitempty"`          // 额度过期时间
 	IsCycleResetQuota bool                `json:"is_cycle_reset_quota,omitempty"`      // 是否循环重置额度
 	ResetQuota        float64             `json:"reset_quota,omitempty"`               // 重置额度
@@ -118,8 +121,9 @@ type UserPageReq struct {
 	Account        string   `json:"account,omitempty"`          // 账号
 	Quota          int      `json:"quota,omitempty"`            // 额度
 	QuotaExpiresAt []string `json:"quota_expires_at,omitempty"` // 额度过期时间
+	ExpiresAt      []string `json:"expires_at,omitempty"`       // 过期时间
 	Remark         string   `json:"remark,omitempty"`           // 备注
-	Status         int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, -1:删除]
+	Status         int      `json:"status,omitempty"`           // 状态[1:正常, 2:禁用, 3:过期, -1:删除]
 	CreatedAt      []string `json:"created_at,omitempty"`       // 创建时间
 	UpdatedAt      []string `json:"updated_at,omitempty"`       // 更新时间
 }
@@ -202,6 +206,7 @@ type User struct {
 	LoginTime              string              `json:"login_time,omitempty"`               // 登录时间
 	LoginDomain            string              `json:"login_domain,omitempty"`             // 登录域名
 	CreatedAt              string              `json:"created_at,omitempty"`               // 创建时间
+	ExpiresAt              string              `json:"expires_at,omitempty"`               // 过期时间
 	UpdatedAt              string              `json:"updated_at,omitempty"`               // 更新时间
 }
 

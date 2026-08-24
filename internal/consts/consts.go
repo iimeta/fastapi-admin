@@ -58,6 +58,8 @@ const (
 	TASK_BATCH_END_TIME_KEY                          = "task:batch:end_time"
 	TASK_RESET_LOCK_KEY                              = "task:reset:lock"
 	TASK_RESET_END_TIME_KEY                          = "task:reset:end_time"
+	TASK_USER_EXPIRE_LOCK_KEY                        = "task:user_expire:lock"
+	TASK_USER_EXPIRE_END_TIME_KEY                    = "task:user_expire:end_time"
 	TASK_MODEL_AGENT_HEALTH_CHECK_LOCK_KEY           = "task:model_agent_health_check:lock"
 	TASK_MODEL_AGENT_HEALTH_CHECK_END_TIME_KEY       = "task:model_agent_health_check:end_time"
 	TASK_MODEL_AGENT_HEALTH_CHECK_RESULT_KEY         = "task:model_agent_health_check:result:%s"

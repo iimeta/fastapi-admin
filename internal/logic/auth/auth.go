@@ -600,6 +600,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			return nil, err
 		}
 
+		if user.ExpiresAt != 0 && user.ExpiresAt < gtime.TimestampMilli() {
+			return nil, errors.New("账号已过期")
+		}
+
 		r.SetCtxVar("uid", user.Id)
 
 		// 记录登录IP和登录时间
@@ -629,6 +633,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			Rid:       user.Rid,
 			Account:   account.Account,
 			CreatedAt: util.FormatDateTime(user.CreatedAt),
+			ExpiresAt: util.FormatDateTime(user.ExpiresAt),
 			UpdatedAt: util.FormatDateTime(user.UpdatedAt),
 		}, true); err != nil {
 			logger.Error(ctx, err)
@@ -950,7 +955,11 @@ func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSessio
 func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, error) {
 
 	if tokenCache := s.tokenCache.GetVal(ctx, fmt.Sprintf(consts.USER_SESSION, token)); tokenCache != nil {
-		return tokenCache.(*model.User), nil
+		user := tokenCache.(*model.User)
+		if err := checkUserExpired(user); err != nil {
+			return nil, err
+		}
+		return user, nil
 	}
 
 	reply, err := redis.Get(ctx, fmt.Sprintf(consts.USER_SESSION, token))
@@ -977,7 +986,22 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 		}
 	}
 
+	if err := checkUserExpired(user); err != nil {
+		return nil, err
+	}
+
 	return user, nil
+}
+
+func checkUserExpired(user *model.User) error {
+	if user == nil || user.ExpiresAt == "" {
+		return nil
+	}
+	expireTime := gtime.NewFromStr(user.ExpiresAt)
+	if expireTime != nil && expireTime.TimestampMilli() < gtime.TimestampMilli() {
+		return errors.New("账号已过期")
+	}
+	return nil
 }
 
 // 根据Token更新用户信息

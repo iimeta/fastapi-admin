@@ -46,4 +46,7 @@ func Init(ctx context.Context) {
 
 	// 工单任务
 	ticketTask(ctx)
+
+	// 用户过期任务
+	userExpireTask(ctx)
 }
