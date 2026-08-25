@@ -663,6 +663,33 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	startTime := gtime.TimestampMilli() - 60000
 	endTime := gtime.TimestampMilli()
 
+	inputTokensAdd := bson.A{
+		bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
+	}
+
+	outputTokensAdd := bson.A{
+		bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
+		bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
+	}
+
+	if params.Type == "image" {
+		inputTokensAdd = append(inputTokensAdd,
+			bson.M{"$ifNull": bson.A{"$spend.image.input_tokens", 0}},
+			bson.M{"$ifNull": bson.A{"$spend.image_cache.write_tokens", 0}},
+		)
+		outputTokensAdd = append(outputTokensAdd,
+			bson.M{"$ifNull": bson.A{"$spend.image.output_tokens", 0}},
+			bson.M{"$ifNull": bson.A{"$spend.image_cache.read_tokens", 0}},
+		)
+	}
+
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
@@ -679,22 +706,10 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 				"_id": nil,
 				"rpm": bson.M{"$sum": 1},
 				"input_tokens": bson.M{"$sum": bson.M{
-					"$add": bson.A{
-						bson.M{"$ifNull": bson.A{"$spend.text.input_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.text_cache.write_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.tiered_text.input_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.write_tokens", 0}},
-					},
+					"$add": inputTokensAdd,
 				}},
 				"output_tokens": bson.M{"$sum": bson.M{
-					"$add": bson.A{
-						bson.M{"$ifNull": bson.A{"$spend.text.output_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.text.reasoning_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.text_cache.read_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.tiered_text.output_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.tiered_text.reasoning_tokens", 0}},
-						bson.M{"$ifNull": bson.A{"$spend.tiered_text_cache.read_tokens", 0}},
-					},
+					"$add": outputTokensAdd,
 				}},
 			},
 		},
@@ -739,9 +754,16 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 	}
 
 	result := make([]map[string]any, 0)
-	if err := dao.LogText.Aggregate(ctx, pipeline, &result); err != nil {
-		logger.Error(ctx, err)
-		return 0, 0, err
+	if params.Type == "image" {
+		if err := dao.LogImage.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return 0, 0, err
+		}
+	} else {
+		if err := dao.LogText.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return 0, 0, err
+		}
 	}
 
 	if len(result) > 0 {

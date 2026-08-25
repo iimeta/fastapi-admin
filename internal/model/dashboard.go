@@ -55,6 +55,7 @@ type DashboardPerMinuteReq struct {
 	Actions     []string `json:"actions,omitempty"`      // 接口
 	Status      int      `json:"status,omitempty"`       // 状态[1:成功, -1:失败]
 	ReqTime     []string `json:"req_time,omitempty"`     // 请求时间
+	Type        string   `json:"type,omitempty"`         // 类型[text:文本, image:图像]
 }
 
 // 每分钟数据接口响应参数
