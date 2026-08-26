@@ -40,8 +40,9 @@ type ChangeStatusRes struct {
 
 // 删除模型代理接口请求参数
 type DeleteReq struct {
-	g.Meta `path:"/delete" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"删除模型代理接口"`
-	Id     string `json:"id"`
+	g.Meta     `path:"/delete" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"删除模型代理接口"`
+	Id         string `json:"id"`
+	DeleteKeys bool   `json:"delete_keys"`
 }
 
 // 删除模型代理接口响应参数

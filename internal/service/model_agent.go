@@ -20,7 +20,7 @@ type (
 		// 更改模型代理状态
 		ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) (err error)
 		// 删除模型代理
-		Delete(ctx context.Context, id string) error
+		Delete(ctx context.Context, id string, deleteKeys bool) error
 		// 模型代理详情
 		Detail(ctx context.Context, id string) (*model.ModelAgent, error)
 		// 模型代理分页列表

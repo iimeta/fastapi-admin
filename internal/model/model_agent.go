@@ -122,9 +122,10 @@ type ModelAgentTagListRes struct {
 
 // 模型代理批量操作接口请求参数
 type ModelAgentBatchOperateReq struct {
-	Action string   `json:"action"` // 动作
-	Ids    []string `json:"ids"`    // 主键Ids
-	Value  any      `json:"value"`  // 值
+	Action     string   `json:"action"`      // 动作
+	Ids        []string `json:"ids"`         // 主键Ids
+	Value      any      `json:"value"`       // 值
+	DeleteKeys bool     `json:"delete_keys"` // 是否同时删除仅绑定该代理的密钥
 }
 
 // 快速填入模型接口请求参数

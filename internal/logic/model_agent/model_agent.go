@@ -513,7 +513,7 @@ func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentC
 }
 
 // 删除模型代理
-func (s *sModelAgent) Delete(ctx context.Context, id string) error {
+func (s *sModelAgent) Delete(ctx context.Context, id string, deleteKeys bool) error {
 
 	modelAgent, err := s.Detail(ctx, id)
 	if err != nil {
@@ -524,6 +524,23 @@ func (s *sModelAgent) Delete(ctx context.Context, id string) error {
 	if _, err = dao.ModelAgent.DeleteById(ctx, id); err != nil {
 		logger.Error(ctx, err)
 		return err
+	}
+
+	if deleteKeys {
+		keys, findErr := dao.Key.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
+		if findErr != nil {
+			logger.Error(ctx, findErr)
+			return findErr
+		}
+		for _, key := range keys {
+			if !isKeyExclusiveToAgent(key.ModelAgents, id) {
+				continue
+			}
+			if err = service.Key().Delete(ctx, key.Id); err != nil {
+				logger.Error(ctx, err)
+				return err
+			}
+		}
 	}
 
 	if err = dao.Key.UpdateMany(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}}, bson.M{
@@ -962,7 +979,7 @@ func (s *sModelAgent) BatchOperate(ctx context.Context, params model.ModelAgentB
 		}
 	case consts.ACTION_DELETE:
 		for _, id := range params.Ids {
-			if err := s.Delete(ctx, id); err != nil {
+			if err := s.Delete(ctx, id, params.DeleteKeys); err != nil {
 				logger.Error(ctx, err)
 				return err
 			}
@@ -1335,4 +1352,17 @@ func (s *sModelAgent) SessionKeepClearAll(ctx context.Context) (int64, error) {
 	}
 
 	return redis.Del(ctx, keys...)
+}
+
+// 密钥是否仅绑定该模型代理
+func isKeyExclusiveToAgent(modelAgents []string, agentId string) bool {
+	if len(modelAgents) == 0 {
+		return false
+	}
+	for _, id := range modelAgents {
+		if id != agentId {
+			return false
+		}
+	}
+	return true
 }
