@@ -1830,10 +1830,10 @@ func resolveImageUrl(imageUrl string) string {
 	}
 
 	if config.Cfg.ImageTask.IsEnableStorage {
-		return buildStorageUrl(imageUrl)
+		return common.ReplaceImageUrl(buildStorageUrl(imageUrl))
 	}
 
-	return imageUrl
+	return common.ReplaceImageUrl(imageUrl)
 }
 
 // 为存储的图片路径拼接 StorageBaseUrl 前缀
