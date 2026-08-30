@@ -28,6 +28,7 @@ type SysConfigUpdateReq struct {
 	QuotaTask                 *common.QuotaTask                 `json:"quota_task,omitempty"`                    // 额度任务
 	ImageTask                 *common.ImageTask                 `json:"image_task,omitempty"`                    // 绘图任务
 	ImageStorage              *common.ImageStorage              `json:"image_storage,omitempty"`                 // 绘图转储
+	ImageUrl                  *common.ImageUrl                  `json:"image_url,omitempty"`                     // 图像URL
 	VideoTask                 *common.VideoTask                 `json:"video_task,omitempty"`                    // 视频任务
 	FileTask                  *common.FileTask                  `json:"file_task,omitempty"`                     // 文件任务
 	BatchTask                 *common.BatchTask                 `json:"batch_task,omitempty"`                    // 批处理任务
@@ -88,6 +89,7 @@ type SysConfig struct {
 	QuotaTask                 *common.QuotaTask                 `json:"quota_task,omitempty"`                    // 额度任务
 	ImageTask                 *common.ImageTask                 `json:"image_task,omitempty"`                    // 绘图任务
 	ImageStorage              *common.ImageStorage              `json:"image_storage,omitempty"`                 // 绘图转储
+	ImageUrl                  *common.ImageUrl                  `json:"image_url,omitempty"`                     // 图像URL
 	VideoTask                 *common.VideoTask                 `json:"video_task,omitempty"`                    // 视频任务
 	FileTask                  *common.FileTask                  `json:"file_task,omitempty"`                     // 文件任务
 	BatchTask                 *common.BatchTask                 `json:"batch_task,omitempty"`                    // 批处理任务
