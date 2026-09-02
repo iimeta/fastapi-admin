@@ -4,6 +4,8 @@ import (
 	"context"
 	"math"
 
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
@@ -22,6 +24,8 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 			image(ctx, usage, spend)
 		case "image_generation":
 			imageGeneration(ctx, usage, spend)
+		case "layer_decomp":
+			layerDecomp(ctx, usage, spend)
 		case "image_cache":
 			imageCache(ctx, usage, spend)
 		case "video_generation":
@@ -55,6 +59,10 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 
 	if spend.ImageGeneration != nil {
 		spend.TotalSpendTokens = spend.ImageGeneration.SpendTokens
+	}
+
+	if spend.LayerDecomp != nil {
+		spend.TotalSpendTokens += spend.LayerDecomp.SpendTokens
 	}
 
 	if spend.VideoGeneration != nil {
@@ -112,7 +120,18 @@ func image(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 
 // 图像生成
 func imageGeneration(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
+	if spend.ImageGeneration == nil || spend.ImageGeneration.Pricing == nil {
+		return
+	}
 	spend.ImageGeneration.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.ImageGeneration.Pricing.OnceRatio) * float64(spend.ImageGeneration.N)
+}
+
+// 图层拆分
+func layerDecomp(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
+	if spend.LayerDecomp == nil || spend.LayerDecomp.Pricing == nil {
+		return
+	}
+	spend.LayerDecomp.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.LayerDecomp.Pricing.OnceRatio) * float64(spend.LayerDecomp.N)
 }
 
 // 图像缓存
@@ -142,4 +161,184 @@ func discountTokens(tokens, discount float64) float64 {
 
 	// 整数向上取整除法: ceil(a/b) = (a + b - 1) / b (a, b 均非负)
 	return float64((int64(tokens)*basis + scale - 1) / scale)
+}
+
+func RecalcImageOutputSpend(spend *common.Spend, sizes []string, pricing common.Pricing) {
+
+	if spend == nil || len(sizes) == 0 {
+		return
+	}
+
+	quality := ""
+	if spend.ImageGeneration != nil && spend.ImageGeneration.Pricing != nil {
+		quality = spend.ImageGeneration.Pricing.Quality
+	} else if spend.LayerDecomp != nil && spend.LayerDecomp.Pricing != nil {
+		quality = spend.LayerDecomp.Pricing.Quality
+	}
+
+	if spend.ImageGeneration != nil && len(pricing.ImageGeneration) > 0 {
+
+		total := 0.0
+		var last *common.ImageGenerationPricing
+
+		for _, sz := range sizes {
+
+			w, h := parseAdminSizeWH(sz)
+
+			p := pickAdminImageGenerationPricing(pricing.ImageGeneration, quality, w, h)
+			if p != nil {
+				last = p
+				total += math.Ceil(consts.QUOTA_DEFAULT_UNIT * p.OnceRatio)
+			}
+		}
+
+		spend.ImageGeneration.N = len(sizes)
+
+		if last != nil {
+			spend.ImageGeneration.Pricing = last
+		}
+
+		spend.ImageGeneration.SpendTokens = total
+	}
+
+	if spend.LayerDecomp != nil && len(pricing.LayerDecomp) > 0 {
+
+		total := 0.0
+		var last *common.LayerDecompPricing
+
+		for _, sz := range sizes {
+
+			w, h := parseAdminSizeWH(sz)
+
+			p := pickAdminLayerDecompPricing(pricing.LayerDecomp, quality, w, h)
+			if p != nil {
+				last = p
+				total += math.Ceil(consts.QUOTA_DEFAULT_UNIT * p.OnceRatio)
+			}
+		}
+
+		spend.LayerDecomp.N = len(sizes)
+
+		if last != nil {
+			spend.LayerDecomp.Pricing = last
+		}
+
+		spend.LayerDecomp.SpendTokens = total
+	}
+
+	spend.TotalSpendTokens = 0
+
+	if spend.Text != nil {
+		spend.TotalSpendTokens += spend.Text.SpendTokens
+	}
+
+	if spend.TextCache != nil {
+		spend.TotalSpendTokens += spend.TextCache.SpendTokens
+	}
+
+	if spend.Image != nil {
+		spend.TotalSpendTokens += spend.Image.SpendTokens
+	}
+
+	if spend.ImageCache != nil {
+		spend.TotalSpendTokens += spend.ImageCache.SpendTokens
+	}
+
+	if spend.ImageGeneration != nil {
+		spend.TotalSpendTokens = spend.ImageGeneration.SpendTokens
+	}
+
+	if spend.LayerDecomp != nil {
+		spend.TotalSpendTokens += spend.LayerDecomp.SpendTokens
+	}
+
+	if spend.VideoGeneration != nil {
+		spend.TotalSpendTokens += spend.VideoGeneration.SpendTokens
+	}
+
+	if spend.Once != nil {
+		spend.TotalSpendTokens = spend.Once.SpendTokens
+	}
+
+	if spend.ModelTimeRule != nil {
+		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.ModelTimeRule.Discount)
+	}
+
+	if spend.GroupId != "" && spend.GroupTimeRule != nil {
+		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.GroupTimeRule.Discount)
+	}
+}
+
+func parseAdminSizeWH(size string) (width, height int) {
+	size = gstr.Trim(size)
+	if size == "" {
+		return 0, 0
+	}
+	size = gstr.ReplaceByMap(size, map[string]string{"×": "x", "X": "x", "*": "x"})
+	parts := gstr.Split(size, "x")
+	if len(parts) == 2 {
+		return gconv.Int(gstr.Trim(parts[0])), gconv.Int(gstr.Trim(parts[1]))
+	}
+	return 0, 0
+}
+
+func parseAdminPixelSize(size string) int {
+	w, h := parseAdminSizeWH(size)
+	if w > 0 && h > 0 {
+		return w * h
+	}
+	return gconv.Int(gstr.Trim(size))
+}
+
+func matchAdminPixel(pixels int, gte, lte string) bool {
+	if pixels <= 0 {
+		return false
+	}
+	g := parseAdminPixelSize(gte)
+	l := parseAdminPixelSize(lte)
+	if g > 0 && pixels < g {
+		return false
+	}
+	if l > 0 && pixels > l {
+		return false
+	}
+	return true
+}
+
+func pickAdminImageGenerationPricing(pricings []*common.ImageGenerationPricing, quality string, width, height int) *common.ImageGenerationPricing {
+	pixels := width * height
+	var fallback *common.ImageGenerationPricing
+	for _, item := range pricings {
+		qualityMatch := item.Quality == quality || item.Quality == ""
+		if item.Mode == "pixel" {
+			if qualityMatch && matchAdminPixel(pixels, item.PixelGte, item.PixelLte) {
+				return item
+			}
+		} else if qualityMatch && item.Width == width && item.Height == height {
+			return item
+		}
+		if item.IsDefault {
+			fallback = item
+		}
+	}
+	return fallback
+}
+
+func pickAdminLayerDecompPricing(pricings []*common.LayerDecompPricing, quality string, width, height int) *common.LayerDecompPricing {
+	pixels := width * height
+	var fallback *common.LayerDecompPricing
+	for _, item := range pricings {
+		qualityMatch := item.Quality == quality || item.Quality == ""
+		if item.Mode == "pixel" {
+			if qualityMatch && matchAdminPixel(pixels, item.PixelGte, item.PixelLte) {
+				return item
+			}
+		} else if qualityMatch && item.Width == width && item.Height == height {
+			return item
+		}
+		if item.IsDefault {
+			fallback = item
+		}
+	}
+	return fallback
 }

@@ -797,7 +797,34 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	}
 
 	// 抢占成功, 计算并记录花费
+	if n := len(response.Data); n > 0 {
+
+		if logImage.Spend.ImageGeneration != nil {
+			logImage.Spend.ImageGeneration.N = n
+		}
+
+		if logImage.Spend.LayerDecomp != nil {
+			logImage.Spend.LayerDecomp.N = n
+		}
+	}
+
 	common.Billing(ctx, response.Usage, &logImage.Spend)
+
+	var sizes []string
+
+	for _, d := range response.Data {
+		if d.Size != "" {
+			sizes = append(sizes, d.Size)
+		}
+	}
+
+	if len(sizes) > 0 && logImage.ModelId != "" {
+		if m, err := dao.Model.FindById(ctx, logImage.ModelId); err == nil && m != nil {
+			common.RecalcImageOutputSpend(&logImage.Spend, sizes, m.Pricing)
+		} else if err != nil {
+			logger.Error(ctx, err)
+		}
+	}
 
 	if err = common.RecordSpend(ctx, logImage.UserId, logImage.AppId, logImage.Creator, logImage.Rid, logImage.Key, logImage.Spend); err != nil {
 		logger.Error(ctx, err)

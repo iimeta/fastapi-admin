@@ -339,6 +339,11 @@ func ConvSpend(spend common.Spend) common.Spend {
 		spend.ImageGeneration.SpendTokens = ConvQuotaUnitReverse(int(spend.ImageGeneration.SpendTokens))
 	}
 
+	// 图层拆分
+	if spend.LayerDecomp != nil {
+		spend.LayerDecomp.SpendTokens = ConvQuotaUnitReverse(int(spend.LayerDecomp.SpendTokens))
+	}
+
 	// 图像缓存
 	if spend.ImageCache != nil {
 
