@@ -1046,6 +1046,18 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					ModelType:   100,
 					RequestData: `{"contents":[{"role":"user","parts":[{"text":"hi"}]}]}`,
 				},
+				{
+					Provider:    sconsts.PROVIDER_BAILIAN,
+					Model:       "all",
+					ModelType:   2,
+					RequestData: `{"model":"{{.model}}","input":{"messages":[{"role":"user","content":[{"text":"A cute orange cat"}]}]},"parameters":{"size":"1K","n":1,"watermark":false}}`,
+				},
+				{
+					Provider:    sconsts.PROVIDER_BAILIAN,
+					Model:       "all",
+					ModelType:   8,
+					RequestData: `{"model":"{{.model}}","input":{"prompt":"A video of a cat"},"parameters":{"resolution":"480P","ratio":"adaptive","duration":2}}`,
+				},
 			},
 		},
 		Debug: &common.Debug{

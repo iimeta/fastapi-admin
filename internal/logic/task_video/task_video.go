@@ -11,6 +11,7 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -329,6 +330,29 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 				if err = dao.LogVideo.UpdateById(ctx, logVideo.Id, bson.M{"spend": logVideo.Spend}); err != nil {
 					logger.Error(ctx, err)
 					continue
+				}
+			}
+
+			// 百炼智能时长(duration=-1)创建时秒数未知按0计费, 完成后按上游返回的实际输出秒数补计费
+			if provider.Code == sconsts.PROVIDER_BAILIAN && logVideo.Spend.VideoGeneration != nil && logVideo.Spend.VideoGeneration.Seconds == 0 {
+
+				if seconds := gconv.Int(retrieve.Seconds); seconds > 0 {
+
+					common.RecalcVideoSecondsSpend(&logVideo.Spend, seconds)
+
+					if err = common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+
+					if err = dao.LogVideo.UpdateById(ctx, logVideo.Id, bson.M{"spend": logVideo.Spend}); err != nil {
+						logger.Error(ctx, err)
+						continue
+					}
+
+					if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"seconds": seconds}); err != nil {
+						logger.Error(ctx, err)
+					}
 				}
 			}
 

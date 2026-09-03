@@ -146,6 +146,28 @@ func videoGeneration(ctx context.Context, usage smodel.Usage, spend *common.Spen
 	spend.VideoGeneration.SpendTokens = math.Ceil(float64(spend.VideoGeneration.InputTokens) * ConvRatio(spend.VideoGeneration.Pricing.OnceRatio))
 }
 
+// 按实际输出秒数重算视频生成花费: 创建时秒数未知(如百炼智能时长 duration=-1)的任务, 在完成后按上游返回的实际时长补计费
+func RecalcVideoSecondsSpend(spend *common.Spend, seconds int) {
+
+	if spend == nil || spend.VideoGeneration == nil || spend.VideoGeneration.Pricing == nil || seconds <= 0 {
+		return
+	}
+
+	spend.VideoGeneration.Seconds = seconds
+	spend.VideoGeneration.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.VideoGeneration.Pricing.OnceRatio) * float64(seconds)
+	spend.TotalSpendTokens = spend.VideoGeneration.SpendTokens
+
+	// 模型时段折扣
+	if spend.ModelTimeRule != nil {
+		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.ModelTimeRule.Discount)
+	}
+
+	// 分组时段折扣
+	if spend.GroupId != "" && spend.GroupTimeRule != nil {
+		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.GroupTimeRule.Discount)
+	}
+}
+
 // 一次
 func once(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 	spend.Once.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT * spend.Once.Pricing.OnceRatio)
