@@ -807,7 +807,6 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 	}
 
-	// 计算并记录花费
 	common.Billing(ctx, response.Usage, &logImage.Spend)
 
 	var sizes []string
