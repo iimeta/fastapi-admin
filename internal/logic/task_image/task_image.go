@@ -796,7 +796,6 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		return
 	}
 
-	// 抢占成功, 计算并记录花费
 	if n := len(response.Data); n > 0 {
 
 		if logImage.Spend.ImageGeneration != nil {
@@ -808,6 +807,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 	}
 
+	// 计算并记录花费
 	common.Billing(ctx, response.Usage, &logImage.Spend)
 
 	var sizes []string
