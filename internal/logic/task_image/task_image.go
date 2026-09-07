@@ -527,7 +527,25 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		filePaths []string
 	)
 
+	errorAgentIds := make([]string, 0)
+	errorKeys := make([]string, 0)
+
 	for attempt := 0; ; attempt++ {
+
+		// 需要重新提交时(无上游句柄)才换代理; 已有 job_id 的续轮询必须留在原代理
+		if attempt > 0 && taskImage.JobId == "" {
+			agentChanged, e := s.switchRetryAgent(ctx, taskImage, logImage, errorAgentIds, errorKeys, attempt)
+			if e != nil {
+				logger.Errorf(ctx, "sTaskImage processImageTask task: %s switch agent failed: %v, retry current agent", taskImage.Id, e)
+			} else if agentChanged && logImage.ModelAgent != nil {
+				provider, err = dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
+				if err != nil {
+					logger.Error(ctx, err)
+					s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error(), logImage.Id)
+					return
+				}
+			}
+		}
 
 		taskCtx, cancel := context.WithTimeout(ctx, timeout)
 
@@ -672,6 +690,9 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 				return
 			}
 
+			errorAgentIds = appendUnique(errorAgentIds, logImage.ModelAgentId)
+			errorKeys = appendUnique(errorKeys, logImage.Key)
+
 			logger.Errorf(ctx, "sTaskImage processImageTask task: %s failed: %s, retry: %d/%d", taskImage.Id, errCode, attempt+1, retryCount)
 			continue
 		}
@@ -766,18 +787,20 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		"_id":    taskImage.Id,
 		"status": "in_progress",
 	}, bson.M{
-		"progress":      100,
-		"status":        "completed",
-		"completed_at":  completedAt,
-		"expires_at":    expiresAt,
-		"image_url":     imageUrl,
-		"image_urls":    imageUrls,
-		"file_name":     fileName,
-		"file_names":    fileNames,
-		"file_path":     filePath,
-		"file_paths":    filePaths,
-		"response_data": responseData,
-		"error":         nil,
+		"progress":       100,
+		"status":         "completed",
+		"completed_at":   completedAt,
+		"expires_at":     expiresAt,
+		"image_url":      imageUrl,
+		"image_urls":     imageUrls,
+		"file_name":      fileName,
+		"file_names":     fileNames,
+		"file_path":      filePath,
+		"file_paths":     filePaths,
+		"response_data":  responseData,
+		"model_agent_id": taskImage.ModelAgentId,
+		"model_agent":    taskImage.ModelAgent,
+		"error":          nil,
 	}); err != nil {
 
 		// 任务已不在进行中, 说明已被其它进程完成或被重置/删除, 跳过且不计费
@@ -830,7 +853,12 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		return
 	}
 
-	if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{"spend": logImage.Spend}); err != nil {
+	if err = dao.LogImage.UpdateById(ctx, logImage.Id, bson.M{
+		"spend":          logImage.Spend,
+		"model_agent_id": logImage.ModelAgentId,
+		"model_agent":    logImage.ModelAgent,
+		"key":            logImage.Key,
+	}); err != nil {
 		logger.Error(ctx, err)
 		return
 	}
