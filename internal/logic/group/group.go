@@ -3,10 +3,12 @@ package group
 import (
 	"context"
 	"regexp"
+	"slices"
 	"time"
 
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
@@ -56,6 +58,7 @@ func (s *sGroup) Create(ctx context.Context, params model.GroupCreateReq) (id st
 		TimeRules:          common.ConvTimeRulesToRatio(params.TimeRules),
 		BillingMethods:     params.BillingMethods,
 		Name:               params.Name,
+		Tags:               params.Tags,
 		Models:             params.Models,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		LbStrategy:         params.LbStrategy,
@@ -220,6 +223,7 @@ func (s *sGroup) Update(ctx context.Context, params model.GroupUpdateReq) error 
 		TimeRules:          common.ConvTimeRulesToRatio(params.TimeRules),
 		BillingMethods:     params.BillingMethods,
 		Name:               params.Name,
+		Tags:               params.Tags,
 		Models:             params.Models,
 		IsEnableModelAgent: params.IsEnableModelAgent,
 		LbStrategy:         params.LbStrategy,
@@ -806,6 +810,7 @@ func (s *sGroup) Detail(ctx context.Context, id string) (*model.Group, error) {
 		TimeRules:          common.ConvTimeRulesToPercent(group.TimeRules),
 		BillingMethods:     group.BillingMethods,
 		Name:               group.Name,
+		Tags:               group.Tags,
 		Models:             group.Models,
 		ModelNames:         modelNames,
 		IsEnableModelAgent: group.IsEnableModelAgent,
@@ -930,6 +935,12 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 		}
 	}
 
+	if len(params.Tags) > 0 {
+		filter["tags"] = bson.M{
+			"$in": params.Tags,
+		}
+	}
+
 	if len(params.Models) > 0 {
 		filter["models"] = bson.M{
 			"$in": params.Models,
@@ -971,6 +982,10 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 		filter["remark"] = bson.M{
 			"$regex": regexp.QuoteMeta(params.Remark),
 		}
+	}
+
+	if params.IsPublic != "" {
+		filter["is_public"] = gconv.Bool(params.IsPublic)
 	}
 
 	if params.Status != 0 {
@@ -1044,6 +1059,7 @@ func (s *sGroup) Page(ctx context.Context, params model.GroupPageReq) (*model.Gr
 			TimeRules:      common.ConvTimeRulesToPercent(result.TimeRules),
 			BillingMethods: result.BillingMethods,
 			Name:           result.Name,
+			Tags:           result.Tags,
 			Models:         result.Models,
 			IsDefault:      result.IsDefault,
 			Weight:         result.Weight,
@@ -1163,6 +1179,30 @@ func (s *sGroup) List(ctx context.Context, params model.GroupListReq) ([]*model.
 	}
 
 	return items, nil
+}
+
+// 分组标签列表
+func (s *sGroup) TagList(ctx context.Context) ([]string, error) {
+
+	results, err := dao.Group.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	tagSet := gset.NewStrSet()
+	for _, result := range results {
+		for _, tag := range result.Tags {
+			if tag = gstr.Trim(tag); tag != "" {
+				tagSet.Add(tag)
+			}
+		}
+	}
+
+	tags := tagSet.Slice()
+	slices.Sort(tags)
+
+	return tags, nil
 }
 
 // 分组批量操作

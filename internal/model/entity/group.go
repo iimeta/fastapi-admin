@@ -11,6 +11,7 @@ type Group struct {
 	TimeRules          []*common.TimeRule    `bson:"time_rules,omitempty"`            // 时段规则
 	BillingMethods     []int                 `bson:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Name               string                `bson:"name,omitempty"`                  // 分组名称
+	Tags               []string              `bson:"tags,omitempty"`                  // 标签
 	Models             []string              `bson:"models,omitempty"`                // 模型权限
 	IsEnableModelAgent bool                  `bson:"is_enable_model_agent,omitempty"` // 是否启用模型代理
 	LbStrategy         int                   `bson:"lb_strategy,omitempty"`           // 代理负载均衡策略[1:轮询, 2:权重]

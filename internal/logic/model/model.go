@@ -76,6 +76,7 @@ func (s *sModel) Create(ctx context.Context, params model.ModelCreateReq) error 
 		Name:                     gstr.Trim(params.Name),
 		Model:                    gstr.Trim(params.Model),
 		Type:                     params.Type,
+		Tags:                     params.Tags,
 		IsEnablePresetConfig:     params.IsEnablePresetConfig,
 		PresetConfig:             params.PresetConfig,
 		TimeRules:                common.ConvTimeRulesToRatio(params.TimeRules),
@@ -233,6 +234,7 @@ func (s *sModel) Update(ctx context.Context, params model.ModelUpdateReq) error 
 		Name:                     gstr.Trim(params.Name),
 		Model:                    gstr.Trim(params.Model),
 		Type:                     params.Type,
+		Tags:                     params.Tags,
 		IsEnablePresetConfig:     params.IsEnablePresetConfig,
 		PresetConfig:             params.PresetConfig,
 		TimeRules:                common.ConvTimeRulesToRatio(params.TimeRules),
@@ -642,6 +644,7 @@ func (s *sModel) Detail(ctx context.Context, id string) (*model.Model, error) {
 		Name:                     m.Name,
 		Model:                    m.Model,
 		Type:                     m.Type,
+		Tags:                     m.Tags,
 		Groups:                   groupIds,
 		GroupNames:               groupNames,
 		IsEnablePresetConfig:     m.IsEnablePresetConfig,
@@ -862,6 +865,12 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 		filter["type"] = params.Type
 	}
 
+	if len(params.Tags) > 0 {
+		filter["tags"] = bson.M{
+			"$in": params.Tags,
+		}
+	}
+
 	if params.BillingMethod != 0 {
 		filter["pricing.billing_methods"] = bson.M{
 			"$in": []int{params.BillingMethod},
@@ -933,6 +942,7 @@ func (s *sModel) Page(ctx context.Context, params model.ModelPageReq) (*model.Mo
 			Name:                     result.Name,
 			Model:                    result.Model,
 			Type:                     result.Type,
+			Tags:                     result.Tags,
 			GroupNames:               groupNames,
 			TimeRules:                common.ConvTimeRulesToPercent(result.TimeRules),
 			Pricing:                  common.ConvModelPricingToPrice(result.Pricing),
@@ -1108,6 +1118,30 @@ func (s *sModel) List(ctx context.Context, params model.ModelListReq) ([]*model.
 	}
 
 	return items, nil
+}
+
+// 模型标签列表
+func (s *sModel) TagList(ctx context.Context) ([]string, error) {
+
+	results, err := dao.Model.Find(ctx, bson.M{})
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	tagSet := gset.NewStrSet()
+	for _, result := range results {
+		for _, tag := range result.Tags {
+			if tag = gstr.Trim(tag); tag != "" {
+				tagSet.Add(tag)
+			}
+		}
+	}
+
+	tags := tagSet.Slice()
+	slices.Sort(tags)
+
+	return tags, nil
 }
 
 // 模型批量操作

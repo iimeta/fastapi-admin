@@ -31,6 +31,8 @@ type (
 		Page(ctx context.Context, params model.GroupPageReq) (*model.GroupPageRes, error)
 		// 分组列表
 		List(ctx context.Context, params model.GroupListReq) ([]*model.Group, error)
+		// 分组标签列表
+		TagList(ctx context.Context) ([]string, error)
 		// 分组批量操作
 		BatchOperate(ctx context.Context, params model.GroupBatchOperateReq) error
 		// 公开的分组Ids

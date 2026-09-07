@@ -1,0 +1,1 @@
+const n=["red","orangered","orange","gold","lime","green","cyan","blue","arcoblue","purple","pinkpurple","magenta"],o=l=>{let e=5381;for(let r=0;r<l.length;r+=1)e=(e*33+l.charCodeAt(r))%2147483647;return n[e%n.length]};export{o as g};

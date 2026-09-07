@@ -7,6 +7,7 @@ type GroupCreateReq struct {
 	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
 	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Name               string                `json:"name,omitempty"`                  // 分组名称
+	Tags               []string              `json:"tags,omitempty"`                  // 标签
 	Models             []string              `json:"models,omitempty" d:"[]"`         // 模型权限
 	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
 	LbStrategy         int                   `json:"lb_strategy,omitempty" d:"1"`     // 代理负载均衡策略[1:轮询, 2:权重]
@@ -34,6 +35,7 @@ type GroupUpdateReq struct {
 	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
 	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Name               string                `json:"name,omitempty"`                  // 分组名称
+	Tags               []string              `json:"tags,omitempty"`                  // 标签
 	Models             []string              `json:"models,omitempty" d:"[]"`         // 模型权限
 	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
 	LbStrategy         int                   `json:"lb_strategy,omitempty" d:"1"`     // 代理负载均衡策略[1:轮询, 2:权重]
@@ -83,11 +85,13 @@ type GroupPageReq struct {
 	Paging
 	ProviderId    string   `json:"provider_id,omitempty"`    // 提供商ID
 	Name          string   `json:"name,omitempty"`           // 分组名称
+	Tags          []string `json:"tags,omitempty"`           // 标签
 	Models        []string `json:"models,omitempty"`         // 模型
 	Type          int      `json:"type,omitempty"`           // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
 	ModelAgents   []string `json:"model_agents,omitempty"`   // 模型代理
 	BillingMethod int      `json:"billing_method,omitempty"` // 计费方式[1:按Tokens, 2:按次]
 	Remark        string   `json:"remark,omitempty"`         // 备注
+	IsPublic      string   `json:"is_public,omitempty"`      // 是否公开
 	Status        int      `json:"status,omitempty"`         // 状态[1:正常, 2:禁用, -1:删除]
 	ExpiresAt     []string `json:"created_at,omitempty"`     // 过期时间
 	SearchValue   string   `json:"search_value,omitempty"`   // 搜索值
@@ -109,6 +113,11 @@ type GroupListRes struct {
 	Items []*Group `json:"items"`
 }
 
+// 分组标签列表接口响应参数
+type GroupTagListRes struct {
+	Tags []string `json:"tags"` // 标签
+}
+
 // 分组批量操作接口请求参数
 type GroupBatchOperateReq struct {
 	Action string   `json:"action"` // 动作
@@ -121,6 +130,7 @@ type Group struct {
 	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
 	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
 	Name               string                `json:"name,omitempty"`                  // 分组名称
+	Tags               []string              `json:"tags,omitempty"`                  // 标签
 	Models             []string              `json:"models,omitempty"`                // 模型权限
 	ModelNames         []string              `json:"model_names,omitempty"`           // 模型名称
 	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理

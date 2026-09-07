@@ -8,6 +8,7 @@ type ModelCreateReq struct {
 	Name                     string                 `json:"name,omitempty"`                        // 模型名称
 	Model                    string                 `json:"model,omitempty"`                       // 模型
 	Type                     int                    `json:"type,omitempty"`                        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
+	Tags                     []string               `json:"tags,omitempty"`                        // 标签
 	IsEnablePresetConfig     bool                   `json:"is_enable_preset_config,omitempty"`     // 是否启用预设配置
 	PresetConfig             common.PresetConfig    `json:"preset_config,omitempty"`               // 预设配置
 	TimeRules                []*common.TimeRule     `json:"time_rules,omitempty"`                  // 时段规则
@@ -40,6 +41,7 @@ type ModelUpdateReq struct {
 	Name                     string                 `json:"name,omitempty"`                        // 模型名称
 	Model                    string                 `json:"model,omitempty"`                       // 模型
 	Type                     int                    `json:"type,omitempty"`                        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
+	Tags                     []string               `json:"tags,omitempty"`                        // 标签
 	IsEnablePresetConfig     bool                   `json:"is_enable_preset_config,omitempty"`     // 是否启用预设配置
 	PresetConfig             common.PresetConfig    `json:"preset_config,omitempty"`               // 预设配置
 	TimeRules                []*common.TimeRule     `json:"time_rules,omitempty"`                  // 时段规则
@@ -83,6 +85,7 @@ type ModelPageReq struct {
 	Name          string   `json:"name,omitempty"`           // 模型名称
 	Model         string   `json:"model,omitempty"`          // 模型
 	Type          int      `json:"type,omitempty"`           // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
+	Tags          []string `json:"tags,omitempty"`           // 标签
 	Group         string   `json:"group,omitempty"`          // 分组
 	BillingMethod int      `json:"billing_method,omitempty"` // 计费方式[1:按Tokens, 2:按次]
 	Remark        string   `json:"remark,omitempty"`         // 备注
@@ -110,6 +113,11 @@ type ModelListReq struct {
 // 模型列表接口响应参数
 type ModelListRes struct {
 	Items []*Model `json:"items"`
+}
+
+// 模型标签列表接口响应参数
+type ModelTagListRes struct {
+	Tags []string `json:"tags"` // 标签
 }
 
 // 模型批量操作接口请求参数
@@ -202,6 +210,7 @@ type Model struct {
 	Name                     string                 `json:"name,omitempty"`                        // 模型名称
 	Model                    string                 `json:"model,omitempty"`                       // 模型
 	Type                     int                    `json:"type,omitempty"`                        // 模型类型[1:文生文, 2:文生图, 3:图生文, 4:图生图, 5:文生语音, 6:语音生文, 7:文本向量化, 8:视频生成, 100:多模态, 101:多模态实时, 102:多模态语音, 103:多模态向量化, 10000:通用]
+	Tags                     []string               `json:"tags,omitempty"`                        // 标签
 	Groups                   []string               `json:"groups,omitempty"`                      // 分组权限
 	GroupNames               []string               `json:"group_names,omitempty"`                 // 分组名称
 	IsEnablePresetConfig     bool                   `json:"is_enable_preset_config,omitempty"`     // 是否启用预设配置

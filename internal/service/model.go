@@ -27,6 +27,8 @@ type (
 		Page(ctx context.Context, params model.ModelPageReq) (*model.ModelPageRes, error)
 		// 模型列表
 		List(ctx context.Context, params model.ModelListReq) ([]*model.Model, error)
+		// 模型标签列表
+		TagList(ctx context.Context) ([]string, error)
 		// 模型批量操作
 		BatchOperate(ctx context.Context, params model.ModelBatchOperateReq) error
 		// 模型树
