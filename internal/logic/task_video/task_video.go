@@ -29,6 +29,7 @@ import (
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type sTaskVideo struct {
@@ -245,6 +246,8 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 	}
 
 	providerMap := make(map[string]*entity.Provider)
+	agentMap := make(map[string]*entity.ModelAgent)
+
 	for _, taskVideo := range taskVideos {
 
 		if taskVideo.Status == "completed" {
@@ -284,9 +287,11 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 			providerMap[logVideo.ModelAgent.ProviderId] = provider
 		}
 
+		upstreamModel := s.resolveUpstreamModel(ctx, logVideo, agentMap)
+
 		adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
 			Provider: provider.Code,
-			Model:    logVideo.Model,
+			Model:    upstreamModel,
 			Key:      logVideo.Key,
 			BaseUrl:  logVideo.ModelAgent.BaseUrl,
 			Path:     logVideo.ModelAgent.Path,
@@ -360,7 +365,7 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 
 				adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
 					Provider: provider.Code,
-					Model:    logVideo.Model,
+					Model:    upstreamModel,
 					Key:      logVideo.Key,
 					BaseUrl:  logVideo.ModelAgent.BaseUrl,
 					Path:     logVideo.ModelAgent.Path,
@@ -426,6 +431,62 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 	if _, err := redis.Set(ctx, consts.TASK_VIDEO_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
 		logger.Error(ctx, err)
 	}
+}
+
+// 对齐 API 同步生图/生视频: 先用真实模型(不含 *), 再按模型代理替换映射, 查不到代理或未开启替换时, 使用已解析出的模型继续
+func (s *sTaskVideo) resolveUpstreamModel(ctx context.Context, logVideo *entity.LogVideo, agentMap map[string]*entity.ModelAgent) string {
+
+	requestModel := ""
+	if logVideo.RequestData != nil {
+		if v, ok := logVideo.RequestData["model"].(string); ok {
+			requestModel = v
+		}
+	}
+
+	model := requestModel
+	if model == "" {
+		model = logVideo.Model
+	}
+
+	if logVideo.RealModel != "" && !gstr.Contains(logVideo.RealModel, "*") {
+		model = logVideo.RealModel
+	}
+
+	if logVideo.ModelAgentId == "" {
+		return model
+	}
+
+	agent := agentMap[logVideo.ModelAgentId]
+	if agent == nil {
+		var err error
+		agent, err = dao.ModelAgent.FindById(ctx, logVideo.ModelAgentId)
+		if err != nil {
+			if !errors.Is(err, mongo.ErrNoDocuments) {
+				logger.Error(ctx, err)
+			}
+			return model
+		}
+		if agent != nil {
+			agentMap[logVideo.ModelAgentId] = agent
+		}
+	}
+
+	if agent == nil || !agent.IsEnableModelReplace {
+		return model
+	}
+
+	for i, replaceModel := range agent.ReplaceModels {
+		if replaceModel == model {
+			if i >= len(agent.TargetModels) {
+				break
+			}
+			logger.Infof(ctx, "sTaskVideo resolveUpstreamModel request.Model: %s replaced %s", model, agent.TargetModels[i])
+			model = agent.TargetModels[i]
+			break
+		}
+	}
+
+	return model
 }
 
 // 根据是否开启转储决定适配对外地址

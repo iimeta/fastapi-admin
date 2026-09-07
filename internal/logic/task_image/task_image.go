@@ -1090,9 +1090,11 @@ func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.Tas
 
 	var response smodel.ImageResponse
 
+	upstreamModel := s.prepareUpstreamModel(ctx, taskImage, logImage)
+
 	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
 		Provider: provider.Code,
-		Model:    logImage.Model,
+		Model:    upstreamModel,
 		Key:      logImage.Key,
 		BaseUrl:  logImage.ModelAgent.BaseUrl,
 		Path:     logImage.ModelAgent.Path,
@@ -1159,9 +1161,11 @@ func (s *sTaskImage) requestImageAsync(ctx context.Context, taskImage *entity.Ta
 	// 已有上游句柄(进程内重试或重启后reclaim恢复)直接续轮询, 跳过提交, 避免上游重复出图与重复计费
 	if jobId == "" {
 
+		upstreamModel := s.prepareUpstreamModel(ctx, taskImage, logImage)
+
 		adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
 			Provider: provider.Code,
-			Model:    logImage.Model,
+			Model:    upstreamModel,
 			Key:      logImage.Key,
 			BaseUrl:  logImage.ModelAgent.BaseUrl,
 			Path:     logImage.ModelAgent.Path,
@@ -1495,7 +1499,7 @@ func (s *sTaskImage) downloadImage(ctx context.Context, imageUrl string, timeout
 func (s *sTaskImage) buildImageEditRequest(ctx context.Context, taskImage *entity.TaskImage) (smodel.ImageEditRequest, error) {
 
 	req := smodel.ImageEditRequest{
-		Model: taskImage.Model,
+		Model: requestDataModel(taskImage),
 	}
 
 	if v, ok := taskImage.RequestData["prompt"]; ok {
@@ -1685,7 +1689,7 @@ func (s *sTaskImage) buildImageEditRequestByURL(ctx context.Context, taskImage *
 
 	var req smodel.ImageEditRequest
 
-	req.Model = taskImage.RequestData["model"].(string)
+	req.Model = requestDataModel(taskImage)
 
 	if v, ok := taskImage.RequestData["prompt"]; ok {
 		req.Prompt, _ = v.(string)
@@ -1909,6 +1913,82 @@ func decodeDataURI(dataURI string) ([]byte, error) {
 	}
 
 	return []byte(decoded), nil
+}
+
+// 对齐 API 同步生图: 先用真实模型(不含 *), 再按模型代理替换映射, 并把替换后的模型写回 RequestData
+func (s *sTaskImage) prepareUpstreamModel(ctx context.Context, taskImage *entity.TaskImage, logImage *entity.LogImage) string {
+
+	requestModel := ""
+	if taskImage.RequestData != nil {
+		if v, ok := taskImage.RequestData["model"].(string); ok {
+			requestModel = v
+		}
+	}
+
+	model := s.resolveUpstreamModel(ctx, logImage, requestModel)
+
+	if taskImage.RequestData != nil {
+		taskImage.RequestData["model"] = model
+	}
+
+	return model
+}
+
+// 解析实际上游请求模型
+// 1. 真实模型不含 * 时, 用 logImage.RealModel 覆盖请求模型
+// 2. 模型代理开启替换时, 按 ReplaceModels -> TargetModels 映射
+// 查不到代理或未开启替换时, 使用已解析出的模型继续
+func (s *sTaskImage) resolveUpstreamModel(ctx context.Context, logImage *entity.LogImage, requestModel string) string {
+
+	model := requestModel
+	if model == "" {
+		model = logImage.Model
+	}
+
+	if logImage.RealModel != "" && !gstr.Contains(logImage.RealModel, "*") {
+		model = logImage.RealModel
+	}
+
+	if logImage.ModelAgentId == "" {
+		return model
+	}
+
+	agent, err := dao.ModelAgent.FindById(ctx, logImage.ModelAgentId)
+	if err != nil {
+		if !errors.Is(err, mongo.ErrNoDocuments) {
+			logger.Error(ctx, err)
+		}
+		return model
+	}
+
+	if agent == nil || !agent.IsEnableModelReplace {
+		return model
+	}
+
+	for i, replaceModel := range agent.ReplaceModels {
+		if replaceModel == model {
+			if i >= len(agent.TargetModels) {
+				break
+			}
+			logger.Infof(ctx, "sTaskImage resolveUpstreamModel request.Model: %s replaced %s", model, agent.TargetModels[i])
+			model = agent.TargetModels[i]
+			break
+		}
+	}
+
+	return model
+}
+
+// 从 RequestData 中取 model, 没有则回退到任务展示模型
+func requestDataModel(taskImage *entity.TaskImage) string {
+
+	if taskImage.RequestData != nil {
+		if v, ok := taskImage.RequestData["model"].(string); ok && v != "" {
+			return v
+		}
+	}
+
+	return taskImage.Model
 }
 
 func taskImageTotalTime(result *entity.TaskImage) int64 {
