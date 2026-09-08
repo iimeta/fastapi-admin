@@ -135,6 +135,8 @@ type DataTop struct {
 	AppKey     string  `json:"app_key,omitempty"`     // 应用密钥(脱敏展示)
 	AppKeyRaw  string  `json:"app_key_raw,omitempty"` // 应用密钥原值(用于下钻查询)
 	Model      string  `json:"model,omitempty"`       // 模型
+	GroupId    string  `json:"group_id,omitempty"`    // 分组ID
+	GroupName  string  `json:"group_name,omitempty"`  // 分组名称
 	Call       int     `json:"call,omitempty"`        // 调用数
 	Models     int     `json:"models,omitempty"`      // 模型数
 	Tokens     float64 `json:"tokens,omitempty"`      // 令牌数

@@ -115,6 +115,8 @@ const (
 	STATISTICS_LOG_BATCH_LAST_TIME_KEY   = "statistics:log:batch:last_time"
 	STATISTICS_LOG_GENERAL_LAST_ID_KEY   = "statistics:log:general:last_id"
 	STATISTICS_LOG_GENERAL_LAST_TIME_KEY = "statistics:log:general:last_time"
+	STATISTICS_UNGROUPED_ID              = "ungrouped"
+	STATISTICS_UNGROUPED_NAME            = "未分组"
 )
 
 var MODEL_TYPES = []int{

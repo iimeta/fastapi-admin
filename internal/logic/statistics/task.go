@@ -125,10 +125,13 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 
 	userMap := make(map[string]map[int]*entity.StatisticsUser)                     // map[req_date][user_id]entity.StatisticsUser
 	userModelStatMap := make(map[string]map[int]map[string]*common.ModelStat)      // map[req_date][user_id][model_id]common.ModelStat
+	userGroupStatMap := make(map[string]map[int]map[string]*common.GroupStat)      // map[req_date][user_id][group_id]common.GroupStat
 	appMap := make(map[string]map[int]*entity.StatisticsApp)                       // map[req_date][app_id]entity.StatisticsApp
 	appModelStatMap := make(map[string]map[int]map[string]*common.ModelStat)       // map[req_date][app_id][model_id]common.ModelStat
+	appGroupStatMap := make(map[string]map[int]map[string]*common.GroupStat)       // map[req_date][app_id][group_id]common.GroupStat
 	appKeyMap := make(map[string]map[string]*entity.StatisticsAppKey)              // map[req_date][app_key]entity.StatisticsAppKey
 	appKeyModelStatMap := make(map[string]map[string]map[string]*common.ModelStat) // map[req_date][app_key][model_id]common.ModelStat
+	appKeyGroupStatMap := make(map[string]map[string]map[string]*common.GroupStat) // map[req_date][app_key][group_id]common.GroupStat
 
 	for _, result := range results {
 
@@ -144,6 +147,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 		if userMap[result.ReqDate] == nil {
 			userMap[result.ReqDate] = make(map[int]*entity.StatisticsUser)
 			userModelStatMap[result.ReqDate] = make(map[int]map[string]*common.ModelStat)
+			userGroupStatMap[result.ReqDate] = make(map[int]map[string]*common.GroupStat)
 		}
 
 		user := userMap[result.ReqDate][result.UserId]
@@ -163,9 +167,15 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			if userModelStatMap[result.ReqDate][result.UserId] == nil {
 				userModelStatMap[result.ReqDate][result.UserId] = make(map[string]*common.ModelStat)
 			}
+			if userGroupStatMap[result.ReqDate][result.UserId] == nil {
+				userGroupStatMap[result.ReqDate][result.UserId] = make(map[string]*common.GroupStat)
+			}
 
 			for _, modelStat := range user.ModelStats {
 				userModelStatMap[result.ReqDate][result.UserId][modelStat.ModelId] = modelStat
+			}
+			for _, groupStat := range user.GroupStats {
+				userGroupStatMap[result.ReqDate][result.UserId][groupStat.GroupId] = groupStat
 			}
 		}
 
@@ -200,9 +210,12 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			userModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
 
+		incrGroupStat(userGroupStatMap[result.ReqDate][result.UserId], result.Spend, tokenStat, result.Status)
+
 		if appMap[result.ReqDate] == nil {
 			appMap[result.ReqDate] = make(map[int]*entity.StatisticsApp)
 			appModelStatMap[result.ReqDate] = make(map[int]map[string]*common.ModelStat)
+			appGroupStatMap[result.ReqDate] = make(map[int]map[string]*common.GroupStat)
 		}
 
 		app := appMap[result.ReqDate][result.AppId]
@@ -223,9 +236,15 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			if appModelStatMap[result.ReqDate][result.AppId] == nil {
 				appModelStatMap[result.ReqDate][result.AppId] = make(map[string]*common.ModelStat)
 			}
+			if appGroupStatMap[result.ReqDate][result.AppId] == nil {
+				appGroupStatMap[result.ReqDate][result.AppId] = make(map[string]*common.GroupStat)
+			}
 
 			for _, modelStat := range app.ModelStats {
 				appModelStatMap[result.ReqDate][result.AppId][modelStat.ModelId] = modelStat
+			}
+			for _, groupStat := range app.GroupStats {
+				appGroupStatMap[result.ReqDate][result.AppId][groupStat.GroupId] = groupStat
 			}
 		}
 
@@ -260,9 +279,12 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			appModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
 
+		incrGroupStat(appGroupStatMap[result.ReqDate][result.AppId], result.Spend, tokenStat, result.Status)
+
 		if appKeyMap[result.ReqDate] == nil {
 			appKeyMap[result.ReqDate] = make(map[string]*entity.StatisticsAppKey)
 			appKeyModelStatMap[result.ReqDate] = make(map[string]map[string]*common.ModelStat)
+			appKeyGroupStatMap[result.ReqDate] = make(map[string]map[string]*common.GroupStat)
 		}
 
 		appKey := appKeyMap[result.ReqDate][result.Creator]
@@ -284,9 +306,15 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			if appKeyModelStatMap[result.ReqDate][result.Creator] == nil {
 				appKeyModelStatMap[result.ReqDate][result.Creator] = make(map[string]*common.ModelStat)
 			}
+			if appKeyGroupStatMap[result.ReqDate][result.Creator] == nil {
+				appKeyGroupStatMap[result.ReqDate][result.Creator] = make(map[string]*common.GroupStat)
+			}
 
 			for _, modelStat := range appKey.ModelStats {
 				appKeyModelStatMap[result.ReqDate][result.Creator][modelStat.ModelId] = modelStat
+			}
+			for _, groupStat := range appKey.GroupStats {
+				appKeyGroupStatMap[result.ReqDate][result.Creator][groupStat.GroupId] = groupStat
 			}
 		}
 
@@ -320,6 +348,8 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 			appKeyModelStat.Abnormal += 1
 			appKeyModelStat.AbnormalTokens += result.Spend.TotalSpendTokens
 		}
+
+		incrGroupStat(appKeyGroupStatMap[result.ReqDate][result.Creator], result.Spend, tokenStat, result.Status)
 	}
 
 	for reqDate, data := range userMap {
@@ -344,6 +374,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 				CacheReadTokens:  user.CacheReadTokens,
 				CacheWriteTokens: user.CacheWriteTokens,
 				ModelStats:       modelStats,
+				GroupStats:       collectGroupStats(userGroupStatMap[reqDate][userId]),
 				Rid:              user.Rid,
 				Creator:          user.Creator,
 				CreatedAt:        user.CreatedAt,
@@ -384,6 +415,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 				CacheReadTokens:  app.CacheReadTokens,
 				CacheWriteTokens: app.CacheWriteTokens,
 				ModelStats:       modelStats,
+				GroupStats:       collectGroupStats(appGroupStatMap[reqDate][appId]),
 				Rid:              app.Rid,
 				Creator:          app.Creator,
 				CreatedAt:        app.CreatedAt,
@@ -425,6 +457,7 @@ func (s *sStatistics) StatisticsData(ctx context.Context, collection, index, las
 				CacheReadTokens:  appKey.CacheReadTokens,
 				CacheWriteTokens: appKey.CacheWriteTokens,
 				ModelStats:       modelStats,
+				GroupStats:       collectGroupStats(appKeyGroupStatMap[reqDate][app_key]),
 				Rid:              appKey.Rid,
 				Creator:          appKey.Creator,
 				CreatedAt:        appKey.CreatedAt,
@@ -550,4 +583,65 @@ func cacheWriteTokens(cache *common.CacheSpend) int64 {
 		return 0
 	}
 	return int64(cache.WriteTokens) + int64(cache.Write5MTokens) + int64(cache.Write1HTokens)
+}
+
+// 取日志分组键: 无分组时记为未分组
+func spendGroupKey(spend common.Spend) (string, string) {
+
+	groupId := spend.GroupId
+	groupName := spend.GroupName
+	if groupId == "" {
+		groupId = consts.STATISTICS_UNGROUPED_ID
+		if groupName == "" {
+			groupName = consts.STATISTICS_UNGROUPED_NAME
+		}
+	} else if groupName == "" {
+		groupName = groupId
+	}
+
+	return groupId, groupName
+}
+
+// 累加分组统计
+func incrGroupStat(statMap map[string]*common.GroupStat, spend common.Spend, token tokenStat, status int) {
+
+	if statMap == nil {
+		return
+	}
+
+	groupId, groupName := spendGroupKey(spend)
+	groupStat := statMap[groupId]
+	if groupStat == nil {
+		groupStat = &common.GroupStat{
+			GroupId:   groupId,
+			GroupName: groupName,
+		}
+		statMap[groupId] = groupStat
+	} else if groupName != "" {
+		groupStat.GroupName = groupName
+	}
+
+	groupStat.Total += 1
+	groupStat.Tokens += spend.TotalSpendTokens
+	groupStat.InputTokens += token.InputTokens
+	groupStat.OutputTokens += token.OutputTokens
+	groupStat.ReasoningTokens += token.ReasoningTokens
+	groupStat.CacheReadTokens += token.CacheReadTokens
+	groupStat.CacheWriteTokens += token.CacheWriteTokens
+
+	if status != 1 {
+		groupStat.Abnormal += 1
+		groupStat.AbnormalTokens += spend.TotalSpendTokens
+	}
+}
+
+// 将分组统计 map 转为切片
+func collectGroupStats(m map[string]*common.GroupStat) []*common.GroupStat {
+
+	stats := make([]*common.GroupStat, 0, len(m))
+	for _, s := range m {
+		stats = append(stats, s)
+	}
+
+	return stats
 }

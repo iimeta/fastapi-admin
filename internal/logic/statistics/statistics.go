@@ -8,6 +8,7 @@ import (
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
@@ -592,6 +593,16 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 				"tokens": bson.M{"$sum": "$model_stats.tokens"},
 			},
 		})
+	case "group":
+		pipeline = append(pipeline, bson.M{"$unwind": "$group_stats"})
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id":        "$group_stats.group_id",
+				"group_name": bson.M{"$first": "$group_stats.group_name"},
+				"count":      bson.M{"$sum": "$group_stats.total"},
+				"tokens":     bson.M{"$sum": "$group_stats.tokens"},
+			},
+		})
 	}
 
 	// provider 维度需要查原始日志
@@ -695,6 +706,11 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 			logger.Error(ctx, err)
 			return nil, err
 		}
+	case "group":
+		if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
 	}
 
 	items := make([]*model.DataTop, 0)
@@ -733,6 +749,20 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 				Model:  gconv.String(res["_id"]),
 				Call:   gconv.Int(res["count"]),
 				Tokens: common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
+			})
+		}
+	case "group":
+		for _, res := range result {
+			groupId := gconv.String(res["_id"])
+			groupName := gconv.String(res["group_name"])
+			if groupName == "" && groupId == consts.STATISTICS_UNGROUPED_ID {
+				groupName = consts.STATISTICS_UNGROUPED_NAME
+			}
+			items = append(items, &model.DataTop{
+				GroupId:   groupId,
+				GroupName: groupName,
+				Call:      gconv.Int(res["count"]),
+				Tokens:    common.ConvQuotaUnitReverse(gconv.Int(res["tokens"])),
 			})
 		}
 	}
@@ -1128,6 +1158,96 @@ func (s *sStatistics) DataDetail(ctx context.Context, params model.StatisticsDet
 
 		paging.Total = int64(len(items))
 		// 手动分页
+		start := int((paging.Page - 1) * paging.PageSize)
+		end := start + int(paging.PageSize)
+		if start > len(items) {
+			items = items[:0]
+		} else {
+			if end > len(items) {
+				end = len(items)
+			}
+			items = items[start:end]
+		}
+
+	case "group":
+		// 分组维度: 按用户聚合该分组的调用数据
+		if params.GroupId == "" {
+			break
+		}
+		match := bson.M{}
+		if params.StatStartTime > 0 && params.StatEndTime > 0 {
+			match["stat_time"] = bson.M{"$gte": params.StatStartTime, "$lte": params.StatEndTime}
+		} else if params.StatStartTime > 0 {
+			match["stat_time"] = bson.M{"$gte": params.StatStartTime}
+		} else if params.StatEndTime > 0 {
+			match["stat_time"] = bson.M{"$lte": params.StatEndTime}
+		}
+
+		if service.Session().IsResellerRole(ctx) {
+			match["rid"] = service.Session().GetRid(ctx)
+		}
+		if service.Session().IsUserRole(ctx) {
+			match["user_id"] = service.Session().GetUserId(ctx)
+		}
+		if service.Session().IsAdminRole(ctx) && params.Rid != 0 {
+			match["rid"] = params.Rid
+		}
+		if !service.Session().IsUserRole(ctx) && params.UserId != 0 {
+			match["user_id"] = params.UserId
+		}
+		if params.AppId != 0 {
+			match["app_id"] = params.AppId
+		}
+		if params.AppKey != "" {
+			match["app_key"] = params.AppKey
+		}
+		if params.Key != "" && service.Session().IsAdminRole(ctx) {
+			match["app_key"] = params.Key
+		}
+
+		pipeline := []bson.M{
+			{"$match": match},
+			{"$unwind": "$group_stats"},
+			{"$match": bson.M{"group_stats.group_id": params.GroupId}},
+			{"$group": bson.M{
+				"_id":        "$user_id",
+				"group_name": bson.M{"$first": "$group_stats.group_name"},
+				"total":      bson.M{"$sum": "$group_stats.total"},
+				"tokens":     bson.M{"$sum": "$group_stats.tokens"},
+				"abnormal":   bson.M{"$sum": "$group_stats.abnormal"},
+			}},
+			{"$sort": bson.M{"total": -1}},
+		}
+
+		result := make([]map[string]any, 0)
+		if err := dao.StatisticsUser.Aggregate(ctx, pipeline, &result); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		for _, r := range result {
+			total := gconv.Int(r["total"])
+			abnormal := gconv.Int(r["abnormal"])
+			abnormalRate := float64(0)
+			if total > 0 {
+				abnormalRate = float64(abnormal) / float64(total) * 100
+			}
+			groupName := gconv.String(r["group_name"])
+			if groupName == "" && params.GroupId == consts.STATISTICS_UNGROUPED_ID {
+				groupName = consts.STATISTICS_UNGROUPED_NAME
+			}
+			items = append(items, &model.StatisticsDetailItem{
+				UserId:       gconv.Int(r["_id"]),
+				GroupId:      params.GroupId,
+				GroupName:    groupName,
+				Total:        total,
+				Tokens:       common.ConvQuotaUnitReverse(gconv.Int(r["tokens"])),
+				Abnormal:     abnormal,
+				AbnormalRate: abnormalRate,
+			})
+		}
+
+		paging.Total = int64(len(items))
 		start := int((paging.Page - 1) * paging.PageSize)
 		end := start + int(paging.PageSize)
 		if start > len(items) {

@@ -20,6 +20,7 @@ type StatisticsUser struct {
 	CacheReadTokens  int64               `bson:"cache_read_tokens,omitempty"`  // 缓存读取Token数
 	CacheWriteTokens int64               `bson:"cache_write_tokens,omitempty"` // 缓存写入Token数
 	ModelStats       []*common.ModelStat `bson:"model_stats,omitempty"`        // 模型统计数据
+	GroupStats       []*common.GroupStat `bson:"group_stats,omitempty"`        // 分组统计数据
 	Rid              int                 `bson:"rid,omitempty"`                // 代理商ID
 	Creator          string              `bson:"creator,omitempty"`            // 创建人
 	Updater          string              `bson:"updater,omitempty"`            // 更新人
@@ -43,6 +44,7 @@ type StatisticsApp struct {
 	CacheReadTokens  int64               `bson:"cache_read_tokens,omitempty"`  // 缓存读取Token数
 	CacheWriteTokens int64               `bson:"cache_write_tokens,omitempty"` // 缓存写入Token数
 	ModelStats       []*common.ModelStat `bson:"model_stats,omitempty"`        // 模型统计数据
+	GroupStats       []*common.GroupStat `bson:"group_stats,omitempty"`        // 分组统计数据
 	Rid              int                 `bson:"rid,omitempty"`                // 代理商ID
 	Creator          string              `bson:"creator,omitempty"`            // 创建人
 	Updater          string              `bson:"updater,omitempty"`            // 更新人
@@ -67,6 +69,7 @@ type StatisticsAppKey struct {
 	CacheReadTokens  int64               `bson:"cache_read_tokens,omitempty"`  // 缓存读取Token数
 	CacheWriteTokens int64               `bson:"cache_write_tokens,omitempty"` // 缓存写入Token数
 	ModelStats       []*common.ModelStat `bson:"model_stats,omitempty"`        // 模型统计数据
+	GroupStats       []*common.GroupStat `bson:"group_stats,omitempty"`        // 分组统计数据
 	Rid              int                 `bson:"rid,omitempty"`                // 代理商ID
 	Creator          string              `bson:"creator,omitempty"`            // 创建人
 	Updater          string              `bson:"updater,omitempty"`            // 更新人
