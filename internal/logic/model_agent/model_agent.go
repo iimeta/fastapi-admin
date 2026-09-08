@@ -1079,9 +1079,21 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 		return nil, err
 	}
 
+	requestModel := m.Model
+
+	if params.TestMethod == 2 && modelAgent.IsEnableModelReplace {
+		for i, replaceModel := range modelAgent.ReplaceModels {
+			if replaceModel == requestModel {
+				logger.Infof(ctx, "sModelAgent TestModel request.Model: %s replaced %s", requestModel, modelAgent.TargetModels[i])
+				requestModel = modelAgent.TargetModels[i]
+				break
+			}
+		}
+	}
+
 	options := &options.AdapterOptions{
 		Provider: provider.Code,
-		Model:    m.Model,
+		Model:    requestModel,
 		Key:      params.Key,
 		Path:     modelAgent.Path,
 		Header:   g.MapStrStr{consts.HEALTH_CHECK_HEADER: params.ModelAgentId},
@@ -1184,7 +1196,7 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 	}
 
 	var data bytes.Buffer
-	if err = requestDataTmpl.Execute(&data, g.MapStrStr{"model": m.Model}); err != nil {
+	if err = requestDataTmpl.Execute(&data, g.MapStrStr{"model": requestModel}); err != nil {
 		return nil, err
 	}
 
