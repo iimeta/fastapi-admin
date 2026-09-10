@@ -94,6 +94,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		video.RemoteIp = result.RemoteIp
 		video.LocalIp = result.LocalIp
 		video.InternalTime = result.InternalTime
+		video.ReceiveTime = result.ReceiveTime
 		video.IsRetry = result.IsRetry
 		video.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		video.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -224,6 +225,7 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 		if service.Session().IsAdminRole(ctx) {
 			video.ProviderCode = result.ProviderCode
 			video.InternalTime = result.InternalTime
+			video.ReceiveTime = result.ReceiveTime
 			video.IsSmartMatch = result.IsSmartMatch
 		}
 

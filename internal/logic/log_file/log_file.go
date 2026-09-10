@@ -94,6 +94,7 @@ func (s *sLogFile) Detail(ctx context.Context, id string) (*model.LogFile, error
 		file.RemoteIp = result.RemoteIp
 		file.LocalIp = result.LocalIp
 		file.InternalTime = result.InternalTime
+		file.ReceiveTime = result.ReceiveTime
 		file.IsRetry = result.IsRetry
 		file.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		file.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -224,6 +225,7 @@ func (s *sLogFile) Page(ctx context.Context, params model.LogFilePageReq) (*mode
 		if service.Session().IsAdminRole(ctx) {
 			file.ProviderCode = result.ProviderCode
 			file.InternalTime = result.InternalTime
+			file.ReceiveTime = result.ReceiveTime
 			file.IsSmartMatch = result.IsSmartMatch
 		}
 

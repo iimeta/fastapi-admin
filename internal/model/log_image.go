@@ -90,6 +90,7 @@ type LogImage struct {
 	Duration             int64                  `json:"duration,omitempty"`                // 持续时间
 	TotalTime            int64                  `json:"total_time,omitempty"`              // 总时间
 	InternalTime         int64                  `json:"internal_time,omitempty"`           // 内耗时间
+	ReceiveTime          int64                  `json:"receive_time,omitempty"`            // 接收时间
 	ReqTime              string                 `json:"req_time,omitempty"`                // 请求时间
 	ReqDate              string                 `json:"req_date,omitempty"`                // 请求日期
 	ClientIp             string                 `json:"client_ip,omitempty"`               // 客户端IP

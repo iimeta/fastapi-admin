@@ -119,6 +119,7 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 		image.RemoteIp = result.RemoteIp
 		image.LocalIp = result.LocalIp
 		image.InternalTime = result.InternalTime
+		image.ReceiveTime = result.ReceiveTime
 		image.IsRetry = result.IsRetry
 		image.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		image.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -229,7 +230,7 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
-		IncludeFields: []string{"_id", "user_id", "app_id", "creator", "model", "model_type", "prompt", "size", "action", "stream", "image_data.url", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code", "err_msg"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "creator", "model", "model_type", "prompt", "size", "action", "stream", "image_data.url", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "receive_time", "is_smart_match", "provider_name", "provider_code", "err_msg"},
 	}
 
 	results, err := dao.LogImage.FindByPage(ctx, paging, filter, findOptions)
@@ -270,6 +271,7 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 		if service.Session().IsAdminRole(ctx) {
 			image.ProviderCode = result.ProviderCode
 			image.InternalTime = result.InternalTime
+			image.ReceiveTime = result.ReceiveTime
 			image.IsSmartMatch = result.IsSmartMatch
 		}
 

@@ -97,6 +97,7 @@ func (s *sLogGeneral) Detail(ctx context.Context, id string) (*model.LogGeneral,
 		general.RemoteIp = result.RemoteIp
 		general.LocalIp = result.LocalIp
 		general.InternalTime = result.InternalTime
+		general.ReceiveTime = result.ReceiveTime
 		general.IsRetry = result.IsRetry
 		general.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		general.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -229,6 +230,7 @@ func (s *sLogGeneral) Page(ctx context.Context, params model.LogGeneralPageReq) 
 		if service.Session().IsAdminRole(ctx) {
 			general.ProviderCode = result.ProviderCode
 			general.InternalTime = result.InternalTime
+			general.ReceiveTime = result.ReceiveTime
 			general.IsSmartMatch = result.IsSmartMatch
 		}
 

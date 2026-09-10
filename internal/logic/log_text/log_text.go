@@ -100,6 +100,7 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		text.RemoteIp = result.RemoteIp
 		text.LocalIp = result.LocalIp
 		text.InternalTime = result.InternalTime
+		text.ReceiveTime = result.ReceiveTime
 		text.IsRetry = result.IsRetry
 		text.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		text.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -210,7 +211,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 	findOptions := &dao.FindOptions{
 		SortFields:    []string{"-req_time", "status", "-created_at"},
 		Index:         index,
-		IncludeFields: []string{"_id", "user_id", "app_id", "action", "creator", "model", "model_type", "stream", "reasoning", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "is_smart_match", "provider_name", "provider_code", "err_msg"},
+		IncludeFields: []string{"_id", "user_id", "app_id", "action", "creator", "model", "model_type", "stream", "reasoning", "spend", "conn_time", "duration", "total_time", "req_time", "status", "internal_time", "receive_time", "is_smart_match", "provider_name", "provider_code", "err_msg"},
 	}
 
 	results, err := dao.LogText.FindByPage(ctx, paging, filter, findOptions)
@@ -244,6 +245,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 		if service.Session().IsAdminRole(ctx) {
 			text.ProviderCode = result.ProviderCode
 			text.InternalTime = result.InternalTime
+			text.ReceiveTime = result.ReceiveTime
 			text.IsSmartMatch = result.IsSmartMatch
 		}
 

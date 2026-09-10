@@ -94,6 +94,7 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		batch.RemoteIp = result.RemoteIp
 		batch.LocalIp = result.LocalIp
 		batch.InternalTime = result.InternalTime
+		batch.ReceiveTime = result.ReceiveTime
 		batch.IsRetry = result.IsRetry
 		batch.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		batch.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -221,6 +222,7 @@ func (s *sLogBatch) Page(ctx context.Context, params model.LogBatchPageReq) (*mo
 		if service.Session().IsAdminRole(ctx) {
 			batch.ProviderCode = result.ProviderCode
 			batch.InternalTime = result.InternalTime
+			batch.ReceiveTime = result.ReceiveTime
 			batch.IsSmartMatch = result.IsSmartMatch
 		}
 

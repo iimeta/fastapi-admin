@@ -93,6 +93,7 @@ func (s *sLogAudio) Detail(ctx context.Context, id string) (*model.LogAudio, err
 		audio.RemoteIp = result.RemoteIp
 		audio.LocalIp = result.LocalIp
 		audio.InternalTime = result.InternalTime
+		audio.ReceiveTime = result.ReceiveTime
 		audio.IsRetry = result.IsRetry
 		audio.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		audio.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
@@ -219,6 +220,7 @@ func (s *sLogAudio) Page(ctx context.Context, params model.LogAudioPageReq) (*mo
 		if service.Session().IsAdminRole(ctx) {
 			audio.ProviderCode = result.ProviderCode
 			audio.InternalTime = result.InternalTime
+			audio.ReceiveTime = result.ReceiveTime
 			audio.IsSmartMatch = result.IsSmartMatch
 		}
 
