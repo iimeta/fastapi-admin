@@ -1058,6 +1058,12 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					ModelType:   8,
 					RequestData: `{"model":"{{.model}}","input":{"prompt":"A video of a cat"},"parameters":{"resolution":"480P","ratio":"adaptive","duration":2}}`,
 				},
+				{
+					Provider:    sconsts.PROVIDER_MINIMAX,
+					Model:       "all",
+					ModelType:   8,
+					RequestData: `{"model":"{{.model}}","content":[{"type":"text","text":"A video of a cat"}],"resolution":"768P","duration":5,"ratio":"16:9"}`,
+				},
 			},
 		},
 		Debug: &common.Debug{
