@@ -530,6 +530,15 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	errorAgentIds := make([]string, 0)
 	errorKeys := make([]string, 0)
 
+	sizeCheckGroup := loadImageSizeCheckGroup(ctx, logImage)
+	enableSizeCheck := imageSizeCheckEnabled(sizeCheckGroup)
+	maxSizeRetry := 0
+	sizeMismatchAttempts := 0
+	if enableSizeCheck {
+		agents, _, _ := s.listCandidateAgents(ctx, taskImage, logImage)
+		maxSizeRetry = imageSizeCheckMaxRetry(sizeCheckGroup, len(agents))
+	}
+
 	for attempt := 0; ; attempt++ {
 
 		// 需要重新提交时(无上游句柄)才换代理; 已有 job_id 的续轮询必须留在原代理
@@ -645,8 +654,46 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 			}
 		}
 
+		if enableSizeCheck && err == nil {
+			if e := s.checkGeneratedImageSize(ctx, taskImage, response, timeout); e != nil {
+				err = e
+				errCode = "image_size_mismatch"
+				taskImage.JobId = ""
+				if uerr := dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"job_id": ""}); uerr != nil {
+					logger.Error(ctx, uerr)
+				}
+				for _, fp := range filePaths {
+					if fp != "" {
+						if rerr := gfile.RemoveFile(fp); rerr != nil {
+							logger.Error(ctx, rerr)
+						}
+					}
+				}
+				imageUrl, fileName, filePath = "", "", ""
+				imageUrls, fileNames, filePaths = nil, nil, nil
+			}
+		}
+
 		if err == nil {
 			break
+		}
+
+		if errCode == "image_size_mismatch" {
+			if sizeMismatchAttempts >= maxSizeRetry {
+				logger.Error(ctx, err)
+				s.failTask(ctx, taskImage.Id, errCode, err.Error(), logImage.Id)
+				return
+			}
+			if latest, e := dao.TaskImage.FindById(ctx, taskImage.Id); e != nil {
+				logger.Error(ctx, e)
+			} else if latest.Status != "in_progress" {
+				logger.Infof(ctx, "sTaskImage processImageTask task: %s status is %s, skip size mismatch retry", taskImage.Id, latest.Status)
+				return
+			}
+			sizeMismatchAttempts++
+			errorAgentIds = appendUnique(errorAgentIds, logImage.ModelAgentId)
+			logger.Errorf(ctx, "sTaskImage processImageTask task: %s image size mismatch, retry: %d/%d", taskImage.Id, sizeMismatchAttempts, maxSizeRetry)
+			continue
 		}
 
 		// 仅异步 & 接口异常型超时(retrieve_error, B类): 上游接口异常但任务大概率仍在进行, 置回queued并保留job_id,
