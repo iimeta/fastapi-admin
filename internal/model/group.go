@@ -4,57 +4,61 @@ import "github.com/iimeta/fastapi-admin/v2/internal/model/common"
 
 // 新建分组接口请求参数
 type GroupCreateReq struct {
-	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
-	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
-	Name               string                `json:"name,omitempty"`                  // 分组名称
-	Tags               []string              `json:"tags,omitempty"`                  // 标签
-	Models             []string              `json:"models,omitempty" d:"[]"`         // 模型权限
-	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
-	LbStrategy         int                   `json:"lb_strategy,omitempty" d:"1"`     // 代理负载均衡策略[1:轮询, 2:权重]
-	ModelAgents        []string              `json:"model_agents,omitempty" d:"[]"`   // 模型代理
-	IsDefault          bool                  `json:"is_default,omitempty"`            // 是否默认分组
-	IsLimitQuota       bool                  `json:"is_limit_quota,omitempty"`        // 是否限制额度
-	Quota              float64               `json:"quota,omitempty"`                 // 额度
-	IsCycleResetQuota  bool                  `json:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
-	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
-	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
-	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
-	ResetMode          string                `json:"reset_mode,omitempty"`            // 重置模式[natural:自然周期, relative:相对周期]
-	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
-	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
-	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
-	Weight             int                   `json:"weight,omitempty"`                // 权重
-	ExpiresAt          string                `json:"expires_at,omitempty"`            // 过期时间
-	Remark             string                `json:"remark,omitempty"`                // 备注
-	Status             int                   `json:"status,omitempty" d:"1"`          // 状态[1:正常, 2:禁用, -1:删除]
+	TimeRules              []*common.TimeRule    `json:"time_rules,omitempty"`                 // 时段规则
+	BillingMethods         []int                 `json:"billing_methods,omitempty"`            // 计费方式[1:按Tokens, 2:按次]
+	Name                   string                `json:"name,omitempty"`                       // 分组名称
+	Tags                   []string              `json:"tags,omitempty"`                       // 标签
+	Models                 []string              `json:"models,omitempty" d:"[]"`              // 模型权限
+	IsEnableModelAgent     bool                  `json:"is_enable_model_agent,omitempty"`      // 是否启用模型代理
+	LbStrategy             int                   `json:"lb_strategy,omitempty" d:"1"`          // 代理负载均衡策略[1:轮询, 2:权重]
+	ModelAgents            []string              `json:"model_agents,omitempty" d:"[]"`        // 模型代理
+	IsDefault              bool                  `json:"is_default,omitempty"`                 // 是否默认分组
+	IsLimitQuota           bool                  `json:"is_limit_quota,omitempty"`             // 是否限制额度
+	Quota                  float64               `json:"quota,omitempty"`                      // 额度
+	IsCycleResetQuota      bool                  `json:"is_cycle_reset_quota,omitempty"`       // 是否循环重置额度
+	ResetQuota             float64               `json:"reset_quota,omitempty"`                // 重置额度
+	CyclePeriod            int                   `json:"cycle_period,omitempty"`               // 循环周期
+	PeriodUnit             string                `json:"period_unit,omitempty"`                // 周期单位[hour:小时, day:天]
+	ResetMode              string                `json:"reset_mode,omitempty"`                 // 重置模式[natural:自然周期, relative:相对周期]
+	IsEnableForward        bool                  `json:"is_enable_forward,omitempty"`          // 是否启用模型转发
+	ForwardConfig          *common.ForwardConfig `json:"forward_config,omitempty"`             // 模型转发配置
+	IsEnableImageSizeCheck bool                  `json:"is_enable_image_size_check,omitempty"` // 是否启用图像尺寸强校验
+	ImageSizeCheckRetry    int                   `json:"image_size_check_retry,omitempty"`     // 图像尺寸强校验重试次数, 0 表示跟随系统错误重试次数
+	IsPublic               bool                  `json:"is_public,omitempty"`                  // 是否公开
+	Weight                 int                   `json:"weight,omitempty"`                     // 权重
+	ExpiresAt              string                `json:"expires_at,omitempty"`                 // 过期时间
+	Remark                 string                `json:"remark,omitempty"`                     // 备注
+	Status                 int                   `json:"status,omitempty" d:"1"`               // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更新分组接口请求参数
 type GroupUpdateReq struct {
-	Id                 string                `json:"id,omitempty"`                    // ID
-	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
-	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
-	Name               string                `json:"name,omitempty"`                  // 分组名称
-	Tags               []string              `json:"tags,omitempty"`                  // 标签
-	Models             []string              `json:"models,omitempty" d:"[]"`         // 模型权限
-	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
-	LbStrategy         int                   `json:"lb_strategy,omitempty" d:"1"`     // 代理负载均衡策略[1:轮询, 2:权重]
-	ModelAgents        []string              `json:"model_agents,omitempty" d:"[]"`   // 模型代理
-	IsDefault          bool                  `json:"is_default,omitempty"`            // 是否默认分组
-	IsLimitQuota       bool                  `json:"is_limit_quota,omitempty"`        // 是否限制额度
-	Quota              float64               `json:"quota,omitempty"`                 // 额度
-	IsCycleResetQuota  bool                  `json:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
-	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
-	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
-	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
-	ResetMode          string                `json:"reset_mode,omitempty"`            // 重置模式[natural:自然周期, relative:相对周期]
-	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
-	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
-	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
-	Weight             int                   `json:"weight,omitempty"`                // 权重
-	ExpiresAt          string                `json:"expires_at,omitempty"`            // 过期时间
-	Remark             string                `json:"remark,omitempty"`                // 备注
-	Status             int                   `json:"status,omitempty" d:"1"`          // 状态[1:正常, 2:禁用, -1:删除]
+	Id                     string                `json:"id,omitempty"`                         // ID
+	TimeRules              []*common.TimeRule    `json:"time_rules,omitempty"`                 // 时段规则
+	BillingMethods         []int                 `json:"billing_methods,omitempty"`            // 计费方式[1:按Tokens, 2:按次]
+	Name                   string                `json:"name,omitempty"`                       // 分组名称
+	Tags                   []string              `json:"tags,omitempty"`                       // 标签
+	Models                 []string              `json:"models,omitempty" d:"[]"`              // 模型权限
+	IsEnableModelAgent     bool                  `json:"is_enable_model_agent,omitempty"`      // 是否启用模型代理
+	LbStrategy             int                   `json:"lb_strategy,omitempty" d:"1"`          // 代理负载均衡策略[1:轮询, 2:权重]
+	ModelAgents            []string              `json:"model_agents,omitempty" d:"[]"`        // 模型代理
+	IsDefault              bool                  `json:"is_default,omitempty"`                 // 是否默认分组
+	IsLimitQuota           bool                  `json:"is_limit_quota,omitempty"`             // 是否限制额度
+	Quota                  float64               `json:"quota,omitempty"`                      // 额度
+	IsCycleResetQuota      bool                  `json:"is_cycle_reset_quota,omitempty"`       // 是否循环重置额度
+	ResetQuota             float64               `json:"reset_quota,omitempty"`                // 重置额度
+	CyclePeriod            int                   `json:"cycle_period,omitempty"`               // 循环周期
+	PeriodUnit             string                `json:"period_unit,omitempty"`                // 周期单位[hour:小时, day:天]
+	ResetMode              string                `json:"reset_mode,omitempty"`                 // 重置模式[natural:自然周期, relative:相对周期]
+	IsEnableForward        bool                  `json:"is_enable_forward,omitempty"`          // 是否启用模型转发
+	ForwardConfig          *common.ForwardConfig `json:"forward_config,omitempty"`             // 模型转发配置
+	IsEnableImageSizeCheck bool                  `json:"is_enable_image_size_check,omitempty"` // 是否启用图像尺寸强校验
+	ImageSizeCheckRetry    int                   `json:"image_size_check_retry,omitempty"`     // 图像尺寸强校验重试次数, 0 表示跟随系统错误重试次数
+	IsPublic               bool                  `json:"is_public,omitempty"`                  // 是否公开
+	Weight                 int                   `json:"weight,omitempty"`                     // 权重
+	ExpiresAt              string                `json:"expires_at,omitempty"`                 // 过期时间
+	Remark                 string                `json:"remark,omitempty"`                     // 备注
+	Status                 int                   `json:"status,omitempty" d:"1"`               // 状态[1:正常, 2:禁用, -1:删除]
 }
 
 // 更改过期时间接口请求参数
@@ -126,37 +130,39 @@ type GroupBatchOperateReq struct {
 }
 
 type Group struct {
-	Id                 string                `json:"id,omitempty"`                    // ID
-	TimeRules          []*common.TimeRule    `json:"time_rules,omitempty"`            // 时段规则
-	BillingMethods     []int                 `json:"billing_methods,omitempty"`       // 计费方式[1:按Tokens, 2:按次]
-	Name               string                `json:"name,omitempty"`                  // 分组名称
-	Tags               []string              `json:"tags,omitempty"`                  // 标签
-	Models             []string              `json:"models,omitempty"`                // 模型权限
-	ModelNames         []string              `json:"model_names,omitempty"`           // 模型名称
-	IsEnableModelAgent bool                  `json:"is_enable_model_agent,omitempty"` // 是否启用模型代理
-	LbStrategy         int                   `json:"lb_strategy,omitempty"`           // 代理负载均衡策略[1:轮询, 2:权重]
-	ModelAgents        []string              `json:"model_agents,omitempty"`          // 模型代理
-	ModelAgentNames    []string              `json:"model_agent_names,omitempty"`     // 模型代理名称
-	IsDefault          bool                  `json:"is_default,omitempty"`            // 是否默认分组
-	IsLimitQuota       bool                  `json:"is_limit_quota,omitempty"`        // 是否限制额度
-	Quota              float64               `json:"quota,omitempty"`                 // 剩余额度
-	UsedQuota          float64               `json:"used_quota,omitempty"`            // 已用额度
-	IsCycleResetQuota  bool                  `json:"is_cycle_reset_quota,omitempty"`  // 是否循环重置额度
-	ResetQuota         float64               `json:"reset_quota,omitempty"`           // 重置额度
-	CyclePeriod        int                   `json:"cycle_period,omitempty"`          // 循环周期
-	PeriodUnit         string                `json:"period_unit,omitempty"`           // 周期单位[hour:小时, day:天]
-	ResetMode          string                `json:"reset_mode,omitempty"`            // 重置模式[natural:自然周期, relative:相对周期]
-	ResetAt            string                `json:"reset_at,omitempty"`              // 重置时间
-	NextResetAt        string                `json:"next_reset_at,omitempty"`         // 下次重置时间
-	IsEnableForward    bool                  `json:"is_enable_forward,omitempty"`     // 是否启用模型转发
-	ForwardConfig      *common.ForwardConfig `json:"forward_config,omitempty"`        // 模型转发配置
-	IsPublic           bool                  `json:"is_public,omitempty"`             // 是否公开
-	Weight             int                   `json:"weight,omitempty"`                // 权重
-	ExpiresAt          string                `json:"expires_at,omitempty"`            // 过期时间
-	Remark             string                `json:"remark,omitempty"`                // 备注
-	Status             int                   `json:"status,omitempty"`                // 状态[1:正常, 2:禁用, -1:删除]
-	Creator            string                `json:"creator,omitempty"`               // 创建人
-	Updater            string                `json:"updater,omitempty"`               // 更新人
-	CreatedAt          string                `json:"created_at,omitempty"`            // 创建时间
-	UpdatedAt          string                `json:"updated_at,omitempty"`            // 更新时间
+	Id                     string                `json:"id,omitempty"`                         // ID
+	TimeRules              []*common.TimeRule    `json:"time_rules,omitempty"`                 // 时段规则
+	BillingMethods         []int                 `json:"billing_methods,omitempty"`            // 计费方式[1:按Tokens, 2:按次]
+	Name                   string                `json:"name,omitempty"`                       // 分组名称
+	Tags                   []string              `json:"tags,omitempty"`                       // 标签
+	Models                 []string              `json:"models,omitempty"`                     // 模型权限
+	ModelNames             []string              `json:"model_names,omitempty"`                // 模型名称
+	IsEnableModelAgent     bool                  `json:"is_enable_model_agent,omitempty"`      // 是否启用模型代理
+	LbStrategy             int                   `json:"lb_strategy,omitempty"`                // 代理负载均衡策略[1:轮询, 2:权重]
+	ModelAgents            []string              `json:"model_agents,omitempty"`               // 模型代理
+	ModelAgentNames        []string              `json:"model_agent_names,omitempty"`          // 模型代理名称
+	IsDefault              bool                  `json:"is_default,omitempty"`                 // 是否默认分组
+	IsLimitQuota           bool                  `json:"is_limit_quota,omitempty"`             // 是否限制额度
+	Quota                  float64               `json:"quota,omitempty"`                      // 剩余额度
+	UsedQuota              float64               `json:"used_quota,omitempty"`                 // 已用额度
+	IsCycleResetQuota      bool                  `json:"is_cycle_reset_quota,omitempty"`       // 是否循环重置额度
+	ResetQuota             float64               `json:"reset_quota,omitempty"`                // 重置额度
+	CyclePeriod            int                   `json:"cycle_period,omitempty"`               // 循环周期
+	PeriodUnit             string                `json:"period_unit,omitempty"`                // 周期单位[hour:小时, day:天]
+	ResetMode              string                `json:"reset_mode,omitempty"`                 // 重置模式[natural:自然周期, relative:相对周期]
+	ResetAt                string                `json:"reset_at,omitempty"`                   // 重置时间
+	NextResetAt            string                `json:"next_reset_at,omitempty"`              // 下次重置时间
+	IsEnableForward        bool                  `json:"is_enable_forward,omitempty"`          // 是否启用模型转发
+	ForwardConfig          *common.ForwardConfig `json:"forward_config,omitempty"`             // 模型转发配置
+	IsEnableImageSizeCheck bool                  `json:"is_enable_image_size_check,omitempty"` // 是否启用图像尺寸强校验
+	ImageSizeCheckRetry    int                   `json:"image_size_check_retry,omitempty"`     // 图像尺寸强校验重试次数, 0 表示跟随系统错误重试次数
+	IsPublic               bool                  `json:"is_public,omitempty"`                  // 是否公开
+	Weight                 int                   `json:"weight,omitempty"`                     // 权重
+	ExpiresAt              string                `json:"expires_at,omitempty"`                 // 过期时间
+	Remark                 string                `json:"remark,omitempty"`                     // 备注
+	Status                 int                   `json:"status,omitempty"`                     // 状态[1:正常, 2:禁用, -1:删除]
+	Creator                string                `json:"creator,omitempty"`                    // 创建人
+	Updater                string                `json:"updater,omitempty"`                    // 更新人
+	CreatedAt              string                `json:"created_at,omitempty"`                 // 创建时间
+	UpdatedAt              string                `json:"updated_at,omitempty"`                 // 更新时间
 }
