@@ -99,6 +99,12 @@ func init() {
 	}
 
 	if _, err = client.Database(DefaultDatabase).Collection("log_text").Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{bson.E{Key: "model_agent_id", Value: 1}, bson.E{Key: "req_time", Value: -1}, bson.E{Key: "status", Value: 1}, bson.E{Key: "created_at", Value: -1}},
+	}); err != nil {
+		panic(err)
+	}
+
+	if _, err = client.Database(DefaultDatabase).Collection("log_text").Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{bson.E{Key: "created_at", Value: 1}, bson.E{Key: "is_smart_match", Value: -1}, bson.E{Key: "is_retry", Value: -1}},
 	}); err != nil {
 		panic(err)

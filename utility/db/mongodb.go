@@ -122,6 +122,8 @@ func (m *MongoDB) FindByPage(ctx context.Context, paging *Paging, result any) (e
 
 	if m.Filter == nil {
 		paging.Total, err = collection.EstimatedDocumentCount(ctx)
+	} else if m.Index != "" {
+		paging.Total, err = collection.CountDocuments(ctx, m.Filter, options.Count().SetHint(m.Index))
 	} else {
 		paging.Total, err = collection.CountDocuments(ctx, m.Filter)
 	}

@@ -162,6 +162,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 		filter["model_agent_id"] = bson.M{
 			"$in": params.ModelAgents,
 		}
+		index = "model_agent_id_1_req_time_-1_status_1_created_at_-1"
 	}
 
 	if service.Session().IsResellerRole(ctx) {
@@ -176,7 +177,9 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 		filter["is_retry"] = bson.M{"$exists": false}
 	} else if params.UserId != 0 {
 		filter["user_id"] = params.UserId
-		index = "req_time_-1_model_id_1_user_id_1_status_1_created_at_-1"
+		if index == "" {
+			index = "req_time_-1_model_id_1_user_id_1_status_1_created_at_-1"
+		}
 	}
 
 	if params.Status != 0 {
