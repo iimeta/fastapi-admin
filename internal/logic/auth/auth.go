@@ -202,7 +202,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		// IP限制检查: 防止恶意邀请注册套取额度
 		ipLimited := false
 		if inviterUserId != 0 && siteConfig != nil {
-			registerIp := g.RequestFromCtx(ctx).GetClientIp()
+			registerIp := util.GetClientIpFromCtx(ctx)
 			if service.Invite().CheckInviteIpLimit(ctx, registerIp, inviterUserId, siteConfig) {
 				if siteConfig.InviteConfig.IpLimitAction == "block" {
 					return errors.New("注册过于频繁, 请稍后再试")
@@ -250,7 +250,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			} else if siteConfig != nil && siteConfig.InviteConfig.RewardQuota > 0 {
 				rewardQuota = siteConfig.InviteConfig.RewardQuota
 			}
-			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: inviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: inviterRid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: g.RequestFromCtx(ctx).GetClientIp(), Status: relationStatus, RewardQuota: rewardQuota, CreatedAt: now, UpdatedAt: now}
+			relation := &do.InviteRelation{Id: util.GenerateId(), InviteCode: inviteCode, InviterUserId: inviterUserId, InviteeUserId: user.UserId, Rid: inviterRid, Domain: params.Domain, Terminal: params.Terminal, Channel: params.Channel, Account: params.Account, Ip: util.GetClientIpFromCtx(ctx), Status: relationStatus, RewardQuota: rewardQuota, CreatedAt: now, UpdatedAt: now}
 			if _, err = dao.InviteRelation.Insert(ctx, relation); err != nil {
 				logger.Error(ctx, err)
 				return err
@@ -529,7 +529,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 	}
 
 	r := g.RequestFromCtx(ctx)
-	ip := r.GetClientIp()
+	ip := util.GetClientIp(r)
 	token := ""
 
 	if params.Channel == consts.USER_CHANNEL {
