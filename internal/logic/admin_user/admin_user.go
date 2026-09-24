@@ -152,7 +152,7 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 			return err
 		}
 
-		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(params.Quota)); err != nil {
+		if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, user.UserId), consts.USER_QUOTA_FIELD, int64(common.ConvQuotaUnit(params.Quota))); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
