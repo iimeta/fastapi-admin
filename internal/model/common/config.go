@@ -210,6 +210,10 @@ type VideoTask struct {
 	Open                 bool          `bson:"open"                   json:"open"`                         // 开关
 	Cron                 string        `bson:"cron"                   json:"cron"`                         // CRON表达式
 	LockMinutes          time.Duration `bson:"lock_minutes"           json:"lock_minutes"`                 // 锁定时长, 单位: 分钟
+	Timeout              time.Duration `bson:"timeout"                json:"timeout"`                      // 生成超时, 单位: 秒
+	RetryCount           int           `bson:"retry_count"            json:"retry_count"`                  // 重试次数
+	ConcurrencyLimit     int           `bson:"concurrency_limit"      json:"concurrency_limit"`            // 进行中数量限制, 0为不限制
+	Reclaim              time.Duration `bson:"reclaim"                json:"reclaim"`                      // 进行中超时回收时长, 单位: 秒, 0为自动按超时×(重试+1)推算
 	IsEnableStorage      bool          `bson:"is_enable_storage"      json:"is_enable_storage"`            // 是否启用存储
 	StorageDir           string        `bson:"storage_dir"            json:"storage_dir"`                  // 存储目录
 	StorageBaseUrl       string        `bson:"storage_base_url"       json:"storage_base_url"`             // 访问地址

@@ -10,19 +10,29 @@ type TaskVideoDetailRes struct {
 // 视频任务分页列表接口请求参数
 type TaskVideoPageReq struct {
 	Paging
-	UserId    int      `json:"user_id,omitempty"`    // 用户ID
-	AppId     int      `json:"app_id,omitempty"`     // 应用ID
-	TraceId   string   `json:"trace_id,omitempty"`   // 日志ID
-	VideoId   string   `json:"video_id,omitempty"`   // 视频ID
-	VideoUrl  string   `json:"video_url,omitempty"`  // 视频地址
-	Status    string   `json:"status,omitempty"`     // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
-	CreatedAt []string `json:"created_at,omitempty"` // 创建时间
+	UserId      int      `json:"user_id,omitempty"`      // 用户ID
+	AppId       int      `json:"app_id,omitempty"`       // 应用ID
+	TraceId     string   `json:"trace_id,omitempty"`     // 日志ID
+	VideoId     string   `json:"video_id,omitempty"`     // 视频ID
+	VideoUrl    string   `json:"video_url,omitempty"`    // 视频地址
+	Prompt      string   `json:"prompt,omitempty"`       // 提示词
+	Models      []string `json:"models,omitempty"`       // 模型
+	ModelAgents []string `json:"model_agents,omitempty"` // 模型代理
+	Status      string   `json:"status,omitempty"`       // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
+	CreatedAt   []string `json:"created_at,omitempty"`   // 创建时间
 }
 
 // 视频任务分页列表接口响应参数
 type TaskVideoPageRes struct {
 	Items  []*TaskVideo `json:"items"`
 	Paging *Paging      `json:"paging"`
+}
+
+// 视频任务批量操作接口请求参数
+type TaskVideoBatchOperateReq struct {
+	Action string   `json:"action"` // 动作
+	Ids    []string `json:"ids"`    // 主键Ids
+	Value  any      `json:"value"`  // 值
 }
 
 // 视频任务详情复制字段值接口请求参数
@@ -42,7 +52,9 @@ type TaskVideo struct {
 	UserId             int                `json:"user_id,omitempty"`               // 用户ID
 	AppId              int                `json:"app_id,omitempty"`                // 应用ID
 	Model              string             `json:"model,omitempty"`                 // 模型
+	Action             string             `json:"action,omitempty"`                // 接口
 	VideoId            string             `json:"video_id,omitempty"`              // 视频ID
+	JobId              string             `json:"job_id,omitempty"`                // 上游任务ID
 	Width              int                `json:"width,omitempty"`                 // 宽度
 	Height             int                `json:"height,omitempty"`                // 高度
 	Seconds            int                `json:"seconds,omitempty"`               // 秒数
@@ -50,13 +62,17 @@ type TaskVideo struct {
 	Progress           int                `json:"progress,omitempty"`              // 进度
 	RemixedFromVideoId string             `json:"remixed_from_video_id,omitempty"` // 混合ID
 	Status             string             `json:"status,omitempty"`                // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
+	TotalTime          int64              `json:"total_time,omitempty"`            // 总耗时
 	CompletedAt        string             `json:"completed_at,omitempty"`          // 完成时间
 	ExpiresAt          string             `json:"expires_at,omitempty"`            // 过期时间
 	VideoUrl           string             `json:"video_url,omitempty"`             // 视频地址
 	FileName           string             `json:"file_name,omitempty"`             // 文件名
 	FilePath           string             `json:"file_path,omitempty"`             // 文件路径
+	RequestData        map[string]any     `json:"request_data,omitempty"`          // 请求数据
 	ResponseData       map[string]any     `json:"response_data,omitempty"`         // 响应数据
 	Error              *smodel.VideoError `json:"error,omitempty"`                 // 错误信息
+	ModelAgentId       string             `json:"model_agent_id,omitempty"`        // 模型代理ID
+	ModelAgent         *ModelAgent        `json:"model_agent,omitempty"`           // 模型代理信息
 	Creator            string             `json:"creator,omitempty"`               // 创建人
 	Updater            string             `json:"updater,omitempty"`               // 更新人
 	CreatedAt          string             `json:"created_at,omitempty"`            // 创建时间

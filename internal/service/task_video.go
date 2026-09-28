@@ -19,6 +19,10 @@ type (
 		Page(ctx context.Context, params model.TaskVideoPageReq) (*model.TaskVideoPageRes, error)
 		// 视频任务详情复制字段值
 		CopyField(ctx context.Context, params model.TaskVideoCopyFieldReq) (string, error)
+		// 视频任务重新生成
+		Regenerate(ctx context.Context, id string) error
+		// 视频任务批量操作
+		BatchOperate(ctx context.Context, params model.TaskVideoBatchOperateReq) error
 		// 视频任务
 		Task(ctx context.Context)
 	}
