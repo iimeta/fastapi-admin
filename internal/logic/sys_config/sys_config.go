@@ -1068,6 +1068,24 @@ func (s *sSysConfig) Default() *do.SysConfig {
 					ModelType:   8,
 					RequestData: `{"model":"{{.model}}","content":[{"type":"text","text":"A video of a cat"}],"resolution":"768P","duration":5,"ratio":"16:9"}`,
 				},
+				{
+					Provider:    sconsts.PROVIDER_X,
+					Model:       "all",
+					ModelType:   1,
+					RequestData: `{"model":"{{.model}}","messages":[{"role":"user","content":"hi"}],"stream":false}`,
+				},
+				{
+					Provider:    sconsts.PROVIDER_X,
+					Model:       "all",
+					ModelType:   2,
+					RequestData: `{"model":"{{.model}}","prompt":"A cute orange cat","n":1}`,
+				},
+				{
+					Provider:    sconsts.PROVIDER_X,
+					Model:       "all",
+					ModelType:   8,
+					RequestData: `{"model":"{{.model}}","prompt":"A video of a cat","size":"720x1280","seconds":4}`,
+				},
 			},
 		},
 		Debug: &common.Debug{

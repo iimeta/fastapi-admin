@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
+	"github.com/iimeta/fastapi-sdk/v2/xai"
 )
 
 // 计算花费
@@ -73,6 +74,8 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 		spend.TotalSpendTokens = spend.Once.SpendTokens
 	}
 
+	applyCostTicks(spend.BillingRule, &usage, spend)
+
 	// 模型时段折扣
 	if spend.ModelTimeRule != nil {
 		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.ModelTimeRule.Discount)
@@ -82,6 +85,8 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 	if spend.GroupId != "" && spend.GroupTimeRule != nil {
 		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.GroupTimeRule.Discount)
 	}
+
+	alignTicksOnlySpend(spend, &usage)
 }
 
 // 文本
@@ -363,4 +368,76 @@ func pickAdminLayerDecompPricing(pricings []*common.LayerDecompPricing, quality 
 		}
 	}
 	return fallback
+}
+
+// 上游只给官方价格(cost_in_usd_ticks)时用 ticks 换算总花费。
+// 按官方始终用 ticks；按系统若各项都算不出花费，也用 ticks，避免计费为 0。
+func applyCostTicks(billingRule int, usage *smodel.Usage, spend *common.Spend) {
+	if usage == nil || usage.CostInUsdTicks <= 0 {
+		return
+	}
+	ticksSpend := float64(xai.SpendTokensFromCostTicks(usage.CostInUsdTicks))
+	if billingRule == 1 || spend.TotalSpendTokens == 0 {
+		spend.TotalSpendTokens = ticksSpend
+	}
+}
+
+// 官方 usage 没有 token 明细时，不要留下输入/输出全是 0 的计费项。
+func alignTicksOnlySpend(spend *common.Spend, usage *smodel.Usage) {
+	if spend == nil || usage == nil || usage.CostInUsdTicks <= 0 || usageHasTokenBreakdown(usage) {
+		return
+	}
+	clearEmptyTokenSpend(spend)
+	total := spend.TotalSpendTokens
+	switch {
+	case spend.ImageGeneration != nil || spend.Image != nil:
+		if spend.Image == nil {
+			spend.Image = new(common.ImageSpend)
+		}
+		spend.Image.SpendTokens = total
+		spend.ImageGeneration = nil
+	case spend.LayerDecomp != nil:
+		if spend.LayerDecomp.N <= 0 {
+			spend.LayerDecomp.N = 1
+		}
+		spend.LayerDecomp.SpendTokens = total
+	case spend.VideoGeneration != nil:
+		spend.VideoGeneration.SpendTokens = total
+	case spend.Once != nil:
+		spend.Once.SpendTokens = total
+	default:
+		spend.Once = &common.OnceSpend{SpendTokens: total}
+	}
+}
+
+func usageHasTokenBreakdown(usage *smodel.Usage) bool {
+	if usage == nil {
+		return false
+	}
+	return usage.PromptTokens > 0 || usage.CompletionTokens > 0 ||
+		usage.InputTokens > 0 || usage.OutputTokens > 0 || usage.TotalTokens > 0 ||
+		usage.PromptTokensDetails.TextTokens > 0 || usage.PromptTokensDetails.ImageTokens > 0 ||
+		usage.PromptTokensDetails.CachedTokens > 0 || usage.PromptTokensDetails.AudioTokens > 0 ||
+		usage.InputTokensDetails.TextTokens > 0 || usage.InputTokensDetails.ImageTokens > 0 ||
+		usage.InputTokensDetails.CachedTokens > 0 ||
+		usage.CompletionTokensDetails.TextTokens > 0 || usage.CompletionTokensDetails.ImageTokens > 0 ||
+		usage.CompletionTokensDetails.ReasoningTokens > 0 || usage.CompletionTokensDetails.AudioTokens > 0 ||
+		usage.OutputTokensDetails.TextTokens > 0 || usage.OutputTokensDetails.ImageTokens > 0 ||
+		usage.OutputTokensDetails.ReasoningTokens > 0 ||
+		usage.CacheReadInputTokens > 0
+}
+
+func clearEmptyTokenSpend(spend *common.Spend) {
+	if spend.Text != nil && spend.Text.InputTokens == 0 && spend.Text.OutputTokens == 0 && spend.Text.ReasoningTokens == 0 {
+		spend.Text = nil
+	}
+	if spend.TextCache != nil && spend.TextCache.ReadTokens == 0 && spend.TextCache.WriteTokens == 0 {
+		spend.TextCache = nil
+	}
+	if spend.Image != nil && spend.Image.InputTokens == 0 && spend.Image.OutputTokens == 0 {
+		spend.Image = nil
+	}
+	if spend.ImageCache != nil && spend.ImageCache.ReadTokens == 0 {
+		spend.ImageCache = nil
+	}
 }

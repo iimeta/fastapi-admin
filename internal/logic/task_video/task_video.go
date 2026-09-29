@@ -1246,6 +1246,9 @@ func parseVideoCreateTaskId(data []byte) string {
 	if id := j.Get("task_id").String(); id != "" {
 		return id
 	}
+	if id := j.Get("request_id").String(); id != "" {
+		return id
+	}
 	if id := j.Get("output.task_id").String(); id != "" {
 		return id
 	}
