@@ -54,6 +54,7 @@ type TaskBatch struct {
 	FailedAt     string         `json:"failed_at,omitempty"`      // 失败时间
 	ResponseData map[string]any `json:"response_data,omitempty"`  // 响应数据
 	Error        map[string]any `json:"error,omitempty"`          // 错误信息
+	ErrMsg       string         `json:"err_msg,omitempty"`        // 错误文案(列表悬停/复制)
 	Creator      string         `json:"creator,omitempty"`        // 创建人
 	Updater      string         `json:"updater,omitempty"`        // 更新人
 	CreatedAt    string         `json:"created_at,omitempty"`     // 创建时间

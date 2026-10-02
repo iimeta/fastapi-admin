@@ -14,6 +14,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
@@ -68,6 +69,10 @@ func (s *sTaskFile) Detail(ctx context.Context, id string) (*model.TaskFile, err
 		Creator:      util.Desensitize(taskFile.Creator),
 		CreatedAt:    util.FormatDateTime(taskFile.CreatedAt),
 		UpdatedAt:    util.FormatDateTime(taskFile.UpdatedAt),
+	}
+
+	if detail.Error != nil {
+		common.ShieldTaskError(ctx, detail.Error)
 	}
 
 	if config.Cfg.FileTask.IsEnableStorage && taskFile.FileUrl != "" {
@@ -167,6 +172,10 @@ func (s *sTaskFile) Page(ctx context.Context, params model.TaskFilePageReq) (*mo
 			Bytes:     result.Bytes,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+		}
+
+		if (result.Status == "error" || result.Status == "failed") && result.Error != nil {
+			file.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
 		}
 
 		if config.Cfg.FileTask.IsEnableStorage && result.FileUrl != "" {

@@ -94,6 +94,10 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 		UpdatedAt:      util.FormatDateTime(taskImage.UpdatedAt),
 	}
 
+	if detail.Error != nil {
+		common.ShieldTaskError(ctx, detail.Error)
+	}
+
 	if taskImage.ImageUrl != "" {
 		detail.ImageUrl = resolveImageUrl(taskImage.ImageUrl)
 	}
@@ -235,6 +239,10 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 			Progress:  result.Progress,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+		}
+
+		if result.Status == "failed" && result.Error != nil {
+			image.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
 		}
 
 		if result.ImageUrl != "" {

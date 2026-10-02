@@ -2,6 +2,8 @@ package common
 
 import (
 	"context"
+	"encoding/json"
+	"reflect"
 
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
@@ -111,4 +113,130 @@ func lastN(s string, n int) string {
 		return s
 	}
 	return gstr.SubStrRune(s, gstr.LenRune(s)-n, n)
+}
+
+func ConvTaskErrMsg(ctx context.Context, err any) string {
+	return ConvErrMsg(ctx, extractErrMsg(err), -1)
+}
+
+func ShieldTaskError(ctx context.Context, err any) {
+
+	if err == nil {
+		return
+	}
+
+	switch v := err.(type) {
+	case map[string]any:
+		shieldMapMessages(ctx, v)
+	case bson.M:
+		shieldMapMessages(ctx, v)
+	default:
+		shieldStructMessage(ctx, err)
+	}
+}
+
+func shieldStructMessage(ctx context.Context, err any) {
+
+	rv := reflect.ValueOf(err)
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			return
+		}
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct || !rv.IsValid() {
+		return
+	}
+
+	f := rv.FieldByName("Message")
+	if f.IsValid() && f.CanSet() && f.Kind() == reflect.String {
+		f.SetString(ConvErrMsg(ctx, f.String(), -1))
+	}
+}
+
+func shieldMapMessages(ctx context.Context, m map[string]any) {
+
+	if m == nil {
+		return
+	}
+
+	if msg, ok := m["message"].(string); ok {
+		m["message"] = ConvErrMsg(ctx, msg, -1)
+	}
+
+	if data, ok := m["data"].([]any); ok {
+		for _, item := range data {
+			if im, ok := item.(map[string]any); ok {
+				if msg, ok := im["message"].(string); ok {
+					im["message"] = ConvErrMsg(ctx, msg, -1)
+				}
+			}
+		}
+	}
+}
+
+func extractErrMsg(err any) string {
+
+	if err == nil {
+		return ""
+	}
+
+	switch v := err.(type) {
+	case string:
+		return v
+	case map[string]any:
+		return mapErrMsg(v)
+	case bson.M:
+		return mapErrMsg(v)
+	}
+
+	b, e := json.Marshal(err)
+	if e != nil {
+		return ""
+	}
+
+	var m map[string]any
+	if json.Unmarshal(b, &m) == nil {
+		if msg := mapErrMsg(m); msg != "" {
+			return msg
+		}
+	}
+
+	s := string(b)
+	if s == "null" || s == "{}" || s == "[]" || s == `""` {
+		return ""
+	}
+
+	return s
+}
+
+func mapErrMsg(m map[string]any) string {
+
+	if m == nil {
+		return ""
+	}
+
+	if msg, ok := m["message"].(string); ok && msg != "" {
+		return msg
+	}
+
+	if code, ok := m["code"].(string); ok && code != "" {
+		return code
+	}
+
+	if data, ok := m["data"].([]any); ok && len(data) > 0 {
+		msgs := make([]string, 0, len(data))
+		for _, item := range data {
+			if im, ok := item.(map[string]any); ok {
+				if msg, ok := im["message"].(string); ok && msg != "" {
+					msgs = append(msgs, msg)
+				}
+			}
+		}
+		if len(msgs) > 0 {
+			return gstr.Join(msgs, "; ")
+		}
+	}
+
+	return ""
 }

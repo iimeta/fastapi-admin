@@ -54,6 +54,7 @@ type TaskFile struct {
 	FilePath     string            `json:"file_path,omitempty"`      // 文件路径
 	ResponseData map[string]any    `json:"response_data,omitempty"`  // 响应数据
 	Error        *serrors.ApiError `json:"error,omitempty"`          // 错误信息
+	ErrMsg       string            `json:"err_msg,omitempty"`        // 错误文案(列表悬停/复制)
 	BatchTraceId string            `json:"batch_trace_id,omitempty"` // 批处理日志ID
 	Creator      string            `json:"creator,omitempty"`        // 创建人
 	Updater      string            `json:"updater,omitempty"`        // 更新人

@@ -77,6 +77,7 @@ type TaskImage struct {
 	InputFilePaths []string           `json:"input_file_paths,omitempty"` // 输入文件路径列表(异步任务base64转储)
 	ResponseData   map[string]any     `json:"response_data,omitempty"`    // 响应数据
 	Error          *smodel.ImageError `json:"error,omitempty"`            // 错误信息
+	ErrMsg         string             `json:"err_msg,omitempty"`          // 错误文案(列表悬停/复制)
 	ModelAgentId   string             `json:"model_agent_id,omitempty"`   // 模型代理ID
 	ModelAgent     *ModelAgent        `json:"model_agent,omitempty"`      // 模型代理信息
 	Creator        string             `json:"creator,omitempty"`          // 创建人

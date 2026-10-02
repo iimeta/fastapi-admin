@@ -75,6 +75,10 @@ func (s *sTaskBatch) Detail(ctx context.Context, id string) (*model.TaskBatch, e
 		UpdatedAt:    util.FormatDateTime(taskBatch.UpdatedAt),
 	}
 
+	if detail.Error != nil {
+		common.ShieldTaskError(ctx, detail.Error)
+	}
+
 	return detail, nil
 }
 
@@ -153,6 +157,10 @@ func (s *sTaskBatch) Page(ctx context.Context, params model.TaskBatchPageReq) (*
 			OutputFileId: result.OutputFileId,
 			Status:       result.Status,
 			CreatedAt:    util.FormatDateTimeMonth(result.CreatedAt),
+		}
+
+		if result.Status == "failed" && result.Error != nil {
+			batch.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
 		}
 
 		items = append(items, batch)

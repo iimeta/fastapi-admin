@@ -83,6 +83,10 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 		UpdatedAt:          util.FormatDateTime(taskVideo.UpdatedAt),
 	}
 
+	if detail.Error != nil {
+		common.ShieldTaskError(ctx, detail.Error)
+	}
+
 	if taskVideo.VideoUrl != "" {
 		detail.VideoUrl = resolveVideoUrl(taskVideo.VideoUrl)
 	}
@@ -224,6 +228,10 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 			Progress:  result.Progress,
 			Status:    result.Status,
 			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+		}
+
+		if result.Status == "failed" && result.Error != nil {
+			video.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
 		}
 
 		if result.VideoUrl != "" {
