@@ -475,7 +475,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	}, &dao.FindOptions{SortFields: []string{"-created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskImage.Id, "log_not_found", err.Error())
+		s.failTask(ctx, taskImage.Id, "log_not_found", err.Error(), nil)
 		return
 	}
 
@@ -493,21 +493,21 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	// 没有任何成功日志, 全是失败: 直接判失败
 	if logImage.Status == -1 {
 		logger.Infof(ctx, "sTaskImage processImageTask task: %s all log_image failed, mark task failed directly", taskImage.Id)
-		s.failTask(ctx, taskImage.Id, "log_failed", logImage.ErrMsg, logImage.Id)
+		s.failTask(ctx, taskImage.Id, "log_failed", logImage.ErrMsg, nil, logImage.Id)
 		return
 	}
 
 	// 成功日志理论上必带代理, 兜底防空指针
 	if logImage.ModelAgent == nil {
 		logger.Errorf(ctx, "sTaskImage processImageTask task: %s log_image: %s has no model_agent", taskImage.Id, logImage.Id)
-		s.failTask(ctx, taskImage.Id, "model_agent_not_found", "log_image has no model_agent", logImage.Id)
+		s.failTask(ctx, taskImage.Id, "model_agent_not_found", "log_image has no model_agent", nil, logImage.Id)
 		return
 	}
 
 	provider, err := dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
 	if err != nil {
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error(), logImage.Id)
+		s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error(), nil, logImage.Id)
 		return
 	}
 
@@ -558,7 +558,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 				provider, err = dao.Provider.FindById(ctx, logImage.ModelAgent.ProviderId)
 				if err != nil {
 					logger.Error(ctx, err)
-					s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error(), logImage.Id)
+					s.failTask(ctx, taskImage.Id, "provider_not_found", err.Error(), nil, logImage.Id)
 					return
 				}
 			}
@@ -689,7 +689,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		if errCode == "image_size_mismatch" {
 			if sizeMismatchAttempts >= maxSizeRetry {
 				logger.Error(ctx, err)
-				s.failTask(ctx, taskImage.Id, errCode, err.Error(), logImage.Id)
+				s.failTask(ctx, taskImage.Id, errCode, err.Error(), util.ConvToMap(response.ResponseBytes), logImage.Id)
 				return
 			}
 			if latest, e := dao.TaskImage.FindById(ctx, taskImage.Id); e != nil {
@@ -731,7 +731,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		// 其余错误命中不重试错误、未命中自动重试白名单或自动重试关闭时, 直接置为失败, 不再重试
 		if errCode != "timeout" && !isRetry {
 			logger.Errorf(ctx, "sTaskImage processImageTask task: %s failed: %s, error: %v, no need to retry by config", taskImage.Id, errCode, err)
-			s.failTask(ctx, taskImage.Id, errCode, err.Error(), logImage.Id)
+			s.failTask(ctx, taskImage.Id, errCode, err.Error(), util.ConvToMap(response.ResponseBytes), logImage.Id)
 			return
 		}
 
@@ -753,7 +753,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskImage.Id, errCode, err.Error(), logImage.Id)
+		s.failTask(ctx, taskImage.Id, errCode, err.Error(), util.ConvToMap(response.ResponseBytes), logImage.Id)
 		return
 	}
 
@@ -1141,15 +1141,27 @@ func (s *sTaskImage) requeueTask(ctx context.Context, taskId string) {
 	}
 }
 
-func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string, logImageId ...string) {
+func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string, responseData map[string]any, logImageId ...string) {
+
+	// 失败时也记录响应数据: 有上游响应则落上游原文, 否则按错误信息构造, 便于任务详情查看与排查
+	if len(responseData) == 0 {
+		responseData = map[string]any{
+			"status": "failed",
+			"error": map[string]any{
+				"code":    code,
+				"message": message,
+			},
+		}
+	}
 
 	// 仅当任务仍为进行中时才置为失败, 避免旧任务的失败覆盖已被重新生成并完成的新结果
 	if _, err := dao.TaskImage.FindOneAndUpdate(ctx, bson.M{
 		"_id":    taskId,
 		"status": "in_progress",
 	}, bson.M{
-		"status": "failed",
-		"error":  &smodel.ImageError{Code: code, Message: message},
+		"status":        "failed",
+		"error":         &smodel.ImageError{Code: code, Message: message},
+		"response_data": responseData,
 	}); err != nil {
 		if !errors.Is(err, mongo.ErrNoDocuments) {
 			logger.Error(ctx, err)

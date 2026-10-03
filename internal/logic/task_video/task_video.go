@@ -452,7 +452,7 @@ func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.Tas
 	}, &dao.FindOptions{SortFields: []string{"-created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskVideo.Id, "log_not_found", err.Error())
+		s.failTask(ctx, taskVideo.Id, "log_not_found", err.Error(), nil)
 		return
 	}
 
@@ -463,7 +463,7 @@ func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.Tas
 		}, &dao.FindOptions{SortFields: []string{"-created_at"}})
 		if err != nil {
 			logger.Error(ctx, err)
-			s.failTask(ctx, taskVideo.Id, "log_not_found", err.Error())
+			s.failTask(ctx, taskVideo.Id, "log_not_found", err.Error(), nil)
 			return
 		}
 	}
@@ -479,20 +479,20 @@ func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.Tas
 
 	if logVideo.Status == -1 {
 		logger.Infof(ctx, "sTaskVideo processVideoTask task: %s all log_video failed, mark task failed directly", taskVideo.Id)
-		s.failTask(ctx, taskVideo.Id, "log_failed", logVideo.ErrMsg, logVideo.Id)
+		s.failTask(ctx, taskVideo.Id, "log_failed", logVideo.ErrMsg, nil, logVideo.Id)
 		return
 	}
 
 	if logVideo.ModelAgent == nil {
 		logger.Errorf(ctx, "sTaskVideo processVideoTask task: %s log_video: %s has no model_agent", taskVideo.Id, logVideo.Id)
-		s.failTask(ctx, taskVideo.Id, "model_agent_not_found", "log_video has no model_agent", logVideo.Id)
+		s.failTask(ctx, taskVideo.Id, "model_agent_not_found", "log_video has no model_agent", nil, logVideo.Id)
 		return
 	}
 
 	provider, err := dao.Provider.FindById(ctx, logVideo.ModelAgent.ProviderId)
 	if err != nil {
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskVideo.Id, "provider_not_found", err.Error(), logVideo.Id)
+		s.failTask(ctx, taskVideo.Id, "provider_not_found", err.Error(), nil, logVideo.Id)
 		return
 	}
 
@@ -528,7 +528,7 @@ func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.Tas
 				provider, err = dao.Provider.FindById(ctx, logVideo.ModelAgent.ProviderId)
 				if err != nil {
 					logger.Error(ctx, err)
-					s.failTask(ctx, taskVideo.Id, "provider_not_found", err.Error(), logVideo.Id)
+					s.failTask(ctx, taskVideo.Id, "provider_not_found", err.Error(), nil, logVideo.Id)
 					return
 				}
 			}
@@ -609,7 +609,7 @@ func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.Tas
 
 		if errCode != "timeout" && !isRetry {
 			logger.Errorf(ctx, "sTaskVideo processVideoTask task: %s failed: %s, error: %v, no need to retry by config", taskVideo.Id, errCode, err)
-			s.failTask(ctx, taskVideo.Id, errCode, err.Error(), logVideo.Id)
+			s.failTask(ctx, taskVideo.Id, errCode, err.Error(), util.ConvToMap(retrieve.ResponseBytes), logVideo.Id)
 			return
 		}
 
@@ -630,7 +630,7 @@ func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.Tas
 		}
 
 		logger.Error(ctx, err)
-		s.failTask(ctx, taskVideo.Id, errCode, err.Error(), logVideo.Id)
+		s.failTask(ctx, taskVideo.Id, errCode, err.Error(), util.ConvToMap(retrieve.ResponseBytes), logVideo.Id)
 		return
 	}
 
@@ -789,7 +789,7 @@ func (s *sTaskVideo) requestVideo(ctx context.Context, taskVideo *entity.TaskVid
 		if errCode != "retrieve_error" {
 			abandonVideoJob(taskVideo)
 		}
-		return retrieve, errCode, err
+		return job, errCode, err
 	}
 
 	if job.Status == "completed" && job.VideoUrl == "" && !config.Cfg.VideoTask.IsEnableStorage {
@@ -1075,14 +1075,27 @@ func (s *sTaskVideo) requeueTask(ctx context.Context, taskId string) {
 	}
 }
 
-func (s *sTaskVideo) failTask(ctx context.Context, taskId, code, message string, logVideoId ...string) {
+func (s *sTaskVideo) failTask(ctx context.Context, taskId, code, message string, responseData map[string]any, logVideoId ...string) {
+
+	// 失败时也记录响应数据: 有上游响应则落上游原文, 否则按错误信息构造,
+	// 便于任务查询接口直接返回落库结果, 无需再实时查询上游
+	if len(responseData) == 0 {
+		responseData = map[string]any{
+			"status": "failed",
+			"error": map[string]any{
+				"code":    code,
+				"message": message,
+			},
+		}
+	}
 
 	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
 		"_id":    taskId,
 		"status": "in_progress",
 	}, bson.M{
-		"status": "failed",
-		"error":  &smodel.VideoError{Code: code, Message: message},
+		"status":        "failed",
+		"error":         &smodel.VideoError{Code: code, Message: message},
+		"response_data": responseData,
 	}); err != nil {
 		if !errors.Is(err, mongo.ErrNoDocuments) {
 			logger.Error(ctx, err)
