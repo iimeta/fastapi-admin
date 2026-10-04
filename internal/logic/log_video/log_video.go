@@ -96,6 +96,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		video.InternalTime = result.InternalTime
 		video.ReceiveTime = result.ReceiveTime
 		video.IsRetry = result.IsRetry
+		video.RequestIds = result.RequestIds
 		video.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		video.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 

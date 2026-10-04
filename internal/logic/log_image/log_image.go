@@ -121,6 +121,7 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 		image.InternalTime = result.InternalTime
 		image.ReceiveTime = result.ReceiveTime
 		image.IsRetry = result.IsRetry
+		image.RequestIds = result.RequestIds
 		image.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		image.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 

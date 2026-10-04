@@ -95,6 +95,7 @@ func (s *sLogAudio) Detail(ctx context.Context, id string) (*model.LogAudio, err
 		audio.InternalTime = result.InternalTime
 		audio.ReceiveTime = result.ReceiveTime
 		audio.IsRetry = result.IsRetry
+		audio.RequestIds = result.RequestIds
 		audio.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		audio.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 

@@ -99,6 +99,7 @@ func (s *sLogGeneral) Detail(ctx context.Context, id string) (*model.LogGeneral,
 		general.InternalTime = result.InternalTime
 		general.ReceiveTime = result.ReceiveTime
 		general.IsRetry = result.IsRetry
+		general.RequestIds = result.RequestIds
 		general.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		general.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 

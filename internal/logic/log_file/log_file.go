@@ -96,6 +96,7 @@ func (s *sLogFile) Detail(ctx context.Context, id string) (*model.LogFile, error
 		file.InternalTime = result.InternalTime
 		file.ReceiveTime = result.ReceiveTime
 		file.IsRetry = result.IsRetry
+		file.RequestIds = result.RequestIds
 		file.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		file.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 

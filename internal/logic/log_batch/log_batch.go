@@ -96,6 +96,7 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		batch.InternalTime = result.InternalTime
 		batch.ReceiveTime = result.ReceiveTime
 		batch.IsRetry = result.IsRetry
+		batch.RequestIds = result.RequestIds
 		batch.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		batch.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 

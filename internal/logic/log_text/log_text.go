@@ -102,6 +102,7 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		text.InternalTime = result.InternalTime
 		text.ReceiveTime = result.ReceiveTime
 		text.IsRetry = result.IsRetry
+		text.RequestIds = result.RequestIds
 		text.CreatedAt = util.FormatDateTime(result.CreatedAt)
 		text.UpdatedAt = util.FormatDateTime(result.UpdatedAt)
 
