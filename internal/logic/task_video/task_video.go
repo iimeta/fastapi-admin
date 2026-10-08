@@ -2,9 +2,9 @@ package task_video
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
@@ -30,7 +30,6 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	sdk "github.com/iimeta/fastapi-sdk/v2"
-	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -39,6 +38,7 @@ import (
 
 type sTaskVideo struct {
 	videoRedsync *redsync.Redsync
+	running      sync.Map
 }
 
 func init() {
@@ -283,17 +283,50 @@ func (s *sTaskVideo) CopyField(ctx context.Context, params model.TaskVideoCopyFi
 // 视频任务重新生成
 func (s *sTaskVideo) Regenerate(ctx context.Context, id string) error {
 
-	taskVideo, err := dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
+	taskVideo, err := dao.TaskVideo.FindById(ctx, id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if taskVideo.Status != "in_progress" && taskVideo.Status != "failed" {
+		return errors.New("任务不在进行中或已失败状态, 无法重新生成")
+	}
+
+	if taskVideo.TraceId != "" {
+		if err = dao.LogVideo.UpdateMany(ctx, bson.M{
+			"trace_id": taskVideo.TraceId,
+			"$or": bson.A{
+				bson.M{"action": bson.M{"$in": []string{"create", "remix"}}},
+				bson.M{"status": bson.M{"$in": []int{1, -1}}},
+			},
+		}, bson.M{
+			"status":  1,
+			"err_msg": "",
+		}); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	update := bson.M{
+		"status":   "queued",
+		"progress": 0,
+		"retry":    0,
+		"error":    nil,
+	}
+
+	// 有原请求体则放弃旧句柄, 下一轮按网关同样方式重新提交; 旧任务缺 RequestData 时保留句柄, 仍按原 video_id 轮询
+	if len(taskVideo.RequestData) > 0 {
+		update["job_id"] = videoJobResubmit
+	}
+
+	if _, err = dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
 		"_id": id,
 		"status": bson.M{
 			"$in": []string{"in_progress", "failed"},
 		},
-	}, bson.M{
-		"status":   "queued",
-		"progress": 0,
-		"error":    nil,
-	})
-	if err != nil {
+	}, update); err != nil {
 
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return errors.New("任务不在进行中或已失败状态, 无法重新生成")
@@ -301,23 +334,6 @@ func (s *sTaskVideo) Regenerate(ctx context.Context, id string) error {
 
 		logger.Error(ctx, err)
 		return err
-	}
-
-	// 有原请求体则放弃旧句柄, 下一轮重新提交; 旧任务缺 RequestData 时保留句柄, 仍按原 video_id 轮询
-	if taskVideo != nil && len(taskVideo.RequestData) > 0 {
-		if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"job_id": videoJobResubmit}); err != nil {
-			logger.Error(ctx, err)
-		}
-	}
-
-	if taskVideo != nil && taskVideo.TraceId != "" {
-		if err = dao.LogVideo.UpdateOne(ctx, bson.M{"trace_id": taskVideo.TraceId}, bson.M{
-			"status":  1,
-			"err_msg": "",
-		}); err != nil {
-			logger.Error(ctx, err)
-			return err
-		}
 	}
 
 	return nil
@@ -362,24 +378,6 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 		logger.Debugf(ctx, "sTaskVideo Task end time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	reclaimMillis := (config.Cfg.VideoTask.Reclaim * time.Second).Milliseconds()
-	if reclaimMillis <= 0 {
-		timeout := config.Cfg.VideoTask.Timeout
-		if timeout <= 0 {
-			timeout = config.Cfg.Base.LongTimeout
-		}
-		retryCount := config.Cfg.VideoTask.RetryCount
-		if retryCount < 0 {
-			retryCount = 0
-		}
-		reclaimMillis = (timeout * time.Duration(retryCount+1) * time.Second).Milliseconds()
-	}
-
-	var staleBefore int64
-	if reclaimMillis > 0 {
-		staleBefore = now - reclaimMillis
-	}
-
 	taskVideos, err := dao.TaskVideo.Find(ctx, bson.M{"status": bson.M{"$in": []string{"queued", "in_progress"}}}, &dao.FindOptions{SortFields: []string{"created_at"}})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -388,50 +386,70 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 
 	availableSlots := -1
 	if config.Cfg.VideoTask.ConcurrencyLimit > 0 {
+
 		liveInProgress := 0
+
 		for _, taskVideo := range taskVideos {
-			if taskVideo.Status == "in_progress" && taskVideo.UpdatedAt >= staleBefore {
+			if taskVideo.Status == "in_progress" {
 				liveInProgress++
 			}
 		}
+
 		if availableSlots = config.Cfg.VideoTask.ConcurrencyLimit - liveInProgress; availableSlots < 0 {
 			availableSlots = 0
 		}
 	}
 
-	var queuedTasks []*entity.TaskVideo
+	// 已在跑的协程跳过; queued 受并发限制才提升; 已进行中的每轮只查/提交一次就退出
+	var dispatched []*entity.TaskVideo
 
 	for _, taskVideo := range taskVideos {
 
-		if taskVideo.Status == "in_progress" && taskVideo.UpdatedAt >= staleBefore {
-			s.advanceFakeProgress(ctx, now, taskVideo)
+		if _, live := s.running.Load(taskVideo.Id); live {
+			if taskVideo.Status == "in_progress" {
+				s.advanceFakeProgress(ctx, now, taskVideo)
+			}
 			continue
 		}
 
-		if availableSlots == 0 {
-			continue
+		if taskVideo.Status == "queued" {
+
+			if availableSlots == 0 {
+				continue
+			}
+
+			if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"status": "in_progress", "error": nil}); err != nil {
+				logger.Error(ctx, err)
+				continue
+			}
+
+			taskVideo.Status = "in_progress"
+			taskVideo.UpdatedAt = now
+
+			if availableSlots > 0 {
+				availableSlots--
+			}
 		}
 
-		if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"status": "in_progress", "error": nil}); err != nil {
-			logger.Error(ctx, err)
-			continue
-		}
-
-		queuedTasks = append(queuedTasks, taskVideo)
-
-		if availableSlots > 0 {
-			availableSlots--
-		}
+		dispatched = append(dispatched, taskVideo)
 	}
 
-	for _, taskVideo := range queuedTasks {
+	for _, taskVideo := range dispatched {
+
+		taskId := taskVideo.Id
+
+		if _, loaded := s.running.LoadOrStore(taskId, struct{}{}); loaded {
+			continue
+		}
+
+		tv := taskVideo
+
 		if err := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-
-			ctx, err = gtrace.WithTraceID(ctx, taskVideo.TraceId)
-
-			s.processVideoTask(ctx, taskVideo)
-
+			defer s.running.Delete(tv.Id)
+			ctx, _ = gtrace.WithTraceID(ctx, tv.TraceId)
+			s.processVideoTask(ctx, tv)
 		}, nil); err != nil {
+			s.running.Delete(taskId)
 			logger.Error(ctx, err)
 		}
 	}
@@ -439,511 +457,6 @@ func (s *sTaskVideo) Task(ctx context.Context) {
 	s.cleanExpiredAndFiles(ctx, now)
 
 	if _, err := redis.Set(ctx, consts.TASK_VIDEO_END_TIME_KEY, gtime.TimestampMilli()); err != nil {
-		logger.Error(ctx, err)
-	}
-}
-
-func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.TaskVideo) {
-
-	logVideos, err := dao.LogVideo.Find(ctx, bson.M{
-		"trace_id": taskVideo.TraceId,
-		"action":   bson.M{"$in": []string{"create", "remix"}},
-		"status":   bson.M{"$in": []int{1, -1}},
-	}, &dao.FindOptions{SortFields: []string{"-created_at"}})
-	if err != nil {
-		logger.Error(ctx, err)
-		s.failTask(ctx, taskVideo.Id, "log_not_found", err.Error(), nil)
-		return
-	}
-
-	if len(logVideos) == 0 {
-		logVideos, err = dao.LogVideo.Find(ctx, bson.M{
-			"trace_id": taskVideo.TraceId,
-			"status":   bson.M{"$in": []int{1, -1}},
-		}, &dao.FindOptions{SortFields: []string{"-created_at"}})
-		if err != nil {
-			logger.Error(ctx, err)
-			s.failTask(ctx, taskVideo.Id, "log_not_found", err.Error(), nil)
-			return
-		}
-	}
-
-	logVideo := pickBestLogVideo(logVideos)
-
-	if logVideo == nil {
-		if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"status": "queued", "error": nil}); err != nil {
-			logger.Error(ctx, err)
-		}
-		return
-	}
-
-	if logVideo.Status == -1 {
-		logger.Infof(ctx, "sTaskVideo processVideoTask task: %s all log_video failed, mark task failed directly", taskVideo.Id)
-		s.failTask(ctx, taskVideo.Id, "log_failed", logVideo.ErrMsg, nil, logVideo.Id)
-		return
-	}
-
-	if logVideo.ModelAgent == nil {
-		logger.Errorf(ctx, "sTaskVideo processVideoTask task: %s log_video: %s has no model_agent", taskVideo.Id, logVideo.Id)
-		s.failTask(ctx, taskVideo.Id, "model_agent_not_found", "log_video has no model_agent", nil, logVideo.Id)
-		return
-	}
-
-	provider, err := dao.Provider.FindById(ctx, logVideo.ModelAgent.ProviderId)
-	if err != nil {
-		logger.Error(ctx, err)
-		s.failTask(ctx, taskVideo.Id, "provider_not_found", err.Error(), nil, logVideo.Id)
-		return
-	}
-
-	timeout := config.Cfg.VideoTask.Timeout * time.Second
-	if timeout <= 0 {
-		timeout = config.Cfg.Base.LongTimeout * time.Second
-	}
-
-	retryCount := config.Cfg.VideoTask.RetryCount
-	if retryCount < 0 {
-		retryCount = 0
-	}
-
-	var (
-		retrieve smodel.VideoJobResponse
-		errCode  string
-		videoUrl string
-		fileName string
-		filePath string
-	)
-
-	errorAgentIds := make([]string, 0)
-	errorKeys := make([]string, 0)
-
-	for attempt := 0; ; attempt++ {
-
-		// 需要重新提交时(无上游句柄)才换代理; 已有 job_id 的续轮询必须留在原代理
-		if attempt > 0 && videoPollHandle(taskVideo) == "" {
-			agentChanged, e := s.switchRetryAgent(ctx, taskVideo, logVideo, errorAgentIds, errorKeys, attempt)
-			if e != nil {
-				logger.Errorf(ctx, "sTaskVideo processVideoTask task: %s switch agent failed: %v, retry current agent", taskVideo.Id, e)
-			} else if agentChanged && logVideo.ModelAgent != nil {
-				provider, err = dao.Provider.FindById(ctx, logVideo.ModelAgent.ProviderId)
-				if err != nil {
-					logger.Error(ctx, err)
-					s.failTask(ctx, taskVideo.Id, "provider_not_found", err.Error(), nil, logVideo.Id)
-					return
-				}
-			}
-		}
-
-		taskCtx, cancel := context.WithTimeout(ctx, timeout)
-		retrieve, errCode, err = s.requestVideo(taskCtx, taskVideo, logVideo, provider, timeout)
-		cancel()
-
-		videoUrl, fileName, filePath = "", "", ""
-
-		if err == nil && retrieve.Status == "completed" {
-
-			if config.Cfg.VideoTask.IsEnableStorage {
-
-				if content, e := s.downloadVideo(ctx, logVideo, provider, taskVideo, timeout); e != nil {
-					logger.Error(ctx, e)
-					err = e
-					errCode = "storage_failed"
-				} else if len(content) == 0 {
-					err = errors.New("downloaded video content is empty")
-					errCode = "storage_failed"
-				} else {
-
-					storageDir := config.Cfg.VideoTask.StorageDir
-					if storageDir == "" {
-						storageDir = "./resource/public/video/"
-					} else if !gstr.HasSuffix(storageDir, "/") {
-						storageDir = storageDir + "/"
-					}
-
-					fileName = pollVideoId(taskVideo) + "_video.mp4"
-					if e := gfile.PutBytes(storageDir+fileName, content); e != nil {
-						logger.Error(ctx, e)
-						err = e
-						errCode = "storage_failed"
-					} else {
-						filePath = storageDir + fileName
-						if gstr.HasPrefix(storageDir, "./resource/public/") {
-							videoUrl = "/public/" + gstr.TrimLeftStr(storageDir, "./resource/public/") + fileName
-						} else if config.Cfg.VideoTask.StorageBaseUrl == "" {
-							videoUrl = "/open/video/" + fileName
-						} else {
-							videoUrl = fileName
-						}
-					}
-				}
-
-			} else if retrieve.VideoUrl != "" {
-				videoUrl = retrieve.VideoUrl
-			} else {
-				err = errors.New("no video in completed job")
-				errCode = "no_video"
-			}
-		}
-
-		if err == nil {
-			break
-		}
-
-		if errCode == "retrieve_error" {
-			logger.Infof(ctx, "sTaskVideo processVideoTask task: %s upstream api abnormal, requeue to resume next round", taskVideo.Id)
-			s.requeueTask(ctx, taskVideo.Id)
-			return
-		}
-
-		isRetry, isDisabled := common.IsNeedRetry(err)
-
-		if isDisabled {
-			if e := grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
-
-				service.Key().AutoDisabled(ctx, logVideo.Key, err.Error())
-
-			}, nil); e != nil {
-				logger.Error(ctx, e)
-			}
-		}
-
-		if errCode != "timeout" && !isRetry {
-			logger.Errorf(ctx, "sTaskVideo processVideoTask task: %s failed: %s, error: %v, no need to retry by config", taskVideo.Id, errCode, err)
-			s.failTask(ctx, taskVideo.Id, errCode, err.Error(), util.ConvToMap(retrieve.ResponseBytes), logVideo.Id)
-			return
-		}
-
-		if attempt < retryCount {
-
-			if latest, e := dao.TaskVideo.FindById(ctx, taskVideo.Id); e != nil {
-				logger.Error(ctx, e)
-			} else if latest.Status != "in_progress" {
-				logger.Infof(ctx, "sTaskVideo processVideoTask task: %s status is %s, no need to retry, skip", taskVideo.Id, latest.Status)
-				return
-			}
-
-			errorAgentIds = appendUnique(errorAgentIds, logVideo.ModelAgentId)
-			errorKeys = appendUnique(errorKeys, logVideo.Key)
-
-			logger.Errorf(ctx, "sTaskVideo processVideoTask task: %s failed: %s, retry: %d/%d", taskVideo.Id, errCode, attempt+1, retryCount)
-			continue
-		}
-
-		logger.Error(ctx, err)
-		s.failTask(ctx, taskVideo.Id, errCode, err.Error(), util.ConvToMap(retrieve.ResponseBytes), logVideo.Id)
-		return
-	}
-
-	completedAt := gtime.TimestampMilli() / 1000
-	var expiresAt int64
-
-	if config.Cfg.VideoTask.IsEnableStorage {
-		if videoUrl != "" && config.Cfg.VideoTask.StorageExpiresAt > 0 {
-			expiresAt = gtime.NewFromTimeStamp(completedAt).Add(config.Cfg.VideoTask.StorageExpiresAt * time.Minute).Unix()
-		}
-	} else if retrieve.ExpiresAt != nil {
-		expiresAt = *retrieve.ExpiresAt
-	}
-
-	if retrieve.CompletedAt != nil {
-		completedAt = *retrieve.CompletedAt
-	}
-
-	responseData := make(map[string]any)
-	if retrieve.ResponseBytes != nil {
-		if e := json.Unmarshal(retrieve.ResponseBytes, &responseData); e != nil {
-			logger.Error(ctx, e)
-		}
-	}
-
-	update := bson.M{
-		"progress":              100,
-		"status":                "completed",
-		"completed_at":          completedAt,
-		"expires_at":            expiresAt,
-		"video_url":             videoUrl,
-		"file_name":             fileName,
-		"file_path":             filePath,
-		"remixed_from_video_id": retrieve.RemixedFromVideoId,
-		"response_data":         responseData,
-		"model_agent_id":        taskVideo.ModelAgentId,
-		"model_agent":           taskVideo.ModelAgent,
-		"error":                 nil,
-	}
-	if retrieve.Id != "" {
-		update["job_id"] = retrieve.Id
-	}
-
-	if _, err = dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
-		"_id":    taskVideo.Id,
-		"status": "in_progress",
-	}, update); err != nil {
-
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			logger.Infof(ctx, "sTaskVideo processVideoTask task: %s already handled by another worker, skip", taskVideo.Id)
-			if filePath != "" {
-				if e := gfile.RemoveFile(filePath); e != nil {
-					logger.Error(ctx, e)
-				}
-			}
-			return
-		}
-
-		logger.Error(ctx, err)
-		return
-	}
-
-	if provider.Code == sconsts.PROVIDER_VOLC_ENGINE && retrieve.Usage != nil {
-
-		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
-
-		if err = common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
-			logger.Error(ctx, err)
-			return
-		}
-	}
-
-	if provider.Code == sconsts.PROVIDER_BAILIAN && logVideo.Spend.VideoGeneration != nil && logVideo.Spend.VideoGeneration.Seconds == 0 {
-		if seconds := gconv.Int(retrieve.Seconds); seconds > 0 {
-
-			common.RecalcVideoSecondsSpend(&logVideo.Spend, seconds)
-
-			if err = common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
-				logger.Error(ctx, err)
-				return
-			}
-
-			if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"seconds": seconds}); err != nil {
-				logger.Error(ctx, err)
-			}
-		}
-	}
-
-	if err = dao.LogVideo.UpdateById(ctx, logVideo.Id, bson.M{
-		"spend":          logVideo.Spend,
-		"model_agent_id": logVideo.ModelAgentId,
-		"model_agent":    logVideo.ModelAgent,
-		"key":            logVideo.Key,
-	}); err != nil {
-		logger.Error(ctx, err)
-	}
-}
-
-func (s *sTaskVideo) requestVideo(ctx context.Context, taskVideo *entity.TaskVideo, logVideo *entity.LogVideo, provider *entity.Provider, timeout time.Duration) (smodel.VideoJobResponse, string, error) {
-
-	var retrieve smodel.VideoJobResponse
-
-	jobId := videoPollHandle(taskVideo)
-
-	if jobId == "" {
-
-		if len(taskVideo.RequestData) == 0 {
-			return retrieve, "missing_request_data", errors.New("missing request data")
-		}
-
-		upstreamModel := s.prepareUpstreamModel(ctx, taskVideo, logVideo)
-
-		adapter := sdk.NewAdapterOfficial(ctx, &options.AdapterOptions{
-			Provider: provider.Code,
-			Model:    upstreamModel,
-			Key:      logVideo.Key,
-			BaseUrl:  logVideo.ModelAgent.BaseUrl,
-			Path:     logVideo.ModelAgent.Path,
-			Timeout:  timeout,
-			ProxyUrl: config.Cfg.Http.ProxyUrl,
-		})
-
-		body := gjson.MustEncode(taskVideo.RequestData)
-		bytes, _, err := adapter.VideoCreateOfficial(ctx, body)
-		if err != nil {
-			errCode := "generation_error"
-			if ctx.Err() != nil {
-				errCode = "timeout"
-			}
-			return retrieve, errCode, err
-		}
-
-		jobId = parseVideoCreateTaskId(bytes)
-		if jobId == "" {
-			return retrieve, "submit_response_invalid", errors.New("create video task failed: missing task_id")
-		}
-
-		// video_id 是客户端查询句柄, 重提只更新上游 job_id
-		if err := dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"job_id": jobId}); err != nil {
-			logger.Error(ctx, err)
-		}
-
-		taskVideo.JobId = jobId
-
-	} else if !isVideoJobHandle(taskVideo.JobId) {
-
-		// 旧任务只有 video_id: 收编为 job_id, 后续只认 job_id
-		taskVideo.JobId = jobId
-		if err := dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"job_id": jobId}); err != nil {
-			logger.Error(ctx, err)
-		}
-	}
-
-	job, errCode, err := s.pollVideoJob(ctx, logVideo, provider, jobId, timeout)
-	if err != nil {
-		if errCode != "retrieve_error" {
-			abandonVideoJob(taskVideo)
-		}
-		return job, errCode, err
-	}
-
-	if job.Status == "completed" && job.VideoUrl == "" && !config.Cfg.VideoTask.IsEnableStorage {
-		abandonVideoJob(taskVideo)
-		return job, "no_video", errors.New("no video in completed job")
-	}
-
-	return job, "", nil
-}
-
-func (s *sTaskVideo) pollVideoJob(ctx context.Context, logVideo *entity.LogVideo, provider *entity.Provider, videoId string, timeout time.Duration) (smodel.VideoJobResponse, string, error) {
-
-	var jobResponse smodel.VideoJobResponse
-
-	retryCount := config.Cfg.VideoTask.RetryCount
-	if retryCount < 0 {
-		retryCount = 0
-	}
-
-	consecutiveFailures := 0
-	lastPollInProgress := false
-
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	for {
-
-		job, err := s.retrieveVideoJob(ctx, logVideo, provider, videoId, timeout)
-		if err != nil {
-
-			lastPollInProgress = false
-
-			if ctx.Err() != nil {
-				return jobResponse, "retrieve_error", err
-			}
-
-			logger.Errorf(ctx, "sTaskVideo pollVideoJob retrieve videoId: %s, error: %v", videoId, err)
-			if consecutiveFailures++; consecutiveFailures > retryCount {
-				return jobResponse, "retrieve_error", err
-			}
-
-		} else {
-
-			switch job.Status {
-			case "completed":
-				return job, "", nil
-			case "failed", "expired", "deleted", "cancelled":
-				message := job.Status
-				if job.Error != nil {
-					message = job.Error.Message
-				}
-				return job, "async_" + job.Status, errors.New(message)
-			case "queued", "in_progress", "running":
-				consecutiveFailures = 0
-				lastPollInProgress = true
-				s.updateRunningProgress(ctx, videoId, job.Progress)
-			default:
-				lastPollInProgress = false
-				logger.Errorf(ctx, "sTaskVideo pollVideoJob videoId: %s, unknown status: %s", videoId, job.Status)
-				if consecutiveFailures++; consecutiveFailures > retryCount {
-					message := "unknown status: " + job.Status
-					if job.Error != nil {
-						message = job.Error.Message
-					}
-					return job, "async_unknown_status", errors.New(message)
-				}
-			}
-		}
-
-		select {
-		case <-ctx.Done():
-			if lastPollInProgress {
-				return jobResponse, "timeout", ctx.Err()
-			}
-			return jobResponse, "retrieve_error", ctx.Err()
-		case <-ticker.C:
-		}
-	}
-}
-
-func (s *sTaskVideo) retrieveVideoJob(ctx context.Context, logVideo *entity.LogVideo, provider *entity.Provider, videoId string, timeout time.Duration) (smodel.VideoJobResponse, error) {
-
-	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-		Provider: provider.Code,
-		Model:    s.resolveUpstreamModel(ctx, logVideo, ""),
-		Key:      logVideo.Key,
-		BaseUrl:  logVideo.ModelAgent.BaseUrl,
-		Path:     logVideo.ModelAgent.Path,
-		Timeout:  timeout,
-		ProxyUrl: config.Cfg.Http.ProxyUrl,
-	})
-
-	return adapter.VideoRetrieve(ctx, smodel.VideoRetrieveRequest{VideoId: videoId})
-}
-
-func (s *sTaskVideo) downloadVideo(ctx context.Context, logVideo *entity.LogVideo, provider *entity.Provider, taskVideo *entity.TaskVideo, timeout time.Duration, retry ...int) ([]byte, error) {
-
-	adapter := sdk.NewAdapter(ctx, &options.AdapterOptions{
-		Provider: provider.Code,
-		Model:    s.resolveUpstreamModel(ctx, logVideo, ""),
-		Key:      logVideo.Key,
-		BaseUrl:  logVideo.ModelAgent.BaseUrl,
-		Path:     logVideo.ModelAgent.Path,
-		Timeout:  timeout,
-		ProxyUrl: config.Cfg.Http.ProxyUrl,
-	})
-
-	content, err := adapter.VideoContent(ctx, smodel.VideoContentRequest{VideoId: pollVideoId(taskVideo)})
-	if err == nil && len(content.Data) > 0 {
-		return content.Data, nil
-	}
-
-	if err != nil {
-		logger.Errorf(ctx, "sTaskVideo downloadVideo videoId: %s, error: %v", pollVideoId(taskVideo), err)
-	} else {
-		err = errors.New("downloaded video content is empty")
-		logger.Errorf(ctx, "sTaskVideo downloadVideo videoId: %s, empty content", pollVideoId(taskVideo))
-	}
-
-	retryCount := config.Cfg.VideoTask.RetryCount
-	if retryCount < 0 {
-		retryCount = 0
-	}
-
-	if len(retry) == retryCount {
-		return nil, err
-	}
-
-	retry = append(retry, 1)
-	time.Sleep(time.Duration(len(retry)*5) * time.Second)
-	logger.Infof(ctx, "sTaskVideo downloadVideo retry: %d, videoId: %s", len(retry), pollVideoId(taskVideo))
-
-	return s.downloadVideo(ctx, logVideo, provider, taskVideo, timeout, retry...)
-}
-
-func (s *sTaskVideo) updateRunningProgress(ctx context.Context, videoId string, progress int) {
-
-	if progress <= 0 {
-		return
-	}
-	if progress > 0 && progress <= 1 {
-		progress = progress * 100
-	}
-	if progress >= 100 {
-		progress = 99
-	}
-
-	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
-		"status":   "in_progress",
-		"$or":      bson.A{bson.M{"job_id": videoId}, bson.M{"video_id": videoId}},
-		"progress": bson.M{"$not": bson.M{"$gte": progress}},
-	}, bson.M{
-		"progress": progress,
-	}); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		logger.Error(ctx, err)
 	}
 }
@@ -971,9 +484,22 @@ func (s *sTaskVideo) cleanExpiredAndFiles(ctx context.Context, now int64) {
 			}
 
 			if taskVideo.VideoUrl != "" || taskVideo.FilePath != "" {
+
 				update["video_url"] = ""
 				update["file_name"] = ""
 				update["file_path"] = ""
+
+				for _, fp := range taskVideo.InputFilePaths {
+					if fp != "" {
+						if err := gfile.RemoveFile(fp); err != nil {
+							logger.Error(ctx, err)
+						}
+					}
+				}
+
+				if len(taskVideo.InputFilePaths) > 0 {
+					update["input_file_paths"] = nil
+				}
 			}
 		}
 
@@ -1007,10 +533,19 @@ func (s *sTaskVideo) cleanExpiredAndFiles(ctx context.Context, now int64) {
 			}
 		}
 
+		for _, fp := range taskVideo.InputFilePaths {
+			if fp != "" {
+				if err := gfile.RemoveFile(fp); err != nil {
+					logger.Error(ctx, err)
+				}
+			}
+		}
+
 		if err := dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{
-			"video_url": "",
-			"file_name": "",
-			"file_path": "",
+			"video_url":        "",
+			"file_name":        "",
+			"file_path":        "",
+			"input_file_paths": nil,
 		}); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -1060,12 +595,9 @@ func (s *sTaskVideo) advanceFakeProgress(ctx context.Context, now int64, taskVid
 	}
 }
 
-func (s *sTaskVideo) requeueTask(ctx context.Context, taskId string) {
+func (s *sTaskVideo) requeueTask(ctx context.Context, taskVideo *entity.TaskVideo) {
 
-	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
-		"_id":    taskId,
-		"status": "in_progress",
-	}, bson.M{
+	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, videoWorkerFilter(taskVideo), bson.M{
 		"status": "queued",
 	}); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -1075,7 +607,7 @@ func (s *sTaskVideo) requeueTask(ctx context.Context, taskId string) {
 	}
 }
 
-func (s *sTaskVideo) failTask(ctx context.Context, taskId, code, message string, responseData map[string]any, logVideoId ...string) {
+func (s *sTaskVideo) failTask(ctx context.Context, taskVideo *entity.TaskVideo, code, message string, responseData map[string]any, logVideoId ...string) {
 
 	// 失败时也记录响应数据: 有上游响应则落上游原文, 否则按错误信息构造,
 	// 便于任务查询接口直接返回落库结果, 无需再实时查询上游
@@ -1089,10 +621,7 @@ func (s *sTaskVideo) failTask(ctx context.Context, taskId, code, message string,
 		}
 	}
 
-	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
-		"_id":    taskId,
-		"status": "in_progress",
-	}, bson.M{
+	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, videoWorkerFilter(taskVideo), bson.M{
 		"status":        "failed",
 		"error":         &smodel.VideoError{Code: code, Message: message},
 		"response_data": responseData,
@@ -1139,6 +668,7 @@ func (s *sTaskVideo) resolveUpstreamModel(ctx context.Context, logVideo *entity.
 			model = v
 		}
 	}
+
 	if model == "" {
 		model = logVideo.Model
 	}
@@ -1184,10 +714,10 @@ func resolveVideoUrl(videoUrl string) string {
 	}
 
 	if config.Cfg.VideoTask.IsEnableStorage {
-		return buildStorageUrl(videoUrl)
+		return common.ReplaceVideoUrl(buildStorageUrl(videoUrl))
 	}
 
-	return videoUrl
+	return common.ReplaceVideoUrl(videoUrl)
 }
 
 func buildStorageUrl(videoUrl string) string {
@@ -1291,21 +821,162 @@ func isVideoJobHandle(id string) bool {
 	return id != "" && id != videoJobResubmit
 }
 
+func isLocalVideoId(id string) bool {
+	return gstr.HasPrefix(id, "video_")
+}
+
 func videoPollHandle(taskVideo *entity.TaskVideo) string {
 	if taskVideo == nil {
 		return ""
 	}
 	if isVideoJobHandle(taskVideo.JobId) {
+		if isLocalVideoId(taskVideo.JobId) && taskVideo.JobId == taskVideo.VideoId {
+			return ""
+		}
 		return taskVideo.JobId
 	}
 	if taskVideo.JobId == videoJobResubmit {
 		return ""
 	}
+	if isLocalVideoId(taskVideo.VideoId) {
+		return ""
+	}
 	return taskVideo.VideoId
 }
 
-func abandonVideoJob(taskVideo *entity.TaskVideo) {
-	if taskVideo != nil {
-		taskVideo.JobId = videoJobResubmit
+func (s *sTaskVideo) submitVideoJob(ctx context.Context, taskVideo *entity.TaskVideo, logVideo *entity.LogVideo, provider *entity.Provider, timeout time.Duration) (smodel.VideoJobResponse, string, error) {
+
+	var created smodel.VideoJobResponse
+
+	if len(taskVideo.RequestData) == 0 {
+		return created, "missing_request_data", errors.New("missing request data")
 	}
+
+	upstreamModel := s.prepareUpstreamModel(ctx, taskVideo, logVideo)
+
+	adapterOpts := &options.AdapterOptions{
+		Provider: provider.Code,
+		Model:    upstreamModel,
+		Key:      logVideo.Key,
+		BaseUrl:  logVideo.ModelAgent.BaseUrl,
+		Path:     logVideo.ModelAgent.Path,
+		Timeout:  timeout,
+		ProxyUrl: config.Cfg.Http.ProxyUrl,
+	}
+
+	submitErrCode := func(err error) string {
+		if ctx.Err() != nil {
+			return "timeout"
+		}
+		return "generation_error"
+	}
+
+	// 网关 video.go 落库的是 OpenAI 风格请求体, 重提必须走 VideoCreate 做厂商转换;
+	// 百炼/火山等官方接口落库的是原生请求体, 才走 Official 透传.
+	if !isOpenAIStyleVideoRequest(taskVideo.RequestData) {
+
+		adapter := sdk.NewAdapterOfficial(ctx, adapterOpts)
+
+		bytes, _, err := adapter.VideoCreateOfficial(ctx, gjson.MustEncode(taskVideo.RequestData))
+		if err != nil {
+			return created, submitErrCode(err), err
+		}
+
+		created.ResponseBytes = bytes
+		created.Id = parseVideoCreateTaskId(bytes)
+
+		if created.Id == "" {
+			return created, "submit_response_invalid", errors.New("create video task failed: missing task_id")
+		}
+
+		return created, "", nil
+	}
+
+	adapter := sdk.NewAdapter(ctx, adapterOpts)
+
+	var err error
+	if taskVideo.Action == "remix" {
+
+		var req smodel.VideoRemixRequest
+
+		if e := gconv.Scan(taskVideo.RequestData, &req); e != nil {
+			return created, "invalid_request_data", e
+		}
+
+		if up, ok := taskVideo.RequestData["upstream_video_id"].(string); ok && up != "" {
+			req.VideoId = up
+		}
+
+		created, err = adapter.VideoRemix(ctx, req)
+
+	} else {
+
+		var req smodel.VideoCreateRequest
+
+		if e := gconv.Scan(taskVideo.RequestData, &req); e != nil {
+			return created, "invalid_request_data", e
+		}
+
+		req.Model = upstreamModel
+		created, err = adapter.VideoCreate(ctx, req)
+	}
+
+	if err != nil {
+		return created, submitErrCode(err), err
+	}
+
+	if created.Id == "" {
+		created.Id = parseVideoCreateTaskId(created.ResponseBytes)
+	}
+
+	if created.Id == "" {
+		return created, "submit_response_invalid", errors.New("create video task failed: missing task_id")
+	}
+
+	return created, "", nil
+}
+
+func canResubmitVideo(taskVideo *entity.TaskVideo) bool {
+	return taskVideo != nil && len(taskVideo.RequestData) > 0 && videoPollHandle(taskVideo) == ""
+}
+
+func isOpenAIStyleVideoRequest(data map[string]any) bool {
+
+	if data == nil {
+		return false
+	}
+
+	if prompt, ok := data["prompt"].(string); ok && prompt != "" {
+		return true
+	}
+
+	if _, ok := data["input"]; ok {
+		return false
+	}
+
+	if _, ok := data["content"]; ok {
+		return false
+	}
+
+	_, hasVideoId := data["video_id"]
+	return hasVideoId
+}
+
+func videoWorkerFilter(taskVideo *entity.TaskVideo) bson.M {
+
+	filter := bson.M{
+		"_id":    taskVideo.Id,
+		"status": "in_progress",
+	}
+
+	switch {
+	case isVideoJobHandle(taskVideo.JobId):
+		filter["job_id"] = taskVideo.JobId
+	case taskVideo.JobId == videoJobResubmit:
+		filter["job_id"] = videoJobResubmit
+	default:
+		filter["job_id"] = bson.M{"$nin": []string{videoJobResubmit}}
+	}
+
+	return filter
 }

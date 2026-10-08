@@ -156,6 +156,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{ImageStorage: params.ImageStorage}
 	case "image_url":
 		sysConfig = &do.SysConfig{ImageUrl: params.ImageUrl}
+	case "video_url":
+		sysConfig = &do.SysConfig{VideoUrl: params.VideoUrl}
 	case "video_task":
 		sysConfig = &do.SysConfig{VideoTask: params.VideoTask}
 	case "file_task":
@@ -271,6 +273,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		ImageTask:                 sysConfig.ImageTask,
 		ImageStorage:              sysConfig.ImageStorage,
 		ImageUrl:                  sysConfig.ImageUrl,
+		VideoUrl:                  sysConfig.VideoUrl,
 		VideoTask:                 sysConfig.VideoTask,
 		FileTask:                  sysConfig.FileTask,
 		BatchTask:                 sysConfig.BatchTask,
@@ -362,6 +365,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.ImageStorage = s.Default().ImageStorage
 	case "image_url":
 		sysConfigUpdateReq.ImageUrl = s.Default().ImageUrl
+	case "video_url":
+		sysConfigUpdateReq.VideoUrl = s.Default().VideoUrl
 	case "video_task":
 		sysConfigUpdateReq.VideoTask = s.Default().VideoTask
 	case "file_task":
@@ -493,6 +498,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.ImageUrl == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "image_url"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.VideoUrl == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "video_url"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -889,6 +901,10 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		ImageUrl: &common.ImageUrl{
 			Open: false,
 			Urls: []common.ImageUrlItem{},
+		},
+		VideoUrl: &common.VideoUrl{
+			Open: false,
+			Urls: []common.VideoUrlItem{},
 		},
 		VideoTask: &common.VideoTask{
 			Open:                 true,

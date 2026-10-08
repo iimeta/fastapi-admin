@@ -20,6 +20,7 @@ type TaskVideo struct {
 	Seconds            int                `bson:"seconds,omitempty"`               // 秒数
 	Prompt             string             `bson:"prompt,omitempty"`                // 提示
 	Progress           int                `bson:"progress,omitempty"`              // 进度
+	Retry              int                `bson:"retry,omitempty"`                 // 本轮失败重试次数
 	RemixedFromVideoId string             `bson:"remixed_from_video_id,omitempty"` // 混合ID
 	Status             string             `bson:"status,omitempty"`                // 状态[queued:排队中, in_progress:进行中, completed:已完成, failed:已失败, expired:已过期, deleted:已删除]
 	CompletedAt        int64              `bson:"completed_at,omitempty"`          // 完成时间
@@ -27,6 +28,7 @@ type TaskVideo struct {
 	VideoUrl           string             `bson:"video_url,omitempty"`             // 视频地址
 	FileName           string             `bson:"file_name,omitempty"`             // 文件名
 	FilePath           string             `bson:"file_path,omitempty"`             // 文件路径
+	InputFilePaths     []string           `bson:"input_file_paths,omitempty"`      // 输入文件路径列表
 	RequestData        map[string]any     `bson:"request_data,omitempty"`          // 请求数据
 	ResponseData       map[string]any     `bson:"response_data,omitempty"`         // 响应数据
 	Error              *smodel.VideoError `bson:"error,omitempty"`                 // 错误信息

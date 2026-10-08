@@ -45,14 +45,19 @@ func (s *sTaskVideo) switchRetryAgent(ctx context.Context, taskVideo *entity.Tas
 
 	taskVideo.ModelAgentId = agent.Id
 	taskVideo.ModelAgent = snapshot
+	filter := videoWorkerFilter(taskVideo)
 	taskVideo.JobId = videoJobResubmit
 
-	if err = dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{
+	if _, err = dao.TaskVideo.FindOneAndUpdate(ctx, filter, bson.M{
 		"job_id":         videoJobResubmit,
 		"model_agent_id": agent.Id,
 		"model_agent":    snapshot,
 	}); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, errors.New("task already handled")
+		}
 		logger.Error(ctx, err)
+		return false, err
 	}
 
 	if err = dao.LogVideo.UpdateById(ctx, logVideo.Id, bson.M{
