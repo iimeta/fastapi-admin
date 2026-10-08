@@ -240,7 +240,7 @@ func (s *sTaskVideo) storeCompletedMedia(ctx context.Context, taskVideo *entity.
 			storageDir = storageDir + "/"
 		}
 
-		fileName = pollVideoId(taskVideo) + "_video.mp4"
+		fileName = taskVideo.VideoId + "_video.mp4"
 
 		if err = gfile.PutBytes(storageDir+fileName, content); err != nil {
 			logger.Error(ctx, err)

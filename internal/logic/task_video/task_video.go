@@ -92,9 +92,11 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 	}
 
 	if service.Session().IsAdminRole(ctx) {
+
 		if isVideoJobHandle(taskVideo.JobId) {
 			detail.JobId = taskVideo.JobId
 		}
+
 		detail.FileName = taskVideo.FileName
 		detail.FilePath = taskVideo.FilePath
 		detail.ModelAgentId = taskVideo.ModelAgentId
@@ -102,6 +104,7 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 		if taskVideo.ModelAgent != nil {
 
 			providerName := taskVideo.ModelAgent.ProviderId
+
 			if provider, err := dao.Provider.FindById(ctx, taskVideo.ModelAgent.ProviderId); err == nil && provider != nil {
 				providerName = provider.Name
 			}
@@ -173,7 +176,9 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 	}
 
 	if !service.Session().IsAdminRole(ctx) && len(params.Models) > 0 {
+
 		names := make([]string, 0, len(params.Models))
+
 		if list, err := dao.Model.FindByIds(ctx, params.Models); err != nil {
 			logger.Error(ctx, err)
 		} else {
@@ -183,6 +188,7 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 				}
 			}
 		}
+
 		filter["model"] = bson.M{"$in": names}
 	}
 
@@ -826,21 +832,26 @@ func isLocalVideoId(id string) bool {
 }
 
 func videoPollHandle(taskVideo *entity.TaskVideo) string {
+
 	if taskVideo == nil {
 		return ""
 	}
+
 	if isVideoJobHandle(taskVideo.JobId) {
 		if isLocalVideoId(taskVideo.JobId) && taskVideo.JobId == taskVideo.VideoId {
 			return ""
 		}
 		return taskVideo.JobId
 	}
+
 	if taskVideo.JobId == videoJobResubmit {
 		return ""
 	}
+
 	if isLocalVideoId(taskVideo.VideoId) {
 		return ""
 	}
+
 	return taskVideo.VideoId
 }
 
