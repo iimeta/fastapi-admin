@@ -145,21 +145,37 @@ func imageCache(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 	spend.ImageCache.SpendTokens = math.Ceil(float64(spend.ImageCache.ReadTokens) * spend.ImageCache.Pricing.ReadRatio)
 }
 
-// 视频生成
+// 视频生成: 按持续秒数计费, 不按 token
 func videoGeneration(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
-	spend.VideoGeneration.InputTokens = usage.CompletionTokens
-	spend.VideoGeneration.SpendTokens = math.Ceil(float64(spend.VideoGeneration.InputTokens) * ConvRatio(spend.VideoGeneration.Pricing.OnceRatio))
+
+	if spend.VideoGeneration == nil || spend.VideoGeneration.Pricing == nil {
+		return
+	}
+
+	seconds := spend.VideoGeneration.Seconds
+	if seconds <= 0 {
+		return
+	}
+
+	spend.VideoGeneration.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.VideoGeneration.Pricing.OnceRatio) * float64(seconds)
 }
 
-// 按实际输出秒数重算视频生成花费: 创建时秒数未知(如百炼智能时长 duration=-1)的任务, 在完成后按上游返回的实际时长补计费
+// 按实际输出秒数重算视频生成花费: 异步任务完成后按秒数补计费
 func RecalcVideoSecondsSpend(spend *common.Spend, seconds int) {
 
-	if spend == nil || spend.VideoGeneration == nil || spend.VideoGeneration.Pricing == nil || seconds <= 0 {
+	if spend == nil || spend.VideoGeneration == nil || seconds <= 0 {
 		return
 	}
 
 	spend.VideoGeneration.Seconds = seconds
-	spend.VideoGeneration.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.VideoGeneration.Pricing.OnceRatio) * float64(seconds)
+	if spend.VideoGeneration.Pricing != nil {
+		spend.VideoGeneration.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.VideoGeneration.Pricing.OnceRatio) * float64(seconds)
+	}
+
+	if spend.VideoGeneration.SpendTokens <= 0 {
+		return
+	}
+
 	spend.TotalSpendTokens = spend.VideoGeneration.SpendTokens
 
 	// 模型时段折扣

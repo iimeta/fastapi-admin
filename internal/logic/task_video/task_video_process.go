@@ -20,7 +20,6 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	sdk "github.com/iimeta/fastapi-sdk/v2"
-	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -312,6 +311,11 @@ func (s *sTaskVideo) finishCompleted(ctx context.Context, taskVideo *entity.Task
 		update["job_id"] = retrieve.Id
 	}
 
+	seconds := resolveCompletedVideoSeconds(taskVideo, logVideo, retrieve)
+	if seconds > 0 {
+		update["seconds"] = seconds
+	}
+
 	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, videoWorkerFilter(taskVideo), update); err != nil {
 
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -328,17 +332,13 @@ func (s *sTaskVideo) finishCompleted(ctx context.Context, taskVideo *entity.Task
 		return
 	}
 
-	if retrieve.Usage != nil {
-		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
+	// 异步任务完成时按实际秒数扣费
+	if seconds > 0 {
+		common.RecalcVideoSecondsSpend(&logVideo.Spend, seconds)
 	}
 
-	if provider.Code == sconsts.PROVIDER_BAILIAN && logVideo.Spend.VideoGeneration != nil && logVideo.Spend.VideoGeneration.Seconds == 0 {
-		if seconds := gconv.Int(retrieve.Seconds); seconds > 0 {
-			common.RecalcVideoSecondsSpend(&logVideo.Spend, seconds)
-			if err := dao.TaskVideo.UpdateById(ctx, taskVideo.Id, bson.M{"seconds": seconds}); err != nil {
-				logger.Error(ctx, err)
-			}
-		}
+	if retrieve.Usage != nil && logVideo.Spend.TotalSpendTokens == 0 {
+		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
 	}
 
 	if err := common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
@@ -354,6 +354,46 @@ func (s *sTaskVideo) finishCompleted(ctx context.Context, taskVideo *entity.Task
 	}); err != nil {
 		logger.Error(ctx, err)
 	}
+}
+
+func resolveCompletedVideoSeconds(taskVideo *entity.TaskVideo, logVideo *entity.LogVideo, retrieve smodel.VideoJobResponse) int {
+
+	if seconds := gconv.Int(retrieve.Seconds); seconds > 0 {
+		return seconds
+	}
+
+	if taskVideo != nil && taskVideo.Seconds > 0 {
+		return taskVideo.Seconds
+	}
+
+	if logVideo != nil && logVideo.Spend.VideoGeneration != nil && logVideo.Spend.VideoGeneration.Seconds > 0 {
+		return logVideo.Spend.VideoGeneration.Seconds
+	}
+
+	return videoSecondsFromRequest(taskVideo)
+}
+
+func videoSecondsFromRequest(taskVideo *entity.TaskVideo) int {
+
+	if taskVideo == nil || taskVideo.RequestData == nil {
+		return 0
+	}
+
+	if seconds := gconv.Int(taskVideo.RequestData["seconds"]); seconds > 0 {
+		return seconds
+	}
+
+	if seconds := gconv.Int(taskVideo.RequestData["duration"]); seconds > 0 {
+		return seconds
+	}
+
+	if params, ok := taskVideo.RequestData["parameters"].(map[string]any); ok {
+		if seconds := gconv.Int(params["duration"]); seconds > 0 {
+			return seconds
+		}
+	}
+
+	return 0
 }
 
 func (s *sTaskVideo) persistJobId(ctx context.Context, taskVideo *entity.TaskVideo, jobId string, preserveUpdatedAt bool) bool {
