@@ -20,6 +20,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	sdk "github.com/iimeta/fastapi-sdk/v2"
+	sconsts "github.com/iimeta/fastapi-sdk/v2/consts"
 	smodel "github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -332,12 +333,23 @@ func (s *sTaskVideo) finishCompleted(ctx context.Context, taskVideo *entity.Task
 		return
 	}
 
-	// 异步任务完成时按实际秒数扣费
-	if seconds > 0 {
-		common.RecalcVideoSecondsSpend(&logVideo.Spend, seconds)
+	if seconds > 0 && logVideo.Spend.VideoGeneration != nil {
+		logVideo.Spend.VideoGeneration.Seconds = seconds
 	}
 
-	if retrieve.Usage != nil && logVideo.Spend.TotalSpendTokens == 0 {
+	// 火山等按 tokens (每百万); 其它按视频秒数. 失败不计费
+	switch {
+	case isVideoTokenBilling(provider, logVideo, retrieve.Usage):
+		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
+	case provider != nil && provider.Code == sconsts.PROVIDER_VOLC_ENGINE:
+		if retrieve.Usage != nil {
+			common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
+		} else {
+			logger.Errorf(ctx, "sTaskVideo finishCompleted task: %s volcengine completed without usage, skip billing", taskVideo.Id)
+		}
+	case seconds > 0:
+		common.RecalcVideoSecondsSpend(&logVideo.Spend, seconds)
+	case retrieve.Usage != nil:
 		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
 	}
 
@@ -394,6 +406,47 @@ func videoSecondsFromRequest(taskVideo *entity.TaskVideo) int {
 	}
 
 	return 0
+}
+
+func isVideoTokenBilling(provider *entity.Provider, logVideo *entity.LogVideo, usage *smodel.Usage) bool {
+
+	if usage == nil || videoTokenCount(*usage) <= 0 {
+		return false
+	}
+
+	if provider != nil && provider.Code == sconsts.PROVIDER_VOLC_ENGINE {
+		return true
+	}
+
+	var hasToken, hasOnce bool
+	for _, m := range logVideo.Spend.BillingMethods {
+		switch m {
+		case 1:
+			hasToken = true
+		case 2:
+			hasOnce = true
+		}
+	}
+
+	if hasToken && !hasOnce {
+		return true
+	}
+
+	// 创建时未按秒预计算, 且模型支持按 Tokens
+	return hasToken && logVideo.Spend.VideoGeneration != nil && logVideo.Spend.VideoGeneration.SpendTokens == 0
+}
+
+func videoTokenCount(usage smodel.Usage) int {
+
+	if usage.CompletionTokens > 0 {
+		return usage.CompletionTokens
+	}
+
+	if usage.OutputTokens > 0 {
+		return usage.OutputTokens
+	}
+
+	return usage.TotalTokens
 }
 
 func (s *sTaskVideo) persistJobId(ctx context.Context, taskVideo *entity.TaskVideo, jobId string, preserveUpdatedAt bool) bool {

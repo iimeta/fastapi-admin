@@ -145,22 +145,32 @@ func imageCache(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 	spend.ImageCache.SpendTokens = math.Ceil(float64(spend.ImageCache.ReadTokens) * spend.ImageCache.Pricing.ReadRatio)
 }
 
-// 视频生成: 按持续秒数计费, 不按 token
+// 视频生成: 按 Tokens 计费 (如火山引擎, 每百万 tokens)
 func videoGeneration(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 
 	if spend.VideoGeneration == nil || spend.VideoGeneration.Pricing == nil {
 		return
 	}
 
-	seconds := spend.VideoGeneration.Seconds
-	if seconds <= 0 {
+	tokens := usage.CompletionTokens
+
+	if tokens <= 0 {
+		tokens = usage.OutputTokens
+	}
+
+	if tokens <= 0 {
+		tokens = usage.TotalTokens
+	}
+
+	if tokens <= 0 {
 		return
 	}
 
-	spend.VideoGeneration.SpendTokens = math.Ceil(consts.QUOTA_DEFAULT_UNIT*spend.VideoGeneration.Pricing.OnceRatio) * float64(seconds)
+	spend.VideoGeneration.InputTokens = tokens
+	spend.VideoGeneration.SpendTokens = math.Ceil(float64(tokens) * ConvRatio(spend.VideoGeneration.Pricing.OnceRatio))
 }
 
-// 按实际输出秒数重算视频生成花费: 异步任务完成后按秒数补计费
+// 按实际输出秒数重算视频生成花费: 异步任务完成后按秒补计费 (Sora/百炼/MiniMax/xAI 等)
 func RecalcVideoSecondsSpend(spend *common.Spend, seconds int) {
 
 	if spend == nil || spend.VideoGeneration == nil || seconds <= 0 {
