@@ -2,6 +2,7 @@ package consts
 
 const (
 	TRACE_ID             = "Trace-Id"
+	FASTAPI_REQUEST_ID   = "X-Fastapi-Request-Id"
 	LOCK_LOGIN           = "lock:login:account:%s"
 	LOCK_CHANGE_PASSWORD = "lock:change_password:user:%d"
 	LOCK_CODE            = "lock:code:%s"
