@@ -69,6 +69,7 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		Host:         result.Host,
 		Method:       result.Method,
 		Path:         result.Path,
+		MsgId:        result.MsgId,
 		Creator:      util.Desensitize(result.Creator),
 	}
 

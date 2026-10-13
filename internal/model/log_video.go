@@ -95,6 +95,7 @@ type LogVideo struct {
 	Method               string                 `json:"method,omitempty"`                  // Method
 	Path                 string                 `json:"path,omitempty"`                    // Path
 	RequestIds           map[string]string      `json:"request_ids,omitempty"`             // 上游请求ID
+	MsgId                string                 `json:"msg_id,omitempty"`                  // 消息ID
 	Creator              string                 `json:"creator,omitempty"`                 // 创建人
 	Updater              string                 `json:"updater,omitempty"`                 // 更新人
 	CreatedAt            string                 `json:"created_at,omitempty"`              // 创建时间

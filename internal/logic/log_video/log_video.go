@@ -69,6 +69,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		Host:         result.Host,
 		Method:       result.Method,
 		Path:         result.Path,
+		MsgId:        result.MsgId,
 		Creator:      util.Desensitize(result.Creator),
 	}
 

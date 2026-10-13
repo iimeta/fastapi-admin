@@ -69,6 +69,7 @@ func (s *sLogFile) Detail(ctx context.Context, id string) (*model.LogFile, error
 		Host:         result.Host,
 		Method:       result.Method,
 		Path:         result.Path,
+		MsgId:        result.MsgId,
 		Creator:      util.Desensitize(result.Creator),
 	}
 
