@@ -19,6 +19,8 @@ type (
 		Update(ctx context.Context, params model.ModelAgentUpdateReq) error
 		// 更改模型代理状态
 		ChangeStatus(ctx context.Context, params model.ModelAgentChangeStatusReq) (err error)
+		// 更改模型代理权重
+		ChangeWeight(ctx context.Context, params model.ModelAgentChangeWeightReq) error
 		// 删除模型代理
 		Delete(ctx context.Context, id string, deleteKeys bool) error
 		// 模型代理详情

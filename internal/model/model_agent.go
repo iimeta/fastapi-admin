@@ -77,6 +77,12 @@ type ModelAgentChangeStatusReq struct {
 	Status int    `json:"status,omitempty" d:"1"` // 状态[1:正常, 2:禁用, -1:删除]
 }
 
+// 更改模型代理权重接口请求参数
+type ModelAgentChangeWeightReq struct {
+	Id     string `json:"id" v:"required"` // ID
+	Weight int    `json:"weight"`          // 权重
+}
+
 // 模型代理详情接口响应参数
 type ModelAgentDetailRes struct {
 	*ModelAgent

@@ -512,6 +512,40 @@ func (s *sModelAgent) ChangeStatus(ctx context.Context, params model.ModelAgentC
 	return nil
 }
 
+// 更改模型代理权重
+func (s *sModelAgent) ChangeWeight(ctx context.Context, params model.ModelAgentChangeWeightReq) error {
+
+	oldData, err := s.Detail(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err = dao.ModelAgent.UpdateById(ctx, params.Id, bson.M{
+		"weight": params.Weight,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	modelAgent, err := s.Detail(ctx, params.Id)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_AGENT, model.PubMessage{
+		Action:  consts.ACTION_UPDATE,
+		OldData: oldData,
+		NewData: modelAgent,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 删除模型代理
 func (s *sModelAgent) Delete(ctx context.Context, id string, deleteKeys bool) error {
 

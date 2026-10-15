@@ -38,6 +38,17 @@ type ChangeStatusRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 更改模型代理权重接口请求参数
+type ChangeWeightReq struct {
+	g.Meta `path:"/change/weight" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"更改模型代理权重接口"`
+	model.ModelAgentChangeWeightReq
+}
+
+// 更改模型代理权重接口响应参数
+type ChangeWeightRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 删除模型代理接口请求参数
 type DeleteReq struct {
 	g.Meta     `path:"/delete" method:"post" auth:"true" role:"admin" tags:"model_agent" summary:"删除模型代理接口"`
