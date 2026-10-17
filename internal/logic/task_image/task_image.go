@@ -524,24 +524,24 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	var (
 		response smodel.ImageResponse
 		errCode  string
-	)
 
-	var (
 		imageUrl  string
 		fileName  string
 		filePath  string
 		imageUrls []string
 		fileNames []string
 		filePaths []string
-	)
 
-	errorAgentIds := make([]string, 0)
-	errorKeys := make([]string, 0)
+		errorAgentIds = make([]string, 0)
+		errorKeys     = make([]string, 0)
+		cachedEditReq *smodel.ImageEditRequest
+	)
 
 	sizeCheckGroup := loadImageSizeCheckGroup(ctx, logImage)
 	enableSizeCheck := imageSizeCheckEnabled(sizeCheckGroup)
 	maxSizeRetry := 0
 	sizeMismatchAttempts := 0
+
 	if enableSizeCheck {
 		agents, _, _ := s.listCandidateAgents(ctx, taskImage, logImage)
 		maxSizeRetry = imageSizeCheckMaxRetry(sizeCheckGroup, len(agents))
@@ -569,7 +569,7 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		if config.Cfg.ImageTask.SubmitMode == 2 {
 			response, errCode, err = s.requestImageAsync(taskCtx, taskImage, logImage, provider, timeout)
 		} else {
-			response, errCode, err = s.requestImageSync(taskCtx, taskImage, logImage, provider, timeout)
+			response, errCode, err = s.requestImageSync(taskCtx, taskImage, logImage, provider, timeout, &cachedEditReq)
 		}
 
 		cancel()
@@ -1181,7 +1181,7 @@ func (s *sTaskImage) failTask(ctx context.Context, taskId, code, message string,
 }
 
 // 同步提交绘图任务, 阻塞等待上游返回结果
-func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.TaskImage, logImage *entity.LogImage, provider *entity.Provider, timeout time.Duration) (smodel.ImageResponse, string, error) {
+func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.TaskImage, logImage *entity.LogImage, provider *entity.Provider, timeout time.Duration, cachedEditReq **smodel.ImageEditRequest) (smodel.ImageResponse, string, error) {
 
 	var response smodel.ImageResponse
 
@@ -1204,14 +1204,27 @@ func (s *sTaskImage) requestImageSync(ctx context.Context, taskImage *entity.Tas
 			err          error
 		)
 
-		if config.Cfg.ImageTask.DataFormat == 2 {
+		dataFormat := 0
+		if config.Cfg != nil && config.Cfg.ImageTask != nil {
+			dataFormat = config.Cfg.ImageTask.DataFormat
+		}
+
+		if dataFormat == 2 {
 			imageEditReq, err = s.buildImageEditRequestByURL(ctx, taskImage)
+		} else if cachedEditReq != nil && *cachedEditReq != nil {
+			imageEditReq = **cachedEditReq
+			imageEditReq.Model = requestDataModel(taskImage)
 		} else {
 			imageEditReq, err = s.buildImageEditRequest(ctx, taskImage)
 		}
 
 		if err != nil {
 			return response, "build_edit_request_error", err
+		}
+
+		if cachedEditReq != nil && dataFormat != 2 && isCachedImageEditRequest(imageEditReq) {
+			cache := imageEditReq
+			*cachedEditReq = &cache
 		}
 
 		if response, err = adapter.ImageEdits(ctx, imageEditReq); err != nil {
@@ -1561,7 +1574,13 @@ func (s *sTaskImage) fetchImageContent(ctx context.Context, logImage *entity.Log
 // 通过URL下载图像字节数据, 下载失败或内容为空时按配置重试
 func (s *sTaskImage) downloadImage(ctx context.Context, imageUrl string, timeout time.Duration, retry ...int) ([]byte, http.Header, error) {
 
-	body, respHeader, err := sutil.HttpGet(ctx, imageUrl, nil, nil, nil, timeout, config.Cfg.Http.ProxyUrl, nil)
+	var proxyURL string
+
+	if config.Cfg != nil && config.Cfg.Http != nil {
+		proxyURL = config.Cfg.Http.ProxyUrl
+	}
+
+	body, respHeader, err := sutil.HttpGet(ctx, imageUrl, nil, nil, nil, timeout, proxyURL, nil)
 	if err == nil && len(body) > 0 {
 		return body, respHeader, nil
 	}
@@ -1573,7 +1592,11 @@ func (s *sTaskImage) downloadImage(ctx context.Context, imageUrl string, timeout
 		logger.Errorf(ctx, "sTaskImage downloadImage url: %s, empty content", imageUrl)
 	}
 
-	retryCount := config.Cfg.ImageTask.RetryCount
+	retryCount := 0
+	if config.Cfg != nil && config.Cfg.ImageTask != nil {
+		retryCount = config.Cfg.ImageTask.RetryCount
+	}
+
 	if retryCount < 0 {
 		retryCount = 0
 	}
@@ -1674,8 +1697,10 @@ func (s *sTaskImage) buildImageEditRequest(ctx context.Context, taskImage *entit
 		return req, errors.New("empty image urls")
 	}
 
-	timeout := config.Cfg.ImageTask.Timeout * time.Second
-	if timeout <= 0 {
+	timeout := 60 * time.Second
+	if config.Cfg != nil && config.Cfg.ImageTask != nil && config.Cfg.ImageTask.Timeout > 0 {
+		timeout = config.Cfg.ImageTask.Timeout * time.Second
+	} else if config.Cfg != nil && config.Cfg.Base != nil && config.Cfg.Base.LongTimeout > 0 {
 		timeout = config.Cfg.Base.LongTimeout * time.Second
 	}
 
@@ -1689,33 +1714,16 @@ func (s *sTaskImage) buildImageEditRequest(ctx context.Context, taskImage *entit
 		}
 	}
 
+	loaded := make(map[string]loadedImage, len(imageUrls))
+
 	for _, imageUrl := range imageUrls {
 
-		var imageBytes []byte
-		var respHeader http.Header
-
-		// 优先尝试本地读取(转储文件), 根据URL中的文件名匹配InputFilePaths
-		if parsed, err := url.Parse(imageUrl); err == nil {
-			if localPath, ok := inputFileMap[path.Base(parsed.Path)]; ok {
-				imageBytes = gfile.GetBytes(localPath)
-			}
+		loadedImg, err := s.loadEditImage(ctx, imageUrl, timeout, inputFileMap, loaded)
+		if err != nil {
+			return req, err
 		}
 
-		// 本地读取失败, 通过URL下载
-		if imageBytes == nil {
-			var err error
-			imageBytes, respHeader, err = s.downloadImage(ctx, imageUrl, timeout)
-			if err != nil {
-				return req, errors.Newf("download image failed: %s, error: %v", imageUrl, err)
-			}
-		}
-
-		contentType := ""
-		if respHeader != nil {
-			contentType = respHeader.Get("Content-Type")
-		}
-
-		fileHeader, err := bytesToFileHeader(imageUrl, imageBytes, contentType)
+		fileHeader, err := bytesToFileHeader(imageUrl, loadedImg.data, loadedImg.contentType)
 		if err != nil {
 			return req, err
 		}
@@ -1745,30 +1753,12 @@ func (s *sTaskImage) buildImageEditRequest(ctx context.Context, taskImage *entit
 
 		if maskUrl != "" && !gstr.HasPrefix(maskUrl, "data:") {
 
-			var maskBytes []byte
-			var respHeader http.Header
-
-			// 优先尝试本地读取
-			if parsed, err := url.Parse(maskUrl); err == nil {
-				if localPath, ok := inputFileMap[path.Base(parsed.Path)]; ok {
-					maskBytes = gfile.GetBytes(localPath)
-				}
+			loadedImg, err := s.loadEditImage(ctx, maskUrl, timeout, inputFileMap, loaded)
+			if err != nil {
+				return req, err
 			}
 
-			if maskBytes == nil {
-				var err error
-				maskBytes, respHeader, err = s.downloadImage(ctx, maskUrl, timeout)
-				if err != nil {
-					return req, errors.Newf("download mask failed: %s, error: %v", maskUrl, err)
-				}
-			}
-
-			contentType := ""
-			if respHeader != nil {
-				contentType = respHeader.Get("Content-Type")
-			}
-
-			maskFileHeader, err := bytesToFileHeader(maskUrl, maskBytes, contentType)
+			maskFileHeader, err := bytesToFileHeader(maskUrl, loadedImg.data, loadedImg.contentType)
 			if err != nil {
 				return req, err
 			}
@@ -1897,6 +1887,60 @@ func (s *sTaskImage) buildImageEditRequestByURL(ctx context.Context, taskImage *
 	}
 
 	return req, nil
+}
+
+type loadedImage struct {
+	data        []byte
+	contentType string
+}
+
+// 优先读本地转储, 否则下载; 相同 URL 只加载一次, 供多图和 mask 复用
+func (s *sTaskImage) loadEditImage(ctx context.Context, imageUrl string, timeout time.Duration, inputFileMap map[string]string, loaded map[string]loadedImage) (loadedImage, error) {
+
+	if img, ok := loaded[imageUrl]; ok {
+		return img, nil
+	}
+
+	var imageBytes []byte
+	var respHeader http.Header
+
+	if parsed, err := url.Parse(imageUrl); err == nil {
+		if localPath, ok := inputFileMap[path.Base(parsed.Path)]; ok {
+			imageBytes = gfile.GetBytes(localPath)
+		}
+	}
+
+	if imageBytes == nil {
+		var err error
+		imageBytes, respHeader, err = s.downloadImage(ctx, imageUrl, timeout)
+		if err != nil {
+			return loadedImage{}, errors.Newf("download image failed: %s, error: %v", imageUrl, err)
+		}
+	}
+
+	contentType := ""
+	if respHeader != nil {
+		contentType = respHeader.Get("Content-Type")
+	}
+
+	img := loadedImage{data: imageBytes, contentType: contentType}
+	loaded[imageUrl] = img
+	return img, nil
+}
+
+func isCachedImageEditRequest(req smodel.ImageEditRequest) bool {
+
+	if _, ok := req.Image.([]*multipart.FileHeader); !ok {
+		return false
+	}
+
+	if req.Mask == nil {
+		return true
+	}
+
+	_, ok := req.Mask.(*multipart.FileHeader)
+
+	return ok
 }
 
 func bytesToFileHeader(fileUrl string, data []byte, contentType string) (*multipart.FileHeader, error) {
