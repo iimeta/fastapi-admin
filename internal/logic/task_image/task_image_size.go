@@ -75,6 +75,11 @@ func expectedSizeFromTask(taskImage *entity.TaskImage) (width, height int, ok bo
 		return w, h, true
 	}
 
+	// Size 不是 WxH 时, 回退到入队时计费解析出的宽高, 避免 1K/空 size 直接跳过校验
+	if taskImage.Width > 0 && taskImage.Height > 0 {
+		return taskImage.Width, taskImage.Height, true
+	}
+
 	quality, aspectRatio := splitQualityRatio(taskImage.Size)
 	if quality == "" {
 		quality = taskImage.Quality
