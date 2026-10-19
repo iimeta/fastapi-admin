@@ -196,7 +196,7 @@ func (s *sTaskVideo) pollOnce(ctx context.Context, taskVideo *entity.TaskVideo, 
 
 		s.failTask(ctx, taskVideo, "async_"+job.Status, message, util.ConvToMap(job.ResponseBytes), logVideo.Id)
 
-	case "queued", "in_progress", "running":
+	case "queued", "in_progress", "running", "pending":
 		s.updateRunningProgress(ctx, taskVideo, job.Progress)
 		s.advanceFakeProgress(ctx, gtime.TimestampMilli(), taskVideo)
 	default:
@@ -556,7 +556,6 @@ func (s *sTaskVideo) retrieveVideoJob(ctx context.Context, logVideo *entity.LogV
 		Model:    s.resolveUpstreamModel(ctx, logVideo, ""),
 		Key:      logVideo.Key,
 		BaseUrl:  logVideo.ModelAgent.BaseUrl,
-		Path:     logVideo.ModelAgent.Path,
 		Timeout:  timeout,
 		ProxyUrl: config.Cfg.Http.ProxyUrl,
 	})
@@ -571,7 +570,6 @@ func (s *sTaskVideo) downloadVideo(ctx context.Context, logVideo *entity.LogVide
 		Model:    s.resolveUpstreamModel(ctx, logVideo, ""),
 		Key:      logVideo.Key,
 		BaseUrl:  logVideo.ModelAgent.BaseUrl,
-		Path:     logVideo.ModelAgent.Path,
 		Timeout:  timeout,
 		ProxyUrl: config.Cfg.Http.ProxyUrl,
 	})
