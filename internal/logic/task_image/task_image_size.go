@@ -172,7 +172,10 @@ func parseSizeWH(size string) (width, height int) {
 }
 
 func imageSizeMatches(expectedW, expectedH, actualW, actualH int) bool {
-	return (actualW == expectedW && actualH == expectedH) || (actualW == expectedH && actualH == expectedW)
+	if (actualW == expectedW && actualH == expectedH) || (actualW == expectedH && actualH == expectedW) {
+		return true
+	}
+	return int64(actualW)*int64(actualH) >= int64(expectedW)*int64(expectedH)
 }
 
 func (s *sTaskImage) checkGeneratedImageSize(ctx context.Context, taskImage *entity.TaskImage, response smodel.ImageResponse, timeout time.Duration) error {
