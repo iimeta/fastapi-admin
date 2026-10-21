@@ -57,6 +57,7 @@ type TaskVideo struct {
 	JobId              string             `json:"job_id,omitempty"`                // 上游任务ID
 	Width              int                `json:"width,omitempty"`                 // 宽度
 	Height             int                `json:"height,omitempty"`                // 高度
+	Resolution         string             `json:"resolution,omitempty"`            // 分辨率
 	Seconds            int                `json:"seconds,omitempty"`               // 秒数
 	Prompt             string             `json:"prompt,omitempty"`                // 提示
 	Progress           int                `json:"progress,omitempty"`              // 进度

@@ -70,6 +70,7 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 		VideoId:            taskVideo.VideoId,
 		Width:              taskVideo.Width,
 		Height:             taskVideo.Height,
+		Resolution:         taskVideoResolution(taskVideo),
 		Seconds:            taskVideo.Seconds,
 		Prompt:             taskVideo.Prompt,
 		Progress:           taskVideo.Progress,
@@ -221,19 +222,20 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 	for _, result := range results {
 
 		video := &model.TaskVideo{
-			Id:        result.Id,
-			TraceId:   result.TraceId,
-			UserId:    result.UserId,
-			AppId:     result.AppId,
-			Model:     result.Model,
-			VideoId:   result.VideoId,
-			Width:     result.Width,
-			Height:    result.Height,
-			Seconds:   result.Seconds,
-			Prompt:    result.Prompt,
-			Progress:  result.Progress,
-			Status:    result.Status,
-			CreatedAt: util.FormatDateTimeMonth(result.CreatedAt),
+			Id:         result.Id,
+			TraceId:    result.TraceId,
+			UserId:     result.UserId,
+			AppId:      result.AppId,
+			Model:      result.Model,
+			VideoId:    result.VideoId,
+			Width:      result.Width,
+			Height:     result.Height,
+			Resolution: taskVideoResolution(result),
+			Seconds:    result.Seconds,
+			Prompt:     result.Prompt,
+			Progress:   result.Progress,
+			Status:     result.Status,
+			CreatedAt:  util.FormatDateTimeMonth(result.CreatedAt),
 		}
 
 		if result.Status == "failed" && result.Error != nil {
@@ -990,4 +992,17 @@ func videoWorkerFilter(taskVideo *entity.TaskVideo) bson.M {
 	}
 
 	return filter
+}
+
+func taskVideoResolution(task *entity.TaskVideo) string {
+
+	if task == nil || task.RequestData == nil {
+		return ""
+	}
+
+	if v, ok := task.RequestData["resolution"].(string); ok {
+		return v
+	}
+
+	return ""
 }
