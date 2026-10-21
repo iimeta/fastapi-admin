@@ -151,6 +151,7 @@ func (s *sTaskVideo) submitOnce(ctx context.Context, taskVideo *entity.TaskVideo
 		}
 
 		s.failTask(ctx, taskVideo, "async_"+created.Status, message, util.ConvToMap(created.ResponseBytes), logVideo.Id)
+		s.billVideoUsage(ctx, logVideo, created.Usage)
 
 		return
 	}
@@ -195,6 +196,7 @@ func (s *sTaskVideo) pollOnce(ctx context.Context, taskVideo *entity.TaskVideo, 
 		}
 
 		s.failTask(ctx, taskVideo, "async_"+job.Status, message, util.ConvToMap(job.ResponseBytes), logVideo.Id)
+		s.billVideoUsage(ctx, logVideo, job.Usage)
 
 	case "queued", "in_progress", "running", "pending":
 		s.updateRunningProgress(ctx, taskVideo, job.Progress)
@@ -337,8 +339,10 @@ func (s *sTaskVideo) finishCompleted(ctx context.Context, taskVideo *entity.Task
 		logVideo.Spend.VideoGeneration.Seconds = seconds
 	}
 
-	// 火山等按 tokens (每百万); 其它按视频秒数. 失败不计费
+	// 有 cost_in_usd_ticks 按官方 ticks 计费; 火山等按 tokens; 其它按视频秒数
 	switch {
+	case hasVideoCostTicks(retrieve.Usage):
+		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
 	case isVideoTokenBilling(provider, logVideo, retrieve.Usage):
 		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
 	case provider != nil && provider.Code == sconsts.PROVIDER_VOLC_ENGINE:
@@ -447,6 +451,33 @@ func videoTokenCount(usage smodel.Usage) int {
 	}
 
 	return usage.TotalTokens
+}
+
+func hasVideoCostTicks(usage *smodel.Usage) bool {
+	return usage != nil && usage.CostInUsdTicks > 0
+}
+
+func (s *sTaskVideo) billVideoUsage(ctx context.Context, logVideo *entity.LogVideo, usage *smodel.Usage) {
+	if logVideo == nil || !hasVideoCostTicks(usage) {
+		return
+	}
+
+	common.Billing(ctx, *usage, &logVideo.Spend)
+
+	if err := common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
+		logger.Error(ctx, err)
+		return
+	}
+
+	if err := dao.LogVideo.UpdateById(ctx, logVideo.Id, bson.M{
+		"spend":          logVideo.Spend,
+		"model_agent_id": logVideo.ModelAgentId,
+		"model_agent":    logVideo.ModelAgent,
+		"key":            logVideo.Key,
+		"status":         -1,
+	}); err != nil {
+		logger.Error(ctx, err)
+	}
 }
 
 func (s *sTaskVideo) persistJobId(ctx context.Context, taskVideo *entity.TaskVideo, jobId string, preserveUpdatedAt bool) bool {
