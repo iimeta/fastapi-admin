@@ -132,6 +132,11 @@ func (s *sTaskVideo) submitOnce(ctx context.Context, taskVideo *entity.TaskVideo
 		return
 	}
 
+	if isVideoJobFailed(created.Status) {
+		s.failVideoJob(ctx, taskVideo, logVideo, created)
+		return
+	}
+
 	jobId := created.Id
 	if jobId == "" || (isLocalVideoId(jobId) && jobId == taskVideo.VideoId) {
 		s.retryOrFail(ctx, taskVideo, logVideo, "submit_response_invalid", errors.New("create video task failed: missing or local task_id"), util.ConvToMap(created.ResponseBytes), true)
@@ -139,20 +144,6 @@ func (s *sTaskVideo) submitOnce(ctx context.Context, taskVideo *entity.TaskVideo
 	}
 
 	if !s.persistJobId(ctx, taskVideo, jobId, false) {
-		return
-	}
-
-	if created.Status == "failed" || created.Status == "expired" || created.Status == "deleted" || created.Status == "cancelled" {
-
-		message := created.Status
-
-		if created.Error != nil && created.Error.Message != "" {
-			message = created.Error.Message
-		}
-
-		s.failTask(ctx, taskVideo, "async_"+created.Status, message, util.ConvToMap(created.ResponseBytes), logVideo.Id)
-		s.billVideoUsage(ctx, logVideo, created.Usage)
-
 		return
 	}
 
@@ -189,18 +180,9 @@ func (s *sTaskVideo) pollOnce(ctx context.Context, taskVideo *entity.TaskVideo, 
 	case "completed":
 		s.completeOnce(ctx, taskVideo, logVideo, provider, job, timeout)
 	case "failed", "expired", "deleted", "cancelled":
-
-		message := job.Status
-		if job.Error != nil && job.Error.Message != "" {
-			message = job.Error.Message
-		}
-
-		s.failTask(ctx, taskVideo, "async_"+job.Status, message, util.ConvToMap(job.ResponseBytes), logVideo.Id)
-		s.billVideoUsage(ctx, logVideo, job.Usage)
-
+		s.failVideoJob(ctx, taskVideo, logVideo, job)
 	case "queued", "in_progress", "running", "pending":
 		s.updateRunningProgress(ctx, taskVideo, job.Progress)
-		s.advanceFakeProgress(ctx, gtime.TimestampMilli(), taskVideo)
 	default:
 		logger.Errorf(ctx, "sTaskVideo pollOnce task: %s job %s unknown status: %s, wait next tick", taskVideo.Id, jobId, job.Status)
 		s.advanceFakeProgress(ctx, gtime.TimestampMilli(), taskVideo)
@@ -457,6 +439,42 @@ func hasVideoCostTicks(usage *smodel.Usage) bool {
 	return usage != nil && usage.CostInUsdTicks > 0
 }
 
+func (s *sTaskVideo) failVideoJob(ctx context.Context, taskVideo *entity.TaskVideo, logVideo *entity.LogVideo, job smodel.VideoJobResponse) {
+
+	code := "async_failed"
+	message := "failed"
+	if job.Status != "" {
+		code = "async_" + job.Status
+		message = job.Status
+	}
+
+	if job.Error != nil {
+		if job.Error.Code != "" {
+			code = job.Error.Code
+		}
+		if job.Error.Message != "" {
+			message = job.Error.Message
+		}
+	}
+
+	logId := ""
+	if logVideo != nil {
+		logId = logVideo.Id
+	}
+
+	s.failTask(ctx, taskVideo, code, message, util.ConvToMap(job.ResponseBytes), logId)
+	s.billVideoUsage(ctx, logVideo, job.Usage)
+}
+
+func isVideoJobFailed(status string) bool {
+	switch status {
+	case "failed", "expired", "deleted", "cancelled":
+		return true
+	default:
+		return false
+	}
+}
+
 func (s *sTaskVideo) billVideoUsage(ctx context.Context, logVideo *entity.LogVideo, usage *smodel.Usage) {
 	if logVideo == nil || !hasVideoCostTicks(usage) {
 		return
@@ -633,23 +651,27 @@ func (s *sTaskVideo) downloadVideo(ctx context.Context, logVideo *entity.LogVide
 	return s.downloadVideo(ctx, logVideo, provider, taskVideo, timeout, retry...)
 }
 
-func (s *sTaskVideo) updateRunningProgress(ctx context.Context, taskVideo *entity.TaskVideo, progress int) {
+func (s *sTaskVideo) updateRunningProgress(ctx context.Context, taskVideo *entity.TaskVideo, official int) {
+	s.applyRunningProgress(ctx, taskVideo, official, gtime.TimestampMilli())
+}
 
-	if progress <= 0 {
+func (s *sTaskVideo) applyRunningProgress(ctx context.Context, taskVideo *entity.TaskVideo, official int, now int64) {
+
+	if taskVideo == nil {
 		return
 	}
 
-	if progress <= 1 {
-		progress = progress * 100
+	fake := progressForElapsed(0)
+	if taskVideo.UpdatedAt > 0 && now > taskVideo.UpdatedAt {
+		fake = progressForElapsed((now - taskVideo.UpdatedAt) / 1000)
 	}
 
-	if progress >= 100 {
-		progress = 99
+	progress := mergeRunningProgress(taskVideo.Progress, official, fake)
+	if progress <= taskVideo.Progress {
+		return
 	}
 
-	if progress > taskVideo.Progress {
-		taskVideo.Progress = progress
-	}
+	taskVideo.Progress = progress
 
 	filter := videoWorkerFilter(taskVideo)
 	filter["progress"] = bson.M{"$not": bson.M{"$gte": progress}}

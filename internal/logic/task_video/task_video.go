@@ -581,26 +581,33 @@ func progressForElapsed(elapsedSec int64) int {
 	}
 }
 
+// 进行中进度取官方和假进度的较大值: 假的更快用假的, 官方更大用官方的.
+// 官方 1-100 按百分数原样用, 完成前最高 99, 100 只在任务真正完成时写入.
+func mergeRunningProgress(current, official, fake int) int {
+
+	progress := official
+
+	if progress < 0 {
+		progress = 0
+	}
+
+	if progress >= 100 {
+		progress = 99
+	}
+
+	if fake > progress {
+		progress = fake
+	}
+
+	if current > progress {
+		progress = current
+	}
+
+	return progress
+}
+
 func (s *sTaskVideo) advanceFakeProgress(ctx context.Context, now int64, taskVideo *entity.TaskVideo) {
-
-	target := progressForElapsed((now - taskVideo.UpdatedAt) / 1000)
-	if target <= taskVideo.Progress {
-		return
-	}
-
-	if _, err := dao.TaskVideo.FindOneAndUpdate(ctx, bson.M{
-		"_id":      taskVideo.Id,
-		"status":   "in_progress",
-		"progress": bson.M{"$not": bson.M{"$gte": target}},
-	}, bson.M{
-		"progress":   target,
-		"updated_at": taskVideo.UpdatedAt,
-	}); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return
-		}
-		logger.Error(ctx, err)
-	}
+	s.applyRunningProgress(ctx, taskVideo, 0, now)
 }
 
 func (s *sTaskVideo) requeueTask(ctx context.Context, taskVideo *entity.TaskVideo) {
