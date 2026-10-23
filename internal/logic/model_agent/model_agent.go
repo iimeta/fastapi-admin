@@ -1292,22 +1292,38 @@ func (s *sModelAgent) TestModel(ctx context.Context, params model.ModelAgentTest
 
 	case 8:
 
-		request := smodel.VideoCreateRequest{}
+		switch provider.Code {
+		case sconsts.PROVIDER_GOOGLE, sconsts.PROVIDER_GCP_GEMINI, sconsts.PROVIDER_VOLC_ENGINE, sconsts.PROVIDER_BAILIAN, sconsts.PROVIDER_MINIMAX, sconsts.PROVIDER_X:
 
-		if err := json.Unmarshal(data.Bytes(), &request); err == nil {
-			logger.Error(ctx, err)
-			return nil, err
+			now := time.Now()
+			responseBytes, _, err := sdk.NewAdapterOfficial(ctx, options).VideoCreateOfficial(ctx, data.Bytes())
+			if err != nil {
+				logger.Error(ctx, err)
+				modelAgentTestModelRes.Error = err.Error()
+			}
+
+			modelAgentTestModelRes.Success = err == nil
+			modelAgentTestModelRes.Result = string(responseBytes)
+			modelAgentTestModelRes.TotalTime = time.Since(now).Milliseconds()
+
+		default:
+
+			request := smodel.VideoCreateRequest{}
+			if err := json.Unmarshal(data.Bytes(), &request); err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+
+			response, err := adapter.VideoCreate(ctx, request)
+			if err != nil {
+				logger.Error(ctx, err)
+				modelAgentTestModelRes.Error = err.Error()
+			}
+
+			modelAgentTestModelRes.Success = err == nil
+			modelAgentTestModelRes.Result = string(response.ResponseBytes)
+			modelAgentTestModelRes.TotalTime = response.TotalTime
 		}
-
-		response, err := adapter.VideoCreate(ctx, request)
-		if err != nil {
-			logger.Error(ctx, err)
-			modelAgentTestModelRes.Error = err.Error()
-		}
-
-		modelAgentTestModelRes.Success = err == nil
-		modelAgentTestModelRes.Result = string(response.ResponseBytes)
-		modelAgentTestModelRes.TotalTime = response.TotalTime
 
 	default:
 
