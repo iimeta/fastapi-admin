@@ -92,6 +92,11 @@ type InviteRewardApplyAuditReq struct {
 	ReturnPending bool   `json:"return_pending,omitempty"`  // 驳回时是否将收益退回待申请状态
 }
 
+// 批量删除邀请收益入账申请记录接口请求参数
+type InviteRewardApplyBatchDeleteReq struct {
+	Ids []string `json:"ids,omitempty" v:"required"` // 需要删除的入账申请ID列表
+}
+
 // 作废邀请收益接口请求参数
 type InviteRewardsCancelReq struct {
 	Ids             []string `json:"ids,omitempty" v:"required"` // 需要作废的邀请收益ID列表

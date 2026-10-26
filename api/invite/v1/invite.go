@@ -121,6 +121,28 @@ type ManageRewardApplyRejectRes struct {
 	g.Meta `mime:"application/json" example:"json"`
 }
 
+// 删除邀请收益入账申请记录接口请求参数
+type ManageRewardApplyDeleteReq struct {
+	g.Meta `path:"/manage/reward/apply/delete" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"删除邀请收益入账申请记录接口"`
+	Id     string `json:"id" v:"required"`
+}
+
+// 删除邀请收益入账申请记录接口响应参数
+type ManageRewardApplyDeleteRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
+// 批量删除邀请收益入账申请记录接口请求参数
+type ManageRewardApplyBatchDeleteReq struct {
+	g.Meta `path:"/manage/reward/apply/batch/delete" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"批量删除邀请收益入账申请记录接口"`
+	model.InviteRewardApplyBatchDeleteReq
+}
+
+// 批量删除邀请收益入账申请记录接口响应参数
+type ManageRewardApplyBatchDeleteRes struct {
+	g.Meta `mime:"application/json" example:"json"`
+}
+
 // 作废邀请收益接口请求参数
 type ManageRewardsCancelReq struct {
 	g.Meta `path:"/manage/rewards/cancel" method:"post" auth:"true" role:"reseller,admin" tags:"invite" summary:"作废邀请收益接口"`

@@ -462,6 +462,40 @@ func (s *sInvite) ManageRewardApplyReject(ctx context.Context, params model.Invi
 	return nil
 }
 
+// 删除邀请收益入账申请记录
+func (s *sInvite) ManageRewardApplyDelete(ctx context.Context, id string) error {
+
+	filter := bson.M{"_id": id}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
+
+	if _, err := dao.InviteRewardApply.DeleteOne(ctx, filter); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
+// 批量删除邀请收益入账申请记录
+func (s *sInvite) ManageRewardApplyBatchDelete(ctx context.Context, params model.InviteRewardApplyBatchDeleteReq) error {
+
+	filter := bson.M{"_id": bson.M{"$in": params.Ids}}
+
+	if service.Session().IsResellerRole(ctx) {
+		filter["rid"] = service.Session().GetRid(ctx)
+	}
+
+	if _, err := dao.InviteRewardApply.DeleteMany(ctx, filter); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	return nil
+}
+
 // 作废尚未申请入账的邀请收益
 func (s *sInvite) ManageRewardsCancel(ctx context.Context, params model.InviteRewardsCancelReq) error {
 	filter := bson.M{"_id": bson.M{"$in": params.Ids}, "status": consts.INVITE_REWARD_STATUS_PENDING}

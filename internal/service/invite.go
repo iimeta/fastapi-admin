@@ -40,6 +40,10 @@ type (
 		ManageRewardApplyApprove(ctx context.Context, params model.InviteRewardApplyAuditReq) error
 		// 驳回邀请收益入账申请, 并按参数决定收益退回待申请或标记驳回
 		ManageRewardApplyReject(ctx context.Context, params model.InviteRewardApplyAuditReq) error
+		// 删除邀请收益入账申请记录
+		ManageRewardApplyDelete(ctx context.Context, id string) error
+		// 批量删除邀请收益入账申请记录
+		ManageRewardApplyBatchDelete(ctx context.Context, params model.InviteRewardApplyBatchDeleteReq) error
 		// 作废尚未申请入账的邀请收益
 		ManageRewardsCancel(ctx context.Context, params model.InviteRewardsCancelReq) error
 		// 取消邀请关系, 同时撤销关联的待申请收益

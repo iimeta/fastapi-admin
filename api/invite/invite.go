@@ -21,5 +21,7 @@ type IInviteV1 interface {
 	ManageRewardApplyPage(ctx context.Context, req *v1.ManageRewardApplyPageReq) (res *v1.ManageRewardApplyPageRes, err error)
 	ManageRewardApplyApprove(ctx context.Context, req *v1.ManageRewardApplyApproveReq) (res *v1.ManageRewardApplyApproveRes, err error)
 	ManageRewardApplyReject(ctx context.Context, req *v1.ManageRewardApplyRejectReq) (res *v1.ManageRewardApplyRejectRes, err error)
+	ManageRewardApplyDelete(ctx context.Context, req *v1.ManageRewardApplyDeleteReq) (res *v1.ManageRewardApplyDeleteRes, err error)
+	ManageRewardApplyBatchDelete(ctx context.Context, req *v1.ManageRewardApplyBatchDeleteReq) (res *v1.ManageRewardApplyBatchDeleteRes, err error)
 	ManageRewardsCancel(ctx context.Context, req *v1.ManageRewardsCancelReq) (res *v1.ManageRewardsCancelRes, err error)
 }
