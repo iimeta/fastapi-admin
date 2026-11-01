@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 )
 
 func Debug(ctx context.Context, v ...any) {
@@ -87,4 +88,30 @@ func Infof(ctx context.Context, format string, v ...any) {
 
 func Errorf(ctx context.Context, format string, v ...any) {
 	g.Log().Errorf(ctx, format, v...)
+}
+
+func Apply(ctx context.Context, cfg *common.LoggerConfig) {
+
+	if cfg == nil {
+		return
+	}
+
+	if cfg.Path != "" {
+		if err := g.Log().SetPath(cfg.Path); err != nil {
+			Errorf(ctx, "logger SetPath error: %v", err)
+		}
+	}
+
+	if cfg.File != "" {
+		g.Log().SetFile(cfg.File)
+	}
+
+	g.Log().SetStdoutPrint(cfg.Stdout)
+	Infof(ctx, "logger applied, path: %s, file: %s, level: %s, stdout: %v", cfg.Path, cfg.File, cfg.Level, cfg.Stdout)
+
+	if cfg.Level != "" {
+		if err := g.Log().SetLevelStr(cfg.Level); err != nil {
+			Errorf(ctx, "logger SetLevelStr error: %v", err)
+		}
+	}
 }

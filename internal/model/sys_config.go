@@ -42,6 +42,7 @@ type SysConfigUpdateReq struct {
 	GeneralApi                *common.GeneralApi                `json:"general_api,omitempty"`                   // 通用API
 	Test                      *common.Test                      `json:"test,omitempty"`                          // 测试
 	Debug                     *common.Debug                     `json:"debug,omitempty"`                         // 调试
+	Logger                    *common.Logger                    `json:"logger,omitempty"`                        // 日志组件
 }
 
 // 更改配置状态接口请求参数
@@ -104,6 +105,7 @@ type SysConfig struct {
 	GeneralApi                *common.GeneralApi                `json:"general_api,omitempty"`                   // 通用API
 	Test                      *common.Test                      `json:"test,omitempty"`                          // 测试
 	Debug                     *common.Debug                     `json:"debug,omitempty"`                         // 调试
+	Logger                    *common.Logger                    `json:"logger,omitempty"`                        // 日志组件
 	Creator                   string                            `json:"creator,omitempty"`                       // 创建人
 	Updater                   string                            `json:"updater,omitempty"`                       // 更新人
 	CreatedAt                 string                            `json:"created_at,omitempty"`                    // 创建时间

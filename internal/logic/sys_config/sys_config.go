@@ -186,6 +186,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Test: params.Test}
 	case "debug":
 		sysConfig = &do.SysConfig{Debug: params.Debug}
+	case "logger":
+		sysConfig = &do.SysConfig{Logger: params.Logger}
 	}
 
 	newData, err = dao.SysConfig.FindOneAndUpdate(ctx, bson.M{}, sysConfig)
@@ -286,6 +288,7 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 		GeneralApi:                sysConfig.GeneralApi,
 		Test:                      sysConfig.Test,
 		Debug:                     sysConfig.Debug,
+		Logger:                    sysConfig.Logger,
 		Creator:                   sysConfig.Creator,
 		Updater:                   sysConfig.Updater,
 		CreatedAt:                 util.FormatDateTime(sysConfig.CreatedAt),
@@ -389,6 +392,8 @@ func (s *sSysConfig) Reset(ctx context.Context, params model.SysConfigResetReq) 
 		sysConfigUpdateReq.GeneralApi = s.Default().GeneralApi
 	case "test":
 		sysConfigUpdateReq.Test = s.Default().Test
+	case "logger":
+		sysConfigUpdateReq.Logger = s.Default().Logger
 	}
 
 	return s.Update(ctx, sysConfigUpdateReq)
@@ -596,6 +601,13 @@ func (s *sSysConfig) Init(ctx context.Context) (sysConfig *entity.SysConfig, err
 
 	if sysConfig.Api == nil {
 		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "api"}); err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	if sysConfig.Logger == nil {
+		if sysConfig, err = s.Reset(ctx, model.SysConfigResetReq{Action: "logger"}); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
@@ -1299,6 +1311,20 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		},
 		Debug: &common.Debug{
 			Open: false,
+		},
+		Logger: &common.Logger{
+			Admin: &common.LoggerConfig{
+				Path:   "./log/",
+				File:   "{Ymd_H}.log",
+				Level:  "debug",
+				Stdout: false,
+			},
+			Api: &common.LoggerConfig{
+				Path:   "./log/",
+				File:   "{Ymd_H}.log",
+				Level:  "debug",
+				Stdout: false,
+			},
 		},
 	}
 }

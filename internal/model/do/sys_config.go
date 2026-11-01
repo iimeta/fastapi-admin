@@ -44,6 +44,7 @@ type SysConfig struct {
 	GeneralApi                *common.GeneralApi                `bson:"general_api,omitempty"`                   // 通用API
 	Test                      *common.Test                      `bson:"test,omitempty"`                          // 测试
 	Debug                     *common.Debug                     `bson:"debug,omitempty"`                         // 调试
+	Logger                    *common.Logger                    `bson:"logger,omitempty"`                        // 日志组件
 	Creator                   string                            `bson:"creator,omitempty"`                       // 创建人
 	Updater                   string                            `bson:"updater,omitempty"`                       // 更新人
 	CreatedAt                 int64                             `bson:"created_at,omitempty"`                    // 创建时间
