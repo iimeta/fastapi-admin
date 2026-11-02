@@ -6,13 +6,13 @@ replace github.com/iimeta/fastapi-sdk/v2 => ../fastapi-sdk
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/go-redsync/redsync/v4 v4.18.0
-	github.com/gogf/gf/contrib/nosql/redis/v2 v2.10.3
+	github.com/go-redsync/redsync/v4 v4.18.1
+	github.com/gogf/gf/contrib/nosql/redis/v2 v2.10.4
 	github.com/gogf/gf/v2 v2.10.4
 	github.com/iimeta/fastapi-sdk/v2 v2.5.0
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/tjfoc/gmsm v1.4.1
-	github.com/xuri/excelize/v2 v2.11.1-0.20261003002531-6258dcebc4e2
+	github.com/xuri/excelize/v2 v2.11.1
 	go.mongodb.org/mongo-driver/v2 v2.9.2
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
@@ -46,14 +46,14 @@ require (
 	github.com/olekukonko/errors v1.1.0 // indirect
 	github.com/olekukonko/ll v0.0.9 // indirect
 	github.com/olekukonko/tablewriter v1.1.0 // indirect
-	github.com/richardlehane/mscfb v1.0.8 // indirect
+	github.com/richardlehane/mscfb v1.0.9 // indirect
 	github.com/richardlehane/msoleps v1.0.6 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/tiendc/go-deepcopy v1.7.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.2.0 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
-	github.com/xuri/efp v0.0.2 // indirect
+	github.com/xuri/efp v0.0.3-0.20260924042702-217b81952dec // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
