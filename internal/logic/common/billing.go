@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"math"
+	"slices"
 
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -14,6 +15,11 @@ import (
 
 // 计算花费
 func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBatch ...bool) {
+
+	billOnce := useOnceBilling(spend.GroupBillingMethods, spend.AppKeyBillingMethods, spend.BillingMethods)
+	if !billOnce {
+		dropOnceSpend(spend)
+	}
 
 	for _, billingItem := range spend.BillingItems {
 		switch billingItem {
@@ -58,7 +64,7 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 		spend.TotalSpendTokens += spend.ImageCache.SpendTokens
 	}
 
-	if spend.ImageGeneration != nil {
+	if spend.ImageGeneration != nil && billOnce {
 		spend.TotalSpendTokens = spend.ImageGeneration.SpendTokens
 	}
 
@@ -70,7 +76,7 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 		spend.TotalSpendTokens += spend.VideoGeneration.SpendTokens
 	}
 
-	if spend.Once != nil {
+	if spend.Once != nil && billOnce {
 		spend.TotalSpendTokens = spend.Once.SpendTokens
 	}
 
@@ -87,6 +93,10 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 	}
 
 	alignTicksOnlySpend(spend, &usage)
+
+	if !billOnce {
+		dropOnceSpend(spend)
+	}
 }
 
 // 文本
@@ -297,7 +307,9 @@ func RecalcImageOutputSpend(spend *common.Spend, sizes []string, pricing common.
 		spend.TotalSpendTokens += spend.ImageCache.SpendTokens
 	}
 
-	if spend.ImageGeneration != nil {
+	billOnce := useOnceBilling(spend.GroupBillingMethods, spend.AppKeyBillingMethods, spend.BillingMethods)
+
+	if spend.ImageGeneration != nil && billOnce {
 		spend.TotalSpendTokens = spend.ImageGeneration.SpendTokens
 	}
 
@@ -309,7 +321,7 @@ func RecalcImageOutputSpend(spend *common.Spend, sizes []string, pricing common.
 		spend.TotalSpendTokens += spend.VideoGeneration.SpendTokens
 	}
 
-	if spend.Once != nil {
+	if spend.Once != nil && billOnce {
 		spend.TotalSpendTokens = spend.Once.SpendTokens
 	}
 
@@ -319,6 +331,10 @@ func RecalcImageOutputSpend(spend *common.Spend, sizes []string, pricing common.
 
 	if spend.GroupId != "" && spend.GroupTimeRule != nil {
 		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.GroupTimeRule.Discount)
+	}
+
+	if !billOnce {
+		dropOnceSpend(spend)
 	}
 }
 
@@ -466,4 +482,63 @@ func clearEmptyTokenSpend(spend *common.Spend) {
 	if spend.ImageCache != nil && spend.ImageCache.ReadTokens == 0 {
 		spend.ImageCache = nil
 	}
+}
+
+// 最终是否按次扣费: 分组 ∩ 密钥 ∩ 模型, 交集含按次则按次; 空配置视为两种都支持.
+func useOnceBilling(groupMethods, appKeyMethods, modelMethods []int) bool {
+	return slices.Contains(intersectBillingMethods(groupMethods, appKeyMethods, modelMethods), 2)
+}
+
+func intersectBillingMethods(methods ...[]int) []int {
+
+	result := []int{1, 2}
+
+	for _, m := range methods {
+
+		if len(m) == 0 {
+			continue
+		}
+
+		next := make([]int, 0, len(result))
+		for _, v := range result {
+			if slices.Contains(m, v) {
+				next = append(next, v)
+			}
+		}
+
+		result = next
+		if len(result) == 0 {
+			return result
+		}
+	}
+
+	return result
+}
+
+func dropOnceSpend(spend *common.Spend) {
+
+	if spend == nil {
+		return
+	}
+
+	spend.Once = nil
+	spend.ImageGeneration = nil
+	spend.BillingItems = filterOnceBillingItems(spend.BillingItems)
+}
+
+func filterOnceBillingItems(items []string) []string {
+
+	if len(items) == 0 {
+		return items
+	}
+
+	result := make([]string, 0, len(items))
+	for _, item := range items {
+		if item == "once" || item == "image_generation" {
+			continue
+		}
+		result = append(result, item)
+	}
+
+	return result
 }
