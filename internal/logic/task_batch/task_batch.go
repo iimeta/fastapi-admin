@@ -288,6 +288,8 @@ func (s *sTaskBatch) Task(ctx context.Context) {
 			// 计算花费
 			common.Billing(ctx, retrieve.Usage, &logBatch.Spend, true)
 
+			common.SanitizeSpendForStore(&logBatch.Spend)
+
 			// 记录花费
 			if err = common.RecordSpend(ctx, logBatch.UserId, logBatch.AppId, logBatch.Creator, logBatch.Rid, logBatch.Key, logBatch.Spend); err != nil {
 				logger.Error(ctx, err)

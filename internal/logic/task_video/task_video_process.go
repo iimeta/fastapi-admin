@@ -339,6 +339,8 @@ func (s *sTaskVideo) finishCompleted(ctx context.Context, taskVideo *entity.Task
 		common.Billing(ctx, *retrieve.Usage, &logVideo.Spend)
 	}
 
+	common.SanitizeSpendForStore(&logVideo.Spend)
+
 	if err := common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
 		logger.Error(ctx, err)
 		return
@@ -481,6 +483,8 @@ func (s *sTaskVideo) billVideoUsage(ctx context.Context, logVideo *entity.LogVid
 	}
 
 	common.Billing(ctx, *usage, &logVideo.Spend)
+
+	common.SanitizeSpendForStore(&logVideo.Spend)
 
 	if err := common.RecordSpend(ctx, logVideo.UserId, logVideo.AppId, logVideo.Creator, logVideo.Rid, logVideo.Key, logVideo.Spend); err != nil {
 		logger.Error(ctx, err)

@@ -885,6 +885,19 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 	}
 
+	var modelPricing *mcommon.Pricing
+	if logImage.ModelId != "" {
+		if m, err := dao.Model.FindById(ctx, logImage.ModelId); err == nil && m != nil {
+			modelPricing = &m.Pricing
+		} else if err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	if modelPricing != nil {
+		common.EnsureSpendPricing(&logImage.Spend, *modelPricing)
+	}
+
 	common.Billing(ctx, response.Usage, &logImage.Spend)
 
 	var sizes []string
@@ -895,13 +908,11 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		}
 	}
 
-	if len(sizes) > 0 && logImage.ModelId != "" {
-		if m, err := dao.Model.FindById(ctx, logImage.ModelId); err == nil && m != nil {
-			common.RecalcImageOutputSpend(&logImage.Spend, sizes, m.Pricing)
-		} else if err != nil {
-			logger.Error(ctx, err)
-		}
+	if len(sizes) > 0 && modelPricing != nil {
+		common.RecalcImageOutputSpend(&logImage.Spend, sizes, *modelPricing)
 	}
+
+	common.SanitizeSpendForStore(&logImage.Spend)
 
 	if err = common.RecordSpend(ctx, logImage.UserId, logImage.AppId, logImage.Creator, logImage.Rid, logImage.Key, logImage.Spend); err != nil {
 		logger.Error(ctx, err)

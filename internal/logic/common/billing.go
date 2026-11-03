@@ -16,10 +16,9 @@ import (
 // 计算花费
 func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBatch ...bool) {
 
-	billOnce := useOnceBilling(spend.GroupBillingMethods, spend.AppKeyBillingMethods, spend.BillingMethods)
-	if !billOnce {
-		dropOnceSpend(spend)
-	}
+	billImageGeneration, billOnce := onceBillingFlags(spend.BillingItems, spend.GroupBillingMethods, spend.AppKeyBillingMethods)
+
+	ensureTokenSpendItems(spend)
 
 	for _, billingItem := range spend.BillingItems {
 		switch billingItem {
@@ -64,7 +63,7 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 		spend.TotalSpendTokens += spend.ImageCache.SpendTokens
 	}
 
-	if spend.ImageGeneration != nil && billOnce {
+	if spend.ImageGeneration != nil && billImageGeneration {
 		spend.TotalSpendTokens = spend.ImageGeneration.SpendTokens
 	}
 
@@ -93,32 +92,52 @@ func Billing(ctx context.Context, usage smodel.Usage, spend *common.Spend, isBat
 	}
 
 	alignTicksOnlySpend(spend, &usage)
-
-	if !billOnce {
-		dropOnceSpend(spend)
-	}
 }
 
 // 文本
 func text(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
-	spend.Text.InputTokens = usage.InputTokensDetails.TextTokens
-	spend.Text.OutputTokens = usage.OutputTokensDetails.TextTokens
+
+	if spend.Text == nil {
+		spend.Text = new(common.TextSpend)
+	}
+
+	if spend.Text.InputTokens = usage.InputTokensDetails.TextTokens; spend.Text.InputTokens <= 0 {
+		spend.Text.InputTokens = usage.PromptTokens
+	}
+
+	if spend.Text.OutputTokens = usage.OutputTokensDetails.TextTokens; spend.Text.OutputTokens <= 0 {
+		spend.Text.OutputTokens = usage.CompletionTokens
+	}
+
 	spend.Text.ReasoningTokens = usage.OutputTokensDetails.ReasoningTokens
-	spend.Text.SpendTokens = math.Ceil(float64(spend.Text.InputTokens)*spend.Text.Pricing.InputRatio) + math.Ceil(float64(spend.Text.OutputTokens)*spend.Text.Pricing.OutputRatio) + math.Ceil(float64(spend.Text.ReasoningTokens)*spend.Text.Pricing.ReasoningRatio)
+
+	if spend.Text.Pricing != nil {
+		spend.Text.SpendTokens = math.Ceil(float64(spend.Text.InputTokens)*spend.Text.Pricing.InputRatio) + math.Ceil(float64(spend.Text.OutputTokens)*spend.Text.Pricing.OutputRatio) + math.Ceil(float64(spend.Text.ReasoningTokens)*spend.Text.Pricing.ReasoningRatio)
+	}
 }
 
 // 文本缓存
 func textCache(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 
+	if spend.TextCache == nil {
+		spend.TextCache = new(common.CacheSpend)
+	}
+
 	if usage.InputTokensDetails.CachedTokens > 0 {
 		spend.TextCache.ReadTokens += usage.InputTokensDetails.CachedTokens
 	}
 
-	spend.TextCache.SpendTokens = math.Ceil(float64(spend.TextCache.ReadTokens) * spend.TextCache.Pricing.ReadRatio)
+	if spend.TextCache.Pricing != nil {
+		spend.TextCache.SpendTokens = math.Ceil(float64(spend.TextCache.ReadTokens) * spend.TextCache.Pricing.ReadRatio)
+	}
 }
 
 // 图像
 func image(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
+
+	if spend.Image == nil {
+		spend.Image = new(common.ImageSpend)
+	}
 
 	if usage.InputTokensDetails.ImageTokens > 0 {
 		spend.Image.InputTokens += usage.InputTokensDetails.ImageTokens
@@ -130,7 +149,9 @@ func image(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 		spend.Image.OutputTokens += usage.CompletionTokensDetails.ImageTokens
 	}
 
-	spend.Image.SpendTokens = math.Ceil(float64(spend.Image.InputTokens)*spend.Image.Pricing.InputRatio) + math.Ceil(float64(spend.Image.OutputTokens)*spend.Image.Pricing.OutputRatio)
+	if spend.Image.Pricing != nil {
+		spend.Image.SpendTokens = math.Ceil(float64(spend.Image.InputTokens)*spend.Image.Pricing.InputRatio) + math.Ceil(float64(spend.Image.OutputTokens)*spend.Image.Pricing.OutputRatio)
+	}
 }
 
 // 图像生成
@@ -151,8 +172,16 @@ func layerDecomp(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
 
 // 图像缓存
 func imageCache(ctx context.Context, usage smodel.Usage, spend *common.Spend) {
+
+	if spend.ImageCache == nil {
+		spend.ImageCache = new(common.CacheSpend)
+	}
+
 	spend.ImageCache.ReadTokens = usage.InputTokensDetails.CachedTokens
-	spend.ImageCache.SpendTokens = math.Ceil(float64(spend.ImageCache.ReadTokens) * spend.ImageCache.Pricing.ReadRatio)
+
+	if spend.ImageCache.Pricing != nil {
+		spend.ImageCache.SpendTokens = math.Ceil(float64(spend.ImageCache.ReadTokens) * spend.ImageCache.Pricing.ReadRatio)
+	}
 }
 
 // 视频生成: 按 Tokens 计费 (如火山引擎, 每百万 tokens)
@@ -307,9 +336,9 @@ func RecalcImageOutputSpend(spend *common.Spend, sizes []string, pricing common.
 		spend.TotalSpendTokens += spend.ImageCache.SpendTokens
 	}
 
-	billOnce := useOnceBilling(spend.GroupBillingMethods, spend.AppKeyBillingMethods, spend.BillingMethods)
+	billImageGeneration, billOnce := onceBillingFlags(spend.BillingItems, spend.GroupBillingMethods, spend.AppKeyBillingMethods)
 
-	if spend.ImageGeneration != nil && billOnce {
+	if spend.ImageGeneration != nil && billImageGeneration {
 		spend.TotalSpendTokens = spend.ImageGeneration.SpendTokens
 	}
 
@@ -331,10 +360,6 @@ func RecalcImageOutputSpend(spend *common.Spend, sizes []string, pricing common.
 
 	if spend.GroupId != "" && spend.GroupTimeRule != nil {
 		spend.TotalSpendTokens = discountTokens(spend.TotalSpendTokens, spend.GroupTimeRule.Discount)
-	}
-
-	if !billOnce {
-		dropOnceSpend(spend)
 	}
 }
 
@@ -484,61 +509,111 @@ func clearEmptyTokenSpend(spend *common.Spend) {
 	}
 }
 
-// 最终是否按次扣费: 分组 ∩ 密钥 ∩ 模型, 交集含按次则按次; 空配置视为两种都支持.
-func useOnceBilling(groupMethods, appKeyMethods, modelMethods []int) bool {
-	return slices.Contains(intersectBillingMethods(groupMethods, appKeyMethods, modelMethods), 2)
-}
+// 决定是否用图像生成/一次价覆盖总额.
+// 模型只有按次类计费项时, 直接按模型配置; 否则: 分组只按 tokens 则跳过, 密钥没选按次则不用一次价.
+func onceBillingFlags(items []string, groupMethods, appKeyMethods []int) (billImageGeneration, billOnce bool) {
 
-func intersectBillingMethods(methods ...[]int) []int {
+	onlyOnceItems := len(items) > 0
 
-	result := []int{1, 2}
-
-	for _, m := range methods {
-
-		if len(m) == 0 {
-			continue
-		}
-
-		next := make([]int, 0, len(result))
-		for _, v := range result {
-			if slices.Contains(m, v) {
-				next = append(next, v)
-			}
-		}
-
-		result = next
-		if len(result) == 0 {
-			return result
+	for _, item := range items {
+		if item != "once" && item != "image_generation" {
+			onlyOnceItems = false
+			break
 		}
 	}
 
-	return result
+	if onlyOnceItems {
+		return true, true
+	}
+
+	billImageGeneration = len(groupMethods) != 1 || groupMethods[0] != 1
+	billOnce = billImageGeneration && (len(appKeyMethods) == 0 || slices.Contains(appKeyMethods, 2))
+
+	return
 }
 
-func dropOnceSpend(spend *common.Spend) {
+func ensureTokenSpendItems(spend *common.Spend) {
 
 	if spend == nil {
 		return
 	}
 
-	spend.Once = nil
-	spend.ImageGeneration = nil
-	spend.BillingItems = filterOnceBillingItems(spend.BillingItems)
+	for _, item := range spend.BillingItems {
+		switch item {
+		case "text":
+			if spend.Text == nil {
+				spend.Text = new(common.TextSpend)
+			}
+		case "text_cache":
+			if spend.TextCache == nil {
+				spend.TextCache = new(common.CacheSpend)
+			}
+		case "image":
+			if spend.Image == nil {
+				spend.Image = new(common.ImageSpend)
+			}
+		case "image_cache":
+			if spend.ImageCache == nil {
+				spend.ImageCache = new(common.CacheSpend)
+			}
+		}
+	}
 }
 
-func filterOnceBillingItems(items []string) []string {
+func EnsureSpendPricing(spend *common.Spend, pricing common.Pricing) {
 
-	if len(items) == 0 {
-		return items
+	if spend == nil {
+		return
 	}
 
-	result := make([]string, 0, len(items))
-	for _, item := range items {
-		if item == "once" || item == "image_generation" {
+	if spend.Text != nil && spend.Text.Pricing == nil && len(pricing.Text) > 0 {
+		spend.Text.Pricing = pricing.Text[0]
+	}
+
+	if spend.TextCache != nil && spend.TextCache.Pricing == nil && len(pricing.TextCache) > 0 {
+		spend.TextCache.Pricing = pricing.TextCache[0]
+	}
+
+	if spend.Image != nil && spend.Image.Pricing == nil {
+		spend.Image.Pricing = pricing.Image
+	}
+
+	if spend.ImageCache != nil && spend.ImageCache.Pricing == nil {
+		spend.ImageCache.Pricing = pricing.ImageCache
+	}
+
+	if spend.Once != nil && spend.Once.Pricing == nil {
+		spend.Once.Pricing = pricing.Once
+	}
+}
+
+func SanitizeSpendForStore(spend *common.Spend) {
+
+	if spend == nil {
+		return
+	}
+
+	billImageGeneration, billOnce := onceBillingFlags(spend.BillingItems, spend.GroupBillingMethods, spend.AppKeyBillingMethods)
+	if billOnce {
+		return
+	}
+
+	spend.Once = nil
+	if !billImageGeneration {
+		spend.ImageGeneration = nil
+	}
+
+	if len(spend.BillingItems) == 0 {
+		return
+	}
+
+	items := make([]string, 0, len(spend.BillingItems))
+	for _, item := range spend.BillingItems {
+		if item == "once" || (!billImageGeneration && item == "image_generation") {
 			continue
 		}
-		result = append(result, item)
+		items = append(items, item)
 	}
 
-	return result
+	spend.BillingItems = items
 }
