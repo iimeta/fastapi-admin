@@ -14,6 +14,7 @@ type TaskImage struct {
 	Action         string             `bson:"action,omitempty"`          // 接口
 	ImageId        string             `bson:"image_id,omitempty"`        // 图像ID
 	JobId          string             `bson:"job_id,omitempty"`          // 上游任务ID
+	RequeueCount   int                `bson:"requeue_count,omitempty"`   // 异步续轮询连续置回排队次数(超过重试次数判失败, 防止无限循环)
 	Width          int                `bson:"width,omitempty"`           // 宽度
 	Height         int                `bson:"height,omitempty"`          // 高度
 	N              int                `bson:"n,omitempty"`               // 生成数量

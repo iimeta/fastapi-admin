@@ -56,6 +56,14 @@ func (s *sTaskVideo) processVideoTask(ctx context.Context, taskVideo *entity.Tas
 	logVideo := pickBestLogVideo(logVideos)
 
 	if logVideo == nil {
+		// 日志落库与任务插入存在极短时间窗, 置回排队等下一轮; 但必须有上限:
+		// 置回queued后下一轮提升in_progress会刷新updated_at, isAttemptTimeout永远不会命中, 日志若始终不存在(如仅有中止/重试状态日志)会无限循环
+		// 以创建时间计, 超过单次尝试超时仍无可用日志则判失败
+		if timeout := videoAttemptTimeout(); timeout > 0 && taskVideo.CreatedAt > 0 && gtime.TimestampMilli()-taskVideo.CreatedAt >= timeout.Milliseconds() {
+			logger.Errorf(ctx, "sTaskVideo processVideoTask task: %s no available log_video until timeout, mark task failed", taskVideo.Id)
+			s.failTask(ctx, taskVideo, "log_not_found", "no available log_video", nil)
+			return
+		}
 		s.requeueTask(ctx, taskVideo)
 		return
 	}

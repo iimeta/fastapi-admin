@@ -306,9 +306,10 @@ func (s *sTaskImage) Regenerate(ctx context.Context, id string) error {
 			"$in": []string{"in_progress", "failed"},
 		},
 	}, bson.M{
-		"status":   "queued",
-		"progress": 0,
-		"error":    nil,
+		"status":        "queued",
+		"progress":      0,
+		"error":         nil,
+		"requeue_count": 0,
 	})
 	if err != nil {
 
@@ -483,7 +484,17 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 	logImage := pickBestLogImage(logImages)
 
 	// 暂无可用日志(提交日志尚未落库, 与 TaskImage 插入存在极短时间窗)则置回排队, 下一轮再处理
+	// 必须有上限: 日志若始终不存在(如仅有中止/重试状态日志)会无限"排队中→进行中"循环; 以创建时间计, 超过单次超时仍无可用日志则判失败
 	if logImage == nil {
+		waitTimeout := config.Cfg.ImageTask.Timeout * time.Second
+		if waitTimeout <= 0 {
+			waitTimeout = config.Cfg.Base.LongTimeout * time.Second
+		}
+		if waitTimeout > 0 && taskImage.CreatedAt > 0 && gtime.TimestampMilli()-taskImage.CreatedAt >= waitTimeout.Milliseconds() {
+			logger.Errorf(ctx, "sTaskImage processImageTask task: %s no available log_image until timeout, mark task failed", taskImage.Id)
+			s.failTask(ctx, taskImage.Id, "log_not_found", "no available log_image", nil)
+			return
+		}
 		if err = dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{"status": "queued", "error": nil}); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -707,10 +718,16 @@ func (s *sTaskImage) processImageTask(ctx context.Context, taskImage *entity.Tas
 		// 仅异步 & 接口异常型超时(retrieve_error, B类): 上游接口异常但任务大概率仍在进行, 置回queued并保留job_id,
 		// 交由下一轮cron凭job_id续轮询, 避免重新提交导致上游重复出图与重复计费
 		// 注意: 上游任务一直进行直到超过配置窗口的正常超时(errCode=="timeout", A类)不在此拦截, 继续往下走原有的"清job_id重新提交"重试逻辑
+		// 置回queued次数持久化在任务上(requeue_count), 跨轮累计; 超过RetryCount后不再续轮询, 清空job_id按正常失败/重试逻辑处理,
+		// 否则上游retrieve持续报错(如5xx)时: 本轮pollImageJob判死 → requeue → 下一轮重新提升in_progress → 再判死 → 再requeue, 无限循环
 		if config.Cfg.ImageTask.SubmitMode == 2 && errCode == "retrieve_error" {
-			logger.Infof(ctx, "sTaskImage processImageTask task: %s async upstream api abnormal, requeue to resume next round", taskImage.Id)
-			s.requeueTask(ctx, taskImage.Id)
-			return
+			if taskImage.RequeueCount < retryCount {
+				logger.Infof(ctx, "sTaskImage processImageTask task: %s async upstream api abnormal, requeue to resume next round: %d/%d", taskImage.Id, taskImage.RequeueCount+1, retryCount)
+				s.requeueTask(ctx, taskImage.Id)
+				return
+			}
+			logger.Errorf(ctx, "sTaskImage processImageTask task: %s async upstream api abnormal, requeue count exceeded: %d/%d, give up job_id: %s", taskImage.Id, taskImage.RequeueCount, retryCount, taskImage.JobId)
+			s.resetRequeue(ctx, taskImage)
 		}
 
 		// 依据配置判断该错误是否需要重试及是否需要自动禁用密钥
@@ -1144,10 +1161,24 @@ func (s *sTaskImage) requeueTask(ctx context.Context, taskId string) {
 		"status": "in_progress",
 	}, bson.M{
 		"status": "queued",
+		"$inc":   bson.M{"requeue_count": 1},
 	}); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return
 		}
+		logger.Error(ctx, err)
+	}
+}
+
+// 放弃续轮询: 清空上游句柄, 后续按正常失败/重试(重新提交)逻辑处理
+// 注意不重置requeue_count: 否则重新提交后再遇retrieve_error又会重新累计requeue, 仍是无限循环; 仅Regenerate时归零
+func (s *sTaskImage) resetRequeue(ctx context.Context, taskImage *entity.TaskImage) {
+
+	taskImage.JobId = ""
+
+	if err := dao.TaskImage.UpdateById(ctx, taskImage.Id, bson.M{
+		"job_id": "",
+	}); err != nil {
 		logger.Error(ctx, err)
 	}
 }
