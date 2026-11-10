@@ -73,7 +73,7 @@ func (s *sLogFile) Detail(ctx context.Context, id string) (*model.LogFile, error
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	file.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
+	file.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator)
 
 	if service.Session().IsAdminRole(ctx) {
 
@@ -221,7 +221,7 @@ func (s *sLogFile) Page(ctx context.Context, params model.LogFilePageReq) (*mode
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
-			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

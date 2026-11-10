@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
+	"slices"
 
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
@@ -12,8 +13,48 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// 按角色转换日志错误信息: 管理员返回原文; 代理商/用户按配置屏蔽, 并去掉 TraceId / request id
-func ConvErrMsg(ctx context.Context, errMsg string, status int) string {
+// 内部错误(与 API 端 errors.Error 中强制屏蔽的错误一致), 不享受"不屏蔽错误"白名单, 仍按屏蔽配置处理
+var internalErrors = []string{
+	"No available key.",
+	"No available model agent.",
+	"Model agent has been disabled.",
+	"No available model agent key.",
+	"All key error.",
+	"All model agent error.",
+	"All model agent key error.",
+	"Model has been disabled.",
+}
+
+// 判断记录是否命中"不屏蔽错误"白名单(需开启"不屏蔽错误"开关), 与 API 端共用同一份白名单配置:
+// userId 为记录所属用户ID, creator 为产生该记录的用户请求密钥(sk-)
+func isNotShieldWhitelist(userId int, creator string, errMsg string) bool {
+
+	if config.Cfg.NotShieldError == nil || !config.Cfg.NotShieldError.Open {
+		return false
+	}
+
+	for _, internalError := range internalErrors {
+		if gstr.Contains(errMsg, internalError) {
+			return false
+		}
+	}
+
+	// 按用户ID匹配
+	if userId != 0 && slices.Contains(config.Cfg.NotShieldError.WhitelistUserIds, userId) {
+		return true
+	}
+
+	// 按用户请求密钥(sk-)匹配
+	if creator != "" && slices.Contains(config.Cfg.NotShieldError.WhitelistKeys, creator) {
+		return true
+	}
+
+	return false
+}
+
+// 按角色转换日志错误信息: 管理员返回原文; 代理商/用户按配置屏蔽, 并去掉 TraceId / request id;
+// userId、creator 为记录所属的用户ID和用户请求密钥, 用户查看命中"不屏蔽错误"白名单的记录时不按"用户屏蔽错误"屏蔽
+func ConvErrMsg(ctx context.Context, errMsg string, status int, userId int, creator string) string {
 
 	if service.Session().IsAdminRole(ctx) {
 		return errMsg
@@ -34,7 +75,7 @@ func ConvErrMsg(ctx context.Context, errMsg string, status int) string {
 		}
 	}
 
-	if service.Session().IsUserRole(ctx) {
+	if service.Session().IsUserRole(ctx) && !isNotShieldWhitelist(userId, creator, errMsg) {
 		if config.Cfg.UserShieldError != nil && config.Cfg.UserShieldError.Open && len(config.Cfg.UserShieldError.Errors) > 0 {
 			for _, shieldError := range config.Cfg.UserShieldError.Errors {
 				if gstr.Contains(errMsg, shieldError) {
@@ -115,11 +156,11 @@ func lastN(s string, n int) string {
 	return gstr.SubStrRune(s, gstr.LenRune(s)-n, n)
 }
 
-func ConvTaskErrMsg(ctx context.Context, err any) string {
-	return ConvErrMsg(ctx, extractErrMsg(err), -1)
+func ConvTaskErrMsg(ctx context.Context, err any, userId int, creator string) string {
+	return ConvErrMsg(ctx, extractErrMsg(err), -1, userId, creator)
 }
 
-func ShieldTaskError(ctx context.Context, err any) {
+func ShieldTaskError(ctx context.Context, err any, userId int, creator string) {
 
 	if err == nil {
 		return
@@ -127,15 +168,15 @@ func ShieldTaskError(ctx context.Context, err any) {
 
 	switch v := err.(type) {
 	case map[string]any:
-		shieldMapMessages(ctx, v)
+		shieldMapMessages(ctx, v, userId, creator)
 	case bson.M:
-		shieldMapMessages(ctx, v)
+		shieldMapMessages(ctx, v, userId, creator)
 	default:
-		shieldStructMessage(ctx, err)
+		shieldStructMessage(ctx, err, userId, creator)
 	}
 }
 
-func shieldStructMessage(ctx context.Context, err any) {
+func shieldStructMessage(ctx context.Context, err any, userId int, creator string) {
 
 	rv := reflect.ValueOf(err)
 	if rv.Kind() == reflect.Ptr {
@@ -150,25 +191,25 @@ func shieldStructMessage(ctx context.Context, err any) {
 
 	f := rv.FieldByName("Message")
 	if f.IsValid() && f.CanSet() && f.Kind() == reflect.String {
-		f.SetString(ConvErrMsg(ctx, f.String(), -1))
+		f.SetString(ConvErrMsg(ctx, f.String(), -1, userId, creator))
 	}
 }
 
-func shieldMapMessages(ctx context.Context, m map[string]any) {
+func shieldMapMessages(ctx context.Context, m map[string]any, userId int, creator string) {
 
 	if m == nil {
 		return
 	}
 
 	if msg, ok := m["message"].(string); ok {
-		m["message"] = ConvErrMsg(ctx, msg, -1)
+		m["message"] = ConvErrMsg(ctx, msg, -1, userId, creator)
 	}
 
 	if data, ok := m["data"].([]any); ok {
 		for _, item := range data {
 			if im, ok := item.(map[string]any); ok {
 				if msg, ok := im["message"].(string); ok {
-					im["message"] = ConvErrMsg(ctx, msg, -1)
+					im["message"] = ConvErrMsg(ctx, msg, -1, userId, creator)
 				}
 			}
 		}

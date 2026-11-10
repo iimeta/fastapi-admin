@@ -76,7 +76,7 @@ func (s *sLogGeneral) Detail(ctx context.Context, id string) (*model.LogGeneral,
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	general.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
+	general.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator)
 
 	if service.Session().IsAdminRole(ctx) {
 
@@ -226,7 +226,7 @@ func (s *sLogGeneral) Page(ctx context.Context, params model.LogGeneralPageReq) 
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
-			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

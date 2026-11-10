@@ -99,7 +99,7 @@ func (s *sLogImage) Detail(ctx context.Context, id string) (*model.LogImage, err
 		}
 	}
 
-	image.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
+	image.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator)
 
 	if service.Session().IsAdminRole(ctx) {
 		image.ProviderId = result.ProviderId
@@ -261,7 +261,7 @@ func (s *sLogImage) Page(ctx context.Context, params model.LogImagePageReq) (*mo
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
-			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator),
 		}
 
 		for _, imageData := range result.ImageData {

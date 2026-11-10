@@ -73,7 +73,7 @@ func (s *sLogBatch) Detail(ctx context.Context, id string) (*model.LogBatch, err
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	batch.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
+	batch.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator)
 
 	if service.Session().IsAdminRole(ctx) {
 
@@ -218,7 +218,7 @@ func (s *sLogBatch) Page(ctx context.Context, params model.LogBatchPageReq) (*mo
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
-			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

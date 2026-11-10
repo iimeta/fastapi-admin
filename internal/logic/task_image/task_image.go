@@ -95,7 +95,7 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 	}
 
 	if detail.Error != nil {
-		common.ShieldTaskError(ctx, detail.Error)
+		common.ShieldTaskError(ctx, detail.Error, taskImage.UserId, taskImage.Creator)
 	}
 
 	if taskImage.ImageUrl != "" {
@@ -242,7 +242,7 @@ func (s *sTaskImage) Page(ctx context.Context, params model.TaskImagePageReq) (*
 		}
 
 		if result.Status == "failed" && result.Error != nil {
-			image.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
+			image.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error, result.UserId, result.Creator)
 		}
 
 		if result.ImageUrl != "" {

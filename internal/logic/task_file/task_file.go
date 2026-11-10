@@ -72,7 +72,7 @@ func (s *sTaskFile) Detail(ctx context.Context, id string) (*model.TaskFile, err
 	}
 
 	if detail.Error != nil {
-		common.ShieldTaskError(ctx, detail.Error)
+		common.ShieldTaskError(ctx, detail.Error, taskFile.UserId, taskFile.Creator)
 	}
 
 	if config.Cfg.FileTask.IsEnableStorage && taskFile.FileUrl != "" {
@@ -175,7 +175,7 @@ func (s *sTaskFile) Page(ctx context.Context, params model.TaskFilePageReq) (*mo
 		}
 
 		if (result.Status == "error" || result.Status == "failed") && result.Error != nil {
-			file.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
+			file.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error, result.UserId, result.Creator)
 		}
 
 		if config.Cfg.FileTask.IsEnableStorage && result.FileUrl != "" {

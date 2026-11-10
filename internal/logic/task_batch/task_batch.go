@@ -76,7 +76,7 @@ func (s *sTaskBatch) Detail(ctx context.Context, id string) (*model.TaskBatch, e
 	}
 
 	if detail.Error != nil {
-		common.ShieldTaskError(ctx, detail.Error)
+		common.ShieldTaskError(ctx, detail.Error, taskBatch.UserId, taskBatch.Creator)
 	}
 
 	return detail, nil
@@ -160,7 +160,7 @@ func (s *sTaskBatch) Page(ctx context.Context, params model.TaskBatchPageReq) (*
 		}
 
 		if result.Status == "failed" && result.Error != nil {
-			batch.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
+			batch.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error, result.UserId, result.Creator)
 		}
 
 		items = append(items, batch)

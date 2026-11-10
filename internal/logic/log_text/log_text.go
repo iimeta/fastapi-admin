@@ -80,7 +80,7 @@ func (s *sLogText) Detail(ctx context.Context, id string) (*model.LogText, error
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	text.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
+	text.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator)
 
 	if service.Session().IsAdminRole(ctx) {
 		text.ProviderId = result.ProviderId
@@ -244,7 +244,7 @@ func (s *sLogText) Page(ctx context.Context, params model.LogTextPageReq) (*mode
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
-			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

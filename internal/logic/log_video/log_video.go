@@ -73,7 +73,7 @@ func (s *sLogVideo) Detail(ctx context.Context, id string) (*model.LogVideo, err
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	video.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
+	video.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator)
 
 	if service.Session().IsAdminRole(ctx) {
 
@@ -221,7 +221,7 @@ func (s *sLogVideo) Page(ctx context.Context, params model.LogVideoPageReq) (*mo
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
-			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator),
 		}
 
 		if service.Session().IsAdminRole(ctx) {

@@ -85,7 +85,7 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 	}
 
 	if detail.Error != nil {
-		common.ShieldTaskError(ctx, detail.Error)
+		common.ShieldTaskError(ctx, detail.Error, taskVideo.UserId, taskVideo.Creator)
 	}
 
 	if taskVideo.VideoUrl != "" {
@@ -239,7 +239,7 @@ func (s *sTaskVideo) Page(ctx context.Context, params model.TaskVideoPageReq) (*
 		}
 
 		if result.Status == "failed" && result.Error != nil {
-			video.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error)
+			video.ErrMsg = common.ConvTaskErrMsg(ctx, result.Error, result.UserId, result.Creator)
 		}
 
 		if result.VideoUrl != "" {

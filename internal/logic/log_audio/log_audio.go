@@ -72,7 +72,7 @@ func (s *sLogAudio) Detail(ctx context.Context, id string) (*model.LogAudio, err
 		Creator:      util.Desensitize(result.Creator),
 	}
 
-	audio.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status)
+	audio.ErrMsg = common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator)
 
 	if service.Session().IsAdminRole(ctx) {
 
@@ -216,7 +216,7 @@ func (s *sLogAudio) Page(ctx context.Context, params model.LogAudioPageReq) (*mo
 			TotalTime:    result.TotalTime,
 			ReqTime:      util.FormatDateTimeMonth(result.ReqTime),
 			Status:       result.Status,
-			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status),
+			ErrMsg:       common.ConvErrMsg(ctx, result.ErrMsg, result.Status, result.UserId, result.Creator),
 		}
 
 		if service.Session().IsAdminRole(ctx) {
