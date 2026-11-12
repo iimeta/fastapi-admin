@@ -1690,6 +1690,12 @@ func (s *sTaskImage) buildImageEditRequest(ctx context.Context, taskImage *entit
 			req.OutputCompression = int(n)
 		}
 	}
+	if v, ok := taskImage.RequestData["frame_count"]; ok {
+		req.FrameCount = gconv.Int(v)
+	}
+	if v, ok := taskImage.RequestData["frame_duration_ms"]; ok {
+		req.FrameDurationMs = gconv.Int(v)
+	}
 
 	imageVal, ok := taskImage.RequestData["images"]
 	if !ok {
@@ -1843,6 +1849,12 @@ func (s *sTaskImage) buildImageEditRequestByURL(ctx context.Context, taskImage *
 		if n, ok := v.(float64); ok {
 			req.OutputCompression = int(n)
 		}
+	}
+	if v, ok := taskImage.RequestData["frame_count"]; ok {
+		req.FrameCount = gconv.Int(v)
+	}
+	if v, ok := taskImage.RequestData["frame_duration_ms"]; ok {
+		req.FrameDurationMs = gconv.Int(v)
 	}
 
 	imageVal, ok := taskImage.RequestData["images"]
