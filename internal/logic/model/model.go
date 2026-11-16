@@ -517,26 +517,36 @@ func (s *sModel) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	groups, err := service.Group().GetGroupsByModels(ctx, id)
+	groups, err := dao.Group.Find(ctx, bson.M{
+		"$or": bson.A{
+			bson.M{"models": bson.M{"$in": []string{id}}},
+			bson.M{"time_rules.models": bson.M{"$in": []string{id}}},
+		},
+	})
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	for _, group := range groups {
+	for _, oldData := range groups {
 
-		oldData, err := dao.Group.FindById(ctx, group)
-		if err != nil {
-			logger.Error(ctx, err)
-			return err
+		update := bson.M{}
+
+		if slices.Contains(oldData.Models, id) {
+			oldGroups := gset.NewStrSetFrom(oldData.Models)
+			oldGroups.Remove(id)
+			update["models"] = oldGroups.Slice()
 		}
 
-		oldGroups := gset.NewStrSetFrom(oldData.Models)
-		oldGroups.Remove(id)
+		if timeRules, changed := removeModelFromTimeRules(oldData.TimeRules, id); changed {
+			update["time_rules"] = timeRules
+		}
 
-		newData, err := dao.Group.FindOneAndUpdateById(ctx, group, bson.M{
-			"models": oldGroups.Slice(),
-		})
+		if len(update) == 0 {
+			continue
+		}
+
+		newData, err := dao.Group.FindOneAndUpdateById(ctx, oldData.Id, update)
 		if err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -1998,4 +2008,101 @@ func (s *sModel) IsNameExist(ctx context.Context, name string, id ...string) boo
 	}
 
 	return false
+}
+
+// 从分组时段规则中移除已删除的模型绑定。
+// 空 models 表示适用全部模型。规则在解绑后变为空时:
+// 1. 分组只剩这一条时段规则, 保留;
+// 2. 权重和倍率都严格大于其他规则, 保留;
+// 3. 倍率低于任意一条仍绑定模型的剩余规则, 删除;
+// 4. 删除后不能让时段规则变为空, 多条待删时保留倍率最大的一条。
+func removeModelFromTimeRules(rules []*mcommon.TimeRule, modelId string) ([]*mcommon.TimeRule, bool) {
+
+	if len(rules) == 0 {
+		return rules, false
+	}
+
+	changed := false
+	result := make([]*mcommon.TimeRule, 0, len(rules))
+	emptied := make([]*mcommon.TimeRule, 0, len(rules))
+
+	for _, rule := range rules {
+
+		if rule == nil {
+			continue
+		}
+
+		if !slices.Contains(rule.Models, modelId) {
+			result = append(result, rule)
+			continue
+		}
+
+		models := make([]string, 0, len(rule.Models))
+		for _, id := range rule.Models {
+			if id != modelId {
+				models = append(models, id)
+			}
+		}
+
+		copied := *rule
+		copied.Models = models
+		changed = true
+
+		if len(models) == 0 {
+			emptied = append(emptied, &copied)
+			continue
+		}
+
+		result = append(result, &copied)
+	}
+
+	if !changed {
+		return rules, false
+	}
+
+	dropped := make([]*mcommon.TimeRule, 0, len(emptied))
+	for _, rule := range emptied {
+
+		keep := true
+		for _, other := range result {
+			if rule.Discount < other.Discount {
+				keep = false
+				break
+			}
+		}
+
+		if keep {
+			compare := result
+			if len(compare) == 0 {
+				compare = emptied
+			}
+			for _, other := range compare {
+				if other == rule {
+					continue
+				}
+				if rule.Priority <= other.Priority || rule.Discount <= other.Discount {
+					keep = false
+					break
+				}
+			}
+		}
+
+		if keep {
+			result = append(result, rule)
+		} else {
+			dropped = append(dropped, rule)
+		}
+	}
+
+	if len(result) == 0 && len(dropped) > 0 {
+		picked := dropped[0]
+		for _, rule := range dropped[1:] {
+			if rule.Discount > picked.Discount || (rule.Discount == picked.Discount && rule.Priority > picked.Priority) {
+				picked = rule
+			}
+		}
+		result = append(result, picked)
+	}
+
+	return result, true
 }
