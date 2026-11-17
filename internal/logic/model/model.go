@@ -2060,11 +2060,22 @@ func removeModelFromTimeRules(rules []*mcommon.TimeRule, modelId string) ([]*mco
 		return rules, false
 	}
 
+	bound := make([]*mcommon.TimeRule, 0, len(result))
+	for _, rule := range result {
+		if len(rule.Models) > 0 {
+			bound = append(bound, rule)
+		}
+	}
+
+	others := make([]*mcommon.TimeRule, 0, len(result)+len(emptied))
+	others = append(others, result...)
+	others = append(others, emptied...)
+
 	dropped := make([]*mcommon.TimeRule, 0, len(emptied))
 	for _, rule := range emptied {
 
 		keep := true
-		for _, other := range result {
+		for _, other := range bound {
 			if rule.Discount < other.Discount {
 				keep = false
 				break
@@ -2072,11 +2083,7 @@ func removeModelFromTimeRules(rules []*mcommon.TimeRule, modelId string) ([]*mco
 		}
 
 		if keep {
-			compare := result
-			if len(compare) == 0 {
-				compare = emptied
-			}
-			for _, other := range compare {
+			for _, other := range others {
 				if other == rule {
 					continue
 				}
@@ -2103,6 +2110,10 @@ func removeModelFromTimeRules(rules []*mcommon.TimeRule, modelId string) ([]*mco
 		}
 		result = append(result, picked)
 	}
+
+	slices.SortStableFunc(result, func(a, b *mcommon.TimeRule) int {
+		return b.Priority - a.Priority
+	})
 
 	return result, true
 }
