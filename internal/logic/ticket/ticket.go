@@ -302,14 +302,13 @@ func (s *sTicket) Page(ctx context.Context, params model.TicketPageReq) (*model.
 	}
 
 	if params.UserName != "" {
-		filter["$or"] = bson.A{
-			bson.M{"user_name": bson.M{
-				"$regex": regexp.QuoteMeta(params.UserName),
-			}},
-			bson.M{"user_id": bson.M{
-				"$regex": regexp.QuoteMeta(params.UserName),
-			}},
+		filter["user_name"] = bson.M{
+			"$regex": regexp.QuoteMeta(params.UserName),
 		}
+	}
+
+	if params.UserId != 0 {
+		filter["user_id"] = params.UserId
 	}
 
 	if params.CreatedAtStart != "" && params.CreatedAtEnd != "" {

@@ -37,6 +37,7 @@ type TicketPageReq struct {
 	TicketNo       string `json:"ticket_no,omitempty"`        // 工单编号
 	Title          string `json:"title,omitempty"`            // 工单标题
 	UserName       string `json:"user_name,omitempty"`        // 提交人
+	UserId         int    `json:"user_id,omitempty"`          // 提交人用户ID
 	Category       string `json:"category,omitempty"`         // 分类[account:账户问题, billing:计费问题, technical:技术问题, feature:功能建议, other:其他]
 	Priority       int    `json:"priority,omitempty"`         // 优先级[1:低, 2:中, 3:高, 4:紧急]
 	Status         int    `json:"status,omitempty"`           // 状态[1:待回复, 2:待处理, 3:处理中, 4:已回复, 5:已解决, 6:已关闭]
