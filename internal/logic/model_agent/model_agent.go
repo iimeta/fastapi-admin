@@ -699,8 +699,27 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 	}
 
 	keys := make([]string, 0)
+	var latestAvailableKey, latestKey *entity.Key
+
 	for _, key := range keyList {
+
 		keys = append(keys, key.Key)
+
+		if latestKey == nil || key.UpdatedAt > latestKey.UpdatedAt {
+			latestKey = key
+		}
+
+		if key.Status == 1 && (latestAvailableKey == nil || key.UpdatedAt > latestAvailableKey.UpdatedAt) {
+			latestAvailableKey = key
+		}
+	}
+
+	// 密钥永不禁用状态: 优先取最新更新的可用密钥, 无可用密钥时退回到最新更新的密钥
+	isNeverDisableKey := false
+	if latestAvailableKey != nil {
+		isNeverDisableKey = latestAvailableKey.IsNeverDisable
+	} else if latestKey != nil {
+		isNeverDisableKey = latestKey.IsNeverDisable
 	}
 
 	groups, err := dao.Group.Find(ctx, bson.M{"model_agents": bson.M{"$in": []string{id}}})
@@ -773,6 +792,7 @@ func (s *sModelAgent) Detail(ctx context.Context, id string) (*model.ModelAgent,
 		ResHeaderPassthroughMode: modelAgent.ResHeaderPassthroughMode,
 		ResHeaderPassthroughList: modelAgent.ResHeaderPassthroughList,
 		Key:                      gstr.Join(keys, "\n"),
+		IsNeverDisableKey:        isNeverDisableKey,
 		Remark:                   modelAgent.Remark,
 		Status:                   modelAgent.Status,
 		IsAutoDisabled:           modelAgent.IsAutoDisabled,
