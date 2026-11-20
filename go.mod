@@ -7,13 +7,13 @@ replace github.com/iimeta/fastapi-sdk/v2 => ../fastapi-sdk
 require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/go-redsync/redsync/v4 v4.18.1
-	github.com/gogf/gf/contrib/nosql/redis/v2 v2.10.4
-	github.com/gogf/gf/v2 v2.10.4
+	github.com/gogf/gf/contrib/nosql/redis/v2 v2.10.5
+	github.com/gogf/gf/v2 v2.10.5
 	github.com/iimeta/fastapi-sdk/v2 v2.5.0
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/tjfoc/gmsm v1.4.1
 	github.com/xuri/excelize/v2 v2.11.1
-	go.mongodb.org/mongo-driver/v2 v2.10.0
+	go.mongodb.org/mongo-driver/v2 v2.10.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
@@ -54,11 +54,11 @@ require (
 	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
