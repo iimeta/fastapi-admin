@@ -92,6 +92,10 @@ func (s *sUser) ChangePassword(ctx context.Context, params model.UserChangePassw
 		return errors.New("修改密码失败")
 	}
 
+	if rerr := service.Auth().RemoveUserSessions(ctx, uid, service.Session().GetToken(ctx)); rerr != nil {
+		logger.Error(ctx, rerr)
+	}
+
 	return nil
 }
 
@@ -150,7 +154,7 @@ func (s *sUser) ChangeEmail(ctx context.Context, params model.UserChangeEmailReq
 			return err
 		}
 
-		if accountInfo != nil {
+		if accountInfo != nil && accountInfo.UserId == account.UserId {
 			if err = dao.User.ChangeAccountById(ctx, accountInfo.Id, params.Email); err != nil {
 				logger.Error(ctx, err)
 				return err

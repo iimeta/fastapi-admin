@@ -33,6 +33,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type sAdminUser struct {
@@ -60,14 +61,25 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 		return errors.New(params.Email + " 邮箱已被其它账号使用")
 	}
 
-	if len(params.Groups) == 0 {
-		if service.Session().IsResellerRole(ctx) {
-			params.Groups = service.Session().GetReseller(ctx).Groups
-		} else {
-			if params.Groups, err = service.Group().PublicGroups(ctx); err != nil {
-				logger.Error(ctx, err)
-				return err
-			}
+	if service.Session().IsResellerRole(ctx) {
+
+		reseller, err := service.Reseller().GetResellerByUserId(ctx, service.Session().GetUserId(ctx))
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if len(params.Groups) == 0 {
+			params.Groups = reseller.Groups
+		} else if !isSubset(params.Groups, reseller.Groups) {
+			// 代理商只能分配自身拥有的分组
+			return errors.New("分组权限超出范围")
+		}
+
+	} else if len(params.Groups) == 0 {
+		if params.Groups, err = service.Group().PublicGroups(ctx); err != nil {
+			logger.Error(ctx, err)
+			return err
 		}
 	}
 
@@ -278,6 +290,32 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		return errors.New("Unauthorized")
 	}
 
+	// 代理商只能分配自身拥有的分组, 用户已有的分组可保留
+	if service.Session().IsResellerRole(ctx) {
+
+		reseller, err := service.Reseller().GetResellerByUserId(ctx, service.Session().GetUserId(ctx))
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if !isSubset(params.Groups, append(slices.Clone(reseller.Groups), oldData.Groups...)) {
+			return errors.New("分组权限超出范围")
+		}
+	}
+
+	// 邮箱不能是其它用户的登录账号
+	if params.Email != oldData.Email {
+		if account, err := dao.User.FindAccount(ctx, params.Email); err == nil {
+			if account.UserId != oldData.UserId {
+				return errors.New(params.Email + " 邮箱已被其它账号使用")
+			}
+		} else if !errors.Is(err, mongo.ErrNoDocuments) {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	nextResetAt := oldData.NextResetAt
 	resetQuota := common.ConvQuotaUnit(params.ResetQuota)
 
@@ -331,6 +369,13 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 
 	if params.Password != "" {
 		if err = dao.User.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
+	if params.Status != 1 || params.Password != "" {
+		if err = service.Auth().RemoveUserSessions(ctx, newData.UserId); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
@@ -401,6 +446,13 @@ func (s *sAdminUser) ChangeStatus(ctx context.Context, params model.UserChangeSt
 		return err
 	}
 
+	if params.Status != 1 {
+		if err = service.Auth().RemoveUserSessions(ctx, user.UserId); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_USER, model.PubMessage{
 		Action:  consts.ACTION_STATUS,
 		NewData: user,
@@ -435,6 +487,11 @@ func (s *sAdminUser) Delete(ctx context.Context, params model.UserDeleteReq) err
 	}
 
 	if _, err = dao.Account.DeleteMany(ctx, bson.M{"user_id": user.UserId}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	if err = service.Auth().RemoveUserSessions(ctx, user.UserId); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -1108,4 +1165,16 @@ func (s *sAdminUser) BatchOperate(ctx context.Context, params model.UserBatchOpe
 	}
 
 	return nil
+}
+
+// 判断items是否全部包含在allowed中
+func isSubset(items, allowed []string) bool {
+
+	for _, item := range items {
+		if !slices.Contains(allowed, item) {
+			return false
+		}
+	}
+
+	return true
 }

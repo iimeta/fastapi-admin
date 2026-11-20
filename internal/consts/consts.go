@@ -25,6 +25,9 @@ const (
 	ADMIN_TOKEN_PREFIX = "A"
 	ADMIN_SESSION      = "session:admin:%s"
 	ADMIN_CHANNEL      = "admin"
+
+	RESELLER_SESSION_TOKENS = "session:tokens:reseller:%d"
+	USER_SESSION_TOKENS     = "session:tokens:user:%d"
 )
 
 const (

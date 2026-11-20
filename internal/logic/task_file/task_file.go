@@ -51,6 +51,14 @@ func (s *sTaskFile) Detail(ctx context.Context, id string) (*model.TaskFile, err
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && taskFile.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
+	if service.Session().IsUserRole(ctx) && taskFile.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
 	detail := &model.TaskFile{
 		Id:           taskFile.Id,
 		TraceId:      taskFile.TraceId,

@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
+	"github.com/iimeta/fastapi-admin/v2/internal/errors"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/db"
@@ -131,6 +132,10 @@ func (s *sMonitor) Global(ctx context.Context, params model.MonitorGlobalReq) (*
 
 // 监控中心实时性能维度分析
 func (s *sMonitor) PerfBreakdown(ctx context.Context, params model.MonitorPerfBreakdownReq) (*model.MonitorPerfBreakdownRes, error) {
+
+	if isAdminDimension(params.Dimension) && !service.Session().IsAdminRole(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
 
 	limit := params.Limit
 	if limit <= 0 {
@@ -298,6 +303,10 @@ func (s *sMonitor) PerfBreakdown(ctx context.Context, params model.MonitorPerfBr
 
 // 监控中心历史性能数据
 func (s *sMonitor) PerfHistory(ctx context.Context, params model.MonitorPerfHistoryReq) (*model.MonitorPerfHistoryRes, error) {
+
+	if isAdminDimension(params.Dimension) && !service.Session().IsAdminRole(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
 
 	limit := params.Limit
 	if limit <= 0 {
@@ -769,6 +778,11 @@ func mergeBucketedResults(results []map[string]any) []map[string]any {
 		out = append(out, m)
 	}
 	return out
+}
+
+// 是否为仅管理员可用的维度
+func isAdminDimension(dimension string) bool {
+	return dimension == "model_agent" || dimension == "provider" || dimension == "key"
 }
 
 // 维度到MongoDB字段映射

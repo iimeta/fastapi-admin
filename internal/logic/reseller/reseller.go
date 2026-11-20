@@ -91,6 +91,10 @@ func (s *sReseller) ChangePassword(ctx context.Context, params model.UserChangeP
 		return errors.New("修改密码失败")
 	}
 
+	if rerr := service.Auth().RemoveResellerSessions(ctx, uid, service.Session().GetToken(ctx)); rerr != nil {
+		logger.Error(ctx, rerr)
+	}
+
 	return nil
 }
 

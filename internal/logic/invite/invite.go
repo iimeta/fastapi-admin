@@ -225,15 +225,35 @@ func (s *sInvite) RewardApply(ctx context.Context, params model.InviteRewardAppl
 	}
 	now := gtime.TimestampMilli()
 	apply := &do.InviteRewardApply{Id: util.GenerateId(), OrderNo: fmt.Sprintf("IA%d%d", userId, now), UserId: userId, Rid: rid, RewardIds: params.RewardIds, TotalQuota: totalQuota, Status: consts.INVITE_REWARD_APPLY_STATUS_PENDING, AppliedAt: now, CreatedAt: now, UpdatedAt: now}
+	// 先逐条原子地占用收益(待申请 -> 审核中), 全部占用成功才创建申请单, 并发的重复申请只有一个能占用成功
+	claimed := make([]string, 0, len(params.RewardIds))
+	for _, id := range params.RewardIds {
+		if _, err = dao.InviteReward.FindOneAndUpdate(ctx, bson.M{"_id": id, "inviter_user_id": userId, "status": consts.INVITE_REWARD_STATUS_PENDING}, bson.M{"status": consts.INVITE_REWARD_STATUS_APPLYING, "apply_order_id": apply.OrderNo}); err != nil {
+			s.releaseRewards(ctx, claimed, consts.INVITE_REWARD_STATUS_APPLYING, bson.M{"status": consts.INVITE_REWARD_STATUS_PENDING, "apply_order_id": ""})
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return errors.New("存在不可申请的邀请收益")
+			}
+			logger.Error(ctx, err)
+			return err
+		}
+		claimed = append(claimed, id)
+	}
 	if _, err = dao.InviteRewardApply.Insert(ctx, apply); err != nil {
 		logger.Error(ctx, err)
-		return err
-	}
-	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": params.RewardIds}, "status": consts.INVITE_REWARD_STATUS_PENDING}, bson.M{"status": consts.INVITE_REWARD_STATUS_APPLYING, "apply_order_id": apply.OrderNo}); err != nil {
-		logger.Error(ctx, err)
+		s.releaseRewards(ctx, claimed, consts.INVITE_REWARD_STATUS_APPLYING, bson.M{"status": consts.INVITE_REWARD_STATUS_PENDING, "apply_order_id": ""})
 		return err
 	}
 	return nil
+}
+
+// 把本次已变更状态的收益恢复为变更前的状态, 仅处理当前仍处于status状态的收益
+func (s *sInvite) releaseRewards(ctx context.Context, ids []string, status int, update bson.M) {
+	if len(ids) == 0 {
+		return
+	}
+	if err := dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": ids}, "status": status}, update); err != nil {
+		logger.Error(ctx, err)
+	}
 }
 
 // 查询当前用户的邀请收益入账申请记录
@@ -292,6 +312,10 @@ func (s *sInvite) CreateRechargeRebate(ctx context.Context, inviteeUserId int, s
 		return err
 	}
 	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, relation.Domain)
+	// 返利规则只能取邀请关系所属代理商(平台为0)的站点配置, 注册时记录的域名之后可能被其它代理商登记
+	if siteConfig != nil && siteConfig.Rid != relation.Rid {
+		siteConfig = nil
+	}
 	if siteConfig == nil && relation.Rid != 0 {
 		siteConfigs := service.SiteConfig().GetSiteConfigsByRid(ctx, relation.Rid)
 		if len(siteConfigs) > 0 {
@@ -396,10 +420,31 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
+	// 加额度之前失败时, 把已入账的收益和申请单恢复为审核前的状态
+	credited := make([]string, 0, len(apply.RewardIds))
+	rollback := func() {
+		s.releaseRewards(ctx, credited, consts.INVITE_REWARD_STATUS_CREDITED, bson.M{"status": consts.INVITE_REWARD_STATUS_APPLYING, "credited_at": 0})
+		if err := dao.InviteRewardApply.UpdateOne(ctx, bson.M{"_id": apply.Id, "status": consts.INVITE_REWARD_APPLY_STATUS_APPROVED}, bson.M{"status": consts.INVITE_REWARD_APPLY_STATUS_PENDING}); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
 	oldUser, err := dao.User.FindOne(ctx, bson.M{"user_id": apply.UserId})
 	if err != nil {
 		logger.Error(ctx, err)
+		rollback()
 		return err
+	}
+	// 逐条原子地把收益置为已入账(审核中 -> 已入账), 全部成功才加额度, 同一笔收益被多张申请单引用时只有一张能入账
+	for _, id := range apply.RewardIds {
+		if _, err = dao.InviteReward.FindOneAndUpdate(ctx, bson.M{"_id": id, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "credited_at": now}); err != nil {
+			rollback()
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return errors.New("存在不可入账的邀请收益")
+			}
+			logger.Error(ctx, err)
+			return err
+		}
+		credited = append(credited, id)
 	}
 
 	baseTime := oldUser.QuotaExpiresAt
@@ -413,6 +458,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 	newUser, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": apply.UserId}, bson.M{"$inc": bson.M{"quota": apply.TotalQuota}, "quota_expires_at": newExpiresAt, "warning_notice": false, "exhaustion_notice": false, "expire_warning_notice": false, "expire_notice": false})
 	if err != nil {
 		logger.Error(ctx, err)
+		rollback()
 		return err
 	}
 	if _, err = redis.HIncrBy(ctx, fmt.Sprintf(consts.API_USER_USAGE_KEY, apply.UserId), consts.USER_QUOTA_FIELD, int64(apply.TotalQuota)); err != nil {
@@ -424,7 +470,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 		logger.Error(ctx, err)
 		return err
 	}
-	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_APPLYING}, bson.M{"status": consts.INVITE_REWARD_STATUS_CREDITED, "deal_record_id": dealId, "credited_at": now}); err != nil {
+	if err = dao.InviteReward.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": apply.RewardIds}, "status": consts.INVITE_REWARD_STATUS_CREDITED}, bson.M{"deal_record_id": dealId}); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

@@ -630,7 +630,7 @@ func (s *sStatistics) DataTop(ctx context.Context, params model.StatisticsTopReq
 		if service.Session().IsAdminRole(ctx) && params.Rid > 0 {
 			logMatch["rid"] = params.Rid
 		}
-		if params.UserId > 0 {
+		if !service.Session().IsUserRole(ctx) && params.UserId > 0 {
 			logMatch["user_id"] = params.UserId
 		}
 		if params.AppId > 0 {

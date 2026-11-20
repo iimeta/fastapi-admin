@@ -267,6 +267,26 @@ func ZCard(ctx context.Context, key string) (int64, error) {
 	return slave.ZCard(ctx, key)
 }
 
+func ZAdd(ctx context.Context, key string, score int64, member string) (int64, error) {
+
+	reply, err := master.Do(ctx, "ZADD", key, score, member)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.Int64(), nil
+}
+
+func ZRemRangeByScore(ctx context.Context, key string, min, max string) (int64, error) {
+
+	reply, err := master.Do(ctx, "ZREMRANGEBYSCORE", key, min, max)
+	if err != nil {
+		return 0, err
+	}
+
+	return reply.Int64(), nil
+}
+
 func ZRem(ctx context.Context, key string, members ...string) (int64, error) {
 
 	args := make([]any, 0, len(members)+1)

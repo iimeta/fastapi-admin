@@ -249,6 +249,13 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 		}
 	}
 
+	if params.Status != 1 || params.Password != "" {
+		if err = service.Auth().RemoveResellerSessions(ctx, newData.UserId); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
 		Action:  consts.ACTION_UPDATE,
 		OldData: oldData,
@@ -317,6 +324,13 @@ func (s *sAdminReseller) ChangeStatus(ctx context.Context, params model.Reseller
 		return err
 	}
 
+	if params.Status != 1 {
+		if err = service.Auth().RemoveResellerSessions(ctx, reseller.UserId); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+	}
+
 	if _, err = redis.Publish(ctx, consts.CHANGE_CHANNEL_RESELLER, model.PubMessage{
 		Action:  consts.ACTION_STATUS,
 		NewData: reseller,
@@ -338,6 +352,12 @@ func (s *sAdminReseller) Delete(ctx context.Context, params model.ResellerDelete
 	}
 
 	if _, err = dao.ResellerAccount.DeleteMany(ctx, bson.M{"user_id": reseller.UserId}); err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	// 删除后清除该代理商的全部会话
+	if err = service.Auth().RemoveResellerSessions(ctx, reseller.UserId); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}

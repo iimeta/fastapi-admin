@@ -153,7 +153,12 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 
 	code := grand.Digits(6)
 
-	if err = s.SetCode(ctx, params.Action, params.Email, code, 15*time.Minute); err != nil {
+	codeRid := 0
+	if siteConfig != nil && siteConfig.Host != "" {
+		codeRid = siteConfig.Rid
+	}
+
+	if err = s.SetCode(ctx, params.Action, params.Email, code, 15*time.Minute, codeRid); err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
@@ -242,12 +247,18 @@ func (s *sCommon) SmsCode(ctx context.Context, params model.SendSmsReq) error {
 	return nil
 }
 
-// 缓存验证码
-func (s *sCommon) SetCode(ctx context.Context, channel string, account string, code string, exp time.Duration) error {
+// 缓存验证码, rid为发信站点所属代理商ID
+func (s *sCommon) SetCode(ctx context.Context, channel string, account string, code string, exp time.Duration, rid ...int) error {
+
+	// 验证码与发信站点所属代理商存于同一个值, 保证两者原子写入和读取
+	value := code
+	if len(rid) > 0 && rid[0] != 0 {
+		value = fmt.Sprintf("%s:%d", code, rid[0])
+	}
 
 	pipe := redis.Pipeline(ctx)
 	pipe.Del(ctx, s.failName(channel, account))
-	pipe.Set(ctx, s.name(channel, account), code, exp)
+	pipe.Set(ctx, s.name(channel, account), value, exp)
 	_, err := redis.Pipelined(ctx, pipe)
 
 	return err
@@ -255,7 +266,15 @@ func (s *sCommon) SetCode(ctx context.Context, channel string, account string, c
 
 // 获取验证码
 func (s *sCommon) GetCode(ctx context.Context, channel, account string) (string, error) {
-	return redis.GetStr(ctx, s.name(channel, account))
+
+	value, err := redis.GetStr(ctx, s.name(channel, account))
+	if err != nil {
+		return "", err
+	}
+
+	code, _ := parseCode(value)
+
+	return code, nil
 }
 
 // 删除验证码
@@ -291,6 +310,30 @@ func (s *sCommon) VerifyCode(ctx context.Context, channel, account, code string)
 	}
 
 	return false
+}
+
+// 校验验证码及其发信站点
+func (s *sCommon) VerifyCodeRid(ctx context.Context, channel string, account string, code string, rid int) bool {
+
+	value, err := redis.GetStr(ctx, s.name(channel, account))
+	if err != nil || len(value) == 0 {
+		return false
+	}
+
+	storedCode, codeRid := parseCode(value)
+
+	return storedCode == code && (codeRid == 0 || codeRid == rid)
+}
+
+// 解析缓存的验证码
+func parseCode(value string) (string, int) {
+
+	code, rid, found := strings.Cut(value, ":")
+	if !found {
+		return value, 0
+	}
+
+	return code, gconv.Int(rid)
 }
 
 func (s *sCommon) name(channel, account string) string {

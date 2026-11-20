@@ -116,6 +116,19 @@ func (s *sSiteConfig) Create(ctx context.Context, params model.SiteConfigCreateR
 // 更新站点配置
 func (s *sSiteConfig) Update(ctx context.Context, params model.SiteConfigUpdateReq) error {
 
+	if service.Session().IsResellerRole(ctx) {
+
+		oldData, err := dao.SiteConfig.FindById(ctx, params.Id)
+		if err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if oldData.Rid != service.Session().GetRid(ctx) {
+			return errors.New("Unauthorized")
+		}
+	}
+
 	if existDomains := s.GetExistDomains(ctx, params.Domains, params.Id); len(existDomains) > 0 {
 		return errors.Newf("域名 \"%s\" 已存在", gstr.Join(existDomains, ", "))
 	}

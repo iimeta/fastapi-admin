@@ -83,6 +83,18 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 	}
 
 	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
+
+	siteRid := 0
+	if siteConfig != nil {
+		siteRid = siteConfig.Rid
+	}
+
+	if channel[0] != consts.SCENE_REGISTER || verifyEmail {
+		if !service.Common().VerifyCodeRid(ctx, channel[0], params.Account, params.Code, siteRid) {
+			return errors.New("验证码填写错误")
+		}
+	}
+
 	if siteConfig != nil {
 
 		if siteConfig.RegisterTips != "" {
@@ -118,7 +130,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			inviteUserId, err := service.Invite().ResolveInviteCode(ctx, inviteCode)
 			if err == nil {
 				inviter, err := dao.User.FindUserByUserId(ctx, inviteUserId)
-				if err == nil && inviter != nil && inviter.Status == 1 && (siteConfig == nil || siteConfig.InviteEnabled) {
+				if err == nil && inviter != nil && inviter.Status == 1 && inviter.Rid == siteRid && (siteConfig == nil || siteConfig.InviteEnabled) {
 					inviterUserId = inviter.UserId
 					inviterRid = inviter.Rid
 				}
@@ -167,11 +179,15 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			Creator:    id,
 		}
 
-		if siteConfig != nil {
+		// 代理商站点赠送的额度累计不能超过该代理商的待分配额度
+		var expense *model.Expense
+		canAllocate := func(quota int) bool {
 
-			user.Rid = siteConfig.Rid
+			if user.Rid == 0 {
+				return true
+			}
 
-			if siteConfig.GrantQuota > 0 && user.Rid != 0 {
+			if expense == nil {
 
 				tmpCtx := gctx.New()
 				tmpCtx = context.WithValue(tmpCtx, consts.SESSION_RID, user.Rid)
@@ -179,19 +195,20 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 				tmpCtx = context.WithValue(tmpCtx, consts.SESSION_ROLE, consts.SESSION_RESELLER)
 				tmpCtx = context.WithValue(tmpCtx, consts.SESSION_CREATOR, siteConfig.Creator)
 
-				expense, err := service.Dashboard().Expense(tmpCtx)
-				if err != nil {
+				var err error
+				if expense, err = service.Dashboard().Expense(tmpCtx); err != nil {
 					logger.Error(ctx, err)
 				}
+			}
 
-				if expense != nil && expense.ToBeAllocatedQuota >= common.ConvQuotaUnitReverse(siteConfig.GrantQuota) {
-					user.Quota = siteConfig.GrantQuota
-					if siteConfig.QuotaExpiresAt > 0 {
-						user.QuotaExpiresAt = gtime.Now().Add(time.Duration(siteConfig.QuotaExpiresAt) * time.Minute).TimestampMilli()
-					}
-				}
+			return expense != nil && expense.ToBeAllocatedQuota >= common.ConvQuotaUnitReverse(quota)
+		}
 
-			} else if siteConfig.GrantQuota > 0 {
+		if siteConfig != nil {
+
+			user.Rid = siteConfig.Rid
+
+			if siteConfig.GrantQuota > 0 && canAllocate(siteConfig.GrantQuota) {
 				user.Quota = siteConfig.GrantQuota
 				if siteConfig.QuotaExpiresAt > 0 {
 					user.QuotaExpiresAt = gtime.Now().Add(time.Duration(siteConfig.QuotaExpiresAt) * time.Minute).TimestampMilli()
@@ -211,7 +228,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 			}
 		}
 
-		if inviterUserId != 0 && !ipLimited && siteConfig != nil && siteConfig.InviteConfig.GrantQuota > 0 {
+		if inviterUserId != 0 && !ipLimited && siteConfig != nil && siteConfig.InviteConfig.GrantQuota > 0 && canAllocate(user.Quota+siteConfig.InviteConfig.GrantQuota) {
 			user.Quota += siteConfig.InviteConfig.GrantQuota
 		}
 
@@ -600,6 +617,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			return nil, err
 		}
 
+		if params.Method == consts.METHOD_CODE && !service.Common().VerifyCodeRid(ctx, consts.SCENE_LOGIN, params.Account, params.Code, user.Rid) {
+			return nil, errors.New("验证码填写错误")
+		}
+
 		if user.ExpiresAt != 0 && user.ExpiresAt < gtime.TimestampMilli() {
 			return nil, errors.New("账号已过期")
 		}
@@ -691,6 +712,8 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 			} else if accountInfo.Status == 2 {
 				return nil, errors.New("账号已被禁用")
+			} else if !service.Common().VerifyCodeRid(ctx, consts.SCENE_LOGIN, params.Account, params.Code, accountInfo.UserId) {
+				return nil, errors.New("验证码填写错误")
 			}
 
 		} else {
@@ -739,6 +762,10 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 
 		if config.Cfg.AdminLogin.Path != "" && gstr.TrimLeftStr(params.Path, "/") != config.Cfg.AdminLogin.Path {
 			return nil, errors.New("账号或密码不正确")
+		}
+
+		if params.Method == consts.METHOD_CODE && !service.Common().VerifyCodeRid(ctx, consts.SCENE_LOGIN, params.Account, params.Code, 0) {
+			return nil, errors.New("验证码填写错误")
 		}
 
 		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{
@@ -884,9 +911,23 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 			return errors.New(params.Account + " 账号不存在")
 		}
 
+		user, err := dao.User.FindUserByUserId(ctx, account.UserId)
+		if err != nil {
+			logger.Error(ctx, err)
+			return errors.New(params.Account + " 账号不存在")
+		}
+
+		if !service.Common().VerifyCodeRid(ctx, consts.SCENE_FORGET_PASSWORD, params.Account, params.Code, user.Rid) {
+			return errors.New("验证码填写错误")
+		}
+
 		if err = dao.User.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
 			logger.Error(ctx, err)
 			return errors.New("找回密码失败")
+		}
+
+		if err = s.RemoveUserSessions(ctx, account.UserId); err != nil {
+			logger.Error(ctx, err)
 		}
 	}
 
@@ -901,9 +942,17 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 			return errors.New(params.Account + " 账号不存在")
 		}
 
+		if !service.Common().VerifyCodeRid(ctx, consts.SCENE_FORGET_PASSWORD, params.Account, params.Code, account.UserId) {
+			return errors.New("验证码填写错误")
+		}
+
 		if err = dao.Reseller.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
 			logger.Error(ctx, err)
 			return errors.New("找回密码失败")
+		}
+
+		if err = s.RemoveResellerSessions(ctx, account.UserId); err != nil {
+			logger.Error(ctx, err)
 		}
 	}
 
@@ -911,6 +960,10 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 
 		if !config.Cfg.AdminLogin.EmailRetrieve {
 			return errors.New("未开启找回密码, 请联系作者")
+		}
+
+		if !service.Common().VerifyCodeRid(ctx, consts.SCENE_FORGET_PASSWORD, params.Account, params.Code, 0) {
+			return errors.New("验证码填写错误")
 		}
 
 		admin, err := dao.SysAdmin.FindOne(ctx, bson.M{"email": params.Account})
@@ -942,7 +995,12 @@ func (s *sAuth) GenUserToken(ctx context.Context, user *model.User, isSaveSessio
 			return
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Duration(config.Cfg.UserLoginRegister.SessionExpire)*time.Second); err != nil {
+		if err = saveSessionToken(ctx, fmt.Sprintf(consts.USER_SESSION_TOKENS, user.UserId), token, int64(config.Cfg.UserLoginRegister.SessionExpire)); err != nil {
+			logger.Errorf(ctx, "GenUserToken userId: %d, error: %v", user.UserId, err)
+			return
+		}
+
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, sessionCacheTTL(config.Cfg.UserLoginRegister.SessionExpire)); err != nil {
 			logger.Errorf(ctx, "GenUserToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
 			return
 		}
@@ -981,7 +1039,7 @@ func (s *sAuth) GetUserByToken(ctx context.Context, token string) (*model.User, 
 	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.USER_SESSION, token)); err != nil {
 		logger.Error(ctx, err)
 	} else {
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Duration(ttl)*time.Second); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, sessionCacheTTL(ttl)); err != nil {
 			logger.Errorf(ctx, "GetUserByToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
 		}
 	}
@@ -1015,7 +1073,7 @@ func (s *sAuth) UpdateUserByToken(ctx context.Context, token string, user *model
 			return err
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, time.Duration(ttl)*time.Second); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.USER_SESSION, token), user, sessionCacheTTL(ttl)); err != nil {
 			logger.Errorf(ctx, "UpdateUserByToken key: %s, error: %v", fmt.Sprintf(consts.USER_SESSION, token), err)
 			return err
 		}
@@ -1036,7 +1094,12 @@ func (s *sAuth) GenResellerToken(ctx context.Context, reseller *model.Reseller, 
 			return
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.RESELLER_SESSION, token), reseller, time.Duration(config.Cfg.ResellerLoginRegister.SessionExpire)*time.Second); err != nil {
+		if err = saveSessionToken(ctx, fmt.Sprintf(consts.RESELLER_SESSION_TOKENS, reseller.UserId), token, int64(config.Cfg.ResellerLoginRegister.SessionExpire)); err != nil {
+			logger.Errorf(ctx, "GenResellerToken userId: %d, error: %v", reseller.UserId, err)
+			return
+		}
+
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.RESELLER_SESSION, token), reseller, sessionCacheTTL(config.Cfg.ResellerLoginRegister.SessionExpire)); err != nil {
 			logger.Errorf(ctx, "GenResellerToken key: %s, error: %v", fmt.Sprintf(consts.RESELLER_SESSION, token), err)
 			return
 		}
@@ -1071,7 +1134,7 @@ func (s *sAuth) GetResellerByToken(ctx context.Context, token string) (*model.Re
 	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.RESELLER_SESSION, token)); err != nil {
 		logger.Error(ctx, err)
 	} else {
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.RESELLER_SESSION, token), reseller, time.Second*time.Duration(ttl)); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.RESELLER_SESSION, token), reseller, sessionCacheTTL(ttl)); err != nil {
 			logger.Errorf(ctx, "GetResellerByToken key: %s, error: %v", fmt.Sprintf(consts.RESELLER_SESSION, token), err)
 		}
 	}
@@ -1090,7 +1153,7 @@ func (s *sAuth) UpdateResellerByToken(ctx context.Context, token string, reselle
 			return err
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.RESELLER_SESSION, token), reseller, time.Duration(ttl)*time.Second); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.RESELLER_SESSION, token), reseller, sessionCacheTTL(ttl)); err != nil {
 			logger.Errorf(ctx, "UpdateResellerByToken key: %s, error: %v", fmt.Sprintf(consts.RESELLER_SESSION, token), err)
 			return err
 		}
@@ -1111,7 +1174,7 @@ func (s *sAuth) GenAdminToken(ctx context.Context, admin *model.SysAdmin, isSave
 			return
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(config.Cfg.AdminLogin.SessionExpire)*time.Second); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, sessionCacheTTL(config.Cfg.AdminLogin.SessionExpire)); err != nil {
 			logger.Errorf(ctx, "GenAdminToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 			return
 		}
@@ -1146,7 +1209,7 @@ func (s *sAuth) GetAdminByToken(ctx context.Context, token string) (*model.SysAd
 	if ttl, err := redis.TTL(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token)); err != nil {
 		logger.Error(ctx, err)
 	} else {
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(ttl)*time.Second); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, sessionCacheTTL(ttl)); err != nil {
 			logger.Errorf(ctx, "GetAdminByToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 		}
 	}
@@ -1165,11 +1228,88 @@ func (s *sAuth) UpdateAdminByToken(ctx context.Context, token string, admin *mod
 			return err
 		}
 
-		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, time.Duration(ttl)*time.Second); err != nil {
+		if err = s.tokenCache.Set(ctx, fmt.Sprintf(consts.ADMIN_SESSION, token), admin, sessionCacheTTL(ttl)); err != nil {
 			logger.Errorf(ctx, "UpdateAdminByToken key: %s, error: %v", fmt.Sprintf(consts.ADMIN_SESSION, token), err)
 			return err
 		}
 	}
 
 	return nil
+}
+
+// 清除用户的全部会话
+func (s *sAuth) RemoveUserSessions(ctx context.Context, userId int, exceptToken ...string) error {
+	return s.removeSessions(ctx, fmt.Sprintf(consts.USER_SESSION_TOKENS, userId), consts.USER_SESSION, exceptToken...)
+}
+
+// 清除代理商的全部会话
+func (s *sAuth) RemoveResellerSessions(ctx context.Context, userId int, exceptToken ...string) error {
+	return s.removeSessions(ctx, fmt.Sprintf(consts.RESELLER_SESSION_TOKENS, userId), consts.RESELLER_SESSION, exceptToken...)
+}
+
+func (s *sAuth) removeSessions(ctx context.Context, tokensKey, sessionKey string, exceptToken ...string) error {
+
+	tokens, err := redis.ZRange(ctx, tokensKey, 0, -1)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	for _, token := range tokens {
+
+		if len(exceptToken) > 0 && token == exceptToken[0] {
+			continue
+		}
+
+		key := fmt.Sprintf(sessionKey, token)
+
+		if _, err = redis.Del(ctx, key); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if _, err = s.tokenCache.Remove(ctx, key); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if _, err = redis.ZRem(ctx, tokensKey, token); err != nil {
+			logger.Error(ctx, err)
+		}
+	}
+
+	return nil
+}
+
+// 记录账号名下的会话Token, 用于后续按账号清除会话
+func saveSessionToken(ctx context.Context, tokensKey, token string, expire int64) error {
+
+	now := gtime.Timestamp()
+
+	// 清理已过期的Token
+	if _, err := redis.ZRemRangeByScore(ctx, tokensKey, "-inf", gconv.String(now)); err != nil {
+		return err
+	}
+
+	if _, err := redis.ZAdd(ctx, tokensKey, now+expire, token); err != nil {
+		return err
+	}
+
+	if _, err := redis.Expire(ctx, tokensKey, expire); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 会话在本地缓存的最长时间, 超过后回源Redis, 保证会话被清除后其它实例最迟在该时间内失效
+const sessionCacheMaxTTL = time.Minute
+
+func sessionCacheTTL[T int | int64](seconds T) time.Duration {
+
+	ttl := time.Duration(seconds) * time.Second
+	if ttl > sessionCacheMaxTTL {
+		return sessionCacheMaxTTL
+	}
+
+	return ttl
 }

@@ -87,9 +87,11 @@ var (
 			s.BindHandler("/*any", func(r *ghttp.Request) {
 
 				if gstr.HasPrefix(r.URL.Path, "/public/") {
-					if path := gfile.Join("./resource/public", gstr.TrimLeftStr(r.URL.Path, "/public/")); gfile.Exists(path) && gfile.IsFile(path) {
-						r.Response.ServeFile(path)
-						return
+					if root := gfile.RealPath("./resource/public"); root != "" {
+						if path := gfile.RealPath(gfile.Join(root, gstr.TrimLeftStr(r.URL.Path, "/public/"))); gstr.HasPrefix(path, root+gfile.Separator) && gfile.IsFile(path) {
+							r.Response.ServeFile(path)
+							return
+						}
 					}
 					r.Response.WriteStatus(http.StatusNotFound)
 					return

@@ -60,6 +60,14 @@ func (s *sTaskVideo) Detail(ctx context.Context, id string) (*model.TaskVideo, e
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && taskVideo.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
+	if service.Session().IsUserRole(ctx) && taskVideo.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
 	detail := &model.TaskVideo{
 		Id:                 taskVideo.Id,
 		TraceId:            taskVideo.TraceId,

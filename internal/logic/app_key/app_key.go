@@ -112,21 +112,6 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 		}
 	)
 
-	if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
-
-		if params.UserId == 0 && params.Id == "" {
-			app, err := dao.App.FindByAppId(ctx, params.AppId)
-			if err != nil {
-				logger.Error(ctx, err)
-				return "", err
-			}
-			params.UserId = app.UserId
-			key.Rid = app.Rid
-		}
-
-		key.UserId = params.UserId
-	}
-
 	if params.Id != "" {
 
 		action = consts.ACTION_UPDATE
@@ -143,6 +128,7 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 			return "", errors.New("Unauthorized")
 		}
 
+		key.UserId = 0
 		key.AppId = 0
 		key.Key = ""
 
@@ -158,6 +144,30 @@ func (s *sAppKey) Config(ctx context.Context, params model.AppKeyConfigReq) (k s
 		}
 
 	} else {
+
+		app, err := dao.App.FindByAppId(ctx, params.AppId)
+		if err != nil {
+			logger.Error(ctx, err)
+			return "", err
+		}
+
+		if service.Session().IsResellerRole(ctx) || service.Session().IsAdminRole(ctx) {
+
+			if params.UserId == 0 {
+				params.UserId = app.UserId
+				key.Rid = app.Rid
+			}
+
+			key.UserId = params.UserId
+		}
+
+		if service.Session().IsResellerRole(ctx) && app.Rid != service.Session().GetRid(ctx) {
+			return "", errors.New("Unauthorized")
+		}
+
+		if key.UserId != app.UserId {
+			return "", errors.New("Unauthorized")
+		}
 
 		userId, appId, err := common.ParseSecretKey(ctx, key.Key)
 		if err != nil {
@@ -641,6 +651,9 @@ func (s *sAppKey) BatchOperate(ctx context.Context, params model.AppKeyBatchOper
 			if user.UserId != app.UserId {
 				return "", errors.New("用户ID与应用ID不匹配, 请核对后重新输入")
 			}
+
+		} else if app.UserId != userId {
+			return "", errors.New("Unauthorized")
 		}
 
 		for i := 0; i < params.N; i++ {

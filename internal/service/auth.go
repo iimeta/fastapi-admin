@@ -39,6 +39,10 @@ type (
 		GetAdminByToken(ctx context.Context, token string) (*model.SysAdmin, error)
 		// 根据Token更新管理员信息
 		UpdateAdminByToken(ctx context.Context, token string, admin *model.SysAdmin) error
+		// 清除用户的全部会话
+		RemoveUserSessions(ctx context.Context, userId int, exceptToken ...string) error
+		// 清除代理商的全部会话
+		RemoveResellerSessions(ctx context.Context, userId int, exceptToken ...string) error
 	}
 )
 

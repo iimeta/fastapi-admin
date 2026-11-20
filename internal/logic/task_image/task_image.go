@@ -68,6 +68,14 @@ func (s *sTaskImage) Detail(ctx context.Context, id string) (*model.TaskImage, e
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && taskImage.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
+	if service.Session().IsUserRole(ctx) && taskImage.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
 	detail := &model.TaskImage{
 		Id:             taskImage.Id,
 		TraceId:        taskImage.TraceId,

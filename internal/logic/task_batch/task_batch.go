@@ -50,6 +50,14 @@ func (s *sTaskBatch) Detail(ctx context.Context, id string) (*model.TaskBatch, e
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && taskBatch.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
+	if service.Session().IsUserRole(ctx) && taskBatch.UserId != service.Session().GetUserId(ctx) {
+		return nil, errors.ERR_UNAUTHORIZED
+	}
+
 	detail := &model.TaskBatch{
 		Id:           taskBatch.Id,
 		TraceId:      taskBatch.TraceId,

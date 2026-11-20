@@ -40,6 +40,10 @@ func (s *sFinance) BillDetail(ctx context.Context, id string) (*model.Statistics
 		return nil, err
 	}
 
+	if service.Session().IsResellerRole(ctx) && statisticsUser.Rid != service.Session().GetRid(ctx) {
+		return nil, errors.New("Unauthorized")
+	}
+
 	if service.Session().IsUserRole(ctx) && statisticsUser.UserId != service.Session().GetUserId(ctx) {
 		return nil, errors.New("Unauthorized")
 	}
