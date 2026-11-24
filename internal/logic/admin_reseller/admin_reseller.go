@@ -207,20 +207,21 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 	}
 
 	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"name":                  params.Name,
-		"email":                 params.Email,
-		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
-		"is_cycle_reset_quota":  params.IsCycleResetQuota,
-		"reset_quota":           resetQuota,
-		"cycle_period":          params.CyclePeriod,
-		"period_unit":           params.PeriodUnit,
-		"reset_mode":            params.ResetMode,
-		"next_reset_at":         nextResetAt,
-		"groups":                params.Groups,
-		"remark":                params.Remark,
-		"status":                params.Status,
-		"expire_warning_notice": false,
-		"expire_notice":         false,
+		"name":                   params.Name,
+		"email":                  params.Email,
+		"quota_expires_at":       util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"is_cycle_reset_quota":   params.IsCycleResetQuota,
+		"reset_quota":            resetQuota,
+		"cycle_period":           params.CyclePeriod,
+		"period_unit":            params.PeriodUnit,
+		"reset_mode":             params.ResetMode,
+		"next_reset_at":          nextResetAt,
+		"groups":                 params.Groups,
+		"remark":                 params.Remark,
+		"status":                 params.Status,
+		"expire_warning_notices": []int{},
+		"expire_notice":          false,
+		"notice_quota_expiry":    0,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -285,9 +286,10 @@ func (s *sAdminReseller) ChangeQuotaExpire(ctx context.Context, params model.Res
 	}
 
 	newData, err := dao.Reseller.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
-		"expire_warning_notice": false,
-		"expire_notice":         false,
+		"quota_expires_at":       util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"expire_warning_notices": []int{},
+		"expire_notice":          false,
+		"notice_quota_expiry":    0,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -578,47 +580,43 @@ func (s *sAdminReseller) Detail(ctx context.Context, id string) (*model.Reseller
 		toBeAllocatedQuota = reseller.Quota + reseller.UsedQuota - allocatedQuota
 	}
 
-	if reseller.WarningThreshold == 0 {
+	if len(reseller.WarningThresholds) == 0 && len(reseller.ExpireWarningThresholds) == 0 {
 		reseller.QuotaWarning = config.Cfg.Quota.Warning
-		reseller.WarningThreshold = config.Cfg.Quota.Threshold
-		reseller.ExpireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 	}
 
 	return &model.Reseller{
-		Id:                     reseller.Id,
-		UserId:                 reseller.UserId,
-		Account:                account.Account,
-		Name:                   reseller.Name,
-		Phone:                  reseller.Phone,
-		Email:                  reseller.Email,
-		Quota:                  common.ConvQuotaUnitReverse(reseller.Quota),
-		UsedQuota:              common.ConvQuotaUnitReverse(reseller.UsedQuota),
-		AllocatedQuota:         common.ConvQuotaUnitReverse(allocatedQuota),
-		ToBeAllocatedQuota:     common.ConvQuotaUnitReverse(toBeAllocatedQuota),
-		QuotaExpiresAt:         util.FormatDateTime(reseller.QuotaExpiresAt),
-		IsCycleResetQuota:      reseller.IsCycleResetQuota,
-		ResetQuota:             common.ConvQuotaUnitReverse(reseller.ResetQuota),
-		CyclePeriod:            reseller.CyclePeriod,
-		PeriodUnit:             reseller.PeriodUnit,
-		ResetMode:              reseller.ResetMode,
-		ResetAt:                util.FormatDateTime(reseller.ResetAt),
-		NextResetAt:            util.FormatDateTime(reseller.NextResetAt),
-		Groups:                 reseller.Groups,
-		GroupNames:             groupNames,
-		QuotaWarning:           reseller.QuotaWarning,
-		WarningThreshold:       reseller.WarningThreshold / consts.QUOTA_DEFAULT_UNIT,
-		ExpireWarningThreshold: reseller.ExpireWarningThreshold,
-		WarningNotice:          reseller.WarningNotice,
-		ExhaustionNotice:       reseller.ExhaustionNotice,
-		ExpireWarningNotice:    reseller.ExpireWarningNotice,
-		ExpireNotice:           reseller.ExpireNotice,
-		Remark:                 reseller.Remark,
-		Status:                 reseller.Status,
-		LoginIP:                account.LoginIP,
-		LoginTime:              util.FormatDateTime(account.LoginTime),
-		LoginDomain:            account.LoginDomain,
-		CreatedAt:              util.FormatDateTime(reseller.CreatedAt),
-		UpdatedAt:              util.FormatDateTime(reseller.UpdatedAt),
+		Id:                      reseller.Id,
+		UserId:                  reseller.UserId,
+		Account:                 account.Account,
+		Name:                    reseller.Name,
+		Phone:                   reseller.Phone,
+		Email:                   reseller.Email,
+		Quota:                   common.ConvQuotaUnitReverse(reseller.Quota),
+		UsedQuota:               common.ConvQuotaUnitReverse(reseller.UsedQuota),
+		AllocatedQuota:          common.ConvQuotaUnitReverse(allocatedQuota),
+		ToBeAllocatedQuota:      common.ConvQuotaUnitReverse(toBeAllocatedQuota),
+		QuotaExpiresAt:          util.FormatDateTime(reseller.QuotaExpiresAt),
+		IsCycleResetQuota:       reseller.IsCycleResetQuota,
+		ResetQuota:              common.ConvQuotaUnitReverse(reseller.ResetQuota),
+		CyclePeriod:             reseller.CyclePeriod,
+		PeriodUnit:              reseller.PeriodUnit,
+		ResetMode:               reseller.ResetMode,
+		ResetAt:                 util.FormatDateTime(reseller.ResetAt),
+		NextResetAt:             util.FormatDateTime(reseller.NextResetAt),
+		Groups:                  reseller.Groups,
+		GroupNames:              groupNames,
+		QuotaWarning:            reseller.QuotaWarning,
+		WarningThresholds:       common.ConvQuotaUnitsReverse(common.QuotaWarningThresholds(reseller.WarningThresholds)),
+		ExpireWarningThresholds: common.QuotaExpireWarningThresholds(reseller.ExpireWarningThresholds),
+		ExhaustionNotice:        reseller.ExhaustionNotice,
+		ExpireNotice:            reseller.ExpireNotice,
+		Remark:                  reseller.Remark,
+		Status:                  reseller.Status,
+		LoginIP:                 account.LoginIP,
+		LoginTime:               util.FormatDateTime(account.LoginTime),
+		LoginDomain:             account.LoginDomain,
+		CreatedAt:               util.FormatDateTime(reseller.CreatedAt),
+		UpdatedAt:               util.FormatDateTime(reseller.UpdatedAt),
 	}, nil
 }
 
@@ -802,11 +800,13 @@ func (s *sAdminReseller) Recharge(ctx context.Context, params model.ResellerRech
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
-		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
-		"warning_notice":        false,
-		"exhaustion_notice":     false,
-		"expire_warning_notice": false,
-		"expire_notice":         false,
+		"quota_expires_at":       util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"warning_notices":        []int{},
+		"exhaustion_notice":      false,
+		"expire_warning_notices": []int{},
+		"expire_notice":          false,
+		"notice_quota":           0,
+		"notice_quota_expiry":    0,
 	})
 	if err != nil {
 		logger.Error(ctx, err)

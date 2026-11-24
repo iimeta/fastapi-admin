@@ -14,6 +14,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	logiccommon "github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/do"
@@ -143,7 +144,8 @@ func (s *sSysConfig) Update(ctx context.Context, params model.SysConfigUpdateReq
 		sysConfig = &do.SysConfig{Notice: params.Notice}
 	case "quota":
 		if params.Quota != nil {
-			params.Quota.Threshold *= consts.QUOTA_DEFAULT_UNIT
+			params.Quota.Thresholds = logiccommon.ConvQuotaUnits(logiccommon.NormalizePositiveInts(params.Quota.Thresholds))
+			params.Quota.ExpiredThresholds = logiccommon.NormalizePositiveInts(params.Quota.ExpiredThresholds)
 		}
 		sysConfig = &do.SysConfig{Quota: params.Quota}
 	case "ticket":
@@ -246,7 +248,8 @@ func (s *sSysConfig) Detail(ctx context.Context) (*model.SysConfig, error) {
 	}
 
 	if sysConfig.Quota != nil {
-		sysConfig.Quota.Threshold /= consts.QUOTA_DEFAULT_UNIT
+		sysConfig.Quota.Thresholds = logiccommon.ConvQuotaUnitsReverse(sysConfig.Quota.Thresholds)
+		sysConfig.Quota.ExpiredThresholds = logiccommon.NormalizePositiveInts(sysConfig.Quota.ExpiredThresholds)
 	}
 
 	return &model.SysConfig{
@@ -867,9 +870,9 @@ func (s *sSysConfig) Default() *do.SysConfig {
 		},
 		Quota: &common.Quota{
 			Warning:           true,
-			Threshold:         100,
+			Thresholds:        []int{100, 50, 10},
 			ExpiredWarning:    true,
-			ExpiredThreshold:  3,
+			ExpiredThresholds: []int{7, 3, 1},
 			ExhaustedNotice:   true,
 			ExpiredNotice:     true,
 			ExpiredClear:      false,

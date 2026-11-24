@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 // 仪表盘基础数据接口响应参数
 type DashboardBaseDataRes struct {
 	Dashboard
@@ -85,9 +83,9 @@ type DashboardPerSecondRes struct {
 
 // 额度预警接口请求参数
 type DashboardQuotaWarningReq struct {
-	QuotaWarning           bool          `json:"quota_warning,omitempty"`            // 额度预警开关
-	WarningThreshold       int           `json:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
-	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold,omitempty"` // 过期预警阈值, 单位: 天
+	QuotaWarning            bool  `json:"quota_warning,omitempty"`             // 额度预警开关
+	WarningThresholds       []int `json:"warning_thresholds,omitempty"`        // 预警档位, 单位: $
+	ExpireWarningThresholds []int `json:"expire_warning_thresholds,omitempty"` // 过期预警档位, 单位: 天
 }
 
 // 基础数据
@@ -116,14 +114,14 @@ type CallData struct {
 
 // 费用
 type Expense struct {
-	Quota                  float64       `json:"quota,omitempty"`                    // 剩余额度
-	UsedQuota              float64       `json:"used_quota,omitempty"`               // 已用额度
-	AllocatedQuota         float64       `json:"allocated_quota,omitempty"`          // 已分配额度
-	ToBeAllocatedQuota     float64       `json:"to_be_allocated_quota,omitempty"`    // 待分配额度
-	QuotaExpiresAt         string        `json:"quota_expires_at,omitempty"`         // 额度过期时间
-	QuotaWarning           bool          `json:"quota_warning,omitempty"`            // 额度预警开关
-	WarningThreshold       int           `json:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
-	ExpireWarningThreshold time.Duration `json:"expire_warning_threshold,omitempty"` // 过期预警阈值, 单位: 天
+	Quota                   float64 `json:"quota,omitempty"`                     // 剩余额度
+	UsedQuota               float64 `json:"used_quota,omitempty"`                // 已用额度
+	AllocatedQuota          float64 `json:"allocated_quota,omitempty"`           // 已分配额度
+	ToBeAllocatedQuota      float64 `json:"to_be_allocated_quota,omitempty"`     // 待分配额度
+	QuotaExpiresAt          string  `json:"quota_expires_at,omitempty"`          // 额度过期时间
+	QuotaWarning            bool    `json:"quota_warning,omitempty"`             // 额度预警开关
+	WarningThresholds       []int   `json:"warning_thresholds,omitempty"`        // 预警档位, 单位: $
+	ExpireWarningThresholds []int   `json:"expire_warning_thresholds,omitempty"` // 过期预警档位, 单位: 天
 }
 
 // 数据TOP

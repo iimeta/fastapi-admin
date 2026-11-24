@@ -337,8 +337,9 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 		"groups":                params.Groups,
 		"remark":                params.Remark,
 		"status":                params.Status,
-		"expire_warning_notice": false,
-		"expire_notice":         false,
+		"expire_warning_notices": []int{},
+		"expire_notice":          false,
+		"notice_quota_expiry":    0,
 	}
 
 	if params.Privacy != nil {
@@ -408,8 +409,9 @@ func (s *sAdminUser) ChangeQuotaExpire(ctx context.Context, params model.UserCha
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
 		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
-		"expire_warning_notice": false,
-		"expire_notice":         false,
+		"expire_warning_notices": []int{},
+		"expire_notice":          false,
+		"notice_quota_expiry":    0,
 	})
 	if err != nil {
 		logger.Error(ctx, err)
@@ -643,10 +645,8 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		return nil, err
 	}
 
-	if user.WarningThreshold == 0 {
+	if len(user.WarningThresholds) == 0 && len(user.ExpireWarningThresholds) == 0 {
 		user.QuotaWarning = config.Cfg.Quota.Warning
-		user.WarningThreshold = config.Cfg.Quota.Threshold
-		user.ExpireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 	}
 
 	return &model.User{
@@ -668,13 +668,11 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 		NextResetAt:            util.FormatDateTime(user.NextResetAt),
 		Groups:                 user.Groups,
 		GroupNames:             groupNames,
-		QuotaWarning:           user.QuotaWarning,
-		WarningThreshold:       user.WarningThreshold / consts.QUOTA_DEFAULT_UNIT,
-		ExpireWarningThreshold: user.ExpireWarningThreshold,
-		WarningNotice:          user.WarningNotice,
-		ExhaustionNotice:       user.ExhaustionNotice,
-		ExpireWarningNotice:    user.ExpireWarningNotice,
-		ExpireNotice:           user.ExpireNotice,
+		QuotaWarning:            user.QuotaWarning,
+		WarningThresholds:       common.ConvQuotaUnitsReverse(common.QuotaWarningThresholds(user.WarningThresholds)),
+		ExpireWarningThresholds: common.QuotaExpireWarningThresholds(user.ExpireWarningThresholds),
+		ExhaustionNotice:        user.ExhaustionNotice,
+		ExpireNotice:            user.ExpireNotice,
 		Remark:                 user.Remark,
 		InviterUserId:          user.InviterUserId,
 		InviteCode:             user.InviteCode,
@@ -918,10 +916,12 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 			"quota": params.Quota,
 		},
 		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
-		"warning_notice":        false,
-		"exhaustion_notice":     false,
-		"expire_warning_notice": false,
-		"expire_notice":         false,
+		"warning_notices":        []int{},
+		"exhaustion_notice":      false,
+		"expire_warning_notices": []int{},
+		"expire_notice":          false,
+		"notice_quota":           0,
+		"notice_quota_expiry":    0,
 	})
 	if err != nil {
 		logger.Error(ctx, err)

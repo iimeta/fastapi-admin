@@ -455,7 +455,7 @@ func (s *sInvite) ManageRewardApplyApprove(ctx context.Context, params model.Inv
 
 	newExpiresAt := baseTime + 30*24*60*60*1000
 
-	newUser, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": apply.UserId}, bson.M{"$inc": bson.M{"quota": apply.TotalQuota}, "quota_expires_at": newExpiresAt, "warning_notice": false, "exhaustion_notice": false, "expire_warning_notice": false, "expire_notice": false})
+	newUser, err := dao.User.FindOneAndUpdate(ctx, bson.M{"user_id": apply.UserId}, bson.M{"$inc": bson.M{"quota": apply.TotalQuota}, "quota_expires_at": newExpiresAt, "warning_notices": []int{}, "exhaustion_notice": false, "expire_warning_notices": []int{}, "expire_notice": false, "notice_quota": 0, "notice_quota_expiry": 0})
 	if err != nil {
 		logger.Error(ctx, err)
 		rollback()

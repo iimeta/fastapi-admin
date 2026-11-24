@@ -414,13 +414,9 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 				}
 				userAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
-				userAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(user.WarningThreshold))
+				userAttribute[parts[1]] = FormatQuotaThresholds(user.WarningThresholds, currencySymbol)
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
-				expireWarningThreshold := user.ExpireWarningThreshold
-				if expireWarningThreshold == 0 {
-					expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
-				}
-				userAttribute[parts[1]] = expireWarningThreshold
+				userAttribute[parts[1]] = FormatExpireWarningThresholds(user.ExpireWarningThresholds)
 			default:
 				userAttribute[parts[1]] = ""
 			}
@@ -455,13 +451,9 @@ func GetVariableData(ctx context.Context, user *entity.User, reseller *entity.Re
 				}
 				resellerAttribute[parts[1]] = quotaExpiresAt
 			case consts.ATTRIBUTE_WARNING_THRESHOLD:
-				resellerAttribute[parts[1]] = fmt.Sprintf("%s%f", currencySymbol, ConvQuotaUnitReverse(reseller.WarningThreshold))
+				resellerAttribute[parts[1]] = FormatQuotaThresholds(reseller.WarningThresholds, currencySymbol)
 			case consts.ATTRIBUTE_EXPIRE_WARNING_THRESHOLD:
-				expireWarningThreshold := reseller.ExpireWarningThreshold
-				if expireWarningThreshold == 0 {
-					expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
-				}
-				resellerAttribute[parts[1]] = expireWarningThreshold
+				resellerAttribute[parts[1]] = FormatExpireWarningThresholds(reseller.ExpireWarningThresholds)
 			default:
 				resellerAttribute[parts[1]] = ""
 			}

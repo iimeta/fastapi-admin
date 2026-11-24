@@ -3,12 +3,10 @@ package dashboard
 import (
 	"context"
 	"math"
-	"time"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-admin/v2/internal/config"
-	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
@@ -271,14 +269,14 @@ func (s *sDashboard) CallData(ctx context.Context, params model.DashboardCallDat
 func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 
 	var (
-		quota                  float64
-		usedQuota              float64
-		allocatedQuota         float64
-		toBeAllocatedQuota     float64
-		quotaExpiresAt         string
-		quotaWarning           bool
-		warningThreshold       int
-		expireWarningThreshold time.Duration
+		quota                   float64
+		usedQuota               float64
+		allocatedQuota          float64
+		toBeAllocatedQuota      float64
+		quotaExpiresAt          string
+		quotaWarning            bool
+		warningThresholds       []int
+		expireWarningThresholds []int
 	)
 
 	if service.Session().IsResellerRole(ctx) {
@@ -293,8 +291,8 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 		usedQuota = reseller.UsedQuota
 		quotaExpiresAt = reseller.QuotaExpiresAt
 		quotaWarning = reseller.QuotaWarning
-		warningThreshold = reseller.WarningThreshold
-		expireWarningThreshold = reseller.ExpireWarningThreshold
+		warningThresholds = reseller.WarningThresholds
+		expireWarningThresholds = reseller.ExpireWarningThresholds
 		totalQuota := 0.0
 
 		users, err := dao.User.Find(ctx, bson.M{"rid": reseller.UserId})
@@ -332,25 +330,23 @@ func (s *sDashboard) Expense(ctx context.Context) (*model.Expense, error) {
 		usedQuota = user.UsedQuota
 		quotaExpiresAt = user.QuotaExpiresAt
 		quotaWarning = user.QuotaWarning
-		warningThreshold = user.WarningThreshold
-		expireWarningThreshold = user.ExpireWarningThreshold
+		warningThresholds = user.WarningThresholds
+		expireWarningThresholds = user.ExpireWarningThresholds
 	}
 
-	if warningThreshold == 0 {
+	if len(warningThresholds) == 0 && len(expireWarningThresholds) == 0 {
 		quotaWarning = config.Cfg.Quota.Warning
-		warningThreshold = config.Cfg.Quota.Threshold
-		expireWarningThreshold = config.Cfg.Quota.ExpiredThreshold
 	}
 
 	return &model.Expense{
-		Quota:                  quota,
-		UsedQuota:              usedQuota,
-		AllocatedQuota:         allocatedQuota,
-		ToBeAllocatedQuota:     toBeAllocatedQuota,
-		QuotaExpiresAt:         quotaExpiresAt,
-		QuotaWarning:           quotaWarning,
-		WarningThreshold:       warningThreshold / consts.QUOTA_DEFAULT_UNIT,
-		ExpireWarningThreshold: expireWarningThreshold,
+		Quota:                   quota,
+		UsedQuota:               usedQuota,
+		AllocatedQuota:          allocatedQuota,
+		ToBeAllocatedQuota:      toBeAllocatedQuota,
+		QuotaExpiresAt:          quotaExpiresAt,
+		QuotaWarning:            quotaWarning,
+		WarningThresholds:       common.ConvQuotaUnitsReverse(common.QuotaWarningThresholds(warningThresholds)),
+		ExpireWarningThresholds: common.QuotaExpireWarningThresholds(expireWarningThresholds),
 	}, nil
 }
 
@@ -777,19 +773,15 @@ func (s *sDashboard) PerMinute(ctx context.Context, params model.DashboardPerMin
 func (s *sDashboard) QuotaWarning(ctx context.Context, params model.DashboardQuotaWarningReq) error {
 
 	update := bson.M{
-		"quota_warning":         params.QuotaWarning,
-		"warning_notice":        false,
-		"exhaustion_notice":     false,
-		"expire_warning_notice": false,
-		"expire_notice":         false,
-	}
-
-	if params.WarningThreshold > 0 {
-		update["warning_threshold"] = params.WarningThreshold * consts.QUOTA_DEFAULT_UNIT
-	}
-
-	if params.ExpireWarningThreshold > 0 {
-		update["expire_warning_threshold"] = params.ExpireWarningThreshold
+		"quota_warning":             params.QuotaWarning,
+		"warning_thresholds":        common.ConvQuotaUnits(params.WarningThresholds),
+		"expire_warning_thresholds": common.NormalizePositiveInts(params.ExpireWarningThresholds),
+		"warning_notices":           []int{},
+		"expire_warning_notices":    []int{},
+		"exhaustion_notice":         false,
+		"expire_notice":             false,
+		"notice_quota":              0,
+		"notice_quota_expiry":       0,
 	}
 
 	if service.Session().IsResellerRole(ctx) {

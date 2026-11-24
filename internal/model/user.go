@@ -1,8 +1,6 @@
 package model
 
 import (
-	"time"
-
 	"github.com/iimeta/fastapi-admin/v2/internal/model/common"
 )
 
@@ -169,45 +167,43 @@ type UserRechargeReq struct {
 }
 
 type User struct {
-	Id                     string              `json:"id,omitempty"`                       // ID
-	UserId                 int                 `json:"user_id,omitempty"`                  // 用户ID
-	Name                   string              `json:"name,omitempty"`                     // 姓名
-	Avatar                 string              `json:"avatar,omitempty"`                   // 头像
-	Email                  string              `json:"email,omitempty"`                    // 邮箱
-	Phone                  string              `json:"phone,omitempty"`                    // 手机号
-	Quota                  float64             `json:"quota,omitempty"`                    // 剩余额度
-	UsedQuota              float64             `json:"used_quota,omitempty"`               // 已用额度
-	QuotaExpiresAt         string              `json:"quota_expires_at,omitempty"`         // 额度过期时间
-	IsCycleResetQuota      bool                `json:"is_cycle_reset_quota,omitempty"`     // 是否循环重置额度
-	ResetQuota             float64             `json:"reset_quota,omitempty"`              // 重置额度
-	CyclePeriod            int                 `json:"cycle_period,omitempty"`             // 循环周期
-	PeriodUnit             string              `json:"period_unit,omitempty"`              // 周期单位[hour:小时, day:天]
-	ResetMode              string              `json:"reset_mode,omitempty"`               // 重置模式[natural:自然周期, relative:相对周期]
-	ResetAt                string              `json:"reset_at,omitempty"`                 // 重置时间
-	NextResetAt            string              `json:"next_reset_at,omitempty"`            // 下次重置时间
-	Groups                 []string            `json:"groups,omitempty"`                   // 分组权限
-	GroupNames             []string            `json:"group_names,omitempty"`              // 分组名称
-	Account                string              `json:"account,omitempty"`                  // 账号
-	QuotaWarning           bool                `json:"quota_warning,omitempty"`            // 额度预警
-	WarningThreshold       int                 `json:"warning_threshold,omitempty"`        // 预警阈值, 单位: $
-	ExpireWarningThreshold time.Duration       `json:"expire_warning_threshold,omitempty"` // 过期预警阈值, 单位: 天
-	WarningNotice          bool                `json:"warning_notice,omitempty"`           // 预警通知
-	ExhaustionNotice       bool                `json:"exhaustion_notice,omitempty"`        // 耗尽通知
-	ExpireWarningNotice    bool                `json:"expire_warning_notice,omitempty"`    // 额度过期预警通知
-	ExpireNotice           bool                `json:"expire_notice,omitempty"`            // 额度过期通知
-	Remark                 string              `json:"remark,omitempty"`                   // 备注
-	InviterUserId          int                 `json:"inviter_user_id,omitempty"`          // 邀请人用户ID
-	InviteCode             string              `json:"invite_code,omitempty"`              // 邀请码
-	Privacy                *common.UserPrivacy `json:"privacy,omitempty"`                  // 隐私设置
-	LogPrivacy             *common.LogPrivacy  `json:"log_privacy,omitempty"`              // 日志隐私设置
-	Status                 int                 `json:"status,omitempty"`                   // 状态[1:正常, 2:禁用, -1:删除]
-	Rid                    int                 `json:"rid,omitempty"`                      // 代理商ID
-	LoginIP                string              `json:"login_ip,omitempty"`                 // 登录IP
-	LoginTime              string              `json:"login_time,omitempty"`               // 登录时间
-	LoginDomain            string              `json:"login_domain,omitempty"`             // 登录域名
-	CreatedAt              string              `json:"created_at,omitempty"`               // 创建时间
-	ExpiresAt              string              `json:"expires_at,omitempty"`               // 过期时间
-	UpdatedAt              string              `json:"updated_at,omitempty"`               // 更新时间
+	Id                      string              `json:"id,omitempty"`                        // ID
+	UserId                  int                 `json:"user_id,omitempty"`                   // 用户ID
+	Name                    string              `json:"name,omitempty"`                      // 姓名
+	Avatar                  string              `json:"avatar,omitempty"`                    // 头像
+	Email                   string              `json:"email,omitempty"`                     // 邮箱
+	Phone                   string              `json:"phone,omitempty"`                     // 手机号
+	Quota                   float64             `json:"quota,omitempty"`                     // 剩余额度
+	UsedQuota               float64             `json:"used_quota,omitempty"`                // 已用额度
+	QuotaExpiresAt          string              `json:"quota_expires_at,omitempty"`          // 额度过期时间
+	IsCycleResetQuota       bool                `json:"is_cycle_reset_quota,omitempty"`      // 是否循环重置额度
+	ResetQuota              float64             `json:"reset_quota,omitempty"`               // 重置额度
+	CyclePeriod             int                 `json:"cycle_period,omitempty"`              // 循环周期
+	PeriodUnit              string              `json:"period_unit,omitempty"`               // 周期单位[hour:小时, day:天]
+	ResetMode               string              `json:"reset_mode,omitempty"`                // 重置模式[natural:自然周期, relative:相对周期]
+	ResetAt                 string              `json:"reset_at,omitempty"`                  // 重置时间
+	NextResetAt             string              `json:"next_reset_at,omitempty"`             // 下次重置时间
+	Groups                  []string            `json:"groups,omitempty"`                    // 分组权限
+	GroupNames              []string            `json:"group_names,omitempty"`               // 分组名称
+	Account                 string              `json:"account,omitempty"`                   // 账号
+	QuotaWarning            bool                `json:"quota_warning,omitempty"`             // 额度预警
+	WarningThresholds       []int               `json:"warning_thresholds,omitempty"`        // 预警档位, 单位: $
+	ExpireWarningThresholds []int               `json:"expire_warning_thresholds,omitempty"` // 过期预警档位, 单位: 天
+	ExhaustionNotice        bool                `json:"exhaustion_notice,omitempty"`         // 耗尽通知
+	ExpireNotice            bool                `json:"expire_notice,omitempty"`             // 额度过期通知
+	Remark                  string              `json:"remark,omitempty"`                    // 备注
+	InviterUserId           int                 `json:"inviter_user_id,omitempty"`           // 邀请人用户ID
+	InviteCode              string              `json:"invite_code,omitempty"`               // 邀请码
+	Privacy                 *common.UserPrivacy `json:"privacy,omitempty"`                   // 隐私设置
+	LogPrivacy              *common.LogPrivacy  `json:"log_privacy,omitempty"`               // 日志隐私设置
+	Status                  int                 `json:"status,omitempty"`                    // 状态[1:正常, 2:禁用, -1:删除]
+	Rid                     int                 `json:"rid,omitempty"`                       // 代理商ID
+	LoginIP                 string              `json:"login_ip,omitempty"`                  // 登录IP
+	LoginTime               string              `json:"login_time,omitempty"`                // 登录时间
+	LoginDomain             string              `json:"login_domain,omitempty"`              // 登录域名
+	CreatedAt               string              `json:"created_at,omitempty"`                // 创建时间
+	ExpiresAt               string              `json:"expires_at,omitempty"`                // 过期时间
+	UpdatedAt               string              `json:"updated_at,omitempty"`                // 更新时间
 }
 
 type UserQuota struct {
