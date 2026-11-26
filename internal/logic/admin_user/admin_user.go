@@ -139,13 +139,15 @@ func (s *sAdminUser) Create(ctx context.Context, params model.UserCreateReq) (er
 	}
 
 	if _, err = dao.User.CreateAccount(ctx, &do.Account{
-		Uid:      uid,
-		UserId:   user.UserId,
-		Account:  params.Account,
-		Password: crypto.EncryptPassword(params.Password + salt),
-		Salt:     salt,
-		Status:   1,
-		Creator:  uid,
+		Uid:                uid,
+		UserId:             user.UserId,
+		Account:            params.Account,
+		Password:           crypto.EncryptPassword(params.Password + salt),
+		Salt:               salt,
+		Status:             1,
+		NeedChangePassword: config.Cfg.UserLoginRegister.FirstLoginChangePassword,
+		PasswordUpdatedAt:  gtime.TimestampMilli(),
+		Creator:            uid,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -324,19 +326,19 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 	}
 
 	updateData := bson.M{
-		"name":                  params.Name,
-		"email":                 params.Email,
-		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
-		"expires_at":            util.ConvTimestampMilli(params.ExpiresAt),
-		"is_cycle_reset_quota":  params.IsCycleResetQuota,
-		"reset_quota":           resetQuota,
-		"cycle_period":          params.CyclePeriod,
-		"period_unit":           params.PeriodUnit,
-		"reset_mode":            params.ResetMode,
-		"next_reset_at":         nextResetAt,
-		"groups":                params.Groups,
-		"remark":                params.Remark,
-		"status":                params.Status,
+		"name":                   params.Name,
+		"email":                  params.Email,
+		"quota_expires_at":       util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"expires_at":             util.ConvTimestampMilli(params.ExpiresAt),
+		"is_cycle_reset_quota":   params.IsCycleResetQuota,
+		"reset_quota":            resetQuota,
+		"cycle_period":           params.CyclePeriod,
+		"period_unit":            params.PeriodUnit,
+		"reset_mode":             params.ResetMode,
+		"next_reset_at":          nextResetAt,
+		"groups":                 params.Groups,
+		"remark":                 params.Remark,
+		"status":                 params.Status,
 		"expire_warning_notices": []int{},
 		"expire_notice":          false,
 		"notice_quota_expiry":    0,
@@ -370,6 +372,13 @@ func (s *sAdminUser) Update(ctx context.Context, params model.UserUpdateReq) err
 
 	if params.Password != "" {
 		if err = dao.User.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if err = dao.Account.UpdateMany(ctx, bson.M{"user_id": account.UserId}, bson.M{
+			"need_change_password": config.Cfg.UserLoginRegister.FirstLoginChangePassword,
+		}); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
@@ -408,7 +417,7 @@ func (s *sAdminUser) ChangeQuotaExpire(ctx context.Context, params model.UserCha
 	}
 
 	newData, err := dao.User.FindOneAndUpdateById(ctx, params.Id, bson.M{
-		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"quota_expires_at":       util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"expire_warning_notices": []int{},
 		"expire_notice":          false,
 		"notice_quota_expiry":    0,
@@ -650,42 +659,42 @@ func (s *sAdminUser) Detail(ctx context.Context, id string) (*model.User, error)
 	}
 
 	return &model.User{
-		Id:                     user.Id,
-		UserId:                 user.UserId,
-		Account:                account.Account,
-		Name:                   user.Name,
-		Phone:                  user.Phone,
-		Email:                  user.Email,
-		Quota:                  common.ConvQuotaUnitReverse(user.Quota),
-		UsedQuota:              common.ConvQuotaUnitReverse(user.UsedQuota),
-		QuotaExpiresAt:         util.FormatDateTime(user.QuotaExpiresAt),
-		IsCycleResetQuota:      user.IsCycleResetQuota,
-		ResetQuota:             common.ConvQuotaUnitReverse(user.ResetQuota),
-		CyclePeriod:            user.CyclePeriod,
-		PeriodUnit:             user.PeriodUnit,
-		ResetMode:              user.ResetMode,
-		ResetAt:                util.FormatDateTime(user.ResetAt),
-		NextResetAt:            util.FormatDateTime(user.NextResetAt),
-		Groups:                 user.Groups,
-		GroupNames:             groupNames,
+		Id:                      user.Id,
+		UserId:                  user.UserId,
+		Account:                 account.Account,
+		Name:                    user.Name,
+		Phone:                   user.Phone,
+		Email:                   user.Email,
+		Quota:                   common.ConvQuotaUnitReverse(user.Quota),
+		UsedQuota:               common.ConvQuotaUnitReverse(user.UsedQuota),
+		QuotaExpiresAt:          util.FormatDateTime(user.QuotaExpiresAt),
+		IsCycleResetQuota:       user.IsCycleResetQuota,
+		ResetQuota:              common.ConvQuotaUnitReverse(user.ResetQuota),
+		CyclePeriod:             user.CyclePeriod,
+		PeriodUnit:              user.PeriodUnit,
+		ResetMode:               user.ResetMode,
+		ResetAt:                 util.FormatDateTime(user.ResetAt),
+		NextResetAt:             util.FormatDateTime(user.NextResetAt),
+		Groups:                  user.Groups,
+		GroupNames:              groupNames,
 		QuotaWarning:            user.QuotaWarning,
 		WarningThresholds:       common.ConvQuotaUnitsReverse(common.QuotaWarningThresholds(user.WarningThresholds)),
 		ExpireWarningThresholds: common.QuotaExpireWarningThresholds(user.ExpireWarningThresholds),
 		ExhaustionNotice:        user.ExhaustionNotice,
 		ExpireNotice:            user.ExpireNotice,
-		Remark:                 user.Remark,
-		InviterUserId:          user.InviterUserId,
-		InviteCode:             user.InviteCode,
-		Privacy:                user.Privacy,
-		LogPrivacy:             config.Cfg.Log.Privacy,
-		Status:                 user.Status,
-		Rid:                    user.Rid,
-		LoginIP:                account.LoginIP,
-		LoginTime:              util.FormatDateTime(account.LoginTime),
-		LoginDomain:            account.LoginDomain,
-		CreatedAt:              util.FormatDateTime(user.CreatedAt),
-		ExpiresAt:              util.FormatDateTime(user.ExpiresAt),
-		UpdatedAt:              util.FormatDateTime(user.UpdatedAt),
+		Remark:                  user.Remark,
+		InviterUserId:           user.InviterUserId,
+		InviteCode:              user.InviteCode,
+		Privacy:                 user.Privacy,
+		LogPrivacy:              config.Cfg.Log.Privacy,
+		Status:                  user.Status,
+		Rid:                     user.Rid,
+		LoginIP:                 account.LoginIP,
+		LoginTime:               util.FormatDateTime(account.LoginTime),
+		LoginDomain:             account.LoginDomain,
+		CreatedAt:               util.FormatDateTime(user.CreatedAt),
+		ExpiresAt:               util.FormatDateTime(user.ExpiresAt),
+		UpdatedAt:               util.FormatDateTime(user.UpdatedAt),
 	}, nil
 }
 
@@ -915,7 +924,7 @@ func (s *sAdminUser) Recharge(ctx context.Context, params model.UserRechargeReq)
 		"$inc": bson.M{
 			"quota": params.Quota,
 		},
-		"quota_expires_at":      util.ConvTimestampMilli(params.QuotaExpiresAt),
+		"quota_expires_at":       util.ConvTimestampMilli(params.QuotaExpiresAt),
 		"warning_notices":        []int{},
 		"exhaustion_notice":      false,
 		"expire_warning_notices": []int{},

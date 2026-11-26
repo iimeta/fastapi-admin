@@ -92,7 +92,16 @@ func (s *sUser) ChangePassword(ctx context.Context, params model.UserChangePassw
 		return errors.New("修改密码失败")
 	}
 
-	if rerr := service.Auth().RemoveUserSessions(ctx, uid, service.Session().GetToken(ctx)); rerr != nil {
+	// 清除强制修改密码标记
+	if err = dao.Account.UpdateMany(ctx, bson.M{"user_id": uid}, bson.M{
+		"need_change_password": false,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return errors.New("修改密码失败")
+	}
+
+	// 修改密码后清除该账号的全部会话, 需要使用新密码重新登录
+	if rerr := service.Auth().RemoveUserSessions(ctx, uid); rerr != nil {
 		logger.Error(ctx, rerr)
 	}
 

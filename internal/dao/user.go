@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/do"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/entity"
@@ -136,8 +137,9 @@ func (d *UserDao) ChangePasswordByUserId(ctx context.Context, userId int, passwo
 
 	salt := grand.Letters(8)
 	if err := Account.UpdateMany(ctx, bson.M{"user_id": userId}, bson.M{
-		"password": crypto.EncryptPassword(password + salt),
-		"salt":     salt,
+		"password":            crypto.EncryptPassword(password + salt),
+		"salt":                salt,
+		"password_updated_at": gtime.TimestampMilli(),
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err

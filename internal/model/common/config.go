@@ -67,12 +67,14 @@ type Log struct {
 }
 
 type UserLoginRegister struct {
-	AccountLogin  bool `bson:"account_login"  json:"account_login"`  // 账密登录
-	EmailLogin    bool `bson:"email_login"    json:"email_login"`    // 邮箱登录
-	EmailRegister bool `bson:"email_register" json:"email_register"` // 邮箱注册
-	VerifyEmail   bool `bson:"verify_email"   json:"verify_email"`   // 验证邮箱
-	EmailRetrieve bool `bson:"email_retrieve" json:"email_retrieve"` // 找回密码
-	SessionExpire int  `bson:"session_expire" json:"session_expire"` // 会话过期, 单位: 秒
+	AccountLogin             bool `bson:"account_login"               json:"account_login"`               // 账密登录
+	EmailLogin               bool `bson:"email_login"                 json:"email_login"`                 // 邮箱登录
+	EmailRegister            bool `bson:"email_register"              json:"email_register"`              // 邮箱注册
+	VerifyEmail              bool `bson:"verify_email"                json:"verify_email"`                // 验证邮箱
+	EmailRetrieve            bool `bson:"email_retrieve"              json:"email_retrieve"`              // 找回密码
+	SessionExpire            int  `bson:"session_expire"              json:"session_expire"`              // 会话过期, 单位: 秒
+	FirstLoginChangePassword bool `bson:"first_login_change_password" json:"first_login_change_password"` // 首次登录强制修改密码
+	PasswordExpireDays       int  `bson:"password_expire_days"        json:"password_expire_days"`        // 密码有效期, 单位: 天, 0表示不限制
 }
 
 type UserShieldError struct {
@@ -81,12 +83,14 @@ type UserShieldError struct {
 }
 
 type ResellerLoginRegister struct {
-	AccountLogin  bool `bson:"account_login"  json:"account_login"`  // 账密登录
-	EmailLogin    bool `bson:"email_login"    json:"email_login"`    // 邮箱登录
-	EmailRegister bool `bson:"email_register" json:"email_register"` // 邮箱注册
-	VerifyEmail   bool `bson:"verify_email"   json:"verify_email"`   // 验证邮箱
-	EmailRetrieve bool `bson:"email_retrieve" json:"email_retrieve"` // 找回密码
-	SessionExpire int  `bson:"session_expire" json:"session_expire"` // 会话过期, 单位: 秒
+	AccountLogin             bool `bson:"account_login"               json:"account_login"`               // 账密登录
+	EmailLogin               bool `bson:"email_login"                 json:"email_login"`                 // 邮箱登录
+	EmailRegister            bool `bson:"email_register"              json:"email_register"`              // 邮箱注册
+	VerifyEmail              bool `bson:"verify_email"                json:"verify_email"`                // 验证邮箱
+	EmailRetrieve            bool `bson:"email_retrieve"              json:"email_retrieve"`              // 找回密码
+	SessionExpire            int  `bson:"session_expire"              json:"session_expire"`              // 会话过期, 单位: 秒
+	FirstLoginChangePassword bool `bson:"first_login_change_password" json:"first_login_change_password"` // 首次登录强制修改密码
+	PasswordExpireDays       int  `bson:"password_expire_days"        json:"password_expire_days"`        // 密码有效期, 单位: 天, 0表示不限制
 }
 
 type ResellerShieldError struct {
@@ -95,11 +99,13 @@ type ResellerShieldError struct {
 }
 
 type AdminLogin struct {
-	AccountLogin  bool   `bson:"account_login"  json:"account_login"`  // 账密登录
-	EmailLogin    bool   `bson:"email_login"    json:"email_login"`    // 邮箱登录
-	EmailRetrieve bool   `bson:"email_retrieve" json:"email_retrieve"` // 找回密码
-	SessionExpire int    `bson:"session_expire" json:"session_expire"` // 会话过期, 单位: 秒
-	Path          string `bson:"path"           json:"path"`           // 登录路径
+	AccountLogin             bool   `bson:"account_login"               json:"account_login"`               // 账密登录
+	EmailLogin               bool   `bson:"email_login"                 json:"email_login"`                 // 邮箱登录
+	EmailRetrieve            bool   `bson:"email_retrieve"              json:"email_retrieve"`              // 找回密码
+	SessionExpire            int    `bson:"session_expire"              json:"session_expire"`              // 会话过期, 单位: 秒
+	Path                     string `bson:"path"                        json:"path"`                        // 登录路径
+	FirstLoginChangePassword bool   `bson:"first_login_change_password" json:"first_login_change_password"` // 首次登录强制修改密码
+	PasswordExpireDays       int    `bson:"password_expire_days"        json:"password_expire_days"`        // 密码有效期, 单位: 天, 0表示不限制
 }
 
 type AutoDisabledError struct {

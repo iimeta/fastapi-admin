@@ -92,13 +92,15 @@ func (s *sAdminReseller) Create(ctx context.Context, params model.ResellerCreate
 	}
 
 	if _, err = dao.Reseller.CreateAccount(ctx, &do.ResellerAccount{
-		Uid:      uid,
-		UserId:   reseller.UserId,
-		Account:  params.Account,
-		Password: crypto.EncryptPassword(params.Password + salt),
-		Salt:     salt,
-		Status:   1,
-		Creator:  uid,
+		Uid:                uid,
+		UserId:             reseller.UserId,
+		Account:            params.Account,
+		Password:           crypto.EncryptPassword(params.Password + salt),
+		Salt:               salt,
+		Status:             1,
+		NeedChangePassword: config.Cfg.ResellerLoginRegister.FirstLoginChangePassword,
+		PasswordUpdatedAt:  gtime.TimestampMilli(),
+		Creator:            uid,
 	}); err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -244,7 +246,15 @@ func (s *sAdminReseller) Update(ctx context.Context, params model.ResellerUpdate
 	}
 
 	if params.Password != "" {
+
 		if err = dao.Reseller.ChangePasswordByUserId(ctx, account.UserId, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return err
+		}
+
+		if err = dao.ResellerAccount.UpdateMany(ctx, bson.M{"user_id": account.UserId}, bson.M{
+			"need_change_password": config.Cfg.ResellerLoginRegister.FirstLoginChangePassword,
+		}); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}

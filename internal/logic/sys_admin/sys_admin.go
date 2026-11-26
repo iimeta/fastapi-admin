@@ -5,10 +5,13 @@ import (
 	"fmt"
 
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-admin/v2/internal/config"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/dao"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	logiccommon "github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/model/do"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
@@ -83,6 +86,22 @@ func (s *sSysAdmin) ChangePassword(ctx context.Context, params model.UserChangeP
 	if err = dao.SysAdmin.ChangePassword(ctx, service.Session().GetUid(ctx), params.NewPassword); err != nil {
 		logger.Error(ctx, err)
 		return errors.New("修改密码失败")
+	}
+
+	// 清除强制修改密码标记并刷新会话中的密码到期时间
+	if err = dao.SysAdmin.UpdateById(ctx, admin.Id, bson.M{
+		"need_change_password": false,
+	}); err != nil {
+		logger.Error(ctx, err)
+		return errors.New("修改密码失败")
+	}
+
+	adminSession := service.Session().GetAdmin(ctx)
+	adminSession.NeedChangePassword = false
+	adminSession.PasswordExpireAt = logiccommon.PasswordExpireAt(gtime.TimestampMilli(), admin.CreatedAt, config.Cfg.AdminLogin.PasswordExpireDays)
+
+	if err = service.Session().UpdateAdminSession(ctx, adminSession); err != nil {
+		logger.Error(ctx, err)
 	}
 
 	return nil
@@ -194,18 +213,24 @@ func (s *sSysAdmin) Create(ctx context.Context, params model.SysAdminCreateReq) 
 	salt := grand.Letters(8)
 
 	sysAdmin := &do.SysAdmin{
-		Id:       id,
-		UserId:   int(count + 1),
-		Name:     params.Name,
-		Avatar:   params.Avatar,
-		Email:    params.Email,
-		Phone:    params.Phone,
-		Account:  params.Account,
-		Password: crypto.EncryptPassword(params.Password + salt),
-		Salt:     salt,
-		Remark:   params.Remark,
-		Status:   params.Status,
-		Creator:  creator,
+		Id:                id,
+		UserId:            int(count + 1),
+		Name:              params.Name,
+		Avatar:            params.Avatar,
+		Email:             params.Email,
+		Phone:             params.Phone,
+		Account:           params.Account,
+		Password:          crypto.EncryptPassword(params.Password + salt),
+		Salt:              salt,
+		Remark:            params.Remark,
+		Status:            params.Status,
+		PasswordUpdatedAt: gtime.TimestampMilli(),
+		Creator:           creator,
+	}
+
+	// 系统初始化时自动创建的第一个管理员, 密码由本人设置, 不强制首次登录修改
+	if creator != id {
+		sysAdmin.NeedChangePassword = config.Cfg.AdminLogin.FirstLoginChangePassword
 	}
 
 	if count == 0 {

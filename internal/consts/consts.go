@@ -1,16 +1,17 @@
 package consts
 
 const (
-	TRACE_ID             = "Trace-Id"
-	FASTAPI_REQUEST_ID   = "X-Fastapi-Request-Id"
-	LOCK_LOGIN           = "lock:login:account:%s"
-	LOCK_CHANGE_PASSWORD = "lock:change_password:user:%d"
-	LOCK_CODE            = "lock:code:%s"
-	METHOD_ACCOUNT       = "account"
-	METHOD_CODE          = "code"
-	SERVERS_KEY          = "CORE:SERVERS"
-	HEALTH_CHECK_HEADER  = "X-Health-Check"
-	MODEL_AGENT_HEADER   = "X-Model-Agent"
+	TRACE_ID                  = "Trace-Id"
+	FASTAPI_REQUEST_ID        = "X-Fastapi-Request-Id"
+	LOCK_LOGIN                = "lock:login:account:%s"
+	LOCK_CHANGE_PASSWORD      = "lock:change_password:user:%d"
+	LOCK_CODE                 = "lock:code:%s"
+	METHOD_ACCOUNT            = "account"
+	METHOD_CODE               = "code"
+	SERVERS_KEY               = "CORE:SERVERS"
+	HEALTH_CHECK_HEADER       = "X-Health-Check"
+	MODEL_AGENT_HEADER        = "X-Model-Agent"
+	CODE_NEED_CHANGE_PASSWORD = 460 // 首次登录或密码过期需先修改密码
 )
 
 const (

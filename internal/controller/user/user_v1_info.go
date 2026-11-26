@@ -6,6 +6,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/api/user/v1"
 	"github.com/iimeta/fastapi-admin/v2/internal/consts"
 	"github.com/iimeta/fastapi-admin/v2/internal/errors"
+	logiccommon "github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/model"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/util"
@@ -22,14 +23,15 @@ func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoR
 
 		res = &v1.InfoRes{
 			UserInfoRes: &model.UserInfoRes{
-				UserId:    reseller.UserId,
-				Name:      reseller.Name,
-				Avatar:    reseller.Avatar,
-				Email:     reseller.Email,
-				Phone:     reseller.Phone,
-				Account:   reseller.Account,
-				Role:      consts.RESELLER_CHANNEL,
-				CreatedAt: reseller.CreatedAt,
+				UserId:             reseller.UserId,
+				Name:               reseller.Name,
+				Avatar:             reseller.Avatar,
+				Email:              reseller.Email,
+				Phone:              reseller.Phone,
+				Account:            reseller.Account,
+				Role:               consts.RESELLER_CHANNEL,
+				CreatedAt:          reseller.CreatedAt,
+				NeedChangePassword: reseller.NeedChangePassword || logiccommon.IsPasswordExpired(reseller.PasswordExpireAt),
 			},
 		}
 
@@ -42,16 +44,17 @@ func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoR
 
 		res = &v1.InfoRes{
 			UserInfoRes: &model.UserInfoRes{
-				UserId:    user.UserId,
-				Name:      user.Name,
-				Avatar:    user.Avatar,
-				Email:     user.Email,
-				Phone:     user.Phone,
-				Account:   user.Account,
-				Role:      consts.USER_CHANNEL,
-				CreatedAt: user.CreatedAt,
-				ExpiresAt: user.ExpiresAt,
-				Rid:       user.Rid,
+				UserId:             user.UserId,
+				Name:               user.Name,
+				Avatar:             user.Avatar,
+				Email:              user.Email,
+				Phone:              user.Phone,
+				Account:            user.Account,
+				Role:               consts.USER_CHANNEL,
+				CreatedAt:          user.CreatedAt,
+				ExpiresAt:          user.ExpiresAt,
+				Rid:                user.Rid,
+				NeedChangePassword: user.NeedChangePassword || logiccommon.IsPasswordExpired(user.PasswordExpireAt),
 			},
 		}
 
@@ -64,14 +67,15 @@ func (c *ControllerV1) Info(ctx context.Context, req *v1.InfoReq) (res *v1.InfoR
 
 		res = &v1.InfoRes{
 			UserInfoRes: &model.UserInfoRes{
-				UserId:    admin.UserId,
-				Name:      admin.Name,
-				Avatar:    admin.Avatar,
-				Email:     admin.Email,
-				Phone:     admin.Phone,
-				Account:   admin.Account,
-				Role:      consts.ADMIN_CHANNEL,
-				CreatedAt: util.FormatDateTime(admin.CreatedAt),
+				UserId:             admin.UserId,
+				Name:               admin.Name,
+				Avatar:             admin.Avatar,
+				Email:              admin.Email,
+				Phone:              admin.Phone,
+				Account:            admin.Account,
+				Role:               consts.ADMIN_CHANNEL,
+				CreatedAt:          util.FormatDateTime(admin.CreatedAt),
+				NeedChangePassword: admin.NeedChangePassword || logiccommon.IsPasswordExpired(admin.PasswordExpireAt),
 			},
 		}
 	}

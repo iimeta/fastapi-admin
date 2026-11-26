@@ -48,21 +48,23 @@ type User struct {
 }
 
 type Account struct {
-	gmeta.Meta  `role:"*" bson:"-"`
-	Id          string `bson:"_id,omitempty"`          // ID
-	Uid         string `bson:"uid,omitempty"`          // 用户主键ID
-	UserId      int    `bson:"user_id,omitempty"`      // 用户ID
-	Account     string `bson:"account,omitempty"`      // 账号
-	Password    string `bson:"password,omitempty"`     // 密码
-	Salt        string `bson:"salt,omitempty"`         // 盐
-	LoginIP     string `bson:"login_ip,omitempty"`     // 登录IP
-	LoginTime   int64  `bson:"login_time,omitempty"`   // 登录时间
-	LoginDomain string `bson:"login_domain,omitempty"` // 登录域名
-	Remark      string `bson:"remark,omitempty"`       // 备注
-	Status      int    `bson:"status,omitempty"`       // 状态[1:正常, 2:禁用, -1:删除]
-	Rid         int    `bson:"rid,omitempty"`          // 代理商ID
-	Creator     string `bson:"creator,omitempty"`      // 创建人
-	Updater     string `bson:"updater,omitempty"`      // 更新人
-	CreatedAt   int64  `bson:"created_at,omitempty"`   // 创建时间
-	UpdatedAt   int64  `bson:"updated_at,omitempty"`   // 更新时间
+	gmeta.Meta         `role:"*" bson:"-"`
+	Id                 string `bson:"_id,omitempty"`                  // ID
+	Uid                string `bson:"uid,omitempty"`                  // 用户主键ID
+	UserId             int    `bson:"user_id,omitempty"`              // 用户ID
+	Account            string `bson:"account,omitempty"`              // 账号
+	Password           string `bson:"password,omitempty"`             // 密码
+	Salt               string `bson:"salt,omitempty"`                 // 盐
+	LoginIP            string `bson:"login_ip,omitempty"`             // 登录IP
+	LoginTime          int64  `bson:"login_time,omitempty"`           // 登录时间
+	LoginDomain        string `bson:"login_domain,omitempty"`         // 登录域名
+	NeedChangePassword bool   `bson:"need_change_password,omitempty"` // 是否需要修改密码
+	PasswordUpdatedAt  int64  `bson:"password_updated_at,omitempty"`  // 密码最后修改时间
+	Remark             string `bson:"remark,omitempty"`               // 备注
+	Status             int    `bson:"status,omitempty"`               // 状态[1:正常, 2:禁用, -1:删除]
+	Rid                int    `bson:"rid,omitempty"`                  // 代理商ID
+	Creator            string `bson:"creator,omitempty"`              // 创建人
+	Updater            string `bson:"updater,omitempty"`              // 更新人
+	CreatedAt          int64  `bson:"created_at,omitempty"`           // 创建时间
+	UpdatedAt          int64  `bson:"updated_at,omitempty"`           // 更新时间
 }

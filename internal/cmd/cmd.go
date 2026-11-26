@@ -55,6 +55,7 @@ import (
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/task_video"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/ticket"
 	"github.com/iimeta/fastapi-admin/v2/internal/controller/user"
+	logiccommon "github.com/iimeta/fastapi-admin/v2/internal/logic/common"
 	"github.com/iimeta/fastapi-admin/v2/internal/service"
 	"github.com/iimeta/fastapi-admin/v2/utility/logger"
 	"github.com/iimeta/fastapi-admin/v2/utility/redis"
@@ -466,6 +467,14 @@ func authMiddleware(r *ghttp.Request) {
 		return
 	}
 
+	// 首次登录或密码已过有效期时, 修改密码前仅放行修改密码、用户信息和退出登录接口
+	if isNeedChangePassword(r.GetCtx()) && !isNeedChangePasswordAllowedPath(r.URL.Path) {
+		r.Response.Header().Set("Content-Type", "application/json")
+		r.Response.WriteStatus(http.StatusForbidden, g.Map{"code": consts.CODE_NEED_CHANGE_PASSWORD, "message": "请先修改密码"})
+		r.Exit()
+		return
+	}
+
 	if config.Cfg.Debug.Open {
 		if gstr.HasPrefix(r.GetHeader("Content-Type"), "application/json") {
 			logger.Debugf(r.GetCtx(), "authMiddleware url: %s, request body: %s", r.GetUrl(), r.GetBodyString())
@@ -601,4 +610,35 @@ func sanitizeFormValue(v interface{}) interface{} {
 func sanitizeLogString(s string) string {
 	replacer := strings.NewReplacer("\r\n", "\\n", "\r", "\\n", "\n", "\\n")
 	return replacer.Replace(s)
+}
+
+// 当前会话是否需要先修改密码(首次登录或密码已过有效期)
+func isNeedChangePassword(ctx context.Context) bool {
+
+	if service.Session().IsUserRole(ctx) {
+		if user := service.Session().GetUser(ctx); user != nil {
+			return user.NeedChangePassword || logiccommon.IsPasswordExpired(user.PasswordExpireAt)
+		}
+	} else if service.Session().IsResellerRole(ctx) {
+		if reseller := service.Session().GetReseller(ctx); reseller != nil {
+			return reseller.NeedChangePassword || logiccommon.IsPasswordExpired(reseller.PasswordExpireAt)
+		}
+	} else if service.Session().IsAdminRole(ctx) {
+		if admin := service.Session().GetAdmin(ctx); admin != nil {
+			return admin.NeedChangePassword || logiccommon.IsPasswordExpired(admin.PasswordExpireAt)
+		}
+	}
+
+	return false
+}
+
+// 未修改初始密码时允许访问的接口
+func isNeedChangePasswordAllowedPath(path string) bool {
+
+	switch path {
+	case "/api/v1/user/change/password", "/api/v1/user/info", "/api/v1/auth/logout":
+		return true
+	}
+
+	return false
 }

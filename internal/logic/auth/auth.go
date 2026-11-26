@@ -243,14 +243,15 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		}
 
 		if _, err = dao.User.CreateAccount(ctx, &do.Account{
-			Uid:      uid,
-			UserId:   user.UserId,
-			Account:  params.Account,
-			Password: crypto.EncryptPassword(params.Password + salt),
-			Salt:     salt,
-			Status:   1,
-			Rid:      user.Rid,
-			Creator:  uid,
+			Uid:               uid,
+			UserId:            user.UserId,
+			Account:           params.Account,
+			Password:          crypto.EncryptPassword(params.Password + salt),
+			Salt:              salt,
+			Status:            1,
+			Rid:               user.Rid,
+			PasswordUpdatedAt: gtime.TimestampMilli(),
+			Creator:           uid,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -410,13 +411,14 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		}
 
 		if _, err = dao.Reseller.CreateAccount(ctx, &do.ResellerAccount{
-			Uid:      uid,
-			UserId:   reseller.UserId,
-			Account:  params.Account,
-			Password: crypto.EncryptPassword(params.Password + salt),
-			Salt:     salt,
-			Status:   1,
-			Creator:  uid,
+			Uid:               uid,
+			UserId:            reseller.UserId,
+			Account:           params.Account,
+			Password:          crypto.EncryptPassword(params.Password + salt),
+			Salt:              salt,
+			Status:            1,
+			PasswordUpdatedAt: gtime.TimestampMilli(),
+			Creator:           uid,
 		}); err != nil {
 			logger.Error(ctx, err)
 			return err
@@ -548,6 +550,7 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 	r := g.RequestFromCtx(ctx)
 	ip := util.GetClientIp(r)
 	token := ""
+	needChangePassword := false
 
 	if params.Channel == consts.USER_CHANNEL {
 
@@ -641,25 +644,31 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			service.Invite().ActivateInviteRelation(ctx, user.UserId)
 		}
 
+		passwordExpireAt := common.PasswordExpireAt(account.PasswordUpdatedAt, user.CreatedAt, config.Cfg.UserLoginRegister.PasswordExpireDays)
+
 		if token, err = s.GenUserToken(ctx, &model.User{
-			Id:        user.Id,
-			UserId:    user.UserId,
-			Name:      user.Name,
-			Avatar:    user.Avatar,
-			Email:     user.Email,
-			Phone:     user.Phone,
-			Quota:     common.ConvQuotaUnitReverse(user.Quota),
-			UsedQuota: common.ConvQuotaUnitReverse(user.UsedQuota),
-			Groups:    user.Groups,
-			Rid:       user.Rid,
-			Account:   account.Account,
-			CreatedAt: util.FormatDateTime(user.CreatedAt),
-			ExpiresAt: util.FormatDateTime(user.ExpiresAt),
-			UpdatedAt: util.FormatDateTime(user.UpdatedAt),
+			Id:                 user.Id,
+			UserId:             user.UserId,
+			Name:               user.Name,
+			Avatar:             user.Avatar,
+			Email:              user.Email,
+			Phone:              user.Phone,
+			Quota:              common.ConvQuotaUnitReverse(user.Quota),
+			UsedQuota:          common.ConvQuotaUnitReverse(user.UsedQuota),
+			Groups:             user.Groups,
+			Rid:                user.Rid,
+			Account:            account.Account,
+			NeedChangePassword: account.NeedChangePassword,
+			PasswordExpireAt:   passwordExpireAt,
+			CreatedAt:          util.FormatDateTime(user.CreatedAt),
+			ExpiresAt:          util.FormatDateTime(user.ExpiresAt),
+			UpdatedAt:          util.FormatDateTime(user.UpdatedAt),
 		}, true); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
+
+		needChangePassword = account.NeedChangePassword || common.IsPasswordExpired(passwordExpireAt)
 
 	} else if params.Channel == consts.RESELLER_CHANNEL {
 
@@ -740,23 +749,29 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			logger.Error(ctx, err)
 		}
 
+		passwordExpireAt := common.PasswordExpireAt(accountInfo.PasswordUpdatedAt, reseller.CreatedAt, config.Cfg.ResellerLoginRegister.PasswordExpireDays)
+
 		if token, err = s.GenResellerToken(ctx, &model.Reseller{
-			Id:        reseller.Id,
-			UserId:    reseller.UserId,
-			Name:      reseller.Name,
-			Avatar:    reseller.Avatar,
-			Email:     reseller.Email,
-			Phone:     reseller.Phone,
-			Quota:     common.ConvQuotaUnitReverse(reseller.Quota),
-			UsedQuota: common.ConvQuotaUnitReverse(reseller.UsedQuota),
-			Groups:    reseller.Groups,
-			Account:   accountInfo.Account,
-			CreatedAt: util.FormatDateTime(reseller.CreatedAt),
-			UpdatedAt: util.FormatDateTime(reseller.UpdatedAt),
+			Id:                 reseller.Id,
+			UserId:             reseller.UserId,
+			Name:               reseller.Name,
+			Avatar:             reseller.Avatar,
+			Email:              reseller.Email,
+			Phone:              reseller.Phone,
+			Quota:              common.ConvQuotaUnitReverse(reseller.Quota),
+			UsedQuota:          common.ConvQuotaUnitReverse(reseller.UsedQuota),
+			Groups:             reseller.Groups,
+			Account:            accountInfo.Account,
+			NeedChangePassword: accountInfo.NeedChangePassword,
+			PasswordExpireAt:   passwordExpireAt,
+			CreatedAt:          util.FormatDateTime(reseller.CreatedAt),
+			UpdatedAt:          util.FormatDateTime(reseller.UpdatedAt),
 		}, true); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
+
+		needChangePassword = accountInfo.NeedChangePassword || common.IsPasswordExpired(passwordExpireAt)
 
 	} else if params.Channel == consts.ADMIN_CHANNEL {
 
@@ -830,30 +845,37 @@ func (s *sAuth) Login(ctx context.Context, params model.LoginReq) (res *model.Lo
 			logger.Error(ctx, err)
 		}
 
+		passwordExpireAt := common.PasswordExpireAt(admin.PasswordUpdatedAt, admin.CreatedAt, config.Cfg.AdminLogin.PasswordExpireDays)
+
 		if token, err = s.GenAdminToken(ctx, &model.SysAdmin{
-			Id:        admin.Id,
-			UserId:    admin.UserId,
-			Name:      admin.Name,
-			Avatar:    admin.Avatar,
-			Email:     admin.Email,
-			Phone:     admin.Phone,
-			Account:   admin.Account,
-			Remark:    admin.Remark,
-			Status:    admin.Status,
-			CreatedAt: admin.CreatedAt,
-			UpdatedAt: admin.UpdatedAt,
+			Id:                 admin.Id,
+			UserId:             admin.UserId,
+			Name:               admin.Name,
+			Avatar:             admin.Avatar,
+			Email:              admin.Email,
+			Phone:              admin.Phone,
+			Account:            admin.Account,
+			Remark:             admin.Remark,
+			Status:             admin.Status,
+			NeedChangePassword: admin.NeedChangePassword,
+			PasswordExpireAt:   passwordExpireAt,
+			CreatedAt:          admin.CreatedAt,
+			UpdatedAt:          admin.UpdatedAt,
 		}, true); err != nil {
 			logger.Error(ctx, err)
 			return nil, err
 		}
+
+		needChangePassword = admin.NeedChangePassword || common.IsPasswordExpired(passwordExpireAt)
 	}
 
 	time.Sleep(time.Duration(grand.N(150, 220)) * time.Millisecond)
 
 	loginRes := &model.LoginRes{
-		Type:      "Bearer",
-		Token:     token,
-		ExpiresIn: config.Cfg.UserLoginRegister.SessionExpire,
+		Type:               "Bearer",
+		Token:              token,
+		ExpiresIn:          config.Cfg.UserLoginRegister.SessionExpire,
+		NeedChangePassword: needChangePassword,
 	}
 
 	if params.Channel == consts.ADMIN_CHANNEL {
@@ -926,6 +948,14 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 			return errors.New("找回密码失败")
 		}
 
+		// 用户自行设置的新密码, 清除强制修改密码标记
+		if err = dao.Account.UpdateMany(ctx, bson.M{"user_id": account.UserId}, bson.M{
+			"need_change_password": false,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return errors.New("找回密码失败")
+		}
+
 		if err = s.RemoveUserSessions(ctx, account.UserId); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -951,6 +981,14 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 			return errors.New("找回密码失败")
 		}
 
+		// 代理商自行设置的新密码, 清除强制修改密码标记
+		if err = dao.ResellerAccount.UpdateMany(ctx, bson.M{"user_id": account.UserId}, bson.M{
+			"need_change_password": false,
+		}); err != nil {
+			logger.Error(ctx, err)
+			return errors.New("找回密码失败")
+		}
+
 		if err = s.RemoveResellerSessions(ctx, account.UserId); err != nil {
 			logger.Error(ctx, err)
 		}
@@ -972,6 +1010,14 @@ func (s *sAuth) Forget(ctx context.Context, params model.ForgetReq) error {
 		}
 
 		if err = dao.SysAdmin.ChangePassword(ctx, admin.Id, params.Password); err != nil {
+			logger.Error(ctx, err)
+			return errors.New("找回密码失败")
+		}
+
+		// 管理员自行设置的新密码, 清除强制修改密码标记
+		if err = dao.SysAdmin.UpdateById(ctx, admin.Id, bson.M{
+			"need_change_password": false,
+		}); err != nil {
 			logger.Error(ctx, err)
 			return errors.New("找回密码失败")
 		}

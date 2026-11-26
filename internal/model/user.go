@@ -6,16 +6,17 @@ import (
 
 // 用户信息接口响应参数
 type UserInfoRes struct {
-	UserId    int    `json:"user_id"`
-	Account   string `json:"account"`
-	Name      string `json:"name"`
-	Avatar    string `json:"avatar"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
-	Role      string `json:"role"`
-	CreatedAt string `json:"created_at"`           // 注册时间
-	ExpiresAt string `json:"expires_at,omitempty"` // 过期时间
-	Rid       int    `json:"rid,omitempty"`        // 代理商ID
+	UserId             int    `json:"user_id"`
+	Account            string `json:"account"`
+	Name               string `json:"name"`
+	Avatar             string `json:"avatar"`
+	Email              string `json:"email"`
+	Phone              string `json:"phone"`
+	Role               string `json:"role"`
+	CreatedAt          string `json:"created_at"`                     // 注册时间
+	ExpiresAt          string `json:"expires_at,omitempty"`           // 过期时间
+	Rid                int    `json:"rid,omitempty"`                  // 代理商ID
+	NeedChangePassword bool   `json:"need_change_password,omitempty"` // 是否需要修改密码
 }
 
 // 用户修改密码接口请求参数
@@ -201,6 +202,8 @@ type User struct {
 	LoginIP                 string              `json:"login_ip,omitempty"`                  // 登录IP
 	LoginTime               string              `json:"login_time,omitempty"`                // 登录时间
 	LoginDomain             string              `json:"login_domain,omitempty"`              // 登录域名
+	NeedChangePassword      bool                `json:"need_change_password,omitempty"`      // 是否需要修改密码
+	PasswordExpireAt        int64               `json:"password_expire_at,omitempty"`        // 密码到期时间, 0表示不限制
 	CreatedAt               string              `json:"created_at,omitempty"`                // 创建时间
 	ExpiresAt               string              `json:"expires_at,omitempty"`                // 过期时间
 	UpdatedAt               string              `json:"updated_at,omitempty"`                // 更新时间
