@@ -457,6 +457,17 @@ func (s *sSiteConfig) GetSiteConfigByDomain(ctx context.Context, domain string) 
 	return siteConfig
 }
 
+// 根据域名获取站点配置, 未匹配到时(如IP或未配置的域名访问)取管理员最新更新的站点配置
+func (s *sSiteConfig) GetSiteConfigByDomainOrDefault(ctx context.Context, domain string) *entity.SiteConfig {
+
+	if siteConfig := s.GetSiteConfigByDomain(ctx, domain); siteConfig != nil {
+		return siteConfig
+	}
+
+	siteConfig, _ := dao.SiteConfig.FindOne(ctx, bson.M{"user_id": 1, "status": 1}, &dao.FindOptions{SortFields: []string{"-updated_at"}})
+	return siteConfig
+}
+
 // 获取已存在的域名
 func (s *sSiteConfig) GetExistDomains(ctx context.Context, domains []string, id ...string) []string {
 

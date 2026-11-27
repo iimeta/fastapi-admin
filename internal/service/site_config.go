@@ -30,6 +30,8 @@ type (
 		BatchOperate(ctx context.Context, params model.SiteConfigBatchOperateReq) error
 		// 根据域名获取站点配置
 		GetSiteConfigByDomain(ctx context.Context, domain string) *entity.SiteConfig
+		// 根据域名获取站点配置, 未匹配到时(如IP或未配置的域名访问)取管理员最新更新的站点配置
+		GetSiteConfigByDomainOrDefault(ctx context.Context, domain string) *entity.SiteConfig
 		// 获取已存在的域名
 		GetExistDomains(ctx context.Context, domains []string, id ...string) []string
 		// 根据代理商ID获取站点配置列表

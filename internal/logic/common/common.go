@@ -53,7 +53,7 @@ func (s *sCommon) EmailCode(ctx context.Context, params model.SendEmailReq) (err
 		return errors.New("发送验证码过于频繁, 请稍后再试")
 	}
 
-	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
+	siteConfig := service.SiteConfig().GetSiteConfigByDomainOrDefault(ctx, params.Domain)
 	if siteConfig != nil {
 		if siteConfig.Host == "" && (!config.Cfg.Email.Open || config.Cfg.Email.Host == "") {
 			return errors.New("发信邮箱未配置, 请联系管理员")

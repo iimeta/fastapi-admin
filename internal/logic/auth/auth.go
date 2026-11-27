@@ -82,7 +82,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 		return errors.New("未开启代理商注册, 请联系管理员")
 	}
 
-	siteConfig := service.SiteConfig().GetSiteConfigByDomain(ctx, params.Domain)
+	siteConfig := service.SiteConfig().GetSiteConfigByDomainOrDefault(ctx, params.Domain)
 
 	siteRid := 0
 	if siteConfig != nil {
@@ -466,7 +466,7 @@ func (s *sAuth) Register(ctx context.Context, params model.RegisterReq, channel 
 					}
 
 					currencySymbol := "$"
-					if siteConfig.CurrencySymbol != "" {
+					if siteConfig != nil && siteConfig.CurrencySymbol != "" {
 						currencySymbol = siteConfig.CurrencySymbol
 					}
 
